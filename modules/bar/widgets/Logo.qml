@@ -1,21 +1,14 @@
+import QtQuick
 import Quickshell
 import Quickshell.Io
-import QtQuick
 
 import "root:/" as App
 import "root:/services" as Services
 
 Item {
   id: root
-  property string time
-
   height: App.Settings.widgetHeight
   implicitWidth: label.implicitWidth + App.Settings.widgetPadding * 2
-
-  SystemClock {
-    id: clock
-    precision: SystemClock.Seconds
-  }
 
   Rectangle {
     anchors.fill: parent
@@ -27,8 +20,21 @@ Item {
     id: label
     anchors.centerIn: parent
     color: Services.Colors.bg
+    text: "" // Arch logo (Nerd Font)
     font.family: App.Settings.fontFamily
     font.pixelSize: App.Settings.fontSize
-    text: Qt.formatDateTime(clock.date, "HH:mm:ss")
+  }
+
+  Process {
+    id: wlogout
+    command: ["wlogout"]
+    onStarted: { wlogout.startDetached(); wlogout.running = false }
+  }
+
+  MouseArea {
+    anchors.fill: parent
+    cursorShape: Qt.PointingHandCursor
+    onClicked: wlogout.running = true
   }
 }
+

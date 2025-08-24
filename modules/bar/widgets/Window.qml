@@ -1,21 +1,14 @@
-import Quickshell
-import Quickshell.Io
 import QtQuick
+import Quickshell
+import Quickshell.Wayland
 
 import "root:/" as App
 import "root:/services" as Services
 
 Item {
   id: root
-  property string time
-
   height: App.Settings.widgetHeight
   implicitWidth: label.implicitWidth + App.Settings.widgetPadding * 2
-
-  SystemClock {
-    id: clock
-    precision: SystemClock.Seconds
-  }
 
   Rectangle {
     anchors.fill: parent
@@ -29,6 +22,11 @@ Item {
     color: Services.Colors.bg
     font.family: App.Settings.fontFamily
     font.pixelSize: App.Settings.fontSize
-    text: Qt.formatDateTime(clock.date, "HH:mm:ss")
+    text: (ToplevelManager.activeToplevel && ToplevelManager.activeToplevel.title) || "—"
+    elide: Text.ElideRight
+    horizontalAlignment: Text.AlignHCenter
+    verticalAlignment: Text.AlignVCenter
+    width: root.width - 16
   }
 }
+

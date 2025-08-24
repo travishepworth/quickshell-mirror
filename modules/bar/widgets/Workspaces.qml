@@ -1,93 +1,82 @@
-// Widgets/Workspaces.qml
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import "root:/services" as Services
+import "root:/" as App
 
 RowLayout {
-    id: root
-    required property var screen   // pass panel.screen from the window
+  id: root
+  required property var screen
 
-    property color activeColor: "#89b4fa"
-    property color inactiveColor: "#45475a"
-    property color emptyColor: "#313244"
+  property color activeColor: Services.Colors.accent
+  property color inactiveColor: Services.Colors.outline
+  property color emptyColor: Services.Colors.bgAlt
 
-    // The Hyprland monitor object for this window's screen
-    readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
-    readonly property HyprlandWorkspace focusedWorkspace: Hyprland.workspaces.focused
+  readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
+  readonly property HyprlandWorkspace focusedWorkspace: Hyprland.workspaces.focused
 
-    // Derive which 10-workspace block to show (1-10, 11-20, …) from the current ws
-    readonly property int groupBase: {
-        const id = monitor.activeWorkspace ? monitor.activeWorkspace.id : 1;
-        return Math.floor((id - 1) / 10) * 10 + 1;
-    }
-    readonly property int groupSize: 10
+  readonly property int groupBase: {
+    const id = monitor.activeWorkspace ? monitor.activeWorkspace.id : 1;
+    return Math.floor((id - 1) / 5) * 5 + 1;
+  }
+  readonly property int groupSize: 5
 
-    Repeater {
-        model: root.groupSize
-        delegate: Rectangle {
+  Repeater {
+    model: root.groupSize
+    delegate: Rectangle {
+      readonly property int realId: root.groupBase + index
+      readonly property int fakeId: (function () {
+        if (0 <= realId <= 5) return realId + 5;
+        if (6 <= realId <= 10) return realId;
+        if (11 <= realId <= 15) return realId - 5;
+      })()
 
-            readonly property int realId: root.groupBase + index
-            readonly property HyprlandWorkspace ws: wsById(realId)
+      readonly property HyprlandWorkspace ws: wsById(realId)
 
-            readonly property bool isActive: monitor.activeWorkspace && monitor.activeWorkspace.id === realId
-            readonly property bool exists: ws !== null
+      readonly property bool isActive: monitor.activeWorkspace && monitor.activeWorkspace.id === realId
+      readonly property bool exists: ws !== null
+      readonly property bool hasWindows: ws && ws.toplevels && ws.toplevels.values.length > 0
 
-            function wsById(id) {
-                const arr = Hyprland.workspaces.values;
-                for (let i = 0; i < arr.length; i++) {
-                    if (arr[i].id === id)
-                        return arr[i];
-                }
-                return null;
-            }
-
-            readonly property bool hasWindows: (function () {
-                    if (!ws)
-                        return false;
-                    const tops = ws.toplevels;
-                    return tops && tops.values && tops.values.length > 0;
-                })()
-
-            function printWs() {
-                console.log(`realId: ${realId}`);
-                console.log(`${hasWindows} toplevels`);
-                console.log("---");
-            }
-
-            width: 24
-            height: 24
-            radius: 4
-            color: isActive ? root.activeColor : hasWindows ? root.inactiveColor : root.emptyColor
-            border.width: isActive ? 2 : 0
-            border.color: "#cdd6f4"
-
-            Text {
-                anchors.centerIn: parent
-                // Show local 1..10; switch to `realId.toString()` if you prefer 11..20
-                text: (index + 1).toString()
-                color: "#cdd6f4"
-                font.pixelSize: 12
-                font.bold: isActive
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    printWs();
-                    Hyprland.dispatch(`workspace ${realId}`); // create/activate it
-                }
-                hoverEnabled: true
-                onEntered: parent.opacity = 0.8
-                onExited: parent.opacity = 1.0
-            }
-
-            Behavior on color {
-                ColorAnimation {
-                    duration: 200
-                }
-            }
+      function wsById(id) {
+        const arr = Hyprland.workspaces.values;
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i].id === id)
+            return arr[i];
         }
+        return null;
+      }
+
+      width: App.Settings.widgetHeight
+      height: App.Settings.widgetHeight
+      radius: App.Settings.borderRadius
+      color: isActive ? root.activeColor : hasWindows ? root.inactiveColor : root.emptyColor
+      border.width: 0
+      border.color: Services.Colors.accent
+
+      Text {
+        id: wsIcon
+        anchors.centerIn: parent
+
+        color: isActive ? Services.Colors.bg : Services.Colors.fg
+        font.pixelSize: 12
+      }
+
+      MouseArea {
+        anchors.fill: parent
+        onClicked: {
+          Hyprland.dispatch(`workspace ${realId}`); // create/activate it
+        }
+        hoverEnabled: true
+        onEntered: parent.opacity = 0.8
+        onExited: parent.opacity = 1.0
+      }
+
+      Behavior on color {
+        ColorAnimation {
+          duration: 200
+        }
+      }
     }
+  }
 }
