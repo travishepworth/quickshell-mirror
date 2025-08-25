@@ -12,11 +12,11 @@ Item {
   implicitWidth: label.implicitWidth + App.Settings.widgetPadding * 2
 
   // Quickshell’s notification server tracks notifications; we use its model length.
-  property int count: NotificationServer.trackedNotifications.count
+  property int count: NotificationServer.trackedNotifications.values[0].name
 
   Rectangle {
     anchors.fill: parent
-    color: Services.Colors.accent2
+    color: Services.Colors.accent
     radius: App.Settings.borderRadius
   }
 

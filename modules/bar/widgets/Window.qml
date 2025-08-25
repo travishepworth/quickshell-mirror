@@ -12,7 +12,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Services.Colors.accent2
+    color: Services.Colors.blue
     radius: App.Settings.borderRadius
   }
 
@@ -22,11 +22,12 @@ Item {
     color: Services.Colors.bg
     font.family: App.Settings.fontFamily
     font.pixelSize: App.Settings.fontSize
-    text: (ToplevelManager.activeToplevel && ToplevelManager.activeToplevel.title) || "—"
+
+    text: (ToplevelManager.activeToplevel && ToplevelManager.activeToplevel.title) ? (ToplevelManager.activeToplevel.title.length > 50 ? ToplevelManager.activeToplevel.title.substr(0, 50) + "…" : ToplevelManager.activeToplevel.title) : "—"
+
     elide: Text.ElideRight
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     width: root.width - 16
   }
 }
-

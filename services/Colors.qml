@@ -8,6 +8,21 @@ QtObject {
   readonly property color accent2: App.Settings.currentTheme.accentSecondary
   readonly property color accent3: App.Settings.currentTheme.accentTertiary
 
+  readonly property color red: App.Settings.currentTheme.red
+  readonly property color green: App.Settings.currentTheme.green
+  readonly property color yellow: App.Settings.currentTheme.yellow
+  readonly property color blue: App.Settings.currentTheme.blue
+  readonly property color purple: App.Settings.currentTheme.purple
+  readonly property color aqua: App.Settings.currentTheme.aqua
+  readonly property color orange: App.Settings.currentTheme.orange
+  readonly property color redAlt: App.Settings.currentTheme.brightRed
+  readonly property color greenAlt: App.Settings.currentTheme.brightGreen
+  readonly property color yellowAlt: App.Settings.currentTheme.brightYellow
+  readonly property color blueAlt: App.Settings.currentTheme.brightBlue
+  readonly property color purpleAlt: App.Settings.currentTheme.brightPurple
+  readonly property color aquaAlt: App.Settings.currentTheme.brightAqua
+  readonly property color orangeAlt: App.Settings.currentTheme.brightOrange
+
   // ---- Surfaces (semantic, derived) ----
   readonly property color surface: App.Settings.currentTheme.surface
   readonly property color surfaceAlt: App.Settings.currentTheme.surfaceAlt

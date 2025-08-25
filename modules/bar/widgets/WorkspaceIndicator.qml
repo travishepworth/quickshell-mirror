@@ -13,13 +13,16 @@ Item {
   function formatIcon(index) {
     index = parseInt(index);
     if (1 <= index && index <= 5) {
-      return "";
+      return "";
     } else if (6 <= index && index <= 10) {
-      return "";
+      return "";
     } else if (11 <= index && index <= 15) {
+      return "";
+    } else if (16 <= index && index <= 20) {
       return "";
+    } else if (21 <= index && index <= 25) {
+      return "";
     }
-
   }
 
   Rectangle {
@@ -30,7 +33,7 @@ Item {
 
   Timer {
     id: poll
-    interval: 500
+    interval: 100
     running: true
     repeat: true
     onTriggered: {

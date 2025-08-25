@@ -42,7 +42,6 @@ Item {
   Row {
     id: row
     anchors.centerIn: parent
-    rightPadding: tray.rightPadding
     spacing: tray.spacing
 
     Repeater {

@@ -13,7 +13,10 @@ QtObject {
     property int widgetPadding: 10
     property int widgetSpacing: 6
 
-    property int screenMargin: 8
+    property int resolutionWidth: 3440
+    property int resolutionHeight: 1440
+
+    property int screenMargin: 6
 
     property string fontFamily: "JetBrains Mono Nerd Font"
     property int fontSize: 18

@@ -59,7 +59,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Services.Colors.accent
+    color: Services.Colors.orange
     radius: App.Settings.borderRadius
   }
 

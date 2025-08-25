@@ -44,7 +44,7 @@ Scope {
             id: leftGroup
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            anchors.leftMargin: 10
+            anchors.leftMargin: App.Settings.screenMargin
             Widgets.Window {
               id: window
             }
@@ -57,7 +57,7 @@ Scope {
             id: leftCenterGroup
             anchors.right: workspaces.left
             anchors.verticalCenter: parent.verticalCenter
-            anchors.rightMargin: 8
+            anchors.rightMargin: App.Settings.screenMargin
             Widgets.Time {
               id: time
             }

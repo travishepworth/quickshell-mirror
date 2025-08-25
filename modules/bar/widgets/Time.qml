@@ -15,6 +15,9 @@ Item {
   SystemClock {
     id: clock
     precision: SystemClock.Seconds
+    onDateChanged: {
+      label.text = Qt.formatDateTime(clock.date, "hh:mm:ss ap")
+    }
   }
 
   Rectangle {

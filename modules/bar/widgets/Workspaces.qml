@@ -21,16 +21,13 @@ RowLayout {
     return Math.floor((id - 1) / 5) * 5 + 1;
   }
   readonly property int groupSize: 5
+  readonly property int row: 5
+  readonly property int column: 5
 
   Repeater {
     model: root.groupSize
     delegate: Rectangle {
       readonly property int realId: root.groupBase + index
-      readonly property int fakeId: (function () {
-        if (0 <= realId <= 5) return realId + 5;
-        if (6 <= realId <= 10) return realId;
-        if (11 <= realId <= 15) return realId - 5;
-      })()
 
       readonly property HyprlandWorkspace ws: wsById(realId)
 
@@ -74,7 +71,7 @@ RowLayout {
 
       Behavior on color {
         ColorAnimation {
-          duration: 200
+          duration: 50
         }
       }
     }

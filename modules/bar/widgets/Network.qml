@@ -44,7 +44,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Services.Colors.accent2
+    color: Services.Colors.orange
     radius: App.Settings.borderRadius
   }
 
