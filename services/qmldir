@@ -1,3 +1,2 @@
-singleton WorkspaceState 1.0 WorkspaceState.qml
 singleton Colors   1.0 Colors.qml
 singleton Settings 1.0 Settings.qml

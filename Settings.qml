@@ -23,4 +23,3 @@ QtObject {
 
     readonly property var currentTheme: Themes.ThemeIndex.get(theme)
 }
-

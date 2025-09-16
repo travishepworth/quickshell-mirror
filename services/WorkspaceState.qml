@@ -1,137 +1,120 @@
+// File: services/WorkspaceTracker.qml
+// This is the singleton service that manages all workspace state
 pragma Singleton
 import QtQuick
+import Quickshell
+import Quickshell.Hyprland
 
 QtObject {
-  id: ring
-
-  enum Position {
-    Upper,
-    Center,
-    Lower,
-    CenterAndUpper,
-    CenterAndLower,
-    UpperAndLower,
-    None,
-    Full
-  }
-
-  readonly property int _Upper: 0
-  readonly property int _Center: 1
-  readonly property int _Lower: 2
-  readonly property int _CenterAndUpper: 3
-  readonly property int _CenterAndLower: 4
-  readonly property int _UpperAndLower: 5
-  readonly property int _None: 6
-  readonly property int _Full: 7
-
-  // Tunable radius (lowercase!)
-  readonly property int radius: 5
-
-  // Bitmask flags (lowercase!)
-  readonly property int bitCenter: 1
-  readonly property int bitLower: 2
-  readonly property int bitUpper: 4
-
-  // State
-  property var occ: ({})     // { [id]: true }
-  property var masks: ({})   // { [id]: bitmask }
-
-  signal maskChanged(int id, int mask)
-
-  // ---------- Public API ----------
-
-  function positionFor(id) {
-    const m = masks[id] || 0;
-    const c = (m & bitCenter) !== 0;
-    const l = (m & bitLower)  !== 0;
-    const u = (m & bitUpper)  !== 0;
-
-    if (c && u && l) return _Full;
-    if (!c && u && l) return _UpperAndLower;
-    if (c && u)       return _CenterAndUpper;
-    if (c && l)       return _CenterAndLower;
-    if (u)            return _Upper;
-    if (l)            return _Lower;
-    if (c)            return _Center;
-    return _None;
-  }
-
-  function iconFor(id) {
-    switch (positionFor(id)) {
-      case _Full:           return "●↕";
-      case _UpperAndLower:  return "↕";
-      case _CenterAndUpper: return "●↑";
-      case _CenterAndLower: return "●↓";
-      case _Upper:          return "↑";
-      case _Lower:          return "↓";
-      case _Center:         return "●";
-      default:                      return "";
+    id: root
+    
+    // Bit flags for rows with windows (5 bits, one per row)
+    property int rowFlags: 0
+    
+    // Cached states
+    property var states: ({})
+    property var icons: ({})
+    
+    // Version counter to detect changes
+    property int version: 0
+    
+    function update() {
+        const workspaces = Hyprland.workspaces.values
+        const newStates = {}
+        let newFlags = 0
+        
+        // Initialize all workspaces as empty
+        for (let id = 1; id <= 25; id++) {
+            newStates[id] = false
+        }
+        
+        // Single pass through existing workspaces
+        for (let i = 0; i < workspaces.length; i++) {
+            const ws = workspaces[i]
+            if (ws.id >= 1 && ws.id <= 25) {
+                const hasWin = ws.toplevels && ws.toplevels.values.length > 0
+                newStates[ws.id] = hasWin
+                if (hasWin) {
+                    newFlags |= (1 << Math.floor((ws.id - 1) / 5))
+                }
+            }
+        }
+        
+        // Only update icons if something changed
+        let statesChanged = false
+        for (let id = 1; id <= 25; id++) {
+            if (states[id] !== newStates[id]) {
+                statesChanged = true
+                break
+            }
+        }
+        
+        if (statesChanged || Object.keys(states).length === 0) {
+            rowFlags = newFlags
+            states = newStates
+            updateIcons()
+            version++
+        }
     }
-  }
-
-  function ringFor(id) {
-    const lowers = [];
-    const uppers = [];
-    for (let d = 1; d <= radius; d++) {
-      if (occ[id - d]) lowers.push(id - d);
-      if (occ[id + d]) uppers.push(id + d);
+    
+    function updateIcons() {
+        const newIcons = {}
+        
+        // Pre-calculate icons for all 25 workspaces
+        for (let id = 1; id <= 25; id++) {
+            if (states[id]) {
+                newIcons[id] = ""
+                continue
+            }
+            
+            const row = Math.floor((id - 1) / 5)
+            let above = 0, below = 0
+            
+            // Check for nearest rows with windows using bit operations
+            for (let r = row - 1; r >= 0 && above === 0; r--) {
+                if (rowFlags & (1 << r)) above = row - r
+            }
+            for (let r = row + 1; r < 5 && below === 0; r++) {
+                if (rowFlags & (1 << r)) below = r - row
+            }
+            
+            if (above && below) {
+                newIcons[id] = "󰓎"
+            } else if (above) {
+                newIcons[id] = ["", "", "", "", ""][Math.min(above - 1, 4)]
+            } else if (below) {
+                newIcons[id] = ["", "", "", "", ""][Math.min(below - 1, 4)]
+            } else {
+                newIcons[id] = ""
+            }
+        }
+        
+        icons = newIcons
     }
-    return { center: !!occ[id], lowers, uppers };
-  }
-
-  // ---------- Mutations ----------
-
-  function setOccupiedIds(ids) {
-    const old = occ;
-    occ = {};
-    for (let i = 0; i < ids.length; i++) occ[ids[i]] = true;
-
-    const touched = _changedCenters(old, occ);
-    for (let j = 0; j < touched.length; j++) _recalcAround(touched[j]);
-  }
-
-  function add(id) {
-    if (occ[id]) return;
-    occ[id] = true;
-    _recalcAround(id);
-  }
-
-  function remove(id) {
-    if (!occ[id]) return;
-    delete occ[id];
-    _recalcAround(id);
-  }
-
-  // ---------- Internals ----------
-
-  function _changedCenters(a, b) {
-    const seen = Object.create(null), out = [];
-    for (const k in a) seen[k] = 1;
-    for (const k in b) seen[k] = 1;
-    for (const k in seen) {
-      if (!!a[k] !== !!b[k]) out.push(Number(k));
+    
+    function getIcon(id) {
+        return icons[id] || ""
     }
-    return out.length ? out : [];
-  }
-
-  function _recalcAround(centerId) {
-    const start = centerId - radius;
-    const end   = centerId + radius;
-    for (let i = start; i <= end; i++) {
-      const newMask = _calcMask(i);
-      const oldMask = masks[i] || 0;
-      if (newMask !== oldMask) {
-        masks[i] = newMask;
-        maskChanged(i, newMask);
-      }
+    
+    function hasWindows(id) {
+        return states[id] || false
     }
-  }
-
-  function _calcMask(i) {
-    let m = 0;
-    if (occ[i]) m |= bitCenter;
-    for (let d = 1; d <= radius; d++) { if (occ[i - d]) { m |= bitLower; break; } }
-    for (let d = 1; d <= radius; d++) { if (occ[i + d]) { m |= bitUpper; break; } }
-    return m;
-  }
+    
+    // Also provide a helper to get workspace by ID
+    function getWorkspace(id) {
+        const arr = Hyprland.workspaces.values
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i].id === id) return arr[i]
+        }
+        return null
+    }
+    
+    Connections {
+        target: Hyprland.workspaces
+        function onValuesChanged() {
+            root.update()
+        }
+    }
+    
+    Component.onCompleted: update()
 }

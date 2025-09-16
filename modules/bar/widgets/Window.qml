@@ -23,7 +23,7 @@ Item {
     font.family: App.Settings.fontFamily
     font.pixelSize: App.Settings.fontSize
 
-    text: (ToplevelManager.activeToplevel && ToplevelManager.activeToplevel.title) ? (ToplevelManager.activeToplevel.title.length > 50 ? ToplevelManager.activeToplevel.title.substr(0, 50) + "…" : ToplevelManager.activeToplevel.title) : "—"
+    text: (ToplevelManager.activeToplevel && ToplevelManager.activeToplevel.title) ? (ToplevelManager.activeToplevel.title.length > 25 ? ToplevelManager.activeToplevel.title.substr(0, 25) + "…" : ToplevelManager.activeToplevel.title) : "—"
 
     elide: Text.ElideRight
     horizontalAlignment: Text.AlignHCenter

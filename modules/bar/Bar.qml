@@ -23,7 +23,8 @@ Scope {
         screen: modelData
 
         anchors {
-          top: true
+          top: modelData.name === "DP-1"
+          bottom: modelData.name === "DP-2"
           left: true
           right: true
         }
@@ -50,6 +51,7 @@ Scope {
             }
             Widgets.Media {
               id: media
+              visible: modelData.name === "DP-1"
             }
           }
 
@@ -63,6 +65,7 @@ Scope {
             }
             Widgets.WorkspaceIndicator {
               id: workspaceIndicator
+              screen: panel.screen
             }
           }
 
@@ -75,6 +78,7 @@ Scope {
             anchors.leftMargin: App.Settings.screenMargin
             Widgets.SystemMonitor {
               id: systemMonitor
+              visible: modelData.name === "DP-1"
             }
           }
 
@@ -95,7 +99,7 @@ Scope {
             }
             Widgets.SystemTray {
               id: tray
-              visible: modelData.primary
+              visible: modelData.name === "DP-1"
             }
             Widgets.Notifications {
               id: notifications

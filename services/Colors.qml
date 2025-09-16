@@ -1,4 +1,5 @@
 pragma Singleton
+
 import QtQuick
 import "root:/" as App
 

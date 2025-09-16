@@ -64,11 +64,13 @@ Item {
 
         QsMenuAnchor {
           id: menuAnchor
-          anchor.window: QSWindow.window
+          anchor.item: parent
+          anchor.edges: Qt.BottomEdge
           menu: ti ? ti.menu : null
         }
 
         MouseArea {
+          id: menuArea
           anchors.fill: parent
           acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
 

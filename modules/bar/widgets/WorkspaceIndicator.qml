@@ -7,23 +7,49 @@ import "root:/services" as Services
 
 Item {
   id: root
+  required property var screen
+
   height: App.Settings.widgetHeight
   implicitWidth: label.implicitWidth + App.Settings.widgetPadding * 2
 
-  function formatIcon(index) {
-    index = parseInt(index);
-    if (1 <= index && index <= 5) {
-      return "";
-    } else if (6 <= index && index <= 10) {
-      return "";
-    } else if (11 <= index && index <= 15) {
-      return "";
-    } else if (16 <= index && index <= 20) {
-      return "";
-    } else if (21 <= index && index <= 25) {
-      return "";
+  property string monitorName: screen.name
+
+  property int rows: 5
+  property int cols: 5
+
+  property int startingWorkspace: determineStartingWorkspace()
+  property int totalWorkspaces: rows * cols
+
+  function logMonitorName() {
+    console.log("Monitor Name: " + monitorName);
+  }
+
+  function determineStartingWorkspace() {
+    if (screen.name === "DP-1") {
+      return 1;
+    } else if (screen.name === "DP-2") {
+      return totalWorkspaces + 1;
     }
   }
+
+  function formatIcon(index) {
+    index = parseInt(index) - 1;
+    
+    const row = Math.floor(index / cols);
+    const workspaceStartRow = Math.floor(startingWorkspace / cols);
+    
+    if (row === workspaceStartRow) {
+        return "";
+    } else if (row === workspaceStartRow + 1) {
+        return "";
+    } else if (row === workspaceStartRow + 2) {
+        return "";
+    } else if (row === workspaceStartRow + 3) {
+        return "";
+    } else if (row === workspaceStartRow + 4) {
+        return "";
+    }
+}
 
   Rectangle {
     anchors.fill: parent
@@ -37,7 +63,7 @@ Item {
     running: true
     repeat: true
     onTriggered: {
-      workspace.command = ["sh", "-c", "hyprctl -j activeworkspace | jq .id"];
+      workspace.command = ["sh", "-c", `hyprctl -j monitors | jq '.[] | select(.name == "${monitorName}") | .activeWorkspace.id'`];
       workspace.running = true;
     }
   }
@@ -64,7 +90,7 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    // onClicked: 
+    onClicked: logMonitorName()
   }
 }
 

@@ -47,7 +47,7 @@ Item {
     id: label
     anchors.centerIn: parent
     color: Services.Colors.bg
-    text: root.player ? ((root.player.trackArtist || "Unknown") + " - " + (root.player.trackTitle || "Unknown")) : "No player"
+    text: root.player ? ((root.player.trackArtist.substr(0, 20) || "Unknown") + " - " + (root.player.trackTitle.substr(0,30) || "Unknown")) : "No player"
     elide: Text.ElideRight
     width: root.width - 16
     horizontalAlignment: Text.AlignHCenter
