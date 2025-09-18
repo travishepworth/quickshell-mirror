@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-import qs.services as Services
+import qs.services
 
 Item {
   id: root

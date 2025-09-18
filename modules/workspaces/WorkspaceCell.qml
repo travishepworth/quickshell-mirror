@@ -16,9 +16,9 @@ Rectangle {
     border.width: isActive ? 3 : 1
     border.color: isActive ? "#d79921" : "#504945" // Gruvbox yellow/bg2
     
-    Component.onCompleted: {
-        console.log("WorkspaceCell", workspaceId, "created at position", x, y, "with size", width, "x", height);
-    }
+    // Component.onCompleted: {
+    //     console.log("WorkspaceCell", workspaceId, "created at position", x, y, "with size", width, "x", height);
+    // }
     
     Behavior on border.color {
         ColorAnimation { duration: 150 }

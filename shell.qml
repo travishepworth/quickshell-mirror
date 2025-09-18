@@ -7,6 +7,8 @@ import "modules/media"
 import "modules/osd"
 import "modules/workspaces"
 
+import "modules/bar/popouts"
+
 import "modules/bar"
 import "./services"
 
@@ -16,8 +18,13 @@ import QtQuick
 ShellRoot {
   id: shellRoot
 
-  Bar {
+  // PopoutWrapper {
+  //   id: popoutWrapper
+  // }
+  BarWrapper {
     id: mainBar
+    // popouts: popoutWrapper
+    screen: shellRoot.currentScreen
   }
 
   MediaPanel {

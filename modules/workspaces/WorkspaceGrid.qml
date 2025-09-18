@@ -118,14 +118,9 @@ Rectangle {
     }
   }
 
-  Component.onCompleted: {
-    console.log("WorkspaceGrid initialized");
-    console.log("Grid dimensions:", implicitWidth, "x", implicitHeight);
-    console.log("Workspace size:", workspaceWidth, "x", workspaceHeight);
-    console.log("Window list length:", HyprlandData.windowList ? HyprlandData.windowList.length : "undefined");
-    console.log("Active workspace:", activeWorkspace);
-    if (HyprlandData.windowList && HyprlandData.windowList.length > 0) {
-      console.log("First window:", JSON.stringify(HyprlandData.windowList[0], null, 2));
-    }
-  }
+  // Component.onCompleted: {
+  //   if (HyprlandData.windowList && HyprlandData.windowList.length > 0) {
+  //     console.log("First window:", JSON.stringify(HyprlandData.windowList[0], null, 2));
+  //   }
+  // }
 }
