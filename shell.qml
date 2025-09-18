@@ -3,6 +3,7 @@
 import "modules/overview" as Overview
 import "modules/panels" as Panels
 import "modules/notificationPopup" as NotificationPopup
+import "modules/media"
 
 import "modules/bar"
 import "./services"
@@ -12,13 +13,14 @@ import QtQuick
 
 ShellRoot {
   id: shellRoot
+  property alias mediaPanel: mediaPanel
 
-  // Services.NotificationService {
-  //   id: notificationService
-  // }
-  //
   Bar {
     id: mainBar
+  }
+
+  MediaPanel {
+    id: mediaPanel
   }
 
   // Loader { active: true; component: Bar{}}

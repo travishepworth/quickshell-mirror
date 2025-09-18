@@ -98,35 +98,35 @@ Item {
       readonly property bool exists: ws !== null
       readonly property bool hasWindows: ws && ws.toplevels && ws.toplevels.values.length > 0
 
-      function findIconPath(appClass) {
-        if (!appClass || appClass === "")
-          return "";
-
-        let iconName = appClass.toLowerCase();
-
-        if (iconName.includes(".")) {
-          const parts = iconName.split(".");
-          iconName = parts[parts.length - 1];
-        }
-
-        const iconPaths = [
-          `/usr/share/icons/hicolor/256x256/apps/${iconName}.png`,
-          `/usr/share/icons/hicolor/128x128/apps/${iconName}.png`,
-          `/usr/share/icons/hicolor/64x64/apps/${iconName}.png`,
-          `/usr/share/icons/hicolor/48x48/apps/${iconName}.png`,
-          `/usr/share/icons/hicolor/scalable/apps/${iconName}.svg`,
-          `/usr/share/pixmaps/${iconName}.png`,
-          `/usr/share/pixmaps/${iconName}.svg`,
-          `/usr/share/icons/Papirus/64x64/apps/${iconName}.svg`,
-          `/usr/share/icons/Papirus/48x48/apps/${iconName}.svg`,
-          `/usr/share/icons/breeze/apps/64/${iconName}.svg`,
-          `/usr/share/icons/breeze/apps/48/${iconName}.svg`,
-          `/usr/share/icons/Adwaita/256x256/apps/${iconName}.png`,
-          `/usr/share/icons/Adwaita/48x48/apps/${iconName}.png`,
-        ];
-
-        return iconPaths[0];
-      }
+      // function findIconPath(appClass) {
+      //   if (!appClass || appClass === "")
+      //     return "";
+      //
+      //   let iconName = appClass.toLowerCase();
+      //
+      //   if (iconName.includes(".")) {
+      //     const parts = iconName.split(".");
+      //     iconName = parts[parts.length - 1];
+      //   }
+      //
+      //   const iconPaths = [
+      //     `/usr/share/icons/hicolor/256x256/apps/${iconName}.png`,
+      //     `/usr/share/icons/hicolor/128x128/apps/${iconName}.png`,
+      //     `/usr/share/icons/hicolor/64x64/apps/${iconName}.png`,
+      //     `/usr/share/icons/hicolor/48x48/apps/${iconName}.png`,
+      //     `/usr/share/icons/hicolor/scalable/apps/${iconName}.svg`,
+      //     `/usr/share/pixmaps/${iconName}.png`,
+      //     `/usr/share/pixmaps/${iconName}.svg`,
+      //     `/usr/share/icons/Papirus/64x64/apps/${iconName}.svg`,
+      //     `/usr/share/icons/Papirus/48x48/apps/${iconName}.svg`,
+      //     `/usr/share/icons/breeze/apps/64/${iconName}.svg`,
+      //     `/usr/share/icons/breeze/apps/48/${iconName}.svg`,
+      //     `/usr/share/icons/Adwaita/256x256/apps/${iconName}.png`,
+      //     `/usr/share/icons/Adwaita/48x48/apps/${iconName}.png`,
+      //   ];
+      //
+      //   return iconPaths[0];
+      // }
 
       readonly property var largestWindow: {
         if (!hasWindows || !ws)
