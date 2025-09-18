@@ -5,7 +5,6 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
-import "root:/" as App
 import qs.services
 
 Scope {
@@ -113,7 +112,7 @@ Scope {
 
     margins {
       top: 10
-      left: 10 + App.Settings.barHeight
+      left: 10 + Settings.barHeight
     }
 
     // Focus management
@@ -135,7 +134,7 @@ Scope {
       height: contentLayout.height + 24
 
       color: Colors.surface
-      radius: App.Settings.borderRadius
+      radius: Settings.borderRadius
       border.color: Colors.outline
       border.width: 1
 
@@ -159,7 +158,7 @@ Scope {
         Rectangle {
           width: 80
           height: 80
-          radius: App.Settings.borderRadius
+          radius: Settings.borderRadius
           color: Colors.surfaceAlt
           clip: true
 
@@ -176,7 +175,7 @@ Scope {
             text: "♪"
             color: Colors.accent
             font.pixelSize: 28
-            font.family: App.Settings.fontFamily
+            font.family: Settings.fontFamily
             visible: !Mpris.artDownloaded
           }
         }
@@ -190,8 +189,8 @@ Scope {
           Text {
             text: Mpris.trackTitle
             color: Colors.accent
-            font.pixelSize: App.Settings.fontSize
-            font.family: App.Settings.fontFamily
+            font.pixelSize: Settings.fontSize
+            font.family: Settings.fontFamily
             font.weight: Font.Medium
             elide: Text.ElideRight
             width: parent.width
@@ -201,8 +200,8 @@ Scope {
           Text {
             text: Mpris.trackArtist
             color: Colors.accent2
-            font.pixelSize: App.Settings.fontSize - 2
-            font.family: App.Settings.fontFamily
+            font.pixelSize: Settings.fontSize - 2
+            font.family: Settings.fontFamily
             elide: Text.ElideRight
             width: parent.width
           }
@@ -241,7 +240,7 @@ Scope {
 
               Rectangle {
                 anchors.fill: parent
-                radius: App.Settings.borderRadius
+                radius: Settings.borderRadius
                 color: parent.containsMouse ? Colors.surfaceAlt : "transparent"
 
                 Text {
@@ -249,7 +248,7 @@ Scope {
                   text: "⏮"
                   color: Colors.accent
                   font.pixelSize: 14
-                  font.family: App.Settings.fontFamily
+                  font.family: Settings.fontFamily
                 }
               }
             }
@@ -271,7 +270,7 @@ Scope {
                   text: Mpris.isPlaying ? "⏸" : "▶"
                   color: Mpris.isPlaying ? Colors.surface : Colors.accent
                   font.pixelSize: 16
-                  font.family: App.Settings.fontFamily
+                  font.family: Settings.fontFamily
                 }
 
                 Behavior on color {
@@ -291,7 +290,7 @@ Scope {
 
               Rectangle {
                 anchors.fill: parent
-                radius: App.Settings.borderRadius
+                radius: Settings.borderRadius
                 color: parent.containsMouse ? Colors.surfaceAlt : "transparent"
 
                 Text {
@@ -299,7 +298,7 @@ Scope {
                   text: "⏭"
                   color: Colors.accent
                   font.pixelSize: 14
-                  font.family: App.Settings.fontFamily
+                  font.family: Settings.fontFamily
                 }
               }
             }
@@ -312,8 +311,8 @@ Scope {
             Text {
               text: Mpris.formatTime(Mpris.position) + " / " + Mpris.formatTime(Mpris.length)
               color: Colors.accent3
-              font.pixelSize: App.Settings.fontSize - 4
-              font.family: App.Settings.fontFamily
+              font.pixelSize: Settings.fontSize - 4
+              font.family: Settings.fontFamily
               anchors.verticalCenter: parent.verticalCenter
             }
           }
@@ -325,8 +324,8 @@ Scope {
         anchors.centerIn: parent
         text: "No media player"
         color: Colors.accent
-        font.pixelSize: App.Settings.fontSize
-        font.family: App.Settings.fontFamily
+        font.pixelSize: Settings.fontSize
+        font.family: Settings.fontFamily
         visible: Mpris.activePlayer === null
       }
     }

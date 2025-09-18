@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import "root:/" as App
 
 import qs.services
 
@@ -11,16 +10,16 @@ Item {
   
   property string iface: ""
   property string kind: "" // "wifi" | "ethernet" | ""
-  property int orientation: App.Settings.orientation  // Accept orientation from parent
+  property int orientation: Settings.orientation  // Accept orientation from parent
   property bool isVertical: orientation === Qt.Vertical
   property bool rotateText: true
   
   // Dynamic dimensions based on orientation
-  height: isVertical ? implicitHeight : App.Settings.widgetHeight
-  width: isVertical ? App.Settings.widgetHeight : implicitWidth
+  height: isVertical ? implicitHeight : Settings.widgetHeight
+  width: isVertical ? Settings.widgetHeight : implicitWidth
   
-  implicitWidth: isVertical ? App.Settings.widgetHeight : (layoutLoader.item ? layoutLoader.item.implicitWidth + App.Settings.widgetPadding * 2 : 60)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + App.Settings.widgetPadding * 2 : App.Settings.widgetHeight) : App.Settings.widgetHeight
+  implicitWidth: isVertical ? Settings.widgetHeight : (layoutLoader.item ? layoutLoader.item.implicitWidth + Settings.widgetPadding * 2 : 60)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Settings.widgetPadding * 2 : Settings.widgetHeight) : Settings.widgetHeight
   
   Timer {
     id: poll
@@ -58,7 +57,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     color: Colors.orange
-    radius: App.Settings.borderRadius
+    radius: Settings.borderRadius
   }
   
   Loader {
@@ -84,16 +83,16 @@ Item {
           id: labelIconH
           color: Colors.bg
           text: iconFor(root.kind)
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
         }
         
         Text {
           id: labelH
           color: Colors.bg
           text: root.iface || "—"
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
         }
       }
     }
@@ -107,8 +106,8 @@ Item {
           id: labelIconV
           color: Colors.bg
           text: iconFor(root.kind)
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           anchors.horizontalCenter: parent.horizontalCenter
         }
         
@@ -116,8 +115,8 @@ Item {
           id: labelV
           color: Colors.bg
           text: root.iface || "—"
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize * 0.8  // Slightly smaller for vertical layout
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize * 0.8  // Slightly smaller for vertical layout
           anchors.horizontalCenter: parent.horizontalCenter
         }
       }
@@ -132,8 +131,8 @@ Item {
           id: iconText
           color: Colors.bg
           text: iconFor(root.kind)
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           anchors {
             centerIn: parent
             verticalCenterOffset: -(ifaceText.width / 2) - 3
@@ -144,8 +143,8 @@ Item {
           id: ifaceText
           color: Colors.bg
           text: root.iface || "—"
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           rotation: -90  // Rotate counter-clockwise
           anchors {
             centerIn: parent

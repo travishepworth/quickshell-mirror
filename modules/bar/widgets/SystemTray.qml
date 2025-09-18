@@ -3,7 +3,6 @@ import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import Quickshell
 import Quickshell.Services.SystemTray
-import "root:/" as App
 
 import qs.services
 
@@ -11,7 +10,7 @@ Item {
   id: tray
   
   // Add orientation property
-  property int orientation: App.Settings.orientation  // Accept orientation from parent
+  property int orientation: Settings.orientation  // Accept orientation from parent
   property bool isVertical: orientation === Qt.Vertical
   
   property int iconSize: 18
@@ -27,14 +26,14 @@ Item {
   property real backgroundBorderWidth: 0
   
   // Dynamic dimensions based on orientation
-  height: isVertical ? implicitHeight : App.Settings.widgetHeight
-  width: isVertical ? App.Settings.widgetHeight : implicitWidth
+  height: isVertical ? implicitHeight : Settings.widgetHeight
+  width: isVertical ? Settings.widgetHeight : implicitWidth
   
-  implicitWidth: isVertical ? App.Settings.widgetHeight : (layoutLoader.item ? layoutLoader.item.implicitWidth + App.Settings.widgetPadding * 2 : 0)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + App.Settings.widgetPadding * 2 : 0) : App.Settings.widgetHeight
+  implicitWidth: isVertical ? Settings.widgetHeight : (layoutLoader.item ? layoutLoader.item.implicitWidth + Settings.widgetPadding * 2 : 0)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Settings.widgetPadding * 2 : 0) : Settings.widgetHeight
   
-  Layout.preferredWidth: isVertical ? App.Settings.widgetHeight : implicitWidth
-  Layout.preferredHeight: isVertical ? implicitHeight : App.Settings.widgetHeight
+  Layout.preferredWidth: isVertical ? Settings.widgetHeight : implicitWidth
+  Layout.preferredHeight: isVertical ? implicitHeight : Settings.widgetHeight
   
   Rectangle {
     anchors.fill: parent

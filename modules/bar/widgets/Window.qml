@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import "root:/" as App
 
 import qs.services
 
@@ -9,30 +8,30 @@ Item {
   id: root
   
   // Orientation support
-  property int orientation: App.Settings.orientation  // Accept orientation from parent
+  property int orientation: Settings.orientation  // Accept orientation from parent
   property bool isVertical: orientation === Qt.Vertical
   property bool rotateText: orientation === Qt.Vertical  // Option to rotate text in vertical mode
   property int maxLength: isVertical && !rotateText ? 12 : 25  // Shorter text for vertical
   
   // Dynamic dimensions based on orientation
-  height: isVertical ? implicitHeight : App.Settings.widgetHeight
-  width: isVertical ? App.Settings.widgetHeight : implicitWidth
+  height: isVertical ? implicitHeight : Settings.widgetHeight
+  width: isVertical ? Settings.widgetHeight : implicitWidth
   
-  implicitWidth: isVertical ? App.Settings.widgetHeight : (label.implicitWidth + App.Settings.widgetPadding * 2)
-  implicitHeight: isVertical ? (rotateText ? App.Settings.widgetHeight : label.implicitHeight + App.Settings.widgetPadding * 2) : App.Settings.widgetHeight
+  implicitWidth: isVertical ? Settings.widgetHeight : (label.implicitWidth + Settings.widgetPadding * 2)
+  implicitHeight: isVertical ? (rotateText ? Settings.widgetHeight : label.implicitHeight + Settings.widgetPadding * 2) : Settings.widgetHeight
   
   Rectangle {
     anchors.fill: parent
     color: Colors.blue
-    radius: App.Settings.borderRadius
+    radius: Settings.borderRadius
   }
   
   Text {
     id: label
     anchors.centerIn: parent
     color: Colors.bg
-    font.family: App.Settings.fontFamily
-    font.pixelSize: isVertical && !rotateText ? App.Settings.fontSize * 0.9 : App.Settings.fontSize
+    font.family: Settings.fontFamily
+    font.pixelSize: isVertical && !rotateText ? Settings.fontSize * 0.9 : Settings.fontSize
     
     text: {
       const title = (ToplevelManager.activeToplevel && ToplevelManager.activeToplevel.title) 

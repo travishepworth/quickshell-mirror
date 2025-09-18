@@ -1,7 +1,6 @@
 // ===== Memory.qml =====
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import "root:/" as App
+import QtQuick
+import QtQuick.Controls
 
 import qs.services
 
@@ -18,13 +17,13 @@ Item {
   property string shortText: ""  // Shorter version for vertical
   
   // Dynamic dimensions
-  implicitWidth: isVertical ? App.Settings.widgetHeight : (contentLoader.item ? contentLoader.item.implicitWidth + App.Settings.widgetPadding * 2 : 80)
-  implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + App.Settings.widgetPadding * 2 : App.Settings.widgetHeight) : App.Settings.widgetHeight
+  implicitWidth: isVertical ? Settings.widgetHeight : (contentLoader.item ? contentLoader.item.implicitWidth + Settings.widgetPadding * 2 : 80)
+  implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + Settings.widgetPadding * 2 : Settings.widgetHeight) : Settings.widgetHeight
   
   Rectangle {
     anchors.fill: parent
     color: Colors.green
-    radius: App.Settings.borderRadius
+    radius: Settings.borderRadius
   }
   
   function readFile(url) {
@@ -80,16 +79,16 @@ Item {
         Text {
           text: root.text
           color: Colors.bg
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           anchors.verticalCenter: parent.verticalCenter
         }
         
         Text {
           text: root.icon
           color: Colors.bg
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           anchors.verticalCenter: parent.verticalCenter
         }
       }
@@ -103,16 +102,16 @@ Item {
         Text {
           text: root.icon
           color: Colors.bg
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           anchors.horizontalCenter: parent.horizontalCenter
         }
         
         Text {
           text: root.shortText
           color: Colors.bg
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize * 0.9
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize * 0.9
           anchors.horizontalCenter: parent.horizontalCenter
         }
       }

@@ -2,19 +2,18 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-import "root:/" as App
 
 import qs.services
 
 Item {
   id: root
-  height: App.Settings.widgetHeight
-  implicitWidth: label.implicitWidth + App.Settings.widgetPadding * 2
+  height: Settings.widgetHeight
+  implicitWidth: label.implicitWidth + Settings.widgetPadding * 2
 
   Rectangle {
     anchors.fill: parent
     color: Colors.yellow
-    radius: App.Settings.borderRadius
+    radius: Settings.borderRadius
   }
 
   Timer {
@@ -43,8 +42,8 @@ Item {
     id: label
     anchors.centerIn: parent
     color: Colors.bg
-    font.family: App.Settings.fontFamily
-    font.pixelSize: App.Settings.fontSize
+    font.family: Settings.fontFamily
+    font.pixelSize: Settings.fontSize
   }
 
   MouseArea {

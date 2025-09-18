@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "root:/" as App
 import qs.services
 import qs.modules.media
 
@@ -9,7 +8,7 @@ Item {
   id: root
 
   // Orientation support
-  property int orientation: App.Settings.orientation
+  property int orientation: Settings.orientation
   property bool isVertical: orientation === Qt.Vertical
   property bool rotateText: true
 
@@ -28,17 +27,17 @@ Item {
   }
 
   // Dynamic dimensions
-  height: isVertical ? implicitHeight : App.Settings.widgetHeight
-  width: isVertical ? App.Settings.widgetHeight : implicitWidth
+  height: isVertical ? implicitHeight : Settings.widgetHeight
+  width: isVertical ? Settings.widgetHeight : implicitWidth
 
-  implicitWidth: isVertical ? App.Settings.widgetHeight : (contentLoader.item ? contentLoader.item.implicitWidth + App.Settings.widgetPadding * 2 : 100)
-  implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + App.Settings.widgetPadding * 2 : App.Settings.widgetHeight) : App.Settings.widgetHeight
+  implicitWidth: isVertical ? Settings.widgetHeight : (contentLoader.item ? contentLoader.item.implicitWidth + Settings.widgetPadding * 2 : 100)
+  implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + Settings.widgetPadding * 2 : Settings.widgetHeight) : Settings.widgetHeight
 
   // Background
   Rectangle {
     anchors.fill: parent
     color: Mpris.isPlaying ? Colors.purple : Colors.border
-    radius: App.Settings.borderRadius
+    radius: Settings.borderRadius
   }
 
   // Content loader for orientation
@@ -61,8 +60,8 @@ Item {
         Text {
           text: Mpris.isPlaying ? "♪" : "⏸"
           color: Colors.bg
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           anchors.verticalCenter: parent.verticalCenter
         }
 
@@ -77,8 +76,8 @@ Item {
           }
           elide: Text.ElideRight
           width: Math.min(implicitWidth, root.width - 32)
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           anchors.verticalCenter: parent.verticalCenter
         }
       }
@@ -92,8 +91,8 @@ Item {
         Text {
           text: Mpris.isPlaying ? "♪" : "⏸"
           color: Colors.bg
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize * 1.2
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize * 1.2
           anchors.horizontalCenter: parent.horizontalCenter
         }
 
@@ -105,8 +104,8 @@ Item {
             const artist = Mpris.trackArtist;
             return artist.substr(0, 10);
           }
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize * 0.8
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize * 0.8
           anchors.horizontalCenter: parent.horizontalCenter
           horizontalAlignment: Text.AlignHCenter
           wrapMode: Text.WordWrap
@@ -122,8 +121,8 @@ Item {
             const title = Mpris.trackTitle;
             return title.substr(0, 12);
           }
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize * 0.7
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize * 0.7
           opacity: 0.8
           anchors.horizontalCenter: parent.horizontalCenter
           horizontalAlignment: Text.AlignHCenter
@@ -143,8 +142,8 @@ Item {
           id: iconText
           text: Mpris.isPlaying ? "♪" : "⏸"
           color: Colors.bg
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           rotation: -90
           anchors {
             centerIn: parent
@@ -162,8 +161,8 @@ Item {
             const title = Mpris.trackTitle;
             return artist.substr(0, 15) + " - " + title.substr(0, 20);
           }
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize * 0.9
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize * 0.9
           rotation: -90
           anchors {
             centerIn: parent

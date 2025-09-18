@@ -4,16 +4,15 @@ import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
 import "./widgets" as Widgets
-import "root:/" as App
 
 import qs.services
 
 Scope {
-  property int barHeight: App.Settings.barHeight
-  property int barWidth: App.Settings.verticalBar ? App.Settings.barHeight : undefined
+  property int barHeight: Settings.barHeight
+  property int barWidth: Settings.verticalBar ? Settings.barHeight : undefined
   property string backgroundColor: Colors.bg
   property string foregroundColor: Colors.fg
-  
+
   Variants {
     model: Quickshell.screens
     delegate: Component {
@@ -21,49 +20,56 @@ Scope {
         id: panel
         required property var modelData
         screen: modelData
-        
+
         anchors {
-          top: App.Settings.verticalBar ? true : (modelData.name === "DP-1")
-          bottom: App.Settings.verticalBar ? true : (modelData.name === "DP-2")
-          left: App.Settings.verticalBar ? !App.Settings.rightVerticalBar : true
-          right: App.Settings.verticalBar ? App.Settings.rightVerticalBar : true
+          top: Settings.verticalBar ? true : (modelData.name === "DP-1")
+          bottom: Settings.verticalBar ? true : (modelData.name === "DP-2")
+          left: Settings.verticalBar ? !Settings.rightVerticalBar : true
+          right: Settings.verticalBar ? Settings.rightVerticalBar : true
         }
-        
-        implicitHeight: App.Settings.verticalBar ? undefined : barHeight
-        implicitWidth: App.Settings.verticalBar ? barWidth : undefined
-        
+
+        visible: if (modelData.name === "DP-1")
+          true
+        else if (modelData.name === "DP-2" && !Settings.singleMonitor)
+          true
+        else
+          false
+
+        implicitHeight: Settings.verticalBar ? undefined : barHeight
+        implicitWidth: Settings.verticalBar ? barWidth : undefined
+
         Rectangle {
           anchors.fill: parent
           color: backgroundColor
-          
+
           // Workspaces centered
           Widgets.Workspaces {
             id: workspaces
             screen: panel.screen
             anchors.centerIn: parent
-            orientation: App.Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
+            orientation: Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
           }
-          
+
           // Top/Left group
           Loader {
             id: leftGroup
-            sourceComponent: App.Settings.verticalBar ? verticalLeftGroup : horizontalLeftGroup
-            
+            sourceComponent: Settings.verticalBar ? verticalLeftGroup : horizontalLeftGroup
+
             anchors {
-              left: App.Settings.verticalBar ? undefined : parent.left
-              top: App.Settings.verticalBar ? parent.top : undefined
-              horizontalCenter: App.Settings.verticalBar ? parent.horizontalCenter : undefined
-              verticalCenter: App.Settings.verticalBar ? undefined : parent.verticalCenter
-              leftMargin: App.Settings.verticalBar ? 0 : App.Settings.screenMargin
-              topMargin: App.Settings.verticalBar ? App.Settings.screenMargin : 0
+              left: Settings.verticalBar ? undefined : parent.left
+              top: Settings.verticalBar ? parent.top : undefined
+              horizontalCenter: Settings.verticalBar ? parent.horizontalCenter : undefined
+              verticalCenter: Settings.verticalBar ? undefined : parent.verticalCenter
+              leftMargin: Settings.verticalBar ? 0 : Settings.screenMargin
+              topMargin: Settings.verticalBar ? Settings.screenMargin : 0
             }
-            
+
             Component {
               id: horizontalLeftGroup
               RowLayout {
                 Widgets.Window {
                   id: window
-                  orientation: App.Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
+                  orientation: Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
                 }
                 Widgets.Media {
                   id: media
@@ -71,7 +77,7 @@ Scope {
                 }
               }
             }
-            
+
             Component {
               id: verticalLeftGroup
               ColumnLayout {
@@ -87,21 +93,21 @@ Scope {
               }
             }
           }
-          
+
           // Left-Center/Top-Center group
           Loader {
             id: leftCenterGroup
-            sourceComponent: App.Settings.verticalBar ? verticalLeftCenterGroup : horizontalLeftCenterGroup
-            
+            sourceComponent: Settings.verticalBar ? verticalLeftCenterGroup : horizontalLeftCenterGroup
+
             anchors {
-              right: App.Settings.verticalBar ? undefined : workspaces.left
-              bottom: App.Settings.verticalBar ? workspaces.top : undefined
-              horizontalCenter: App.Settings.verticalBar ? parent.horizontalCenter : undefined
-              verticalCenter: App.Settings.verticalBar ? undefined : parent.verticalCenter
-              rightMargin: App.Settings.verticalBar ? 0 : App.Settings.screenMargin
-              bottomMargin: App.Settings.verticalBar ? App.Settings.screenMargin : 0
+              right: Settings.verticalBar ? undefined : workspaces.left
+              bottom: Settings.verticalBar ? workspaces.top : undefined
+              horizontalCenter: Settings.verticalBar ? parent.horizontalCenter : undefined
+              verticalCenter: Settings.verticalBar ? undefined : parent.verticalCenter
+              rightMargin: Settings.verticalBar ? 0 : Settings.screenMargin
+              bottomMargin: Settings.verticalBar ? Settings.screenMargin : 0
             }
-            
+
             Component {
               id: horizontalLeftCenterGroup
               RowLayout {
@@ -114,7 +120,7 @@ Scope {
                 }
               }
             }
-            
+
             Component {
               id: verticalLeftCenterGroup
               ColumnLayout {
@@ -130,36 +136,36 @@ Scope {
               }
             }
           }
-          
+
           // Right-Center/Bottom-Center group
           Loader {
             id: rightCenterGroup
-            sourceComponent: App.Settings.verticalBar ? verticalRightCenterGroup : horizontalRightCenterGroup
-            
+            sourceComponent: Settings.verticalBar ? verticalRightCenterGroup : horizontalRightCenterGroup
+
             anchors {
-              left: App.Settings.verticalBar ? undefined : workspaces.right
-              top: App.Settings.verticalBar ? workspaces.bottom : undefined
-              horizontalCenter: App.Settings.verticalBar ? parent.horizontalCenter : undefined
-              verticalCenter: App.Settings.verticalBar ? undefined : parent.verticalCenter
-              leftMargin: App.Settings.verticalBar ? 0 : App.Settings.screenMargin
-              topMargin: App.Settings.verticalBar ? App.Settings.screenMargin : 0
+              left: Settings.verticalBar ? undefined : workspaces.right
+              top: Settings.verticalBar ? workspaces.bottom : undefined
+              horizontalCenter: Settings.verticalBar ? parent.horizontalCenter : undefined
+              verticalCenter: Settings.verticalBar ? undefined : parent.verticalCenter
+              leftMargin: Settings.verticalBar ? 0 : Settings.screenMargin
+              topMargin: Settings.verticalBar ? Settings.screenMargin : 0
             }
-            
+
             Component {
               id: horizontalRightCenterGroup
               RowLayout {
-                spacing: App.Settings.widgetSpacing
+                spacing: Settings.widgetSpacing
                 Widgets.SystemMonitor {
                   id: systemMonitor
                   visible: modelData.name === "DP-1"
                 }
               }
             }
-            
+
             Component {
               id: verticalRightCenterGroup
               ColumnLayout {
-                spacing: App.Settings.widgetSpacing
+                spacing: Settings.widgetSpacing
                 // Widgets.SystemMonitor {
                 //   id: systemMonitor
                 //   visible: modelData.name === "DP-1"
@@ -173,25 +179,25 @@ Scope {
               }
             }
           }
-          
+
           // Bottom/Right group
           Loader {
             id: rightGroup
-            sourceComponent: App.Settings.verticalBar ? verticalRightGroup : horizontalRightGroup
-            
+            sourceComponent: Settings.verticalBar ? verticalRightGroup : horizontalRightGroup
+
             anchors {
-              right: App.Settings.verticalBar ? undefined : parent.right
-              bottom: App.Settings.verticalBar ? parent.bottom : undefined
-              horizontalCenter: App.Settings.verticalBar ? parent.horizontalCenter : undefined
-              verticalCenter: App.Settings.verticalBar ? undefined : parent.verticalCenter
-              rightMargin: App.Settings.verticalBar ? 0 : App.Settings.screenMargin
-              bottomMargin: App.Settings.verticalBar ? App.Settings.screenMargin : 0
+              right: Settings.verticalBar ? undefined : parent.right
+              bottom: Settings.verticalBar ? parent.bottom : undefined
+              horizontalCenter: Settings.verticalBar ? parent.horizontalCenter : undefined
+              verticalCenter: Settings.verticalBar ? undefined : parent.verticalCenter
+              rightMargin: Settings.verticalBar ? 0 : Settings.screenMargin
+              bottomMargin: Settings.verticalBar ? Settings.screenMargin : 0
             }
-            
+
             Component {
               id: horizontalRightGroup
               RowLayout {
-                spacing: App.Settings.widgetSpacing
+                spacing: Settings.widgetSpacing
                 Widgets.Tailscale {
                   id: tailscale
                 }
@@ -201,7 +207,7 @@ Scope {
                 Widgets.SystemTray {
                   id: tray
                   visible: modelData.name === "DP-1"
-                  orientation: App.Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
+                  orientation: Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
                   Layout.alignment: Qt.AlignHCenter  // for vertical mode
                 }
                 Widgets.Notifications {
@@ -212,11 +218,11 @@ Scope {
                 }
               }
             }
-            
+
             Component {
               id: verticalRightGroup
               ColumnLayout {
-                spacing: App.Settings.widgetSpacing
+                spacing: Settings.widgetSpacing
                 Widgets.Tailscale {
                   id: tailscale
                   Layout.alignment: Qt.AlignHCenter

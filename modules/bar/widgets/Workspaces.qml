@@ -2,10 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
-import "root:/services" as Services
-import "root:/" as App
 
-import qs
 import qs.services
 
 Item {
@@ -41,8 +38,8 @@ Item {
   property var addressClassMap: populateAddressClassMap()
   
   // Dynamic dimensions
-  implicitWidth: isVertical ? App.Settings.widgetHeight : (groupSize * App.Settings.widgetHeight + (groupSize - 1) * layout.spacing)
-  implicitHeight: isVertical ? (groupSize * App.Settings.widgetHeight + (groupSize - 1) * layout.spacing) : App.Settings.widgetHeight
+  implicitWidth: isVertical ? Settings.widgetHeight : (groupSize * Settings.widgetHeight + (groupSize - 1) * layout.spacing)
+  implicitHeight: isVertical ? (groupSize * Settings.widgetHeight + (groupSize - 1) * layout.spacing) : Settings.widgetHeight
 
   Loader {
     id: layout
@@ -193,10 +190,10 @@ Item {
         }
       }
 
-      Layout.preferredWidth: App.Settings.widgetHeight
-      Layout.preferredHeight: App.Settings.widgetHeight
+      Layout.preferredWidth: Settings.widgetHeight
+      Layout.preferredHeight: Settings.widgetHeight
       
-      radius: App.Settings.borderRadius
+      radius: Settings.borderRadius
       color: isActive ? root.activeColor : hasWindows ? root.inactiveColor : root.emptyColor
       border.width: 0
       border.color: Colors.accent
@@ -211,7 +208,7 @@ Item {
         text: parent.realId
         color: Colors.bg
         font.pixelSize: 8
-        font.family: App.Settings.fontFamily
+        font.family: Settings.fontFamily
         visible: false  // Set to true if you want to see workspace numbers
       }
 

@@ -2,7 +2,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import "root:/" as App
 import "./systemMonitor" as SystemMonitor
 
 import qs.services
@@ -11,15 +10,15 @@ Item {
   id: root
   
   // Orientation support
-  property int orientation: App.Settings.orientation  // Accept orientation from parent
+  property int orientation: Settings.orientation  // Accept orientation from parent
   property bool isVertical: orientation === Qt.Vertical
   
   // Dynamic dimensions
-  height: isVertical ? implicitHeight : App.Settings.widgetHeight
-  width: isVertical ? App.Settings.widgetHeight : implicitWidth
+  height: isVertical ? implicitHeight : Settings.widgetHeight
+  width: isVertical ? Settings.widgetHeight : implicitWidth
   
-  implicitWidth: isVertical ? App.Settings.widgetHeight : (layout.implicitWidth + App.Settings.screenMargin * 2)
-  implicitHeight: isVertical ? (layout.implicitHeight + App.Settings.screenMargin * 2) : App.Settings.widgetHeight
+  implicitWidth: isVertical ? Settings.widgetHeight : (layout.implicitWidth + Settings.screenMargin * 2)
+  implicitHeight: isVertical ? (layout.implicitHeight + Settings.screenMargin * 2) : Settings.widgetHeight
   
   Rectangle {
     anchors.fill: parent
@@ -33,7 +32,7 @@ Item {
       Component {
         id: rowComponent
         RowLayout {
-          spacing: App.Settings.widgetSpacing
+          spacing: Settings.widgetSpacing
           
           SystemMonitor.Cpu {
             id: cpuH
@@ -53,7 +52,7 @@ Item {
       Component {
         id: columnComponent
         ColumnLayout {
-          spacing: App.Settings.widgetSpacing
+          spacing: Settings.widgetSpacing
           
           SystemMonitor.Cpu {
             id: cpuV

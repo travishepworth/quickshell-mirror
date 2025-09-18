@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-import "root:/" as App
 
 import qs.services
 
@@ -10,9 +9,9 @@ Item {
   id: root
   required property var screen
 
-  height: App.Settings.widgetHeight
-  implicitWidth: label.implicitWidth + App.Settings.widgetPadding * 2
-  property int orientation: App.Settings.orientation  // Accept orientation from parent
+  height: Settings.widgetHeight
+  implicitWidth: label.implicitWidth + Settings.widgetPadding * 2
+  property int orientation: Settings.orientation  // Accept orientation from parent
   property bool isVertical: orientation === Qt.Vertical
 
   property string monitorName: screen.name
@@ -75,7 +74,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     color: Colors.accent2
-    radius: App.Settings.borderRadius
+    radius: Settings.borderRadius
   }
 
   Timer {
@@ -105,8 +104,8 @@ Item {
     id: label
     anchors.centerIn: parent
     color: Colors.bg
-    font.family: App.Settings.fontFamily
-    font.pixelSize: App.Settings.fontSize
+    font.family: Settings.fontFamily
+    font.pixelSize: Settings.fontSize
   }
 
   MouseArea {

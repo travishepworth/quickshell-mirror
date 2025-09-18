@@ -3,30 +3,29 @@ import Quickshell
 import Quickshell.Services.Notifications
 import Quickshell.Io
 
-import "root:/" as App
-import "root:/services" as Services
+import qs.services
 
 Item {
   id: root
-  height: App.Settings.widgetHeight
-  implicitWidth: label.implicitWidth + App.Settings.widgetPadding * 2
+  height: Settings.widgetHeight
+  implicitWidth: label.implicitWidth + Settings.widgetPadding * 2
 
   // Quickshell’s notification server tracks notifications; we use its model length.
   property int count: NotificationServer.trackedNotifications.values[0].name
 
   Rectangle {
     anchors.fill: parent
-    color: Services.Colors.accent
-    radius: App.Settings.borderRadius
+    color: Colors.accent
+    radius: Settings.borderRadius
   }
 
   Text {
     id: label
     anchors.centerIn: parent
-    color: Services.Colors.bg
+    color: Colors.bg
     text: count > 0 ? "●" : ""
-    font.family: App.Settings.fontFamily
-    font.pixelSize: App.Settings.fontSize
+    font.family: Settings.fontFamily
+    font.pixelSize: Settings.fontSize
   }
 
   // Open swaync panel; run detached so Quickshell isn’t tied to its lifecycle.

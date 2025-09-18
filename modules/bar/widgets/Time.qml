@@ -2,7 +2,6 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
-import "root:/" as App
 
 import qs.services
 
@@ -10,17 +9,17 @@ Item {
   id: root
   
   // Orientation support
-  property int orientation: App.Settings.orientation
+  property int orientation: Settings.orientation
   property bool isVertical: orientation === Qt.Vertical
   property bool showDate: true
   property bool use24Hour: false
   
   // Dynamic dimensions based on orientation
-  height: isVertical ? implicitHeight : App.Settings.widgetHeight
-  width: isVertical ? App.Settings.widgetHeight : implicitWidth
+  height: isVertical ? implicitHeight : Settings.widgetHeight
+  width: isVertical ? Settings.widgetHeight : implicitWidth
   
-  implicitWidth: isVertical ? App.Settings.widgetHeight : (layoutLoader.item ? layoutLoader.item.implicitWidth + App.Settings.widgetPadding * 2 : 100)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + App.Settings.widgetPadding * 2 : App.Settings.widgetHeight) : App.Settings.widgetHeight
+  implicitWidth: isVertical ? Settings.widgetHeight : (layoutLoader.item ? layoutLoader.item.implicitWidth + Settings.widgetPadding * 2 : 100)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Settings.widgetPadding * 2 : Settings.widgetHeight) : Settings.widgetHeight
   
   SystemClock {
     id: clock
@@ -30,7 +29,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     color: Colors.accent2
-    radius: App.Settings.borderRadius
+    radius: Settings.borderRadius
   }
   
   Loader {
@@ -45,15 +44,15 @@ Item {
         
         Text {
           color: Colors.bg
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           text: Qt.formatDateTime(clock.date, "MMM d, yyyy")
           visible: root.showDate
         }
         
         Rectangle {
           width: 1
-          height: App.Settings.fontSize
+          height: Settings.fontSize
           color: Colors.bg
           opacity: 0.5
           visible: root.showDate
@@ -62,8 +61,8 @@ Item {
         
         Text {
           color: Colors.bg
-          font.family: App.Settings.fontFamily
-          font.pixelSize: App.Settings.fontSize
+          font.family: Settings.fontFamily
+          font.pixelSize: Settings.fontSize
           text: Qt.formatDateTime(clock.date, root.use24Hour ? "HH:mm:ss" : "hh:mm:ss ap")
         }
       }
@@ -81,8 +80,8 @@ Item {
           
           Text {
             color: Colors.bg
-            font.family: App.Settings.fontFamily
-            font.pixelSize: App.Settings.fontSize * 1.1
+            font.family: Settings.fontFamily
+            font.pixelSize: Settings.fontSize * 1.1
             font.bold: true
             text: Qt.formatDateTime(clock.date, root.use24Hour ? "HH" : "hh")
             anchors.horizontalCenter: parent.horizontalCenter
@@ -90,8 +89,8 @@ Item {
 
           Text {
             color: Colors.bg
-            font.family: App.Settings.fontFamily
-            font.pixelSize: App.Settings.fontSize * 0.9
+            font.family: Settings.fontFamily
+            font.pixelSize: Settings.fontSize * 0.9
             font.bold: true
             text: Qt.formatDateTime(clock.date, "mm")
             anchors.horizontalCenter: parent.horizontalCenter
@@ -99,8 +98,8 @@ Item {
           
           Text {
             color: Colors.bg
-            font.family: App.Settings.fontFamily
-            font.pixelSize: App.Settings.fontSize * 0.8
+            font.family: Settings.fontFamily
+            font.pixelSize: Settings.fontSize * 0.8
             text: Qt.formatDateTime(clock.date, "ss")
             opacity: 0.8
             anchors.horizontalCenter: parent.horizontalCenter
@@ -108,8 +107,8 @@ Item {
           
           Text {
             color: Colors.bg
-            font.family: App.Settings.fontFamily
-            font.pixelSize: App.Settings.fontSize * 0.7
+            font.family: Settings.fontFamily
+            font.pixelSize: Settings.fontSize * 0.7
             text: Qt.formatDateTime(clock.date, "ap")
             visible: !root.use24Hour
             opacity: 0.9
@@ -135,16 +134,16 @@ Item {
           
           Text {
             color: Colors.bg
-            font.family: App.Settings.fontFamily
-            font.pixelSize: App.Settings.fontSize * 0.8
+            font.family: Settings.fontFamily
+            font.pixelSize: Settings.fontSize * 0.8
             text: Qt.formatDateTime(clock.date, "MMM")
             anchors.horizontalCenter: parent.horizontalCenter
           }
           
           Text {
             color: Colors.bg
-            font.family: App.Settings.fontFamily
-            font.pixelSize: App.Settings.fontSize * 1.1
+            font.family: Settings.fontFamily
+            font.pixelSize: Settings.fontSize * 1.1
             font.bold: true
             text: Qt.formatDateTime(clock.date, "dd")
             anchors.horizontalCenter: parent.horizontalCenter
@@ -152,8 +151,8 @@ Item {
           
           Text {
             color: Colors.bg
-            font.family: App.Settings.fontFamily
-            font.pixelSize: App.Settings.fontSize * 0.7
+            font.family: Settings.fontFamily
+            font.pixelSize: Settings.fontSize * 0.7
             text: Qt.formatDateTime(clock.date, "ddd")  // Day of week
             opacity: 0.8
             anchors.horizontalCenter: parent.horizontalCenter

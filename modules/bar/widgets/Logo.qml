@@ -2,27 +2,26 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-import "root:/" as App
-import "root:/services" as Services
+import qs.services as Services
 
 Item {
   id: root
-  height: App.Settings.widgetHeight
-  implicitWidth: label.implicitWidth + App.Settings.widgetPadding * 2
+  height: Settings.widgetHeight
+  implicitWidth: label.implicitWidth + Settings.widgetPadding * 2
 
   Rectangle {
     anchors.fill: parent
-    color: Services.Colors.accent2
-    radius: App.Settings.borderRadius
+    color: Colors.accent2
+    radius: Settings.borderRadius
   }
 
   Text {
     id: label
     anchors.centerIn: parent
-    color: Services.Colors.bg
+    color: Colors.bg
     text: "" // Arch logo (Nerd Font)
-    font.family: App.Settings.fontFamily
-    font.pixelSize: App.Settings.fontSize
+    font.family: Settings.fontFamily
+    font.pixelSize: Settings.fontSize
   }
 
   Process {
