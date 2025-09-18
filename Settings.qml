@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQml
-import "root:/themes" as Themes
+
+import qs.themes
 
 QtObject {
     property string theme: "Gruvbox"
@@ -12,6 +13,7 @@ QtObject {
     property int widgetHeight: 32
     property int widgetPadding: 10
     property int widgetSpacing: 6
+    property int workspaceCount: 5 // DO NOT CHANGE
 
     property int resolutionWidth: 3440
     property int resolutionHeight: 1440
@@ -21,5 +23,9 @@ QtObject {
     property string fontFamily: "JetBrains Mono Nerd Font"
     property int fontSize: 18
 
-    readonly property var currentTheme: Themes.ThemeIndex.get(theme)
+    property bool verticalBar: true
+    property bool rightVerticalBar: false
+    property int orientation: verticalBar ? Qt.Vertical : Qt.Horizontal
+
+    readonly property var currentTheme: ThemeIndex.get(theme)
 }

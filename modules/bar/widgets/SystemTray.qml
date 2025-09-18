@@ -1,104 +1,133 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
-
 import Quickshell
 import Quickshell.Services.SystemTray
-
-import "root:/services" as Services
 import "root:/" as App
+
+import qs.services
 
 Item {
   id: tray
+  
+  // Add orientation property
+  property int orientation: App.Settings.orientation  // Accept orientation from parent
+  property bool isVertical: orientation === Qt.Vertical
+  
   property int iconSize: 18
-
   property int leftPadding: 8
   property int rightPadding: 8
   property int topPadding: 4
   property int bottomPadding: 4
   property int spacing: 6
   property bool showPassive: true
-
-  property color backgroundColor: Services.Colors.bgAlt
+  property color backgroundColor: Colors.bgAlt
   property int backgroundRadius: 6
   property color backgroundBorderColor: "transparent"
   property real backgroundBorderWidth: 0
-
-  height: App.Settings.widgetHeight
-  implicitWidth: row.implicitWidth + App.Settings.widgetPadding * 2
-
-  Layout.preferredWidth: implicitWidth
-  Layout.preferredHeight: App.Settings.widgetHeight
-
+  
+  // Dynamic dimensions based on orientation
+  height: isVertical ? implicitHeight : App.Settings.widgetHeight
+  width: isVertical ? App.Settings.widgetHeight : implicitWidth
+  
+  implicitWidth: isVertical ? App.Settings.widgetHeight : (layoutLoader.item ? layoutLoader.item.implicitWidth + App.Settings.widgetPadding * 2 : 0)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + App.Settings.widgetPadding * 2 : 0) : App.Settings.widgetHeight
+  
+  Layout.preferredWidth: isVertical ? App.Settings.widgetHeight : implicitWidth
+  Layout.preferredHeight: isVertical ? implicitHeight : App.Settings.widgetHeight
+  
   Rectangle {
     anchors.fill: parent
     radius: tray.backgroundRadius
     color: tray.backgroundColor
     // border.color: tray.backgroundBorderColor
     // border.width: tray.backgroundBorderWidth
-    height: App.Settings.widgetHeight
   }
-
-  Row {
-    id: row
+  
+  Loader {
+    id: layoutLoader
     anchors.centerIn: parent
-    spacing: tray.spacing
-
-    Repeater {
-      model: SystemTray.items
-
-      delegate: Item {
-        readonly property var ti: modelData
-        visible: ti && (tray.showPassive || ti.status !== Status.Passive)
-        width: visible ? tray.iconSize : 0
-        height: tray.iconSize
-
-        Image {
-          anchors.centerIn: parent
-          source: ti ? ti.icon : ""
-          sourceSize.width: tray.iconSize
-          sourceSize.height: tray.iconSize
-          fillMode: Image.PreserveAspectFit
-          smooth: true
+    sourceComponent: isVertical ? columnComponent : rowComponent
+    
+    Component {
+      id: rowComponent
+      Row {
+        spacing: tray.spacing
+        
+        Repeater {
+          model: SystemTray.items
+          delegate: trayItemDelegate
         }
-
-        QsMenuAnchor {
-          id: menuAnchor
-          anchor.item: parent
-          anchor.edges: Qt.BottomEdge
-          menu: ti ? ti.menu : null
+      }
+    }
+    
+    Component {
+      id: columnComponent
+      Column {
+        spacing: tray.spacing
+        
+        Repeater {
+          model: SystemTray.items
+          delegate: trayItemDelegate
         }
-
-        MouseArea {
-          id: menuArea
-          anchors.fill: parent
-          acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-
-          onClicked: ev => {
-            if (!ti)
-              return;
-            if (ev.button === Qt.RightButton) {
-              if (ti.hasMenu)
-                menuAnchor.open();
-              return;
-            }
-            if (ev.button === Qt.LeftButton) {
-              if (ti.onlyMenu && ti.hasMenu) {
-                menuAnchor.open();
-              } else if (ti.activate) {
-                ti.activate();
-              }
-              return;
-            }
-            if (ev.button === Qt.MiddleButton && ti.secondaryActivate) {
-              ti.secondaryActivate();
-            }
+      }
+    }
+  }
+  
+  Component {
+    id: trayItemDelegate
+    Item {
+      readonly property var ti: modelData
+      visible: ti && (tray.showPassive || ti.status !== Status.Passive)
+      width: visible ? tray.iconSize : 0
+      height: visible ? tray.iconSize : 0
+      
+      Image {
+        anchors.centerIn: parent
+        source: ti ? ti.icon : ""
+        sourceSize.width: tray.iconSize
+        sourceSize.height: tray.iconSize
+        fillMode: Image.PreserveAspectFit
+        smooth: true
+      }
+      
+      QsMenuAnchor {
+        id: menuAnchor
+        anchor.item: parent
+        anchor.edges: tray.isVertical ? Qt.RightEdge : Qt.BottomEdge
+        menu: ti ? ti.menu : null
+      }
+      
+      MouseArea {
+        id: menuArea
+        anchors.fill: parent
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+        
+        onClicked: ev => {
+          if (!ti) return;
+          
+          if (ev.button === Qt.RightButton) {
+            if (ti.hasMenu) menuAnchor.open();
+            return;
           }
-
-          onWheel: w => {
-            if (ti && ti.scroll)
-              ti.scroll(w.angleDelta.y, false);
+          
+          if (ev.button === Qt.LeftButton) {
+            if (ti.onlyMenu && ti.hasMenu) {
+              menuAnchor.open();
+            } else if (ti.activate) {
+              ti.activate();
+            }
+            return;
           }
+          
+          if (ev.button === Qt.MiddleButton && ti.secondaryActivate) {
+            ti.secondaryActivate();
+          }
+        }
+        
+        onWheel: w => {
+          if (ti && ti.scroll)
+            ti.scroll(w.angleDelta.y, false);
         }
       }
     }

@@ -1,26 +1,32 @@
-// Temperature.qml
+// ===== Temperature.qml =====
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-
 import "root:/" as App
-import "root:/services" as Services
+
+import qs.services
 
 Item {
   id: root
-
+  
+  // Orientation support
+  property int orientation: App.Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
+  property bool isVertical: orientation === Qt.Vertical
+  
   property string className: "cool"
   property string text: ""
   property string tooltip: ""
-
-  implicitWidth: label.implicitWidth + App.Settings.widgetPadding * 2
-  height: App.Settings.widgetHeight
-
+  property string icon: ""
+  
+  // Dynamic dimensions
+  implicitWidth: isVertical ? App.Settings.widgetHeight : (contentLoader.item ? contentLoader.item.implicitWidth + App.Settings.widgetPadding * 2 : 60)
+  implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + App.Settings.widgetPadding * 2 : App.Settings.widgetHeight) : App.Settings.widgetHeight
+  
   Rectangle {
     anchors.fill: parent
-    color: Services.Colors.blue
+    color: Colors.blue
     radius: App.Settings.borderRadius
   }
-
+  
   function readFile(url) {
     try {
       var xhr = new XMLHttpRequest();
@@ -29,9 +35,8 @@ Item {
       return xhr.status === 0 || xhr.status === 200 ? xhr.responseText : "";
     } catch (e) { return ""; }
   }
-
+  
   function readTempC() {
-    // Generic fallback: thermal_zone0
     const raw = readFile("file:///sys/class/thermal/thermal_zone0/temp");
     if (raw && /^\d+/.test(raw)) {
       const milli = parseInt(raw.match(/\d+/)[0], 10);
@@ -39,41 +44,85 @@ Item {
     }
     return NaN;
   }
-
+  
   function update() {
     const t = readTempC();
     if (isNaN(t)) {
-      text = "N/A°C ";
+      text = "N/A°C";
+      icon = "";
       tooltip = "CPU Temperature: N/A";
       className = "cool";
     } else {
       if (t <= 60) className = "cool";
       else if (t <= 75) className = "warm";
       else className = "hot";
-
-      text = t + "°C " + "";
+      text = t + "°C";
+      icon = "";
       tooltip = "CPU Temperature: " + t + "°C";
     }
-    label.text = text;
-    tip.text = tooltip;
   }
-
+  
   Timer {
-    interval: 5000; running: true; repeat: true
+    interval: 5000
+    running: true
+    repeat: true
     onTriggered: update()
   }
+  
   Component.onCompleted: update()
-
-  Text {
-    id: label
-    text: root.text
+  
+  Loader {
+    id: contentLoader
     anchors.centerIn: parent
-    property string className: root.className
-    color: Services.Colors.bg
-    font.family: App.Settings.fontFamily
-    font.pixelSize: App.Settings.fontSize
+    sourceComponent: isVertical ? verticalContent : horizontalContent
+    
+    Component {
+      id: horizontalContent
+      Row {
+        spacing: 4
+        
+        Text {
+          text: root.text
+          color: Colors.bg
+          font.family: App.Settings.fontFamily
+          font.pixelSize: App.Settings.fontSize
+          anchors.verticalCenter: parent.verticalCenter
+        }
+        
+        Text {
+          text: root.icon
+          color: Colors.bg
+          font.family: App.Settings.fontFamily
+          font.pixelSize: App.Settings.fontSize
+          anchors.verticalCenter: parent.verticalCenter
+        }
+      }
+    }
+    
+    Component {
+      id: verticalContent
+      Column {
+        spacing: 2
+        
+        Text {
+          text: root.icon
+          color: Colors.bg
+          font.family: App.Settings.fontFamily
+          font.pixelSize: App.Settings.fontSize
+          anchors.horizontalCenter: parent.horizontalCenter
+        }
+        
+        Text {
+          text: root.text
+          color: Colors.bg
+          font.family: App.Settings.fontFamily
+          font.pixelSize: App.Settings.fontSize * 0.9
+          anchors.horizontalCenter: parent.horizontalCenter
+        }
+      }
+    }
   }
-
+  
   ToolTip {
     id: tip
     visible: area.containsMouse
@@ -81,5 +130,11 @@ Item {
     timeout: 10000
     text: root.tooltip
   }
-  MouseArea { id: area; anchors.fill: parent; hoverEnabled: true; acceptedButtons: Qt.NoButton }
+  
+  MouseArea {
+    id: area
+    anchors.fill: parent
+    hoverEnabled: true
+    acceptedButtons: Qt.NoButton
+  }
 }

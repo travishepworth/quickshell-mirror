@@ -1,17 +1,27 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-
 import "root:/" as App
-import "root:/services" as Services
+
+import qs.services
 
 Item {
   id: root
+  
   property string iface: ""
   property string kind: "" // "wifi" | "ethernet" | ""
-  height: App.Settings.widgetHeight
-  implicitWidth: label.implicitWidth + labelIcon.implicitWidth + App.Settings.widgetPadding * 2
-
+  property int orientation: App.Settings.orientation  // Accept orientation from parent
+  property bool isVertical: orientation === Qt.Vertical
+  property bool rotateText: true
+  
+  // Dynamic dimensions based on orientation
+  height: isVertical ? implicitHeight : App.Settings.widgetHeight
+  width: isVertical ? App.Settings.widgetHeight : implicitWidth
+  
+  implicitWidth: isVertical ? App.Settings.widgetHeight : (layoutLoader.item ? layoutLoader.item.implicitWidth + App.Settings.widgetPadding * 2 : 60)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + App.Settings.widgetPadding * 2 : App.Settings.widgetHeight) : App.Settings.widgetHeight
+  
   Timer {
     id: poll
     interval: 2000
@@ -22,7 +32,7 @@ Item {
       nm.running = true;
     }
   }
-
+  
   Process {
     id: nm
     stdout: StdioCollector {
@@ -35,35 +45,114 @@ Item {
       }
     }
     onExited: {} // no-op; we only parse stdout above
-  } function iconFor(k) { if (k === "wifi")
-      return "";
+  }
+  
+  function iconFor(k) {
+    if (k === "wifi")
+      return "";
     if (k === "ethernet")
       return "󰈀";
     return "󰤭";
   }
-
+  
   Rectangle {
     anchors.fill: parent
-    color: Services.Colors.orange
+    color: Colors.orange
     radius: App.Settings.borderRadius
   }
-
-  Row {
+  
+  Loader {
+    id: layoutLoader
     anchors.centerIn: parent
-    spacing: 6
-    Text {
-      id: labelIcon
-      color: Services.Colors.bg
-      text: iconFor(root.kind)
-      font.family: App.Settings.fontFamily
-      font.pixelSize: App.Settings.fontSize
+    // sourceComponent: isVertical ? columnComponent : rowComponent
+    sourceComponent: {
+      if (!isVertical) {
+        return rowComponent;
+      } else if (rotateText) {
+        return rotatedComponent;
+      } else {
+        return columnComponent;
+      }
     }
-    Text {
-      id: label
-      color: Services.Colors.bg
-      text: root.iface || "—"
-      font.family: App.Settings.fontFamily
-      font.pixelSize: App.Settings.fontSize
+    
+    Component {
+      id: rowComponent
+      Row {
+        spacing: 6
+        
+        Text {
+          id: labelIconH
+          color: Colors.bg
+          text: iconFor(root.kind)
+          font.family: App.Settings.fontFamily
+          font.pixelSize: App.Settings.fontSize
+        }
+        
+        Text {
+          id: labelH
+          color: Colors.bg
+          text: root.iface || "—"
+          font.family: App.Settings.fontFamily
+          font.pixelSize: App.Settings.fontSize
+        }
+      }
+    }
+    
+    Component {
+      id: columnComponent
+      Column {
+        spacing: 2
+        
+        Text {
+          id: labelIconV
+          color: Colors.bg
+          text: iconFor(root.kind)
+          font.family: App.Settings.fontFamily
+          font.pixelSize: App.Settings.fontSize
+          anchors.horizontalCenter: parent.horizontalCenter
+        }
+        
+        Text {
+          id: labelV
+          color: Colors.bg
+          text: root.iface || "—"
+          font.family: App.Settings.fontFamily
+          font.pixelSize: App.Settings.fontSize * 0.8  // Slightly smaller for vertical layout
+          anchors.horizontalCenter: parent.horizontalCenter
+        }
+      }
+    }
+    Component {
+      id: rotatedComponent
+      Item {
+        implicitWidth: Math.max(iconText.height, ifaceText.height) + 6
+        implicitHeight: iconText.width + ifaceText.width + 6
+        
+        Text {
+          id: iconText
+          color: Colors.bg
+          text: iconFor(root.kind)
+          font.family: App.Settings.fontFamily
+          font.pixelSize: App.Settings.fontSize
+          anchors {
+            centerIn: parent
+            verticalCenterOffset: -(ifaceText.width / 2) - 3
+          }
+        }
+        
+        Text {
+          id: ifaceText
+          color: Colors.bg
+          text: root.iface || "—"
+          font.family: App.Settings.fontFamily
+          font.pixelSize: App.Settings.fontSize
+          rotation: -90  // Rotate counter-clockwise
+          anchors {
+            centerIn: parent
+            verticalCenterOffset: (iconText.width / 2) + 3
+          }
+        }
+      }
     }
   }
 }

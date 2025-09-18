@@ -4,108 +4,241 @@ import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
 import "./widgets" as Widgets
-
-import "root:/services" as Services
 import "root:/" as App
+
+import qs.services
 
 Scope {
   property int barHeight: App.Settings.barHeight
-  property string backgroundColor: Services.Colors.bg
-  property string foregroundColor: Services.Colors.fg
-
+  property int barWidth: App.Settings.verticalBar ? App.Settings.barHeight : undefined
+  property string backgroundColor: Colors.bg
+  property string foregroundColor: Colors.fg
+  
   Variants {
     model: Quickshell.screens
-
     delegate: Component {
       PanelWindow {
         id: panel
         required property var modelData
         screen: modelData
-
+        
         anchors {
-          top: modelData.name === "DP-1"
-          bottom: modelData.name === "DP-2"
-          left: true
-          right: true
+          top: App.Settings.verticalBar ? true : (modelData.name === "DP-1")
+          bottom: App.Settings.verticalBar ? true : (modelData.name === "DP-2")
+          left: App.Settings.verticalBar ? !App.Settings.rightVerticalBar : true
+          right: App.Settings.verticalBar ? App.Settings.rightVerticalBar : true
         }
-
-        implicitHeight: barHeight
-
+        
+        implicitHeight: App.Settings.verticalBar ? undefined : barHeight
+        implicitWidth: App.Settings.verticalBar ? barWidth : undefined
+        
         Rectangle {
           anchors.fill: parent
           color: backgroundColor
-
+          
+          // Workspaces centered
           Widgets.Workspaces {
             id: workspaces
             screen: panel.screen
             anchors.centerIn: parent
+            orientation: App.Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
           }
-
-          RowLayout {
+          
+          // Top/Left group
+          Loader {
             id: leftGroup
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.leftMargin: App.Settings.screenMargin
-            Widgets.Window {
-              id: window
+            sourceComponent: App.Settings.verticalBar ? verticalLeftGroup : horizontalLeftGroup
+            
+            anchors {
+              left: App.Settings.verticalBar ? undefined : parent.left
+              top: App.Settings.verticalBar ? parent.top : undefined
+              horizontalCenter: App.Settings.verticalBar ? parent.horizontalCenter : undefined
+              verticalCenter: App.Settings.verticalBar ? undefined : parent.verticalCenter
+              leftMargin: App.Settings.verticalBar ? 0 : App.Settings.screenMargin
+              topMargin: App.Settings.verticalBar ? App.Settings.screenMargin : 0
             }
-            Widgets.Media {
-              id: media
-              visible: modelData.name === "DP-1"
+            
+            Component {
+              id: horizontalLeftGroup
+              RowLayout {
+                Widgets.Window {
+                  id: window
+                  orientation: App.Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
+                }
+                Widgets.Media {
+                  id: media
+                  visible: modelData.name === "DP-1"
+                }
+              }
+            }
+            
+            Component {
+              id: verticalLeftGroup
+              ColumnLayout {
+                Widgets.Window {
+                  id: window
+                  Layout.alignment: Qt.AlignHCenter
+                }
+                Widgets.Media {
+                  id: media
+                  visible: modelData.name === "DP-1"
+                  Layout.alignment: Qt.AlignHCenter
+                }
+              }
             }
           }
-
-          RowLayout {
+          
+          // Left-Center/Top-Center group
+          Loader {
             id: leftCenterGroup
-            anchors.right: workspaces.left
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.rightMargin: App.Settings.screenMargin
-            Widgets.Time {
-              id: time
+            sourceComponent: App.Settings.verticalBar ? verticalLeftCenterGroup : horizontalLeftCenterGroup
+            
+            anchors {
+              right: App.Settings.verticalBar ? undefined : workspaces.left
+              bottom: App.Settings.verticalBar ? workspaces.top : undefined
+              horizontalCenter: App.Settings.verticalBar ? parent.horizontalCenter : undefined
+              verticalCenter: App.Settings.verticalBar ? undefined : parent.verticalCenter
+              rightMargin: App.Settings.verticalBar ? 0 : App.Settings.screenMargin
+              bottomMargin: App.Settings.verticalBar ? App.Settings.screenMargin : 0
             }
-            Widgets.WorkspaceIndicator {
-              id: workspaceIndicator
-              screen: panel.screen
+            
+            Component {
+              id: horizontalLeftCenterGroup
+              RowLayout {
+                Widgets.Time {
+                  id: time
+                }
+                Widgets.WorkspaceIndicator {
+                  id: workspaceIndicator
+                  screen: panel.screen
+                }
+              }
+            }
+            
+            Component {
+              id: verticalLeftCenterGroup
+              ColumnLayout {
+                Widgets.Time {
+                  id: time
+                  Layout.alignment: Qt.AlignHCenter
+                }
+                // Widgets.WorkspaceIndicator {
+                //   id: workspaceIndicator
+                //   screen: panel.screen
+                //   Layout.alignment: Qt.AlignHCenter
+                // }
+              }
             }
           }
-
-          RowLayout {
+          
+          // Right-Center/Bottom-Center group
+          Loader {
             id: rightCenterGroup
-            anchors.left: workspaces.right
-            anchors.verticalCenter: parent.verticalCenter
-
-            spacing: App.Settings.widgetSpacing
-            anchors.leftMargin: App.Settings.screenMargin
-            Widgets.SystemMonitor {
-              id: systemMonitor
-              visible: modelData.name === "DP-1"
+            sourceComponent: App.Settings.verticalBar ? verticalRightCenterGroup : horizontalRightCenterGroup
+            
+            anchors {
+              left: App.Settings.verticalBar ? undefined : workspaces.right
+              top: App.Settings.verticalBar ? workspaces.bottom : undefined
+              horizontalCenter: App.Settings.verticalBar ? parent.horizontalCenter : undefined
+              verticalCenter: App.Settings.verticalBar ? undefined : parent.verticalCenter
+              leftMargin: App.Settings.verticalBar ? 0 : App.Settings.screenMargin
+              topMargin: App.Settings.verticalBar ? App.Settings.screenMargin : 0
+            }
+            
+            Component {
+              id: horizontalRightCenterGroup
+              RowLayout {
+                spacing: App.Settings.widgetSpacing
+                Widgets.SystemMonitor {
+                  id: systemMonitor
+                  visible: modelData.name === "DP-1"
+                }
+              }
+            }
+            
+            Component {
+              id: verticalRightCenterGroup
+              ColumnLayout {
+                spacing: App.Settings.widgetSpacing
+                // Widgets.SystemMonitor {
+                //   id: systemMonitor
+                //   visible: modelData.name === "DP-1"
+                //   Layout.alignment: Qt.AlignHCenter
+                // }
+                Widgets.WorkspaceIndicator {
+                  id: workspaceIndicator
+                  screen: panel.screen
+                  Layout.alignment: Qt.AlignHCenter
+                }
+              }
             }
           }
-
-          RowLayout {
+          
+          // Bottom/Right group
+          Loader {
             id: rightGroup
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-
-            spacing: App.Settings.widgetSpacing
-            anchors.rightMargin: App.Settings.screenMargin
-
-
-            Widgets.Tailscale {
-              id: tailscale
+            sourceComponent: App.Settings.verticalBar ? verticalRightGroup : horizontalRightGroup
+            
+            anchors {
+              right: App.Settings.verticalBar ? undefined : parent.right
+              bottom: App.Settings.verticalBar ? parent.bottom : undefined
+              horizontalCenter: App.Settings.verticalBar ? parent.horizontalCenter : undefined
+              verticalCenter: App.Settings.verticalBar ? undefined : parent.verticalCenter
+              rightMargin: App.Settings.verticalBar ? 0 : App.Settings.screenMargin
+              bottomMargin: App.Settings.verticalBar ? App.Settings.screenMargin : 0
             }
-            Widgets.Network {
-              id: network
+            
+            Component {
+              id: horizontalRightGroup
+              RowLayout {
+                spacing: App.Settings.widgetSpacing
+                Widgets.Tailscale {
+                  id: tailscale
+                }
+                Widgets.Network {
+                  id: network
+                }
+                Widgets.SystemTray {
+                  id: tray
+                  visible: modelData.name === "DP-1"
+                  orientation: App.Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
+                  Layout.alignment: Qt.AlignHCenter  // for vertical mode
+                }
+                Widgets.Notifications {
+                  id: notifications
+                }
+                Widgets.Logo {
+                  id: logo
+                }
+              }
             }
-            Widgets.SystemTray {
-              id: tray
-              visible: modelData.name === "DP-1"
-            }
-            Widgets.Notifications {
-              id: notifications
-            }
-            Widgets.Logo {
-              id: logo
+            
+            Component {
+              id: verticalRightGroup
+              ColumnLayout {
+                spacing: App.Settings.widgetSpacing
+                Widgets.Tailscale {
+                  id: tailscale
+                  Layout.alignment: Qt.AlignHCenter
+                }
+                Widgets.Network {
+                  id: network
+                  Layout.alignment: Qt.AlignHCenter
+                }
+                Widgets.SystemTray {
+                  id: tray
+                  visible: modelData.name === "DP-1"
+                  Layout.alignment: Qt.AlignHCenter
+                }
+                Widgets.Notifications {
+                  id: notifications
+                  Layout.alignment: Qt.AlignHCenter
+                }
+                Widgets.Logo {
+                  id: logo
+                  Layout.alignment: Qt.AlignHCenter
+                }
+              }
             }
           }
         }

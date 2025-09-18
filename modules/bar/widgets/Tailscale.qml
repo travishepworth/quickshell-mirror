@@ -3,7 +3,8 @@ import Quickshell
 import Quickshell.Io
 
 import "root:/" as App
-import "root:/services" as Services
+
+import qs.services
 
 Item {
   id: root
@@ -12,7 +13,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Services.Colors.yellow
+    color: Colors.yellow
     radius: App.Settings.borderRadius
   }
 
@@ -41,7 +42,7 @@ Item {
   Text {
     id: label
     anchors.centerIn: parent
-    color: Services.Colors.bg
+    color: Colors.bg
     font.family: App.Settings.fontFamily
     font.pixelSize: App.Settings.fontSize
   }

@@ -3,7 +3,8 @@ import Quickshell
 import Quickshell.Io
 
 import "root:/" as App
-import "root:/services" as Services
+
+import qs.services
 
 Item {
   id: root
@@ -11,6 +12,8 @@ Item {
 
   height: App.Settings.widgetHeight
   implicitWidth: label.implicitWidth + App.Settings.widgetPadding * 2
+  property int orientation: App.Settings.orientation  // Accept orientation from parent
+  property bool isVertical: orientation === Qt.Vertical
 
   property string monitorName: screen.name
 
@@ -34,26 +37,44 @@ Item {
 
   function formatIcon(index) {
     index = parseInt(index) - 1;
-    
+
     const row = Math.floor(index / cols);
     const workspaceStartRow = Math.floor(startingWorkspace / cols);
-    
+
     if (row === workspaceStartRow) {
-        return "";
+      return "";
     } else if (row === workspaceStartRow + 1) {
-        return "";
+      return "";
     } else if (row === workspaceStartRow + 2) {
-        return "";
+      return "";
     } else if (row === workspaceStartRow + 3) {
-        return "";
+      return "";
     } else if (row === workspaceStartRow + 4) {
-        return "";
+      return "";
+    }
+  }
+
+  function formatIconVertical(index) {
+    index = parseInt(index) - 1;
+    const col = index % cols;
+    const workspaceStartCol = startingWorkspace % cols;
+    
+    if (col === workspaceStartCol - 1) {
+      return "";  // or "↙" - leftmost column
+    } else if (col === workspaceStartCol + 0) {
+      return "";  // or "↓" - second column
+    } else if (col === workspaceStartCol + 1) {
+      return "";  // or "↘" - middle column
+    } else if (col === workspaceStartCol + 2) {
+      return "";  // or "→" - fourth column
+    } else if (col === workspaceStartCol + 3) {
+      return "";  // or "↗" - rightmost column
     }
 }
 
   Rectangle {
     anchors.fill: parent
-    color: Services.Colors.accent2
+    color: Colors.accent2
     radius: App.Settings.borderRadius
   }
 
@@ -73,7 +94,8 @@ Item {
     stdout: StdioCollector {
       waitForEnd: true
       onStreamFinished: {
-        const out = formatIcon((text || "").trim());
+        // const out = formatIcon((text || "").trim());
+        const out = isVertical ? formatIconVertical((text || "").trim()) : formatIcon((text || "").trim());
         label.text = out;
       }
     }
@@ -82,7 +104,7 @@ Item {
   Text {
     id: label
     anchors.centerIn: parent
-    color: Services.Colors.bg
+    color: Colors.bg
     font.family: App.Settings.fontFamily
     font.pixelSize: App.Settings.fontSize
   }
@@ -93,4 +115,3 @@ Item {
     onClicked: logMonitorName()
   }
 }
-

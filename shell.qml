@@ -1,11 +1,14 @@
 //@ pragma UseQApplication
-import Quickshell
-import QtQuick
-import "modules/bar" as Bar
+
 import "modules/overview" as Overview
 import "modules/panels" as Panels
 import "modules/notificationPopup" as NotificationPopup
-import "services" as Services
+
+import "modules/bar"
+import "./services"
+
+import Quickshell
+import QtQuick
 
 ShellRoot {
   id: shellRoot
@@ -14,13 +17,15 @@ ShellRoot {
   //   id: notificationService
   // }
   //
-  Bar.Bar {
+  Bar {
     id: mainBar
   }
 
-  Panels.RightPanel {
-    id: rightPanel
-  }
+  // Loader { active: true; component: Bar{}}
+
+  // Panels.RightPanel {
+  //   id: rightPanel
+  // }
 
   // NotificationPopup.NotificationPopup {
   //   id: notifications
