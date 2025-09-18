@@ -4,6 +4,8 @@ import "modules/overview" as Overview
 import "modules/panels" as Panels
 import "modules/notificationPopup" as NotificationPopup
 import "modules/media"
+import "modules/osd"
+import "modules/workspaces"
 
 import "modules/bar"
 import "./services"
@@ -13,7 +15,6 @@ import QtQuick
 
 ShellRoot {
   id: shellRoot
-  property alias mediaPanel: mediaPanel
 
   Bar {
     id: mainBar
@@ -21,6 +22,14 @@ ShellRoot {
 
   MediaPanel {
     id: mediaPanel
+  }
+
+  OSD {
+    id: osd
+  }
+
+  WorkspaceOverlay {
+    id: workspaceOverlay
   }
 
   // Loader { active: true; component: Bar{}}

@@ -10,8 +10,8 @@ import qs.services
 Scope {
   property int barHeight: Settings.barHeight
   property int barWidth: Settings.verticalBar ? Settings.barHeight : undefined
-  property string backgroundColor: Colors.bg
-  property string foregroundColor: Colors.fg
+  property color backgroundColor: Colors.bg
+  property color foregroundColor: Colors.fg
 
   Variants {
     model: Quickshell.screens

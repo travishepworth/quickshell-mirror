@@ -11,16 +11,6 @@ Scope {
   id: root
   objectName: "mediaPanel"
 
-  function toggle() {
-    popupWindow.visible = !popupWindow.visible;
-  }
-  function open() {
-    popupWindow.visible = true;
-  }
-  function close() {
-    popupWindow.visible = false;
-  }
-
   Component.onCompleted: {
     console.log("MediaPanel: Initialized");
     console.log("MediaPanel: Player available:", Mpris.activePlayer !== null);

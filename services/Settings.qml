@@ -30,4 +30,5 @@ QtObject {
     property int orientation: verticalBar ? Qt.Vertical : Qt.Horizontal
 
     property bool singleMonitor: true
+    property string userName: "travmonkey"
 }
