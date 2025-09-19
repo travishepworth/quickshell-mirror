@@ -8,237 +8,200 @@ import qs.services
 Item {
   id: root
   required property var screen
-  
+  property var popouts: null
+
   // Orientation support
-  property int orientation: Settings.orientation  // Accept orientation from parent
+  property int orientation: Settings.orientation
   property bool isVertical: orientation === Qt.Vertical
-  
+
   property color activeColor: Colors.accent
   property color inactiveColor: Colors.outline
   property color emptyColor: Colors.bgAlt
 
   readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
-  readonly property HyprlandWorkspace focusedWorkspace: Hyprland.workspaces.focused
+  // readonly property HyprlandWorkspace focusedWorkspace: Hyprland.workspaces.focused
 
   // Dynamic group calculation based on orientation
   readonly property int groupBase: {
     const id = monitor.activeWorkspace ? monitor.activeWorkspace.id : 1;
     if (isVertical) {
       // For vertical: show the column that contains the active workspace
-      // If on workspace 1-5, show column 1 (1,6,11,16,21)
-      // If on workspace 6-10, show column 2 (2,7,12,17,22), etc.
       return ((id - 1) % 5) + 1;
     } else {
       // For horizontal: groups are 1-5 | 6-10 | 11-15 | etc
       return Math.floor((id - 1) / 5) * 5 + 1;
     }
   }
-  
-  readonly property int groupSize: 5
-  property var addressClassMap: populateAddressClassMap()
-  
-  // Dynamic dimensions
-  implicitWidth: isVertical ? Settings.widgetHeight : (groupSize * Settings.widgetHeight + (groupSize - 1) * layout.spacing)
-  implicitHeight: isVertical ? (groupSize * Settings.widgetHeight + (groupSize - 1) * layout.spacing) : Settings.widgetHeight
 
-  Loader {
-    id: layout
-    anchors.centerIn: parent
-    sourceComponent: isVertical ? columnComponent : rowComponent
-    
-    property int spacing: 4
-    
-    Component {
-      id: rowComponent
-      RowLayout {
-        spacing: layout.spacing
-        
-        Repeater {
-          model: root.groupSize
-          delegate: workspaceDelegate
+  readonly property int groupSize: 5
+
+  // Size for the clipped view in the bar
+  implicitWidth: isVertical ? Settings.widgetHeight : (groupSize * Settings.widgetHeight + (groupSize - 1) * 6)
+  implicitHeight: isVertical ? (groupSize * Settings.widgetHeight + (groupSize - 1) * 6) : Settings.widgetHeight
+
+  function wsById(id) {
+    const arr = Hyprland.workspaces.values;
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i].id === id)
+        return arr[i];
+    }
+    return null;
+  }
+
+  // Main clipped container that shows only the relevant column/row
+  Item {
+    id: clippedContainer
+    anchors.fill: parent
+    clip: true  // Clip the full grid to show only what we need
+
+    // Full 5x5 grid, but positioned so only the relevant part shows
+    GridLayout {
+      id: mainGrid
+      columns: 5
+      rows: 5
+      columnSpacing: 6
+      rowSpacing: 6
+
+      // Position the grid so the right column/row is visible
+      x: {
+        if (isVertical) {
+          // Show only the specific column
+          const columnIndex = groupBase - 1;  // 0-4
+          return -(columnIndex * (Settings.widgetHeight + 6));
+        } else {
+          return 0;  // Show all columns for horizontal
         }
       }
-    }
-    
-    Component {
-      id: columnComponent
-      ColumnLayout {
-        spacing: layout.spacing
-        
-        Repeater {
-          model: root.groupSize
-          delegate: workspaceDelegate
+
+      y: {
+        if (!isVertical) {
+          // Show only the specific row
+          const rowIndex = Math.floor((groupBase - 1) / 5);  // 0-4
+          return -(rowIndex * (Settings.widgetHeight + 6));
+        } else {
+          return 0;  // Show all rows for vertical
         }
+      }
+
+      Repeater {
+        model: 25
+        delegate: workspaceDelegate
       }
     }
   }
-  
+
+  // Mouse area for hover detection
+  MouseArea {
+    id: hoverArea
+    anchors.fill: parent
+    hoverEnabled: true
+
+    onEntered: {
+      if (root.popouts) {
+        console.log("Hover enter - show workspace grid popout");
+        showTimer.restart();
+      }
+    }
+
+    onExited: {
+      showTimer.stop();
+      // if (Popouts.WorkspaceGridPopout.shown) {
+      //   hideTimer.restart();
+      // }
+    }
+  }
+
+  // Timer to show popout after hover
+  Timer {
+    id: showTimer
+    interval: 200
+    onTriggered: {
+      if (root.popouts) {
+        // Debug what's available
+        console.log("root:", root);
+        console.log("root.parent:", root.parent);
+        console.log("root.window:", root.window);
+        console.log("panel:", typeof panel !== 'undefined' ? panel : "undefined");
+
+        // Try to find the panel window
+        var targetWindow = null;
+        var item = root;
+
+        // Walk up the parent chain to find the panel
+        while (item) {
+          console.log("Checking item:", item, "type:", item.toString());
+          if (item.objectName === "panel" || item.id === "panel") {
+            targetWindow = item;
+            break;
+          }
+          item = item.parent;
+        }
+
+        console.log("Found targetWindow:", targetWindow);
+
+        // Use panel directly if available, otherwise targetWindow
+        var windowToUse = (typeof panel !== 'undefined') ? panel : targetWindow;
+
+        root.popouts.showWorkspaceGrid(windowToUse, {
+          monitor: root.monitor,
+          activeId: root.monitor?.activeWorkspace?.id ?? 1,
+          anchorX: root.x  // Use root.x/y instead of mapToGlobal
+          ,
+          anchorY: root.y,
+          anchorWidth: root.width,
+          anchorHeight: root.height
+        });
+      }
+    }
+  }
+
+  // Timer to hide popout after mouse leaves
+  // Timer {
+  //   id: hideTimer
+  //   interval: 300
+  //   onTriggered: {
+  //     Popouts.Wrapper.hidePopout(Popouts.WorkspaceGridPopout, hoverArea);
+  //   }
+  // }
+
+  // Workspace delegate component used in the bar grid
   Component {
     id: workspaceDelegate
     Rectangle {
-      // Calculate the real workspace ID based on orientation
-      readonly property int realId: {
-        if (root.isVertical) {
-          // Vertical: show column workspaces
-          // groupBase gives us column number (1-5)
-          // index gives us row position (0-4)
-          // Formula: column + (row * 5)
-          return root.groupBase + (index * 5);
-        } else {
-          // Horizontal: increment by 1 for each position (1,2,3,4,5)
-          return root.groupBase + index;
-        }
-      }
-
-      readonly property HyprlandWorkspace ws: wsById(realId)
+      readonly property int realId: index + 1
+      readonly property HyprlandWorkspace ws: root.wsById(realId)
       readonly property bool isActive: monitor.activeWorkspace && monitor.activeWorkspace.id === realId
-      readonly property bool exists: ws !== null
       readonly property bool hasWindows: ws && ws.toplevels && ws.toplevels.values.length > 0
-
-      // function findIconPath(appClass) {
-      //   if (!appClass || appClass === "")
-      //     return "";
-      //
-      //   let iconName = appClass.toLowerCase();
-      //
-      //   if (iconName.includes(".")) {
-      //     const parts = iconName.split(".");
-      //     iconName = parts[parts.length - 1];
-      //   }
-      //
-      //   const iconPaths = [
-      //     `/usr/share/icons/hicolor/256x256/apps/${iconName}.png`,
-      //     `/usr/share/icons/hicolor/128x128/apps/${iconName}.png`,
-      //     `/usr/share/icons/hicolor/64x64/apps/${iconName}.png`,
-      //     `/usr/share/icons/hicolor/48x48/apps/${iconName}.png`,
-      //     `/usr/share/icons/hicolor/scalable/apps/${iconName}.svg`,
-      //     `/usr/share/pixmaps/${iconName}.png`,
-      //     `/usr/share/pixmaps/${iconName}.svg`,
-      //     `/usr/share/icons/Papirus/64x64/apps/${iconName}.svg`,
-      //     `/usr/share/icons/Papirus/48x48/apps/${iconName}.svg`,
-      //     `/usr/share/icons/breeze/apps/64/${iconName}.svg`,
-      //     `/usr/share/icons/breeze/apps/48/${iconName}.svg`,
-      //     `/usr/share/icons/Adwaita/256x256/apps/${iconName}.png`,
-      //     `/usr/share/icons/Adwaita/48x48/apps/${iconName}.png`,
-      //   ];
-      //
-      //   return iconPaths[0];
-      // }
-
-      readonly property var largestWindow: {
-        if (!hasWindows || !ws)
-          return null;
-
-        let largest = null;
-        let maxSize = 0;
-
-        for (let client of ws.toplevels.values) {
-          let width = client.size?.width || client.width || 0;
-          let height = client.size?.height || client.height || 0;
-          let size = width * height;
-
-          if (size > maxSize) {
-            maxSize = size;
-            largest = client;
-          }
-        }
-
-        if (!largest) {
-          for (let client of Hyprland.toplevels.values) {
-            if (client.workspace && client.workspace.id === realId) {
-              let width = client.size?.width || client.width || 0;
-              let height = client.size?.height || client.height || 0;
-              let size = width * height;
-
-              if (size > maxSize) {
-                maxSize = size;
-                largest = client;
-              }
-            }
-          }
-        }
-
-        return largest;
-      }
-
-      readonly property string iconPath: {
-        if (!largestWindow)
-          return "";
-        console.log("has largest window for WS " + realId + ": ", largestWindow.handle);
-        return findIconPath(largestWindow.appClass);
-      }
-
-      function wsById(id) {
-        const arr = Hyprland.workspaces.values;
-        for (let i = 0; i < arr.length; i++) {
-          if (arr[i].id === id)
-            return arr[i];
-        }
-        return null;
-      }
-
-      function echoIconPath() {
-        console.log("Icon Path for WS " + realId + ": " + iconPath);
-        if (largestWindow) {
-          console.log("Largest window: ", largestWindow);
-          console.log("Largest window properties:", 
-            "\n  address:", largestWindow.address,
-            "\n  handle:", largestWindow.handle,
-            "\n  wayland:", largestWindow.wayland,
-            "\n  lastIpcObject:", largestWindow.lastIpcObject,
-            "\n  title:", largestWindow.title);
-        }
-      }
 
       Layout.preferredWidth: Settings.widgetHeight
       Layout.preferredHeight: Settings.widgetHeight
-      
+
       radius: Settings.borderRadius
       color: isActive ? root.activeColor : hasWindows ? root.inactiveColor : root.emptyColor
-      border.width: 0
-      border.color: Colors.accent
-
-      // Optional workspace number label
-      Text {
-        anchors {
-          top: parent.top
-          right: parent.right
-          margins: 2
-        }
-        text: parent.realId
-        color: Colors.bg
-        font.pixelSize: 8
-        font.family: Settings.fontFamily
-        visible: false  // Set to true if you want to see workspace numbers
-      }
-
-      Image {
-        id: wsWindowIcon
-        anchors.centerIn: parent
-        source: parent.iconPath
-        width: parent.width * 0.7
-        height: parent.height * 0.7
-        fillMode: Image.PreserveAspectFit
-        smooth: true
-        antialiasing: true
-      }
 
       MouseArea {
         anchors.fill: parent
         onClicked: {
-          if (ws) {
-            Hyprland.dispatch(`workspace ${realId}`);
-          }
-          echoIconPath();
+          Hyprland.dispatch(`workspace ${realId}`);
         }
         hoverEnabled: true
-        onEntered: parent.opacity = 0.8
-        onExited: parent.opacity = 1.0
+        onEntered: {
+          parent.opacity = 0.8;
+        }
+        onExited: {
+          parent.opacity = 1.0;
+        }
       }
 
       Behavior on color {
         ColorAnimation {
           duration: 50
+        }
+      }
+
+      Behavior on opacity {
+        NumberAnimation {
+          duration: 150
         }
       }
     }

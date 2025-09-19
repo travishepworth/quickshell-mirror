@@ -6,12 +6,16 @@ import QtQuick.Layouts
 import "./widgets" as Widgets
 
 import qs.services
+import qs.modules.bar.popouts
 
 Scope {
+  id: root
   property int barHeight: Settings.barHeight
   property int barWidth: Settings.verticalBar ? Settings.barHeight : undefined
   property color backgroundColor: Colors.bg
   property color foregroundColor: Colors.fg
+
+  property var popouts: null
 
   Variants {
     model: Quickshell.screens
@@ -20,6 +24,7 @@ Scope {
         id: panel
         required property var modelData
         screen: modelData
+        WlrLayershell.layer: WlrLayer.Overlay
 
         anchors {
           top: Settings.verticalBar ? true : (modelData.name === "DP-1")
@@ -37,15 +42,33 @@ Scope {
 
         implicitHeight: Settings.verticalBar ? undefined : barHeight
         implicitWidth: Settings.verticalBar ? barWidth : undefined
+        // implicitWidth: Settings.verticalBar ? (barWidth + (popouts.hasCurrent ? (popouts.width + popouts.gap) : 0)) : undefined
 
         Rectangle {
           anchors.fill: parent
           color: backgroundColor
+          // border.color: Colors.fg
+
+          Rectangle {
+            width: 2
+            anchors {
+              right: parent.right
+              top: parent.top
+              bottom: parent.bottom
+            }
+            color: Colors.fg
+          }
+
+          PopoutWrapper {
+            id: popouts
+            screen: panel.screen
+          }
 
           // Workspaces centered
           Widgets.Workspaces {
             id: workspaces
             screen: panel.screen
+            popouts: popouts
             anchors.centerIn: parent
             orientation: Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
           }
