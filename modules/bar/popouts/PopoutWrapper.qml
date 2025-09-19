@@ -8,7 +8,7 @@ import qs.services
 Item {
   id: root
 
-  required property var screen
+  required property ShellScreen screen
 
   property string currentName: ""
   property var currentAnchor: null    // bar sub-item passed in
@@ -29,6 +29,7 @@ Item {
     currentData = data;
     hasCurrent = true;
     console.log("POP show ws grid", currentData.activeId);
+    console.log("POP anchor", currentAnchor);
   }
 
   function close() {
@@ -37,25 +38,131 @@ Item {
   }
 
   PopupWindow {
+    id: connectorWindow
+    visible: popwin.visible
+    color: "transparent"
+
+    implicitWidth: content.item ? (content.item.implicitWidth - Settings.barHeight) : 0
+    implicitHeight: content.item ? content.item.implicitHeight : 0
+
+    anchor {
+      window: currentAnchor
+      rect {
+        x: currentData ? (currentData.anchorX || 0) + Settings.barHeight - 10 : 0
+        y: currentData ? (currentData.anchorY || 0) - 10 : 0 // Also solve this magic num
+        width: 20
+        height: currentData ? currentData.anchorHeight : 40
+      }
+    }
+
+    Rectangle {
+      anchors.fill: parent
+      color: Colors.surface
+      radius: 8
+      border.color: Colors.fg
+    }
+    // Rectangle {
+    //   x: -width / 2
+    //   y: -width / 2
+    //   width: 12
+    //   height: 12
+    //   radius: 6
+    //   color: "black"
+    // }
+    //
+    // Rectangle {
+    //   x: -width / 2
+    //   y: parent.height - height / 2
+    //   width: 12
+    //   height: 12
+    //   radius: 6
+    //   color: "black"
+    // }
+    // Image {
+    //   anchors.fill: parent
+    //   source: "data:image/svg+xml," + encodeURIComponent('<svg viewBox="0 0 24 40" xmlns="http://www.w3.org/2000/svg"><path d="M 24,0 L 24,40 L 8,40 Q 0,40 0,32 L 0,8 Q 0,0 8,0 Z" fill="' + Colors.accent2 + '"/></svg>')
+    //   sourceSize: Qt.size(24, 40)
+    //   smooth: true
+    // }
+  }
+
+  PopupWindow {
     id: popwin
     visible: root.hasCurrent
-    // flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-    color: Colors.accent2   // keep everything outside the panel invisible
-    // modality: Qt.NonModal
-    anchor.window: toplevel
+    color: "transparent"
+    // WlrLayershell.keyboardFocus: KeyboardFocus.OnDemand
+    // WlrLayershell.keyboardFocus: KeyboardFocus.OnDemand
+    // flags: Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
 
-    // WlrLayershell.layer: WlrLayershell.Overlay
-    // WlrLayershell.exclusiveZone: 0
-
-    // place to the RIGHT of the hovered bar item using global coords
-    // x: (root.currentAnchor && root.currentAnchor.window) ? root.currentAnchor.window.mapToGlobal(root.currentAnchor.mapToScene(root.currentAnchor.width, 0)).x + root.gap : 0
-    // y: (root.currentAnchor && root.currentAnchor.window) ? root.currentAnchor.window.mapToGlobal(root.currentAnchor.mapToScene(root.currentAnchor.width / 2, root.currentAnchor.height / 2)).y - height / 2 : 0
-
-    // size the window to the loaded content
     implicitWidth: content.item ? content.item.implicitWidth : 0
     implicitHeight: content.item ? content.item.implicitHeight : 0
 
-    // you can add simple fade/slide behaviors if you want, not required
+    anchor {
+      window: currentAnchor
+      rect {
+        x: currentData ? (currentData.anchorX || 0) + 170 : 0 // TODO: resolve this magic number
+        y: currentData ? (currentData.anchorY || 0) : 0
+        width: currentData ? (currentData.anchorWidth || 1) : 1
+        height: currentData ? (currentData.anchorHeight || 1) : 1
+      }
+      edges: Edges.Right  // Anchor to right edge of widget
+      gravity: Edges.Left  // Use left edge of popup
+      // This will place the popup to the right of the widget, vertically centered
+    }
+
+    Component.onCompleted: {
+        // This forces the window to track mouse movement
+        popwin.setMouseGrabEnabled(false);  // Don't grab mouse
+        popwin.setKeyboardGrabEnabled(false);  // Don't grab keyboard
+    }
+
+    // Item {
+    //   anchors.fill: parent
+    //
+    //   // Curved connector piece
+    //   Rectangle {
+    //     width: 16
+    //     height: 40  // Height of the connection area
+    //     x: -width + 4  // Extend to the left
+    //     y: parent.height / 2 - height / 2
+    //     color: Colors.accent2
+    //     radius: 8
+    //     z: -100  // Behind main content
+    //   }
+    //
+    //   // Main popup background
+    //   Rectangle {
+    //     anchors.fill: parent
+    //     color: Colors.accent2
+    //     radius: 8
+    //     z: 0  // Behind content but above connector
+    //   }
+    // }
+
+    Loader {
+      id: content
+      active: hasCurrent
+      asynchronous: false
+      enabled: true
+      onLoaded: {
+        if (item) {
+          item.wrapper = root;
+          // consistent check (assuming your content sets currentName: "workspace-grid")
+          if (item.currentName !== root.currentName)
+            console.warn("POP warning: loaded item name mismatch", item?.currentName, root.currentName);
+        }
+        // debug so you see real size
+        Qt.callLater(() => console.log("popwin size", popwin.width, popwin.height));
+      }
+      sourceComponent: {
+        switch (root.currentName) {
+        case "workspace-grid":
+          return workspaceGridComponent;
+        default:
+          return null;
+        }
+      }
+    }
   }
 
   Timer {
@@ -84,18 +191,18 @@ Item {
   // ── POSITIONING (no anchors; compute x/y from the bar sub-item) ──
 
   // LEFT edge of popout = RIGHT edge of the hovered bar item (plus small gap)
-  x: currentAnchor ? (function () {
-      const target = parent ? parent : null; // null maps to the scene
-      const p = currentAnchor.mapToItem(target, currentAnchor.width, 0);
-      return Math.round(p.x + gap);
-    })() : x  // leave whatever parent set if no anchor
-
-  // Vertically center on the hovered bar item
-  y: currentAnchor ? (function () {
-      const target = parent ? parent : null;
-      const p = currentAnchor.mapToItem(target, currentAnchor.width / 2, currentAnchor.height / 2);
-      return Math.round(p.y - height / 2);
-    })() : y
+  // x: currentAnchor ? (function () {
+  //     const target = parent ? parent : null; // null maps to the scene
+  //     const p = currentAnchor.mapToItem(target, currentAnchor.width, 0);
+  //     return Math.round(p.x + gap);
+  //   })() : x  // leave whatever parent set if no anchor
+  //
+  // // Vertically center on the hovered bar item
+  // y: currentAnchor ? (function () {
+  //     const target = parent ? parent : null;
+  //     const p = currentAnchor.mapToItem(target, currentAnchor.width / 2, currentAnchor.height / 2);
+  //     return Math.round(p.y - height / 2);
+  //   })() : y
 
   Behavior on x {
     NumberAnimation {
@@ -125,33 +232,33 @@ Item {
     Qt.callLater(() => console.log("POP size", implicitWidth, implicitHeight))
 
   // Loader for the actual popout content
-  Loader {
-    id: content
-    active: hasCurrent
-    asynchronous: false
-    onLoaded: {
-      if (item) {
-        item.wrapper = root;
-        // consistent check (assuming your content sets currentName: "workspace-grid")
-        if (item.currentName !== root.currentName)
-          console.warn("POP warning: loaded item name mismatch", item?.currentName, root.currentName);
-      }
-      // debug so you see real size
-      Qt.callLater(() => console.log("popwin size", popwin.width, popwin.height));
-    }
-
-    // ❌ remove anchor-to-parent here; it causes crashes when parent is null
-    // (no anchors are needed since we drive x/y on the wrapper)
-
-    sourceComponent: {
-      switch (root.currentName) {
-      case "workspace-grid":
-        return workspaceGridComponent;
-      default:
-        return null;
-      }
-    }
-  }
+  // Loader {
+  //   id: content
+  //   active: hasCurrent
+  //   asynchronous: false
+  //   onLoaded: {
+  //     if (item) {
+  //       item.wrapper = root;
+  //       // consistent check (assuming your content sets currentName: "workspace-grid")
+  //       if (item.currentName !== root.currentName)
+  //         console.warn("POP warning: loaded item name mismatch", item?.currentName, root.currentName);
+  //     }
+  //     // debug so you see real size
+  //     Qt.callLater(() => console.log("popwin size", popwin.width, popwin.height));
+  //   }
+  //
+  //   // ❌ remove anchor-to-parent here; it causes crashes when parent is null
+  //   // (no anchors are needed since we drive x/y on the wrapper)
+  //
+  //   sourceComponent: {
+  //     switch (root.currentName) {
+  //     case "workspace-grid":
+  //       return workspaceGridComponent;
+  //     default:
+  //       return null;
+  //     }
+  //   }
+  // }
 
   Component {
     id: workspaceGridComponent

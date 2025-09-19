@@ -36,8 +36,8 @@ Item {
     height: 5 * Settings.widgetHeight + 4 * 6
 
     color: Colors.bg
-    border.color: Colors.outline
-    border.width: 1
+    border.color: Colors.surface
+    border.width: 0
     radius: Settings.borderRadius + 2
 
     GridLayout {
@@ -58,45 +58,65 @@ Item {
           readonly property bool isActive: root.monitor?.activeWorkspace?.id === wsId
           readonly property bool hasWindows: workspace?.toplevels?.values?.length > 0
           readonly property bool isCurrentColumn: (wsId - 1) % 5 === root.currentColumn
+          readonly property bool hovered: hoverHandler.hovered
 
           Layout.preferredWidth: Settings.widgetHeight
           Layout.preferredHeight: Settings.widgetHeight
 
           radius: Settings.borderRadius
-          color: isActive ? Colors.accent : hasWindows ? Colors.outline : Colors.bgAlt
+          // property color baseColor: isActive ? Colors.accent : hasWindows ? Colors.outline : Colors.bgAlt
+
+          color: hovered ? Colors.accent2 : 
+           isActive ? Colors.accent : 
+           hasWindows ? Colors.outline : 
+           Colors.bgAlt
 
           // Highlight the column shown in bar
-          border.width: isCurrentColumn ? 2 : 0
-          border.color: Colors.accent
+          border.width: 0
+          border.color: Colors.surface
           opacity: isCurrentColumn ? 1.0 : 0.85
 
+          transitions: Transition {
+            ColorAnimation { duration: 150 }
+          }
+
           // Optional: Show workspace number
-          Text {
-            anchors.centerIn: parent
-            text: parent.wsId
-            color: parent.isActive ? Colors.bg : Colors.surface
-            font.pixelSize: 11
-            font.family: Settings.fontFamily
-            visible: Settings.showWorkspaceNumbers ?? false
+          // Text {
+          //   anchors.centerIn: parent
+          //   text: parent.wsId
+          //   color: parent.isActive ? Colors.bg : Colors.surface
+          //   font.pixelSize: 11
+          //   font.family: Settings.fontFamily
+          //   visible: Settings.showWorkspaceNumbers ?? false
+          // }
+          HoverHandler {
+            id: hoverHandler
+            acceptedDevices: PointerDevice.Mouse
+            cursorShape: Qt.PointingHandCursor
           }
 
           MouseArea {
+            id: boxMouseArea
             anchors.fill: parent
             hoverEnabled: true
 
+            cursorShape: containsMouse ? Qt.PointingHandCursor : Qt.ArrowCursor
             onClicked: {
               Hyprland.dispatch(`workspace ${parent.wsId}`);
               root.wrapper.hasCurrent = false;  // Close the popout
             }
 
             onEntered: {
-              parent.scale = 1.05;
-              cursorShape = Qt.PointingHandCursor;
+              console.log("Hover ws", parent.wsId);
+              // parent.scale = 1.05;
+              // cursorShape = Qt.PointingHandCursor;
+              // root.border.color = Colors.fg;
             }
 
             onExited: {
-              parent.scale = 1.0;
-              cursorShape = Qt.ArrowCursor;
+              console.log("Unhover ws", parent.wsId);
+              // parent.scale = 1.0;
+              // cursorShape = Qt.ArrowCursor;
             }
           }
 

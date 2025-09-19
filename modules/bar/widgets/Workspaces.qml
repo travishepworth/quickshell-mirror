@@ -19,7 +19,7 @@ Item {
   property color emptyColor: Colors.bgAlt
 
   readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
-  readonly property HyprlandWorkspace focusedWorkspace: Hyprland.workspaces.focused
+  // readonly property HyprlandWorkspace focusedWorkspace: Hyprland.workspaces.focused
 
   // Dynamic group calculation based on orientation
   readonly property int groupBase: {
@@ -117,15 +117,39 @@ Item {
     interval: 200
     onTriggered: {
       if (root.popouts) {
-        console.log("Show workspace grid popout");
-        console.log("Monitor:", root.monitor);
-        console.log("Active WS:", root.monitor?.activeWorkspace);
-        // console.log("Window:", root.Window.window);
-        console.log("QsWindow:", QsWindow);
-        root.popouts.showWorkspaceGrid(root, {
+        // Debug what's available
+        console.log("root:", root);
+        console.log("root.parent:", root.parent);
+        console.log("root.window:", root.window);
+        console.log("panel:", typeof panel !== 'undefined' ? panel : "undefined");
+
+        // Try to find the panel window
+        var targetWindow = null;
+        var item = root;
+
+        // Walk up the parent chain to find the panel
+        while (item) {
+          console.log("Checking item:", item, "type:", item.toString());
+          if (item.objectName === "panel" || item.id === "panel") {
+            targetWindow = item;
+            break;
+          }
+          item = item.parent;
+        }
+
+        console.log("Found targetWindow:", targetWindow);
+
+        // Use panel directly if available, otherwise targetWindow
+        var windowToUse = (typeof panel !== 'undefined') ? panel : targetWindow;
+
+        root.popouts.showWorkspaceGrid(windowToUse, {
           monitor: root.monitor,
           activeId: root.monitor?.activeWorkspace?.id ?? 1,
-          window: QsWindow.window
+          anchorX: root.x  // Use root.x/y instead of mapToGlobal
+          ,
+          anchorY: root.y,
+          anchorWidth: root.width,
+          anchorHeight: root.height
         });
       }
     }

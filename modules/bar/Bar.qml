@@ -24,6 +24,7 @@ Scope {
         id: panel
         required property var modelData
         screen: modelData
+        WlrLayershell.layer: WlrLayer.Overlay
 
         anchors {
           top: Settings.verticalBar ? true : (modelData.name === "DP-1")
@@ -46,18 +47,28 @@ Scope {
         Rectangle {
           anchors.fill: parent
           color: backgroundColor
+          // border.color: Colors.fg
 
-          // PopoutWrapper {
-          //   id: popouts
-          //   screen: panel.screen
-          //   z: 10000 // ON TOP
-          // }
+          Rectangle {
+            width: 2
+            anchors {
+              right: parent.right
+              top: parent.top
+              bottom: parent.bottom
+            }
+            color: Colors.fg
+          }
+
+          PopoutWrapper {
+            id: popouts
+            screen: panel.screen
+          }
 
           // Workspaces centered
           Widgets.Workspaces {
             id: workspaces
             screen: panel.screen
-            popouts: root.popouts
+            popouts: popouts
             anchors.centerIn: parent
             orientation: Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
           }

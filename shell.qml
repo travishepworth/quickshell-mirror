@@ -21,10 +21,13 @@ ShellRoot {
   // PopoutWrapper {
   //   id: popoutWrapper
   // }
-  BarWrapper {
+  // BarWrapper {
+  //   id: mainBar
+  //   // popouts: popoutWrapper
+  //   screen: shellRoot.currentScreen
+  // }
+  Bar {
     id: mainBar
-    // popouts: popoutWrapper
-    screen: shellRoot.currentScreen
   }
 
   MediaPanel {
