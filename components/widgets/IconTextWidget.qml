@@ -14,6 +14,19 @@ BaseWidget {
   property real textScale: 1.0
   property real iconScale: 1.0
   property real spacing: 6
+  property int maxTextLength: 0  // 0 = no limit
+  property bool elideText: true  // Use ellipsis when truncating
+
+  // Process text based on max length
+  property string displayText: {
+    if (maxTextLength <= 0 || text.length <= maxTextLength) {
+      return text;
+    }
+    if (elideText && maxTextLength > 3) {
+      return text.substring(0, maxTextLength - 3) + "...";
+    }
+    return text.substring(0, maxTextLength);
+  }
 
   content: Component {
     Loader {
@@ -43,7 +56,7 @@ BaseWidget {
 
           Text {
             color: Colors.bg
-            text: root.text || "—"
+            text: root.displayText || "—"
             font.family: Settings.fontFamily
             font.pixelSize: Settings.fontSize * root.textScale
           }
@@ -54,7 +67,7 @@ BaseWidget {
       Component {
         id: verticalLayout
         Column {
-          spacing: root.text !== "" ? 2 : 0
+          spacing: root.displayText !== "" ? 2 : 0
 
           Text {
             color: Colors.bg
@@ -67,11 +80,11 @@ BaseWidget {
 
           Text {
             color: Colors.bg
-            text: root.text || "—"
+            text: root.displayText || "—"
             font.family: Settings.fontFamily
             font.pixelSize: Settings.fontSize * 0.8 * root.textScale
             anchors.horizontalCenter: parent.horizontalCenter
-            visible: root.text !== ""
+            visible: root.displayText !== ""
           }
         }
       }
@@ -80,9 +93,9 @@ BaseWidget {
       Component {
         id: rotatedLayout
         Item {
-          implicitWidth: Math.max(root.icon !== "" ? iconText.height : 0, root.text !== "" ? mainText.height : 0) + (root.text !== "" && root.icon !== "" ? root.spacing : 0)
+          implicitWidth: Math.max(root.icon !== "" ? iconText.height : 0, root.displayText !== "" ? mainText.height : 0) + (root.displayText !== "" && root.icon !== "" ? root.spacing : 0)
 
-          implicitHeight: (root.icon !== "" ? iconText.width : 0) + (root.text !== "" ? mainText.width : 0) + (root.text !== "" && root.icon !== "" ? root.spacing : 0)
+          implicitHeight: (root.icon !== "" ? iconText.width : 0) + (root.displayText !== "" ? mainText.width : 0) + (root.displayText !== "" && root.icon !== "" ? root.spacing : 0)
 
           Text {
             id: iconText
@@ -93,18 +106,18 @@ BaseWidget {
             visible: root.icon !== ""
             anchors {
               centerIn: parent
-              verticalCenterOffset: root.text !== "" && root.icon !== "" ? -(mainText.width / 2) - 3 : 0
+              verticalCenterOffset: root.displayText !== "" && root.icon !== "" ? -(mainText.width / 2) - 3 : 0
             }
           }
 
           Text {
             id: mainText
             color: Colors.bg
-            text: root.text || "—"
+            text: root.displayText || "—"
             font.family: Settings.fontFamily
             font.pixelSize: Settings.fontSize * root.textScale
             rotation: -90
-            visible: root.text !== ""
+            visible: root.displayText !== ""
             anchors {
               centerIn: parent
               verticalCenterOffset: root.icon !== "" ? (iconText.width / 2) + 3 : 0
