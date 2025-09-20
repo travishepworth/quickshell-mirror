@@ -2,54 +2,25 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-
 import qs.services
+import qs.components.widgets
 
-Item {
-  id: root
-  height: Settings.widgetHeight
-  implicitWidth: label.implicitWidth + Settings.widgetPadding * 2
+StatusIconWidget {
+  command: ["sh", "-c", "tailscale status &>/dev/null"]
+  useExitCode: true
+  pollInterval: 250
+  showLoadingIcon: false
 
-  Rectangle {
-    anchors.fill: parent
-    color: Colors.yellow
-    radius: Settings.borderRadius
+  iconMap: {
+    0: "󰳌",
+    1: "󰌙"
   }
 
-  Timer {
-    id: poll
-    interval: 1000
-    running: true
-    repeat: true
-    onTriggered: {
-      tailscale.command = ["sh", "-c", "if tailscale status &>/dev/null; then echo '󰳌'; else echo '󰌙'; fi"];
-      tailscale.running = true;
-    }
+  colorMap: {
+    0: Colors.yellow,
+    1: Colors.surfaceAlt3
   }
 
-  Process {
-    id: tailscale
-    stdout: StdioCollector {
-      waitForEnd: true
-      onStreamFinished: {
-        const out = (text || "").trim();
-        label.text = out;
-      }
-    }
-  }
-
-  Text {
-    id: label
-    anchors.centerIn: parent
-    color: Colors.bg
-    font.family: Settings.fontFamily
-    font.pixelSize: Settings.fontSize
-  }
-
-  MouseArea {
-    anchors.fill: parent
-    cursorShape: Qt.PointingHandCursor
-    // onClicked: 
-  }
+  defaultIcon: "󰌙"
+  iconScale: 1
 }
-

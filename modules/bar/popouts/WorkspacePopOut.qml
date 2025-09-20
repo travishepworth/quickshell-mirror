@@ -103,7 +103,6 @@ Item {
             cursorShape: containsMouse ? Qt.PointingHandCursor : Qt.ArrowCursor
             onClicked: {
               Hyprland.dispatch(`workspace ${parent.wsId}`);
-              root.wrapper.hasCurrent = false;  // Close the popout
             }
 
             onEntered: {
@@ -163,7 +162,7 @@ Item {
 
   Timer {
     id: exitTimer
-    interval: 300
+    interval: 40
     onTriggered: {
       root.wrapper.hasCurrent = false;
     }

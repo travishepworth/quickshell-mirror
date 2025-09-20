@@ -11,6 +11,7 @@ Item {
   property int orientation: Settings.orientation
   property bool isVertical: orientation === Qt.Vertical
   property bool rotateText: true
+  property var popouts: null
 
   // Find shellRoot and access mediaPanel through it
   property var mediaPanel: {
@@ -179,7 +180,30 @@ Item {
     interval: 300
     onTriggered: {
       // Use direct function call if available, fallback to IPC
-      MediaController.open();
+      // MediaController.open();
+      console.log("root.popouts:", root.popouts);
+      if (root.popouts) {
+        console.log("Media: showing media panel popout");
+        var targetWindow = null;
+        var item = root;
+        while (item) {
+          if (item.objectName === "mediaPanel" || item.id === "mediaPanel") {
+            targetWindow = item;
+            break;
+          }
+          item = item.parent;
+        }
+        var windowToUse = (typeof panel !== 'undefined') ? panel : targetWindow;
+        root.popouts.showMediaPlayer(windowToUse, {
+          monitor: root.mediaPanel?.screen ?? null,
+          anchorX: root.x,
+          anchorY: root.y,
+          anchorWidth: root.width,
+          anchorHeight: root.height
+        });
+
+
+      }
     }
   }
 

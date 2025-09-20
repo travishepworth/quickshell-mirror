@@ -24,7 +24,8 @@ Scope {
         id: panel
         required property var modelData
         screen: modelData
-        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.namespace: "qs-bar"
 
         anchors {
           top: Settings.verticalBar ? true : (modelData.name === "DP-1")
@@ -96,6 +97,7 @@ Scope {
                 }
                 Widgets.Media {
                   id: media
+                  popouts: popouts
                   visible: modelData.name === "DP-1"
                 }
               }
@@ -111,6 +113,7 @@ Scope {
                 Widgets.Media {
                   id: media
                   visible: modelData.name === "DP-1"
+                  popouts: popouts
                   Layout.alignment: Qt.AlignHCenter
                 }
               }

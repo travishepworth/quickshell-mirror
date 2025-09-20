@@ -65,7 +65,7 @@ Rectangle {
     anchors.centerIn: parent
     width: workspaceContainer.width
     height: workspaceContainer.height
-    z: 10
+    z: 1e6
 
     Repeater {
       model: HyprlandData.windowList

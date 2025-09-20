@@ -98,7 +98,6 @@ Item {
 
     onEntered: {
       if (root.popouts) {
-        console.log("Hover enter - show workspace grid popout");
         showTimer.restart();
       }
     }
@@ -114,7 +113,7 @@ Item {
   // Timer to show popout after hover
   Timer {
     id: showTimer
-    interval: 200
+    interval: 10
     onTriggered: {
       if (root.popouts) {
         // Debug what's available
@@ -139,7 +138,6 @@ Item {
 
         console.log("Found targetWindow:", targetWindow);
 
-        // Use panel directly if available, otherwise targetWindow
         var windowToUse = (typeof panel !== 'undefined') ? panel : targetWindow;
 
         root.popouts.showWorkspaceGrid(windowToUse, {
