@@ -3,24 +3,59 @@ import Quickshell
 import Quickshell.Io
 
 import qs.services
+import qs.components
 import qs.components.widgets
 
-StatusIconWidget {
-  command: ["sh", "-c", "tailscale status &>/dev/null"]
-  useExitCode: true
-  pollInterval: 250
-  showLoadingIcon: false
+IconTextWidget {
+  id: root
 
-  iconMap: {
-    0: "󰳌",
-    1: "󰌙"
+  property bool isConnected: false
+  property string tailnetName: ""
+
+  icon: isConnected ? "󰳌" : "󰌙"
+  text: isConnected ? tailnetName : ""
+
+  backgroundColor: isConnected ? Colors.yellow : Colors.surfaceAlt3
+
+  maxTextLength: 15
+
+  iconScale: 1.1
+  textScale: 0.9
+
+  PollingProcess {
+    id: statusChecker
+    interval: 250
+    command: ["sh", "-c", "tailscale status &>/dev/null"]
+    treatExitCodeAsStatus: true
+
+    onStatusChanged: (exitCode, stdout, stderr) => {
+      root.isConnected = (exitCode === 0);
+
+      // If connected, get the tailnet name
+      if (root.isConnected) {
+        tailnetChecker.refresh();
+      } else {
+        root.tailnetName = "";
+      }
+    }
   }
 
-  colorMap: {
-    0: Colors.yellow,
-    1: Colors.surfaceAlt3
+  PollingProcess {
+    id: tailnetChecker
+    interval: 5000
+    command: ["sh", "-c", "tailscale status --json 2>/dev/null | jq -r '.CurrentTailnet.Name // empty' 2>/dev/null"]
+    autoStart: false
+
+    onDataReceived: data => {
+      let name = data.trim().replace(/^["']|["']$/g, '');
+      root.tailnetName = name || "";
+    }
   }
 
-  defaultIcon: "󰌙"
-  iconScale: 1
+  MouseArea {
+    anchors.fill: parent
+    onClicked: {
+      Notify.send("Tailscale", root.isConnected ? "Connected to: " + root.tailnetName : "Disconnected");
+    }
+  }
 }

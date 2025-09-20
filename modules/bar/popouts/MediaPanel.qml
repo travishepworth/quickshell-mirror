@@ -10,7 +10,7 @@ import qs.services
 Item {
   id: root
 
-  required property var wrapper  // Reference to the popout wrapper
+  required property var wrapper
   property string currentName: "media-panel"
 
   Component.onCompleted: {
@@ -299,7 +299,6 @@ Item {
             width: 20
           }
 
-          // Time display
           Text {
             text: Mpris.formatTime(Mpris.position) + " / " + Mpris.formatTime(Mpris.length)
             color: Colors.accent3
@@ -311,7 +310,6 @@ Item {
       }
     }
 
-    // No player message
     Text {
       anchors.centerIn: parent
       text: "No media player"
@@ -321,5 +319,4 @@ Item {
       visible: Mpris.activePlayer === null
     }
   }
-  // }
 }
