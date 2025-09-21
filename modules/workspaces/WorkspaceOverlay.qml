@@ -13,10 +13,6 @@ Scope {
   property int gridSize: 5
   property int totalWorkspaces: 25
   property real overviewScale: 0.15 // Adjust this for window sizing
-  Component.onCompleted: {
-    console.log("Grid size:", implicitWidth, "x", implicitHeight);
-    console.log("Window count:", HyprlandData.windowList.length);
-  }
 
   IpcHandler {
     target: "workspaceOverlay"

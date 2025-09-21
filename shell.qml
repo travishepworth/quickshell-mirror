@@ -1,4 +1,7 @@
 //@ pragma UseQApplication
+//@ pragma Env QS_NO_RELOAD_POPUP=1
+//@ pragma Env QSG_RENDER_LOOP=threaded
+//@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 
 import "modules/overview" as Overview
 import "modules/panels" as Panels
@@ -19,9 +22,6 @@ import QtQuick
 ShellRoot {
   id: shellRoot
 
-  // PopoutWrapper {
-  //   id: popoutWrapper
-  // }
   // BarWrapper {
   //   id: mainBar
   //   // popouts: popoutWrapper
@@ -35,9 +35,9 @@ ShellRoot {
     id: roundedCorners
   }
 
-  MediaPanel {
-    id: mediaPanel
-  }
+  // MediaPanel {
+  //   id: mediaPanel
+  // }
 
   OSD {
     id: osd

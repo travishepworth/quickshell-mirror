@@ -37,6 +37,14 @@ Item {
   }
 
   Timer {
+    id: exitTimer
+    interval: 100
+    onTriggered: {
+      root.closePopout();
+    }
+  }
+
+  Timer {
     id: closeDelayTimer
     interval: root.animLength
     repeat: false
@@ -59,18 +67,6 @@ Item {
     currentAnchor = anchor;
     currentData = data;
     hasCurrent = true;
-  }
-
-  function showMediaPlayer(anchor, data) {
-    currentName = "media-player";
-    currentAnchor = anchor;
-    currentData = data;
-    hasCurrent = true;
-  }
-
-  function close() {
-    hasCurrent = false;
-    hideTimer.restart();
   }
 
   PopupWindow {
@@ -144,11 +140,22 @@ Item {
             // color: "red"
           }
         }
+        // HoverHandler {
+        //   id: hoverHandler
+        //   onHoveredChanged: {
+        //     console.log("hovered:", hovered);
+        //     if (hovered) {
+        //       exitTimer.stop();
+        //     } else {
+        //       exitTimer.restart();
+        //     }
+        //   }
+        // }
 
         Loader {
           id: content
           // Unfortunately this needs to be set in the popout component
-          // anchors.centerIn: parent 
+          // anchors.centerIn: parent
 
           active: hasCurrent
           asynchronous: false
@@ -225,8 +232,6 @@ Item {
       easing.bezierCurve: root.animCurve
     }
   }
-  // onHasCurrentChanged: if (hasCurrent)
-  //   Qt.callLater(() => console.log("POP size", implicitWidth, implicitHeight))
 
   Component {
     id: workspaceGridComponent

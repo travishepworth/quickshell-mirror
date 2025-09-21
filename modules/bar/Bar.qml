@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -6,12 +8,13 @@ import QtQuick.Layouts
 import "./widgets" as Widgets
 
 import qs.services
+import qs.components
 import qs.modules.bar.popouts
 
 Scope {
   id: root
   property int barHeight: Settings.barHeight
-  property int barWidth: Settings.verticalBar ? Settings.barHeight : undefined
+  property int barWidth: Settings.verticalBar ? Settings.barHeight : 0
   property color backgroundColor: Colors.bg
   property color foregroundColor: Colors.fg
 
@@ -45,9 +48,19 @@ Scope {
         else
           false
 
-        implicitHeight: Settings.verticalBar ? undefined : barHeight
-        implicitWidth: Settings.verticalBar ? barWidth : undefined
+        implicitHeight: Settings.verticalBar ? 0 : root.barHeight
+        implicitWidth: Settings.verticalBar ? root.barWidth : 0
         // implicitWidth: Settings.verticalBar ? (barWidth + (popouts.hasCurrent ? (popouts.width + popouts.gap) : 0)) : undefined
+
+        PopoutWrapper {
+          id: popouts
+          screen: panel.screen
+        }
+
+        FloatingTrigger {
+          id: menuTrigger
+          popouts: popouts
+        }
 
         Rectangle {
           anchors.fill: parent
@@ -62,11 +75,6 @@ Scope {
               bottom: parent.bottom
             }
             color: Colors.fg
-          }
-
-          PopoutWrapper {
-            id: popouts
-            screen: panel.screen
           }
 
           // Workspaces centered

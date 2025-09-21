@@ -4,7 +4,6 @@ import Quickshell.Widgets
 import Quickshell.Wayland
 import qs.services
 
-
 PanelWindow {
   id: workspaceContainer
   property int borderWidth: 8
@@ -19,13 +18,11 @@ PanelWindow {
     bottom: true
   }
 
-  WlrLayershell.layer: WlrLayershell.Layer.Top
-
+  aboveWindows: true
   color: "transparent"
-
   mask: Region {}
 
-  // TODO: Figure out a better way to do this without a small black dot in 
+  // TODO: Figure out a better way to do this without a small black dot in
   // each corner.
   // Create the border effect with multiple rectangles
   // Top border (excluding corners)
@@ -90,15 +87,18 @@ PanelWindow {
     height: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     color: Colors.surface
 
-    Rectangle {
-      anchors {
-        right: parent.right
-        bottom: parent.bottom
+    Item {
+      clip: true
+      Rectangle {
+        anchors {
+          right: parent.right
+          bottom: parent.bottom
+        }
+        width: workspaceContainer.borderRadius
+        height: workspaceContainer.borderRadius
+        color: Colors.accent
+        radius: workspaceContainer.borderRadius
       }
-      width: workspaceContainer.borderRadius
-      height: workspaceContainer.borderRadius
-      color: "transparent"
-      radius: workspaceContainer.borderRadius
     }
   }
 

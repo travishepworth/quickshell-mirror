@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.services
-import qs.modules.media
 
 Item {
   id: root
@@ -173,58 +172,35 @@ Item {
       }
     }
   }
-
-  // Hover timer to open panel
   Timer {
-    id: hoverTimer
-    interval: 300
+    id: showTimer
+    interval: 10
     onTriggered: {
-      // Use direct function call if available, fallback to IPC
-      // MediaController.open();
-      console.log("root.popouts:", root.popouts);
-      if (root.popouts) {
-        console.log("Media: showing media panel popout");
-        var targetWindow = null;
-        var item = root;
-        while (item) {
-          if (item.objectName === "mediaPanel" || item.id === "mediaPanel") {
-            targetWindow = item;
-            break;
-          }
-          item = item.parent;
-        }
-        var windowToUse = (typeof panel !== 'undefined') ? panel : targetWindow;
-        root.popouts.showMediaPlayer(windowToUse, {
-          monitor: root.mediaPanel?.screen ?? null,
+      if (root.popouts && panel) {
+        root.popouts.openPopout(panel, "media-player", {
+          monitor: root.monitor,
+          activeId: root.monitor?.activeWorkspace?.id ?? 1,
           anchorX: root.x,
           anchorY: root.y,
           anchorWidth: root.width,
           anchorHeight: root.height
         });
-
-
       }
     }
   }
-
-  // Mouse interaction
   MouseArea {
+    id: hoverArea
     anchors.fill: parent
-    cursorShape: Qt.PointingHandCursor
     hoverEnabled: true
 
     onEntered: {
-      hoverTimer.start();
+      if (root.popouts) {
+        showTimer.restart();
+      }
     }
 
     onExited: {
-      hoverTimer.stop();
-    }
-
-    onClicked: {
-      // Cancel hover timer and toggle immediately
-      hoverTimer.stop();
-      MediaController.toggle();
+      showTimer.stop();
     }
   }
 }

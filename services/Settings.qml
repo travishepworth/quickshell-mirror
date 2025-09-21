@@ -20,6 +20,8 @@ QtObject {
   property int resolutionWidth: 3440
   property int resolutionHeight: 1440
 
+  property int borderWidth: 1
+
   property int screenMargin: 6
 
   property string fontFamily: "JetBrains Mono Nerd Font"
@@ -33,4 +35,8 @@ QtObject {
 
   property bool singleMonitor: true
   property string userName: "travmonkey"
+
+  property var customIconOverrides: ({
+    "spotify-client": "file:///opt/spotify/icons/spotify-linux-32.png",
+  })
 }

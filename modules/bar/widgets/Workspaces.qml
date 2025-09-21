@@ -131,6 +131,7 @@ Item {
     interval: 10
     onTriggered: {
       if (root.popouts && panel) {
+        console.log("anchor", root.x, root.y, root.width, root.height);
         root.popouts.openPopout(panel, "workspace-grid", {
           monitor: root.monitor,
           activeId: root.monitor?.activeWorkspace?.id ?? 1,
@@ -142,15 +143,6 @@ Item {
       }
     }
   }
-
-  // Timer to hide popout after mouse leaves
-  // Timer {
-  //   id: hideTimer
-  //   interval: 300
-  //   onTriggered: {
-  //     Popouts.Wrapper.hidePopout(Popouts.WorkspaceGridPopout, hoverArea);
-  //   }
-  // }
 
   // Workspace delegate component used in the bar grid
   Component {
@@ -173,20 +165,6 @@ Item {
         font.family: Settings.fontFamily
         font.pixelSize: Settings.fontSize * 1.2
         visible: isActive
-      }
-
-      MouseArea {
-        anchors.fill: parent
-        onClicked: {
-          Hyprland.dispatch(`workspace ${realId}`);
-        }
-        hoverEnabled: true
-        onEntered: {
-          parent.opacity = 0.8;
-        }
-        onExited: {
-          parent.opacity = 1.0;
-        }
       }
 
       Behavior on color {

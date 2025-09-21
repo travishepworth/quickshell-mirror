@@ -10,299 +10,460 @@ import qs.services
 Item {
   id: root
 
-  required property var wrapper
+  required property var wrapper  // Reference to the popout wrapper
   property string currentName: "media-panel"
+
+  // Data passed from the media widget (if needed)
+  property var currentData: wrapper.currentData
+
+  // Size of the expanded panel
+  implicitWidth: mainContent.width
+  implicitHeight: mainContent.height
+  width: implicitWidth
+  height: implicitHeight
 
   Component.onCompleted: {
     console.log("MediaPanel: Initialized");
     console.log("MediaPanel: Player available:", Mpris.activePlayer !== null);
-    MediaController.panelWindow = popupWindow;
   }
-
-  // IPC handler for external control
-  IpcHandler {
-    target: "mediaPanel"
-
-    function toggle(): void {
-      popupWindow.visible = !popupWindow.visible;
-    }
-
-    function open(): void {
-      popupWindow.visible = true;
-    }
-
-    function close(): void {
-      popupWindow.visible = false;
-    }
-  }
-
-  // Main popup window
-  // PanelWindow {
-  //   id: popupWindow
-  //
-  //   visible: false
-  //   focusable: visible
-  //
-  //   Item {
-  //     anchors.fill: parent
-  //     focus: mediaPanel.focusable
-  //     Keys.onPressed: event => {
-  //       if (event.key === Qt.Key_Escape) {
-  //         rightPanel.isOpen = false;
-  //         event.accepted = true;
-  //       }
-  //     }
-  //   }
-  //
-  //   Timer {
-  //     id: closeTimer
-  //     interval: 800
-  //     onTriggered: {
-  //       popupWindow.visible = false;
-  //     }
-  //   }
-  //
-  //   MouseArea {
-  //     anchors.fill: parent
-  //     hoverEnabled: true
-  //     onEntered: {
-  //       closeTimer.stop();
-  //     }
-  //     onExited: {
-  //       if (popupWindow.visible) {
-  //         closeTimer.start();
-  //       }
-  //     }
-  //   }
-  //
-  //   // Global shortcut inside the window
-  //   GlobalShortcut {
-  //     appid: "qs"
-  //     name: "mediaPanel"
-  //     description: "Toggle media popup"
-  //
-  //     onPressed: {
-  //       popupWindow.visible = !popupWindow.visible;
-  //     }
-  //   }
-  //
-  //   exclusionMode: ExclusionMode.Ignore
-  //   exclusiveZone: 0
-  //   color: "transparent"
-  //
-  //   // Self-sizing
-  //   implicitWidth: mainContent.width + 8
-  //   implicitHeight: mainContent.height + 8
-  //
-  //   WlrLayershell.namespace: "quickshell:mediaPanel"
-  //
-  //   // Top left corner
-  //   anchors {
-  //     top: true
-  //     left: true
-  //   }
-  //
-  //   margins {
-  //     top: 10
-  //     left: 10 + Settings.barHeight
-  //   }
-  //
-  //   // Focus management
-  //   HyprlandFocusGrab {
-  //     windows: [popupWindow]
-  //     active: popupWindow.visible
-  //     onCleared: {
-  //       if (!active) {
-  //         popupWindow.visible = false;
-  //       }
-  //     }
-  //   }
 
   // Main container
   Rectangle {
     id: mainContent
     anchors.centerIn: parent
-    width: contentLayout.width + 24
-    height: contentLayout.height + 24
+    width: contentLayout.width + 40
+    height: contentLayout.height + 40
 
-    color: Colors.surface
-    radius: Settings.borderRadius
-    border.color: Colors.outline
+    color: Colors.bg
+    border.color: Colors.fg
     border.width: 1
+    radius: Settings.borderRadius + 2
 
-    // Shadow
-    Rectangle {
-      anchors.fill: parent
-      anchors.margins: -2
-      z: -1
-      radius: parent.radius
-      color: Qt.rgba(0, 0, 0, 0.3)
+    // Hover handler to control popout closure
+    HoverHandler {
+      id: hoverHandler
+      onHoveredChanged: {
+        if (hovered) {
+          exitTimer.stop();
+        } else {
+          exitTimer.restart();
+        }
+      }
     }
 
     // Player content
     RowLayout {
       id: contentLayout
       anchors.centerIn: parent
-      spacing: 12
+      spacing: 16
       visible: Mpris.activePlayer !== null
 
       // Album art
       Rectangle {
-        width: 80
-        height: 80
+        id: albumArtContainer
+        width: 120
+        height: 120
         radius: Settings.borderRadius
-        color: Colors.surfaceAlt
+        color: Colors.bgAlt
         clip: true
 
+        property int reloadCounter: 0
+
+        Connections {
+          target: Mpris
+          function onArtReady() {
+            console.log("Art downloaded changed:", Mpris.artDownloaded, "path:", Mpris.artFilePath);
+            artReloadDelay.restart();
+          }
+        }
+
+        Timer {
+          id: artReloadDelay
+          interval: 200
+          repeat: false
+          onTriggered: {
+            albumArtContainer.reloadCounter++;
+            artImage.source = "";
+            artImage.source = Mpris.artDownloaded ? Qt.resolvedUrl(Mpris.artFilePath) : "";
+          }
+        }
+
+        property string artSource: ""
+        function loadAlbumArt() {
+          while (reloadCounter < 10) {
+            reloadCounter++;
+            if (Mpris.artDownloaded) {
+              artSource = Qt.resolvedUrl(Mpris.artFilePath) + "?v=" + Date.now();  // Cache buster
+              artImage.source = artSource;
+              break;
+            } else {
+              artSource = "";
+              artImage.source = "";
+            }
+          }
+        }
+
         Image {
+          id: artImage
           anchors.fill: parent
           source: Mpris.artDownloaded ? Qt.resolvedUrl(Mpris.artFilePath) : ""
           fillMode: Image.PreserveAspectCrop
           visible: Mpris.artDownloaded
           asynchronous: true
+          cache: false  // Force reload when artDownloaded changes
+
+          Behavior on opacity {
+            NumberAnimation {
+              duration: 150
+            }
+          }
         }
 
         Text {
           anchors.centerIn: parent
           text: "♪"
           color: Colors.accent
-          font.pixelSize: 28
+          font.pixelSize: 40
           font.family: Settings.fontFamily
           visible: !Mpris.artDownloaded
+          opacity: 0.5
         }
       }
 
       // Info and controls
       Column {
-        spacing: 4
-        width: 250
+        spacing: 8
+        width: 280
 
         // Track title
         Text {
-          text: Mpris.trackTitle
-          color: Colors.accent
-          font.pixelSize: Settings.fontSize
+          text: Mpris.trackTitle || "Unknown Track"
+          color: Colors.outline
+          font.pixelSize: Settings.fontSize + 2
           font.family: Settings.fontFamily
           font.weight: Font.Medium
-          elide: Text.ElideRight
-          width: parent.width
+          elide: Text.ElideLeft
+          // width: parent.width
         }
 
         // Artist
         Text {
-          text: Mpris.trackArtist
-          color: Colors.accent2
-          font.pixelSize: Settings.fontSize - 2
+          text: Mpris.trackArtist || "Unknown Artist"
+          color: Colors.outline
+          font.pixelSize: Settings.fontSize
+          font.family: Settings.fontFamily
+          elide: Text.ElideRight
+          // width: parent.width
+        }
+
+        // Album (if available)
+        Text {
+          text: Mpris.trackAlbum || ""
+          color: Colors.outline
+          font.pixelSize: Settings.fontSize - 1
           font.family: Settings.fontFamily
           elide: Text.ElideRight
           width: parent.width
+          visible: text !== ""
+          opacity: 0.8
+        }
+
+        Item {
+          height: 4
         }
 
         // Progress bar
         Rectangle {
           width: parent.width
-          height: 3
-          radius: 1.5
-          color: Colors.surfaceAlt2
-
+          height: 4
+          radius: 2
+          color: Colors.bgAlt
           Rectangle {
-            width: parent.width * Mpris.progress
+            id: progressBar
+            width: parent.width * (seekMouseArea.isDragging ? seekMouseArea.dragPosition : Mpris.progress)
             height: parent.height
             radius: parent.radius
-            color: Mpris.isPlaying ? Colors.purple : Colors.accent
-
+            color: Mpris.isPlaying ? Colors.accent : Colors.accent2
             Behavior on width {
+              enabled: !seekMouseArea.isDragging
               NumberAnimation {
                 duration: 100
+              }
+            }
+            Behavior on color {
+              ColorAnimation {
+                duration: 150
+              }
+            }
+          }
+          MouseArea {
+            id: seekMouseArea
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            property bool isDragging: false
+            property real dragPosition: 0
+
+            Timer {
+              id: seekThrottle
+              interval: 50  // Throttle to 20 updates per second
+              repeat: false
+              onTriggered: {
+                if (seekMouseArea.isDragging) {
+                  Mpris.commitSeek(seekMouseArea.dragPosition);
+                }
+              }
+            }
+
+            onPressed: {
+              isDragging = true;
+              dragPosition = mouseX / width;
+              Mpris.commitSeek(dragPosition);  // Immediate seek on press
+            }
+
+            onReleased: {
+              isDragging = false;
+              seekThrottle.stop();
+              Mpris.commitSeek(mouseX / width);  // Final precise seek
+            }
+
+            onPositionChanged: {
+              if (isDragging && Mpris.activePlayer && Mpris.activePlayer.canSeek) {
+                dragPosition = Math.max(0, Math.min(1, mouseX / width));
+                seekThrottle.restart();  // Throttled seeking while dragging
               }
             }
           }
         }
 
+        // Time display
+        Row {
+          width: parent.width
+          spacing: 4
+
+          Text {
+            text: Mpris.formatTime(Mpris.position)
+            color: Colors.outline
+            font.pixelSize: Settings.fontSize - 2
+            font.family: Settings.fontFamily
+            opacity: 0.9
+          }
+
+          Text {
+            text: " / "
+            color: Colors.outline
+            font.pixelSize: Settings.fontSize - 2
+            font.family: Settings.fontFamily
+            opacity: 0.7
+          }
+
+          Text {
+            text: Mpris.formatTime(Mpris.length)
+            color: Colors.outline
+            font.pixelSize: Settings.fontSize - 2
+            font.family: Settings.fontFamily
+            opacity: 0.9
+          }
+        }
+
+        Item {
+          height: 4
+        }
+
         // Controls
         Row {
-          spacing: 8
+          spacing: 12
+          anchors.horizontalCenter: parent.horizontalCenter
 
           // Previous
-          MouseArea {
-            width: 28
-            height: 28
-            cursorShape: Qt.PointingHandCursor
-            onClicked: Mpris.previous()
+          Rectangle {
+            width: 36
+            height: 36
+            radius: Settings.borderRadius
+            color: prevMouseArea.containsMouse ? Colors.accent2 : (prevMouseArea.pressed ? Colors.accent : Colors.bgAlt)
+            property bool hovered: false
 
-            Rectangle {
+            MouseArea {
+              id: prevMouseArea
               anchors.fill: parent
-              radius: Settings.borderRadius
-              color: parent.containsMouse ? Colors.surfaceAlt : "transparent"
+              cursorShape: Qt.PointingHandCursor
+              onClicked: Mpris.previous()
+              onEntered: parent.hovered = true
+              onExited: parent.hovered = false
+            }
 
-              Text {
-                anchors.centerIn: parent
-                text: "⏮"
-                color: Colors.accent
-                font.pixelSize: 14
-                font.family: Settings.fontFamily
+            Text {
+              anchors.centerIn: parent
+              text: "⏮"
+              color: prevMouseArea.containsMouse ? Colors.bg : Colors.surface
+              font.pixelSize: 16
+              font.family: Settings.fontFamily
+            }
+
+            Behavior on color {
+              ColorAnimation {
+                duration: 150
               }
             }
+
+            Behavior on scale {
+              NumberAnimation {
+                duration: 100
+                easing.type: Easing.OutCubic
+              }
+            }
+
+            scale: prevMouseArea.pressed ? 0.95 : 1.0
           }
 
           // Play/Pause
-          MouseArea {
+          Rectangle {
+            width: 44
+            height: 44
+            radius: width / 2
+            color: playMouseArea.containsMouse ? (Mpris.isPlaying ? Colors.accent : Colors.accent2) : (Mpris.isPlaying ? Colors.accent2 : Colors.accent)
+            property bool hovered: false
+
+            MouseArea {
+              id: playMouseArea
+              anchors.fill: parent
+              cursorShape: Qt.PointingHandCursor
+              onClicked: Mpris.playPause()
+              onEntered: parent.hovered = true
+              onExited: parent.hovered = false
+            }
+
+            Text {
+              anchors.centerIn: parent
+              text: Mpris.isPlaying ? "⏸" : "▶"
+              color: Colors.bg
+              font.pixelSize: 18
+              font.family: Settings.fontFamily
+            }
+
+            Behavior on color {
+              ColorAnimation {
+                duration: 150
+              }
+            }
+
+            Behavior on scale {
+              NumberAnimation {
+                duration: 100
+                easing.type: Easing.OutCubic
+              }
+            }
+
+            scale: playMouseArea.pressed ? 0.95 : 1.0
+          }
+
+          // Next
+          Rectangle {
             width: 36
             height: 36
-            cursorShape: Qt.PointingHandCursor
-            onClicked: Mpris.playPause()
+            radius: Settings.borderRadius
+            color: nextMouseArea.containsMouse ? Colors.accent2 : (nextMouseArea.pressed ? Colors.accent : Colors.bgAlt)
+            property bool hovered: false
+
+            MouseArea {
+              id: nextMouseArea
+              anchors.fill: parent
+              cursorShape: Qt.PointingHandCursor
+              onClicked: Mpris.next()
+              onEntered: parent.hovered = true
+              onExited: parent.hovered = false
+            }
+
+            Text {
+              anchors.centerIn: parent
+              text: "⏭"
+              color: nextMouseArea.containsMouse ? Colors.bg : Colors.surface
+              font.pixelSize: 16
+              font.family: Settings.fontFamily
+            }
+
+            Behavior on color {
+              ColorAnimation {
+                duration: 150
+              }
+            }
+
+            Behavior on scale {
+              NumberAnimation {
+                duration: 100
+                easing.type: Easing.OutCubic
+              }
+            }
+
+            scale: nextMouseArea.pressed ? 0.95 : 1.0
+          }
+        }
+
+        Item {
+          height: 4
+        }
+
+        // Volume control (if available)
+        Row {
+          spacing: 8
+          visible: Mpris.activePlayer.canControl && Mpris.activePlayer.volume !== undefined
+          anchors.horizontalCenter: parent.horizontalCenter
+
+          Text {
+            text: "🔊"
+            color: Colors.outline
+            font.pixelSize: Settings.fontSize
+            font.family: Settings.fontFamily
+            anchors.verticalCenter: parent.verticalCenter
+          }
+
+          Rectangle {
+            width: 100
+            height: 4
+            radius: 2
+            color: Colors.bgAlt
+            anchors.verticalCenter: parent.verticalCenter
 
             Rectangle {
-              anchors.fill: parent
-              radius: parent.width / 2
-              color: Mpris.isPlaying ? Colors.purple : Colors.surfaceAlt
+              width: parent.width * (Mpris.activePlayer.volume || 0)
+              height: parent.height
+              radius: parent.radius
+              color: Colors.accent
+            }
 
-              Text {
-                anchors.centerIn: parent
-                text: Mpris.isPlaying ? "⏸" : "▶"
-                color: Mpris.isPlaying ? Colors.surface : Colors.accent
-                font.pixelSize: 16
-                font.family: Settings.fontFamily
+            MouseArea {
+              anchors.fill: parent
+              cursorShape: Qt.PointingHandCursor
+
+              property bool isDragging: false
+
+              onPressed: {
+                isDragging = true;
+                updateVolume(mouseX);
               }
 
-              Behavior on color {
-                ColorAnimation {
-                  duration: 150
+              onReleased: {
+                isDragging = false;
+              }
+
+              onPositionChanged: {
+                if (isDragging && Mpris.activePlayer.canControl) {
+                  updateVolume(mouseX);
+                }
+              }
+
+              function updateVolume(x) {
+                if (Mpris.activePlayer.canControl) {
+                  let newVolume = Math.max(0, Math.min(1, x / width));
+                  Mpris.activePlayer.volume = newVolume;
                 }
               }
             }
           }
 
-          // Next
-          MouseArea {
-            width: 28
-            height: 28
-            cursorShape: Qt.PointingHandCursor
-            onClicked: Mpris.next()
-
-            Rectangle {
-              anchors.fill: parent
-              radius: Settings.borderRadius
-              color: parent.containsMouse ? Colors.surfaceAlt : "transparent"
-
-              Text {
-                anchors.centerIn: parent
-                text: "⏭"
-                color: Colors.accent
-                font.pixelSize: 14
-                font.family: Settings.fontFamily
-              }
-            }
-          }
-
-          Item {
-            width: 20
-          }
-
           Text {
-            text: Mpris.formatTime(Mpris.position) + " / " + Mpris.formatTime(Mpris.length)
-            color: Colors.accent3
-            font.pixelSize: Settings.fontSize - 4
+            text: Math.round((Mpris.activePlayer.volume || 0) * 100) + "%"
+            color: Colors.outline
+            font.pixelSize: Settings.fontSize - 2
             font.family: Settings.fontFamily
             anchors.verticalCenter: parent.verticalCenter
           }
@@ -310,13 +471,47 @@ Item {
       }
     }
 
-    Text {
+    // No player message
+    Column {
       anchors.centerIn: parent
-      text: "No media player"
-      color: Colors.accent
-      font.pixelSize: Settings.fontSize
-      font.family: Settings.fontFamily
+      spacing: 8
       visible: Mpris.activePlayer === null
+
+      Text {
+        text: "No Media Playing"
+        color: Colors.surface
+        font.pixelSize: Settings.fontSize
+        font.family: Settings.fontFamily
+        anchors.horizontalCenter: parent.horizontalCenter
+      }
+
+      Text {
+        text: "Start playing something to see controls"
+        color: Colors.outline
+        font.pixelSize: Settings.fontSize - 2
+        font.family: Settings.fontFamily
+        opacity: 0.7
+        anchors.horizontalCenter: parent.horizontalCenter
+      }
     }
+  }
+
+  // Timer to handle popout closure when not hovered
+  Timer {
+    id: exitTimer
+    interval: 40
+    onTriggered: {
+      root.wrapper.closePopout();
+    }
+  }
+
+  // Helper functions
+  function getPlayerInfo() {
+    return {
+      player: Mpris.activePlayer,
+      playing: Mpris.isPlaying,
+      title: Mpris.trackTitle,
+      artist: Mpris.trackArtist
+    };
   }
 }
