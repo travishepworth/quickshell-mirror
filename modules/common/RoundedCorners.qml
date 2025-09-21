@@ -4,8 +4,6 @@ import Quickshell.Widgets
 import Quickshell.Wayland
 import qs.services
 
-// TODO: Figure out a better way to do this without a small black dot in 
-// each corner.
 
 PanelWindow {
   id: workspaceContainer
@@ -21,13 +19,14 @@ PanelWindow {
     bottom: true
   }
 
-  WlrLayershell.layer: WlrLayer.Background
-  WlrLayershell.namespace: "rounded-corners"
-  // WlrLayershell.exclusiveZone: 200
+  WlrLayershell.layer: WlrLayershell.Layer.Top
 
-  // Make the entire window transparent
   color: "transparent"
 
+  mask: Region {}
+
+  // TODO: Figure out a better way to do this without a small black dot in 
+  // each corner.
   // Create the border effect with multiple rectangles
   // Top border (excluding corners)
   Rectangle {
