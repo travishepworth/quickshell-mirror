@@ -48,6 +48,24 @@ Item {
     return null;
   }
 
+  function formatIconVertical(index) {
+    index = parseInt(index) - 1;
+    const col = index % 5;
+    const workspaceStartCol = 1 % 5;
+
+    if (col === workspaceStartCol - 1) {
+      return "";  // or "↙" - leftmost column
+    } else if (col === workspaceStartCol + 0) {
+      return "";  // or "↓" - second column
+    } else if (col === workspaceStartCol + 1) {
+      return "";  // or "↘" - middle column
+    } else if (col === workspaceStartCol + 2) {
+      return "";  // or "→" - fourth column
+    } else if (col === workspaceStartCol + 3) {
+      return "";  // or "↗" - rightmost column
+    }
+  }
+
   // Main clipped container that shows only the relevant column/row
   Item {
     id: clippedContainer
@@ -176,6 +194,14 @@ Item {
 
       radius: Settings.borderRadius
       color: isActive ? root.activeColor : hasWindows ? root.inactiveColor : root.emptyColor
+
+      Text {
+        anchors.centerIn: parent
+        text: root.formatIconVertical(realId)
+        font.family: Settings.fontFamily
+        font.pixelSize: Settings.fontSize * 1.2
+        visible: isActive
+      }
 
       MouseArea {
         anchors.fill: parent

@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -23,6 +22,7 @@ Scope {
     target: "workspaceOverlay"
 
     function toggle(): void {
+      console.log("Toggling workspace overlay");
       overlayWindow.visible = !overlayWindow.visible;
       if (overlayWindow.visible) {
         HyprlandData.updateAll();
@@ -42,7 +42,12 @@ Scope {
   PanelWindow {
     id: overlayWindow
 
-    anchors { top: true; bottom: true; left: true; right: true }
+    anchors {
+      top: true
+      bottom: true
+      left: true
+      right: true
+    }
 
     visible: false
     focusable: visible

@@ -19,7 +19,7 @@ IconTextWidget {
   function getIcon() {
     switch (kind) {
     case "wifi":
-      return "";
+      return "";
     case "ethernet":
       return "󰈀";
     default:
@@ -33,7 +33,7 @@ IconTextWidget {
 
     onDataReceived: data => {
       const parts = data.split(":");
-      root.iface = parts[0] || "";
+      // root.iface = parts[0] || "";
       root.kind = parts[1] || "";
     }
   }

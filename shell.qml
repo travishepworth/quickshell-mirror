@@ -5,6 +5,7 @@ import "modules/panels" as Panels
 import "modules/notificationPopup" as NotificationPopup
 import "modules/media"
 import "modules/osd"
+import "modules/common"
 import "modules/workspaces"
 
 import "modules/bar/popouts"
@@ -28,6 +29,10 @@ ShellRoot {
   // }
   Bar {
     id: mainBar
+  }
+
+  RoundedCorners {
+    id: roundedCorners
   }
 
   MediaPanel {

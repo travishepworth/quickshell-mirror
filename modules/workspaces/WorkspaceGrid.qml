@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+
 import qs.services
 
 Rectangle {
@@ -12,8 +13,11 @@ Rectangle {
   property int workspaceSpacing: 10
   property var activeWorkspace: Hyprland.focusedMonitor?.activeWorkspace?.id ?? 1
 
-  property real workspaceWidth: (3440 * overviewScale)
-  property real workspaceHeight: (1440 * overviewScale)
+  // property var screen: overlayWindow.screen ?? Screen.primaryScreen
+  // property real workspaceWidth: (screen.width * overviewScale)
+  // property real workspaceHeight: (screen.height * overviewScale)
+  property real workspaceWidth: ((Hyprland.focusedMonitor?.width ?? 1920) * overviewScale)
+  property real workspaceHeight: ((Hyprland.focusedMonitor?.height ?? 1080) * overviewScale)
 
   signal workspaceClicked(int workspaceId)
 

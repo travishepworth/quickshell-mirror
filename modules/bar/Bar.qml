@@ -25,16 +25,20 @@ Scope {
         required property var modelData
         screen: modelData
         WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.exclusiveZone: Settings.verticalBar ? barWidth : barHeight
+        // WlrLayershell.exclusiveZone: barWidth
         WlrLayershell.namespace: "qs-bar"
 
+        property string display: Settings.display
+
         anchors {
-          top: Settings.verticalBar ? true : (modelData.name === "DP-1")
+          top: Settings.verticalBar ? true : (modelData.name === display)
           bottom: Settings.verticalBar ? true : (modelData.name === "DP-2")
           left: Settings.verticalBar ? !Settings.rightVerticalBar : true
           right: Settings.verticalBar ? Settings.rightVerticalBar : true
         }
 
-        visible: if (modelData.name === "DP-1")
+        visible: if (modelData.name === display)
           true
         else if (modelData.name === "DP-2" && !Settings.singleMonitor)
           true
@@ -51,7 +55,7 @@ Scope {
           // border.color: Colors.fg
 
           Rectangle {
-            width: 2
+            width: 0
             anchors {
               right: parent.right
               top: parent.top
@@ -140,10 +144,10 @@ Scope {
                 Widgets.Time {
                   id: time
                 }
-                Widgets.WorkspaceIndicator {
-                  id: workspaceIndicator
-                  screen: panel.screen
-                }
+                // Widgets.WorkspaceIndicator {
+                //   id: workspaceIndicator
+                //   screen: panel.screen
+                // }
               }
             }
 
@@ -197,11 +201,11 @@ Scope {
                 //   visible: modelData.name === "DP-1"
                 //   Layout.alignment: Qt.AlignHCenter
                 // }
-                Widgets.WorkspaceIndicator {
-                  id: workspaceIndicator
-                  screen: panel.screen
-                  Layout.alignment: Qt.AlignHCenter
-                }
+                // Widgets.WorkspaceIndicator {
+                //   id: workspaceIndicator
+                //   screen: panel.screen
+                //   Layout.alignment: Qt.AlignHCenter
+                // }
               }
             }
           }
@@ -232,9 +236,13 @@ Scope {
                 }
                 Widgets.SystemTray {
                   id: tray
-                  visible: modelData.name === "DP-1"
+                  visible: modelData.name === Settings.display
                   orientation: Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
                   Layout.alignment: Qt.AlignHCenter  // for vertical mode
+                }
+                Widgets.Battery {
+                  id: battery
+                  visible: Settings.display === "eDP-1"
                 }
                 Widgets.Notifications {
                   id: notifications
@@ -257,9 +265,14 @@ Scope {
                   id: network
                   Layout.alignment: Qt.AlignHCenter
                 }
+                Widgets.Battery {
+                  id: battery
+                  visible: Settings.display === "eDP-1"
+                  Layout.alignment: Qt.AlignHCenter
+                }
                 Widgets.SystemTray {
                   id: tray
-                  visible: modelData.name === "DP-1"
+                  visible: modelData.name === Settings.display
                   Layout.alignment: Qt.AlignHCenter
                 }
                 Widgets.Notifications {

@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-
 import qs.services
 
 Item {
@@ -57,7 +56,7 @@ Item {
     index = parseInt(index) - 1;
     const col = index % cols;
     const workspaceStartCol = startingWorkspace % cols;
-    
+
     if (col === workspaceStartCol - 1) {
       return "";  // or "↙" - leftmost column
     } else if (col === workspaceStartCol + 0) {
@@ -69,7 +68,7 @@ Item {
     } else if (col === workspaceStartCol + 3) {
       return "";  // or "↗" - rightmost column
     }
-}
+  }
 
   Rectangle {
     anchors.fill: parent
