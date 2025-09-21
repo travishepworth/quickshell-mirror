@@ -4,13 +4,15 @@ import Quickshell.Widgets
 import Quickshell.Wayland
 import qs.services
 
+// TODO: Figure out a better way to do this without a small black dot in 
+// each corner.
+
 PanelWindow {
   id: workspaceContainer
   property int borderWidth: 8
   property int innerBorderWidth: 1
   property int borderRadius: Settings.borderRadius
-  property color surfaceColor: Colors.accent3
-  property color borderColor: "#cdd6f4"
+  property color borderColor: Colors.fg
 
   anchors {
     left: true
@@ -21,6 +23,7 @@ PanelWindow {
 
   WlrLayershell.layer: WlrLayer.Background
   WlrLayershell.namespace: "rounded-corners"
+  // WlrLayershell.exclusiveZone: 200
 
   // Make the entire window transparent
   color: "transparent"
@@ -32,10 +35,10 @@ PanelWindow {
       left: parent.left
       right: parent.right
       top: parent.top
-      leftMargin: borderWidth + borderRadius
-      rightMargin: borderWidth + borderRadius
+      leftMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
+      rightMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     }
-    height: borderWidth
+    height: workspaceContainer.borderWidth
     color: Colors.surface
   }
 
@@ -45,10 +48,10 @@ PanelWindow {
       left: parent.left
       right: parent.right
       bottom: parent.bottom
-      leftMargin: borderWidth + borderRadius
-      rightMargin: borderWidth + borderRadius
+      leftMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
+      rightMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     }
-    height: borderWidth
+    height: workspaceContainer.borderWidth
     color: Colors.surface
   }
 
@@ -58,10 +61,10 @@ PanelWindow {
   //     left: parent.left
   //     top: parent.top
   //     bottom: parent.bottom
-  //     topMargin: borderWidth + borderRadius
-  //     bottomMargin: borderWidth + borderRadius
+  //     topMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
+  //     bottomMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
   //   }
-  //   width: borderWidth
+  //   width: workspaceContainer.borderWidth
   //   color: Colors.surface
   // }
 
@@ -71,10 +74,10 @@ PanelWindow {
       right: parent.right
       top: parent.top
       bottom: parent.bottom
-      topMargin: borderWidth + borderRadius
-      bottomMargin: borderWidth + borderRadius
+      topMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
+      bottomMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     }
-    width: borderWidth
+    width: workspaceContainer.borderWidth
     color: Colors.surface
   }
 
@@ -84,8 +87,8 @@ PanelWindow {
       left: parent.left
       top: parent.top
     }
-    width: borderWidth + borderRadius
-    height: borderWidth + borderRadius
+    width: workspaceContainer.borderWidth + workspaceContainer.borderRadius
+    height: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     color: Colors.surface
 
     Rectangle {
@@ -93,10 +96,10 @@ PanelWindow {
         right: parent.right
         bottom: parent.bottom
       }
-      width: borderRadius
-      height: borderRadius
+      width: workspaceContainer.borderRadius
+      height: workspaceContainer.borderRadius
       color: "transparent"
-      radius: borderRadius
+      radius: workspaceContainer.borderRadius
     }
   }
 
@@ -106,8 +109,8 @@ PanelWindow {
       right: parent.right
       top: parent.top
     }
-    width: borderWidth + borderRadius
-    height: borderWidth + borderRadius
+    width: workspaceContainer.borderWidth + workspaceContainer.borderRadius
+    height: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     color: Colors.surface
 
     Rectangle {
@@ -115,10 +118,10 @@ PanelWindow {
         left: parent.left
         bottom: parent.bottom
       }
-      width: borderRadius
-      height: borderRadius
+      width: workspaceContainer.borderRadius
+      height: workspaceContainer.borderRadius
       color: "transparent"
-      radius: borderRadius
+      radius: workspaceContainer.borderRadius
     }
   }
 
@@ -128,8 +131,8 @@ PanelWindow {
       left: parent.left
       bottom: parent.bottom
     }
-    width: borderWidth + borderRadius
-    height: borderWidth + borderRadius
+    width: workspaceContainer.borderWidth + workspaceContainer.borderRadius
+    height: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     color: Colors.surface
 
     Rectangle {
@@ -137,10 +140,10 @@ PanelWindow {
         right: parent.right
         top: parent.top
       }
-      width: borderRadius
-      height: borderRadius
+      width: workspaceContainer.borderRadius
+      height: workspaceContainer.borderRadius
       color: "transparent"
-      radius: borderRadius
+      radius: workspaceContainer.borderRadius
     }
   }
 
@@ -150,8 +153,8 @@ PanelWindow {
       right: parent.right
       bottom: parent.bottom
     }
-    width: borderWidth + borderRadius
-    height: borderWidth + borderRadius
+    width: workspaceContainer.borderWidth + workspaceContainer.borderRadius
+    height: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     color: Colors.surface
 
     Rectangle {
@@ -159,10 +162,10 @@ PanelWindow {
         left: parent.left
         top: parent.top
       }
-      width: borderRadius
-      height: borderRadius
+      width: workspaceContainer.borderRadius
+      height: workspaceContainer.borderRadius
       color: "transparent"
-      radius: borderRadius
+      radius: workspaceContainer.borderRadius
     }
   }
 
@@ -170,12 +173,12 @@ PanelWindow {
   Rectangle {
     anchors {
       fill: parent
-      margins: borderWidth - innerBorderWidth
+      margins: workspaceContainer.borderWidth - workspaceContainer.innerBorderWidth
       leftMargin: 0
     }
-    radius: borderRadius
+    radius: workspaceContainer.borderRadius
     color: "transparent"
-    border.width: innerBorderWidth
-    border.color: borderColor
+    border.width: workspaceContainer.innerBorderWidth
+    border.color: workspaceContainer.borderColor
   }
 }

@@ -122,9 +122,6 @@ Item {
 
     onExited: {
       showTimer.stop();
-      // if (Popouts.WorkspaceGridPopout.shown) {
-      //   hideTimer.restart();
-      // }
     }
   }
 
@@ -133,36 +130,11 @@ Item {
     id: showTimer
     interval: 10
     onTriggered: {
-      if (root.popouts) {
-        // Debug what's available
-        console.log("root:", root);
-        console.log("root.parent:", root.parent);
-        console.log("root.window:", root.window);
-        console.log("panel:", typeof panel !== 'undefined' ? panel : "undefined");
-
-        // Try to find the panel window
-        var targetWindow = null;
-        var item = root;
-
-        // Walk up the parent chain to find the panel
-        while (item) {
-          console.log("Checking item:", item, "type:", item.toString());
-          if (item.objectName === "panel" || item.id === "panel") {
-            targetWindow = item;
-            break;
-          }
-          item = item.parent;
-        }
-
-        console.log("Found targetWindow:", targetWindow);
-
-        var windowToUse = (typeof panel !== 'undefined') ? panel : targetWindow;
-
-        root.popouts.showWorkspaceGrid(windowToUse, {
+      if (root.popouts && panel) {
+        root.popouts.openPopout(panel, "workspace-grid", {
           monitor: root.monitor,
           activeId: root.monitor?.activeWorkspace?.id ?? 1,
-          anchorX: root.x  // Use root.x/y instead of mapToGlobal
-          ,
+          anchorX: root.x,
           anchorY: root.y,
           anchorWidth: root.width,
           anchorHeight: root.height

@@ -27,8 +27,7 @@ Item {
 
   Rectangle {
     id: content
-    anchors.left: parent.left
-    anchors.verticalCenter: parent.verticalCenter
+    anchors.centerIn: parent
     visible: true
 
     // 5 columns × widget height + spacing
@@ -164,7 +163,7 @@ Item {
     id: exitTimer
     interval: 40
     onTriggered: {
-      root.wrapper.hasCurrent = false;
+      root.wrapper.closePopout();
     }
   }
 

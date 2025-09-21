@@ -16,6 +16,8 @@ Item {
   property var currentData: null
   property bool hasCurrent: false
 
+  property bool isClosing: false
+
   property Item current: content.item?.current ?? null
 
   // Animation properties
@@ -23,24 +25,47 @@ Item {
   property list<real> animCurve: [0.4, 0.0, 0.2, 1.0]
   property int gap: 4                 // small gap between bar and popout
 
-  function showWorkspaceGrid(anchor, data) {
-    console.log("ShowWorkspaceGrid called");
-    currentName = "workspace-grid";
+  function closePopout() {
+    if (isClosing)
+      return;
+    isClosing = true;
+
+    if (mainAnimation) {
+      mainAnimation.active = false;
+    }
+    closeDelayTimer.restart();
+  }
+
+  Timer {
+    id: closeDelayTimer
+    interval: root.animLength
+    repeat: false
+    onTriggered: {
+      root.currentName = "";
+      root.isClosing = false;
+      root.hasCurrent = false;
+      root.currentData = null;
+      root.currentAnchor = null;
+      root.current = null;
+    }
+  }
+
+  function openPopout(anchor, name, data) {
+    if (isClosing) {
+      return;
+    }
+    mainAnimation.active = true;
+    currentName = name;
     currentAnchor = anchor;
     currentData = data;
     hasCurrent = true;
-    console.log("POP show ws grid", currentData.activeId);
-    console.log("POP anchor", currentAnchor);
   }
 
   function showMediaPlayer(anchor, data) {
-    console.log("ShowMediaPlayer called");
     currentName = "media-player";
     currentAnchor = anchor;
     currentData = data;
     hasCurrent = true;
-    console.log("POP show media player");
-    console.log("POP anchor", currentAnchor);
   }
 
   function close() {
@@ -66,7 +91,7 @@ Item {
     anchor {
       window: currentAnchor
       rect {
-        x: currentData ? (currentData.anchorX || 0) + Settings.barHeight - 50 : 0
+        x: currentData ? (currentData.anchorX || 0) + Settings.widgetHeight + 8 : 0
         y: currentData ? (currentData.anchorY || 0) - 10 : 0
         width: Math.max(1, 20)
         height: Math.max(1, currentData ? currentData.anchorHeight : 40)
@@ -82,6 +107,8 @@ Item {
     property int mainContentWidth: content.item ? content.item.implicitWidth : 200
     property int mainContentHeight: content.item ? content.item.implicitHeight : 100
 
+    // TODO: Outward Border Radius workaround to make the border fit into the bar
+
     // Container for both elements
     Item {
       anchors.fill: parent
@@ -92,7 +119,7 @@ Item {
         width: combinedPopup.mainContentWidth + combinedPopup.connectorWidth
         height: combinedPopup.mainContentHeight
 
-        active: root.hasCurrent && content.item
+        active: false
         slideFromRight: Settings.rightVerticalBar
         animationDuration: 250
         enableFade: true
@@ -111,7 +138,7 @@ Item {
               top: parent.top
               bottom: parent.bottom
             }
-            width: 3
+            width: 1
             height: parent.height
             color: Colors.surface
             // color: "red"
@@ -119,23 +146,24 @@ Item {
         }
 
         Loader {
-          id: content // anchors.fill: parent anchors.top: parent.top
-          anchors.bottom: parent.bottom
-          anchors.right: parent.right
+          id: content
+          // Unfortunately this needs to be set in the popout component
+          // anchors.centerIn: parent 
 
           active: hasCurrent
           asynchronous: false
           enabled: true
 
-          onLoaded: {
-            if (item) {
-              item.wrapper = root;
-              if (item.currentName !== root.currentName) {
-                console.warn("POP warning: loaded item name mismatch", item?.currentName, root.currentName);
-              }
-            }
-            popwinSizeTimer.restart();
-          }
+          // onLoaded: {
+          //   console.log("Loader loaded, item:", item ? true : false, "item.implicitWidth:", item?.implicitWidth, "item.implicitHeight:", item?.implicitHeight);
+          //   if (item) {
+          //     item.wrapper = root;
+          //   }
+          // }
+          //
+          // onStatusChanged: {
+          //   console.log("Loader status:", status, "component:", sourceComponent ? true : false);
+          // }
 
           sourceComponent: {
             switch (root.currentName) {
@@ -151,13 +179,13 @@ Item {
       }
     }
 
-    Timer {
-      id: popwinSizeTimer
-      interval: 1
-      onTriggered: {
-        console.log("popup size", combinedPopup.width, combinedPopup.height);
-      }
-    }
+    // Timer {
+    //   id: popwinSizeTimer
+    //   interval: 1
+    //   onTriggered: {
+    //     console.log("popup size", combinedPopup.width, combinedPopup.height);
+    //   }
+    // }
   }
 
   // Size based on content
@@ -197,8 +225,8 @@ Item {
       easing.bezierCurve: root.animCurve
     }
   }
-  onHasCurrentChanged: if (hasCurrent)
-    Qt.callLater(() => console.log("POP size", implicitWidth, implicitHeight))
+  // onHasCurrentChanged: if (hasCurrent)
+  //   Qt.callLater(() => console.log("POP size", implicitWidth, implicitHeight))
 
   Component {
     id: workspaceGridComponent

@@ -9,16 +9,16 @@ QtObject {
   // Resolved theme object (auto-updates when 'theme' changes)
   readonly property var currentTheme: ThemeIndex.get(theme)
 
-    property int borderRadius: 4
-    property int barHeight: 46
+  property int borderRadius: 4
+  property int barHeight: 46
 
-    property int widgetHeight: 30
-    property int widgetPadding: 10
-    property int widgetSpacing: 6
-    property int workspaceCount: 5 // DO NOT CHANGE
+  property int widgetHeight: 30
+  property int widgetPadding: 10
+  property int widgetSpacing: 6
+  property int workspaceCount: 5 // DO NOT CHANGE
 
-    property int resolutionWidth: 1920
-    property int resolutionHeight: 1080
+  property int resolutionWidth: 3440
+  property int resolutionHeight: 1440
 
   property int screenMargin: 6
 
@@ -29,8 +29,8 @@ QtObject {
   property bool rightVerticalBar: false
   property int orientation: verticalBar ? Qt.Vertical : Qt.Horizontal
 
-    property string display: "eDP-1"
+  property string display: "DP-1"
 
-    property bool singleMonitor: true
-    property string userName: "travmonkey"
+  property bool singleMonitor: true
+  property string userName: "travmonkey"
 }
