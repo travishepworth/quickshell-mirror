@@ -1,13 +1,14 @@
-//pragma Singleton
+pragma Singleton
+
 import Quickshell
-import Quickshell.io
+import Quickshell.Io
 
 Singleton {
   id: root
 
   function gotoWorkspace(index) {
-    gotoWorkspaceProcess.arguments[1] = index
-    gotoWorkspaceProcess.start()
+    gotoWorkspaceProcess.command = ["/home/travmonkey/.config/hypr/scripts/gotoWorkspace.sh", String(index)]
+    gotoWorkspaceProcess.running = true
   }
 
   Process {

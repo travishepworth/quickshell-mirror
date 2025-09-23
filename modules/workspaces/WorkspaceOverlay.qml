@@ -104,14 +104,9 @@ Scope {
       overviewScale: root.overviewScale
       onWorkspaceClicked: workspaceId => {
         overlayWindow.visible = false;
-        Workspaces.gotoWorkspace(workspaceId);
+        WorkspaceUtils.gotoWorkspace(workspaceId);
 
       }
-      // onWorkspaceClicked: workspaceId => {
-      //   overlayWindow.visible = false;
-      //   gotoWorkspaceProcess.command = [`/home/travmonkey/.config/hypr/scripts/gotoWorkspace.sh`, workspaceId.toString()];
-      //   gotoWorkspaceProcess.running = true;
-      // }
     }
   }
 }

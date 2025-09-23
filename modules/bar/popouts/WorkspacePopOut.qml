@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Hyprland
 
 import qs.services
+import qs.components.methods
 
 Item {
   id: root
@@ -134,7 +135,7 @@ Item {
             cursorShape: containsMouse ? Qt.PointingHandCursor : Qt.ArrowCursor
             onClicked: {
               console.log("Click ws", parent.wsId);
-              Hyprland.dispatch(`workspace ${parent.wsId}`);
+              WorkspaceUtils.gotoWorkspace(parent.wsId);
             }
 
             onContainsMouseChanged:
