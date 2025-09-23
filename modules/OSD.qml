@@ -72,7 +72,7 @@ Scope {
           IconImage {
             implicitSize: 30
             source: {
-              const iconBase = "file:///home/" + Settings.userName + "/.config/quickshell/travmonkey/icons/"
+              const iconBase = "file:///home/" + Settings.userName + "/.config/quickshell/travmonkey/assets/icons/"
               if (Audio.muted) {
                 return iconBase + "volume-muted.svg"
               } else if (Audio.volume > 0.66) {
