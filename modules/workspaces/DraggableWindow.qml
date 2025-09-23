@@ -208,6 +208,7 @@ Item {
 
         if (windowData?.workspace?.id && targetWorkspace !== windowData.workspace.id) {
           root.windowDropped(targetWorkspace);
+          // root.refreshTopLevel();
         } else {
           // Snap back to original position
           root.x = Qt.binding(() => root.offsetX + root.constrainedX);

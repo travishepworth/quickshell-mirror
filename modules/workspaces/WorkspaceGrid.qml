@@ -125,10 +125,4 @@ Rectangle {
       }
     }
   }
-
-  // Component.onCompleted: {
-  //   if (HyprlandData.windowList && HyprlandData.windowList.length > 0) {
-  //     console.log("First window:", JSON.stringify(HyprlandData.windowList[0], null, 2));
-  //   }
-  // }
 }

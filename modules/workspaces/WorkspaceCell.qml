@@ -33,15 +33,15 @@ Rectangle {
   }
 
   // Workspace number label
-  Text {
-    anchors.centerIn: parent
-    text: root.workspaceId.toString()
-    font.family: "VictorMono Nerd Font"
-    font.pixelSize: Math.min(root.width, root.height) * 0.3
-    font.weight: Font.Bold
-    color: "#a89984" // Gruvbox fg3
-    opacity: 0.3
-  }
+  // Text {
+  //   anchors.centerIn: parent
+  //   text: root.workspaceId.toString()
+  //   font.family: "VictorMono Nerd Font"
+  //   font.pixelSize: Math.min(root.width, root.height) * 0.3
+  //   font.weight: Font.Bold
+  //   color: "#a89984" // Gruvbox fg3
+  //   opacity: 0.3
+  // }
 
   MouseArea {
     id: mouseArea
