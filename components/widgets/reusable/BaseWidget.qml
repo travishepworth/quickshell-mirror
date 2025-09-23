@@ -1,12 +1,12 @@
-// BaseWidget.qml
+pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.services
+import qs.config
 
 Item {
   id: root
 
-  // Core properties
   property int orientation: Settings.orientation
   property bool isVertical: orientation === Qt.Vertical
   property color backgroundColor: Colors.orange
@@ -14,7 +14,6 @@ Item {
   property alias contentItem: contentLoader.item
   property int padding: Settings.widgetPadding
 
-  // Dimension handling
   height: isVertical ? implicitHeight : Settings.widgetHeight
   width: isVertical ? Settings.widgetHeight : implicitWidth
 
@@ -22,14 +21,12 @@ Item {
 
   implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + padding * 2 : Settings.widgetHeight) : Settings.widgetHeight
 
-  // Background
   Rectangle {
     anchors.fill: parent
     color: root.backgroundColor
     radius: Settings.borderRadius
   }
 
-  // Content
   Loader {
     id: contentLoader
     anchors.centerIn: parent

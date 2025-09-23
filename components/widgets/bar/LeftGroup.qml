@@ -1,11 +1,10 @@
-// components/widgets/LeftGroup.qml
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell
 
 import qs.services
-import qs.modules.bar.widgets as Widgets
+import qs.config
+import qs.components.widgets.bar.declarations as Widgets
 
 WidgetGroup {
   id: root

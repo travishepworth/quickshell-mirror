@@ -1,4 +1,4 @@
-// Couresy of end-4
+// Courtesy of end-4
 pragma Singleton
 pragma ComponentBehavior: Bound
 
@@ -6,7 +6,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
-import Quickshell.Wayland
 
 /**
  * Provides access to some Hyprland data not available in Quickshell.Hyprland.

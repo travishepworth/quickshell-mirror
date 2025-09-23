@@ -2,7 +2,6 @@
 import QtQuick
 
 import qs.services
-import qs.components
 
 BaseWidget {
   id: root

@@ -38,7 +38,6 @@ Rectangle {
   opacity: windowOpacity
   clip: true
 
-  // Screencopy view
   ScreencopyView {
     id: screencopy
     anchors.fill: parent
@@ -47,11 +46,10 @@ Rectangle {
     visible: root.showScreencopy && captureSource !== null
   }
 
-  // Fallback content when screencopy is not available
   Column {
     anchors.centerIn: parent
     spacing: 4
-    visible: !screencopy.visible
+    visible: !screencopy.visible || root.showIcon
 
     Image {
       id: windowIcon
@@ -61,7 +59,7 @@ Rectangle {
       fillMode: Image.PreserveAspectFit
       smooth: true
       anchors.horizontalCenter: parent.horizontalCenter
-      visible: root.showIcon
+      visible: true
     }
 
     Text {
@@ -69,7 +67,7 @@ Rectangle {
       font.family: "VictorMono Nerd Font"
       font.pixelSize: 10
       color: root.textColor
-      opacity: 0.7
+      opacity: 1
       width: root.width - 8
       elide: Text.ElideRight
       horizontalAlignment: Text.AlignHCenter
@@ -77,7 +75,6 @@ Rectangle {
     }
   }
 
-  // XWayland indicator
   Rectangle {
     visible: root.isXwayland && !screencopy.visible
     anchors.top: parent.top

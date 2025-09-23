@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Hyprland
 
 import qs.services
+import qs.config
 import qs.components.methods
 
 Rectangle {

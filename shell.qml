@@ -4,11 +4,7 @@
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 
 import Quickshell
-import "modules/bar"
-import "modules/osd"
-import "modules/common"
-import "modules/roundedCorners"
-import "modules/overlays"
+import "modules"
 
 ShellRoot {
   id: shellRoot
@@ -28,13 +24,4 @@ ShellRoot {
   OSD {
     id: osd
   }
-
-
-  // Panels.RightPanel {
-  //   id: rightPanel
-  // }
-
-  // NotificationPopup.NotificationPopup {
-  //   id: notifications
-  // }
 }

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.services
+import qs.config
 
 BaseWidget {
   id: root

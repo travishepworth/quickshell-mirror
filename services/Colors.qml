@@ -1,7 +1,8 @@
 pragma Singleton
 
 import QtQuick
-import Quickshell
+
+import qs.config
 
 QtObject {
   // ---- Accents (semantic, derived) ----

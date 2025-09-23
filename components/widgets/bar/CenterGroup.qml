@@ -1,10 +1,9 @@
-// components/widgets/CenterGroups.qml
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell
 
-import qs.modules.bar.widgets
+import qs.components.widgets.bar.declarations
+import qs.config
 
 QtObject {
   property Component leftCenterGroup: WidgetGroup {
@@ -26,9 +25,9 @@ QtObject {
     model: {
       let widgets = [];
       if (showSystemMonitor) {
-        widgets.push({
-          component: systemMonitorComponent
-        });
+        // widgets.push({
+        //   component: systemMonitorComponent
+        // });
       }
       return widgets;
     }

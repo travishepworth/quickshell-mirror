@@ -1,8 +1,10 @@
 pragma Singleton
 
-import QtQuick
 import Quickshell
+
 import qs.services
+import qs.config
+import qs.components.stolen
 
 Singleton {
   id: root

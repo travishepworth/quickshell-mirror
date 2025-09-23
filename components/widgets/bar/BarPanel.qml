@@ -1,20 +1,19 @@
-// components/widgets/BarPanel.qml
 pragma ComponentBehavior: Bound
 
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
 
-import qs.services
-import qs.modules.bar.widgets as Widgets
-import qs.modules.bar.popouts
+import qs.config
+import qs.components.widgets.bar.declarations as Widgets
+import qs.components.widgets.popouts
 import qs.components.widgets.reusable
 
 PanelWindow {
   id: root
 
   required property var modelData
-  property string display: Settings.display
+  property string display: Settings.display.primary
   property int barHeight: Settings.barHeight
   property int barWidth: Settings.verticalBar ? Settings.barHeight : 0
 
@@ -48,6 +47,7 @@ PanelWindow {
   FloatingTrigger {
     id: menuTrigger
     popouts: popouts
+    screen: root.screen
     panel: root
   }
 
@@ -68,15 +68,15 @@ PanelWindow {
     leftGroup: Component {
       LeftGroup {
         screen: root.screen
-        showMedia: modelData.name === "DP-1"
+        showMedia: Settings.display.primary === "DP-1"
       }
     }
 
     rightGroup: Component {
       RightGroup {
         screen: root.screen
-        showTray: modelData.name === Settings.display
-        showBattery: Settings.display === "eDP-1"
+        showTray: root.screen.name === Settings.display.primary
+        showBattery: Settings.display.primary === "eDP-1"
       }
     }
 
@@ -87,7 +87,7 @@ PanelWindow {
         sourceComponent: centerGroups.rightCenterGroup
         onLoaded: {
           if (item) {
-            item.showSystemMonitor = modelData.name === "DP-1";
+            item.showSystemMonitor = root.screen.name === "DP-1";
           }
         }
       }

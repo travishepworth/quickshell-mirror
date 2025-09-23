@@ -1,4 +1,3 @@
-// Notify.qml
 pragma Singleton
 import QtQuick
 import Quickshell.Io

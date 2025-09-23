@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
-import qs.services
+
+import qs.config
 
 PanelWindow {
   id: root
@@ -14,8 +15,8 @@ PanelWindow {
     right: Settings.rightVerticalBar
   }
 
-  width: Settings.resolutionWidth / 3
-  height: 40
+  implicitWidth: Settings.display.resolutionWidth / 3
+  implicitHeight: 40
   color: "transparent"
 
   // PanelWindow.exclusionMode: PanelWindow.ExclusionMode.Ignore
@@ -40,7 +41,7 @@ PanelWindow {
     onTriggered: {
       if (root.popouts && panel) {
         console.log("anchor", root.x, root.y, root.width, root.height);
-        root.popouts.openPopout(panel, "media-player", {
+        root.popouts.openPopout(root.panel, "media-player", {
           monitor: root.monitor,
           activeId: root.monitor?.activeWorkspace?.id ?? 1,
           anchorX: 0 + Settings.barHeight,

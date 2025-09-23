@@ -1,4 +1,4 @@
-// Notifications (top-right, close-only)
+// NotificationService.qml
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications

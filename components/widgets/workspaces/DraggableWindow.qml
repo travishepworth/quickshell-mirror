@@ -95,7 +95,7 @@ Item {
     
     isActive: root.isFocused
     isHovered: mouseArea.containsMouse
-    windowOpacity: isFloating ? 0.95 : 0.9
+    windowOpacity: root.isFloating ? 0.95 : 0.9
     borderRadius: 4 * root.overviewScale
   }
 

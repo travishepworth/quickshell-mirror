@@ -1,10 +1,9 @@
-// components/widgets/WidgetGroup.qml
 pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
 
-import qs.services
+import qs.config
 
 Item {
   id: root
@@ -20,10 +19,10 @@ Item {
   GridLayout {
     id: layout
 
-    columns: vertical ? 1 : repeater.count
-    rows: vertical ? repeater.count : 1
-    columnSpacing: vertical ? 0 : spacing
-    rowSpacing: vertical ? spacing : 0
+    columns: root.vertical ? 1 : repeater.count
+    rows: root.vertical ? repeater.count : 1
+    columnSpacing: root.vertical ? 0 : root.spacing
+    rowSpacing: root.vertical ? root.spacing : 0
 
     Repeater {
       id: repeater

@@ -1,10 +1,9 @@
-// components/widgets/BarContainer.qml
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Layouts
 
 import qs.services
+import qs.config
 
 Rectangle {
   id: root
@@ -29,7 +28,7 @@ Rectangle {
       top: parent.top
       bottom: parent.bottom
     }
-    color: foregroundColor
+    color: root.foregroundColor
   }
 
   // Workspaces centered
