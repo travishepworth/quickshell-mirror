@@ -6,6 +6,10 @@ import Quickshell.Hyprland
 
 import qs.services
 
+// TODO:
+// Add special workspaces boxes on the side for scratchpads
+// Make dropping follow standard hyprland splitting
+
 Scope {
   id: root
   objectName: "workspaceOverlay"
@@ -87,6 +91,11 @@ Scope {
       }
     }
 
+    Process {
+      id: gotoWorkspaceProcess
+      running: false
+    }
+
     // Main overlay content
     WorkspaceGrid {
       id: workspaceGrid
@@ -94,7 +103,8 @@ Scope {
       overviewScale: root.overviewScale
       onWorkspaceClicked: workspaceId => {
         overlayWindow.visible = false;
-        Hyprland.dispatch(`workspace ${workspaceId}`);
+        gotoWorkspaceProcess.command = [`/home/travmonkey/.config/hypr/scripts/gotoWorkspace.sh`, workspaceId.toString()];
+        gotoWorkspaceProcess.running = true;
       }
     }
   }

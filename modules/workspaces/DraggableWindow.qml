@@ -1,14 +1,20 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Wayland
 
 import qs.services
 
 Item {
   id: root
 
+  // TODO: less spaghetti
   property var windowData: null
+  property var windowList: HyprlandData.windowList
+  property var toplevel: getToplevelFromAddress(windowData?.address)
   property real overviewScale: 0.15
   property int gridSize: 5
   property real workspaceWidth: 0
@@ -18,8 +24,18 @@ Item {
   property real offsetY: 0
 
   property var iconPath: findIconPath()
+  property string windowTitle: windowData?.title ?? windowData?.class ?? "Unknown"
 
-  property string windowTitle: windowData?.title ?? windowData?.class ?? "Unknown";
+  property var matchedToplevel: toplevel
+
+  function getToplevelFromAddress(address) {
+    for (let toplevel of Hyprland.toplevels.values) {
+      let formattedAddress = "0x" + toplevel.address;
+      if (formattedAddress === address) {
+        return toplevel.wayland;
+      }
+    }
+  }
 
   function findIconPath() {
     let baseIcon = Quickshell.iconPath(AppSearch.guessIcon(windowData?.class), "image-missing");
@@ -37,6 +53,7 @@ Item {
   signal windowDropped(int targetWorkspace)
   signal windowClicked
   signal windowClosed
+  signal windowResized
 
   // Calculate scaled position within workspace with null checks
   property real scaledX: ((windowData?.at[0] ?? 0) * overviewScale)
@@ -81,33 +98,33 @@ Item {
     border.width: 2
     border.color: (windowData?.focusHistoryID ?? 999) === 0 ? "#d79921" : "#665c54" // Gruvbox yellow/bg3
     opacity: (windowData?.floating ?? false) ? 0.95 : 0.9
+    clip: true
 
-    // Window content preview (simplified)
+    ScreencopyView {
+      id: screencopy
+      anchors.fill: parent
+      anchors.margins: windowRect.border.width
+
+      captureSource: matchedToplevel
+
+      visible: captureSource !== null
+    }
+
     Column {
       anchors.centerIn: parent
       spacing: 4
-
-      // App icon placeholder
-      // Rectangle {
-      //   width: Math.min(parent.parent.width * 0.3, 32)
-      //   height: width
-      //   radius: 4
-      //   color: "#a89984" // Gruvbox fg3
-      //   opacity: 0.3
-      //   anchors.horizontalCenter: parent.horizontalCenter
-      // }
+      visible: true
 
       Image {
         id: windowIcon
         source: root.iconPath
-        width: Math.min(parent.parent.width, 50)
+        width: Math.min(parent.parent.width * 0.4, 50)
         height: width
         fillMode: Image.PreserveAspectFit
         smooth: true
         anchors.horizontalCenter: parent.horizontalCenter
       }
 
-      // Window title
       Text {
         text: root.windowTitle
         font.family: "VictorMono Nerd Font"
@@ -120,27 +137,26 @@ Item {
       }
     }
 
-    // XWayland indicator
-    // Rectangle {
-    //   visible: windowData?.xwayland ?? false
-    //   anchors.top: parent.top
-    //   anchors.right: parent.right
-    //   anchors.margins: 4
-    //   width: 16
-    //   height: 16
-    //   radius: 8
-    //   color: "#fabd2f" // Gruvbox yellow bright
-    //   opacity: 0.5
-    //
-    //   Text {
-    //     anchors.centerIn: parent
-    //     text: "X"
-    //     font.family: "VictorMono Nerd Font"
-    //     font.pixelSize: 10
-    //     font.bold: true
-    //     color: "#282828" // Gruvbox bg
-    //   }
-    // }
+    Rectangle {
+      visible: (windowData?.xwayland ?? false) && !screencopy.visible
+      anchors.top: parent.top
+      anchors.right: parent.right
+      anchors.margins: 4
+      width: 16
+      height: 16
+      radius: 8
+      color: "#fabd2f" // Gruvbox yellow bright
+      opacity: 0.5
+
+      Text {
+        anchors.centerIn: parent
+        text: "X"
+        font.family: "VictorMono Nerd Font"
+        font.pixelSize: 10
+        font.bold: true
+        color: "#282828" // Gruvbox bg
+      }
+    }
   }
 
   // Mouse interaction
@@ -156,6 +172,8 @@ Item {
         root.windowClicked();
       } else if (mouse.button === Qt.MiddleButton) {
         root.windowClosed();
+      } else if (mouse.button === Qt.RightButton) {
+        root.windowResized();
       }
     }
 

@@ -35,6 +35,8 @@ QtObject {
 
   property bool singleMonitor: true
   property string userName: "travmonkey"
+  property bool workspacePopoutIcons: true
+
 
   property var customIconOverrides: ({
     "spotify-client": "file:///opt/spotify/icons/spotify-linux-32.png",

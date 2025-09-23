@@ -71,6 +71,10 @@ Rectangle {
     height: workspaceContainer.height
     z: 1e6
 
+    function getToplevelFromAddress(address) {
+      return Hyprland.toplevels.values.find(t => t.address === address);
+    }
+
     Repeater {
       model: HyprlandData.windowList
 
@@ -108,9 +112,9 @@ Rectangle {
         onWindowClicked: {
           if (modelData?.workspace?.id) {
             root.workspaceClicked(modelData.workspace.id);
-            Hyprland.dispatch(`focuswindow address:${modelData.address}`);
           }
         }
+        // TODO: on window resized
 
         onWindowClosed: {
           if (modelData?.address) {

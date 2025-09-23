@@ -69,10 +69,27 @@ Item {
           readonly property bool isActive: root.monitor?.activeWorkspace?.id === wsId
           readonly property bool hasWindows: workspace?.toplevels?.values?.length > 0
           readonly property bool isCurrentColumn: (wsId - 1) % 5 === root.currentColumn
+          readonly property bool showIcons: Settings.workspacePopoutIcons
           property bool hovered: false
 
           Layout.preferredWidth: Settings.widgetHeight
           Layout.preferredHeight: Settings.widgetHeight
+
+          property var iconPath: findIconPath()
+          property var windowData: HyprlandData.biggestWindowForWorkspace(wsId)
+
+          function findIconPath() {
+            let baseIcon = Quickshell.iconPath(AppSearch.guessIcon(windowData?.class), "image-missing");
+            // Check if icon is kitty, and check if it is running nvim, and use nvim icon if so
+            if (baseIcon.includes("kitty")) {
+              for (let win of HyprlandData.windowList) {
+                if (win.class === "kitty" && windowData?.title.toLowerCase().includes("nvim")) {
+                  return Quickshell.iconPath("nvim", "image-missing");
+                }
+              }
+            }
+            return baseIcon;
+          }
 
           radius: Settings.borderRadius
           // property color baseColor: isActive ? Colors.accent : hasWindows ? Colors.outline : Colors.bgAlt
@@ -89,6 +106,15 @@ Item {
             ColorAnimation {
               duration: 100
             }
+          }
+
+          Image {
+            id: windowIcon
+            source: (parent.hasWindows && parent.iconPath) ? parent.iconPath : ""
+            width: parent.width * 0.7
+            height: parent.height * 0.7
+            anchors.centerIn: parent
+            visible: Settings.workspacePopoutIcons
           }
 
           Text {
@@ -111,9 +137,9 @@ Item {
               Hyprland.dispatch(`workspace ${parent.wsId}`);
             }
 
-            onContainsMouseChanged: {
-              // Handled by HoverHandler
-            }
+            onContainsMouseChanged:
+            // Handled by HoverHandler
+            {}
 
             onEntered: {
               parent.hovered = true;
