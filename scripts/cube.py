@@ -325,11 +325,11 @@ def main():
     
     # Generate and save image as PNG with transparency
     img = draw_cube_net(scrambled_cube)
-    img.save('../assets/scramble.png', 'PNG')
+    img.save('../assets/cube/scramble.png', 'PNG')
     print("Cube visualization saved as 'scramble.png'")
     
     # Also save scramble to text file for reference
-    with open('../assets/scramble.txt', 'w') as f:
+    with open('../assets/cube/scramble.txt', 'w') as f:
         f.write(scramble)
     print("Scramble text saved as 'scramble.txt'")
 
