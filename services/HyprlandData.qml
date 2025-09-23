@@ -1,4 +1,5 @@
 // Courtesy of end-4
+// Could be in /components/stolen, but it's only hyprctl calls, ill just give creds here
 pragma Singleton
 pragma ComponentBehavior: Bound
 
