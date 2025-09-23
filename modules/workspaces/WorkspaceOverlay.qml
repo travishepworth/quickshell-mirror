@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 
 import qs.services
+import qs.components.methods
 
 // TODO:
 // Add special workspaces boxes on the side for scratchpads
@@ -103,9 +104,14 @@ Scope {
       overviewScale: root.overviewScale
       onWorkspaceClicked: workspaceId => {
         overlayWindow.visible = false;
-        gotoWorkspaceProcess.command = [`/home/travmonkey/.config/hypr/scripts/gotoWorkspace.sh`, workspaceId.toString()];
-        gotoWorkspaceProcess.running = true;
+        Workspaces.gotoWorkspace(workspaceId);
+
       }
+      // onWorkspaceClicked: workspaceId => {
+      //   overlayWindow.visible = false;
+      //   gotoWorkspaceProcess.command = [`/home/travmonkey/.config/hypr/scripts/gotoWorkspace.sh`, workspaceId.toString()];
+      //   gotoWorkspaceProcess.running = true;
+      // }
     }
   }
 }

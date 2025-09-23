@@ -31,6 +31,10 @@ ShellRoot {
     id: mainBar
   }
 
+  // Bar2 {
+  //   id: uhh
+  // }
+
   RoundedCorners {
     id: roundedCorners
   }

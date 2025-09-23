@@ -6,6 +6,7 @@ PanelWindow {
   id: root
 
   property var popouts: null
+  property var panel: null
 
   anchors {
     top: true

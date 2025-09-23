@@ -27,7 +27,7 @@ BaseWidget {
   property var colorMap: ({})  // Map of status -> color
   property color defaultColor: Colors.orange
   property color errorColor: Colors.red
-  property color loadingColor: Colors.gray
+  property color loadingColor: Colors.surfaceAlt3
 
   // State
   property var currentStatus: undefined

@@ -9,6 +9,8 @@ Item {
   id: root
   required property var screen
   property var popouts: null
+  property var panel: null  // Reference to the parent panel for popout anchoring
+
 
   // Orientation support
   property int orientation: Settings.orientation
@@ -125,18 +127,20 @@ Item {
     }
   }
 
+  property var position: root.mapToItem(null, 0, 0)
+
   // Timer to show popout after hover
   Timer {
     id: showTimer
     interval: 10
     onTriggered: {
       if (root.popouts && panel) {
-        console.log("anchor", root.x, root.y, root.width, root.height);
-        root.popouts.openPopout(panel, "workspace-grid", {
+        console.log("anchor", root.parent.x, root.parent.y, root.width, root.height);
+        root.popouts.openPopout(root.panel, "workspace-grid", {
           monitor: root.monitor,
           activeId: root.monitor?.activeWorkspace?.id ?? 1,
-          anchorX: root.x,
-          anchorY: root.y,
+          anchorX: root.parent.x,
+          anchorY: root.parent.y,
           anchorWidth: root.width,
           anchorHeight: root.height
         });
