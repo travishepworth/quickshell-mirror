@@ -135,7 +135,7 @@ Item {
             cursorShape: containsMouse ? Qt.PointingHandCursor : Qt.ArrowCursor
             onClicked: {
               console.log("Click ws", parent.wsId);
-              WorkspaceUtils.gotoWorkspace(parent.wsId);
+              WorkspaceUtils.focusWorkspace(parent.wsId);
             }
 
             onContainsMouseChanged:

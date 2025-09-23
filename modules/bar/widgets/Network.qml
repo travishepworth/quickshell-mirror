@@ -2,8 +2,7 @@ import QtQuick
 import "." as Common  // Import your common components
 
 import qs.services
-import qs.components
-import qs.components.widgets
+import qs.components.widgets.reusable
 
 IconTextWidget {
   id: root

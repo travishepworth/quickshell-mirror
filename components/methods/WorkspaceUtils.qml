@@ -1,18 +1,32 @@
 pragma Singleton
 
+import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 
 Singleton {
   id: root
 
-  function gotoWorkspace(index) {
-    gotoWorkspaceProcess.command = ["/home/travmonkey/.config/hypr/scripts/gotoWorkspace.sh", String(index)]
-    gotoWorkspaceProcess.running = true
+  function focusWorkspace(index) {
+    focusWorkspaceProcess.command = ["/home/travmonkey/.config/hypr/scripts/gotoWorkspace.sh", String(index)]
+    focusWorkspaceProcess.running = true
+  }
+
+  function moveToWorkspace(workspaceId) {
+    Hyprland.dispatch(`movetoworkspace ${workspaceId}`);
+  }
+
+  function isWorkspaceVisible(workspaceId) {
+    return workspaceId >= 1 && workspaceId <= 25;
+  }
+
+  function getActiveWorkspaceId() {
+    return Hyprland.focusedMonitor?.activeWorkspace?.id ?? 1;
   }
 
   Process {
-    id: gotoWorkspaceProcess
+    id: focusWorkspaceProcess
     command: ["/home/travmonkey/.config/hypr/scripts/gotoWorkspace.sh", ""]
   }
 }

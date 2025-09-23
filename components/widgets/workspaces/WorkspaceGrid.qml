@@ -4,18 +4,23 @@ import Quickshell
 import Quickshell.Hyprland
 
 import qs.services
+import qs.components.methods
 
 Rectangle {
   id: root
 
+  // Colors
+  property color gridBgColor: Colors.surface
+  property color gridBorderColor: Colors.outline
+
+  // Grid configuration
   property real overviewScale: 0.15
   property int gridSize: 5
   property int workspaceSpacing: 10
-  property var activeWorkspace: Hyprland.focusedMonitor?.activeWorkspace?.id ?? 1
+  property real padding: 20
 
-  // property var screen: overlayWindow.screen ?? Screen.primaryScreen
-  // property real workspaceWidth: (screen.width * overviewScale)
-  // property real workspaceHeight: (screen.height * overviewScale)
+  // Computed properties
+  property var activeWorkspace: WorkspaceUtils.getActiveWorkspaceId()
   property real workspaceWidth: ((Hyprland.focusedMonitor?.width ?? 1920) * overviewScale)
   property real workspaceHeight: ((Hyprland.focusedMonitor?.height ?? 1080) * overviewScale)
 
@@ -24,12 +29,10 @@ Rectangle {
   implicitWidth: (workspaceWidth * gridSize) + (workspaceSpacing * (gridSize - 1)) + (padding * 2)
   implicitHeight: (workspaceHeight * gridSize) + (workspaceSpacing * (gridSize - 1)) + (padding * 2)
 
-  property real padding: 20
-
-  color: "#282828" // Gruvbox bg
+  color: gridBgColor
   radius: 8
   border.width: 2
-  border.color: "#3c3836" // Gruvbox bg1
+  border.color: gridBorderColor
 
   // Container for all workspace cells
   Item {
@@ -38,23 +41,19 @@ Rectangle {
     width: (root.workspaceWidth * root.gridSize) + (root.workspaceSpacing * (root.gridSize - 1))
     height: (root.workspaceHeight * root.gridSize) + (root.workspaceSpacing * (root.gridSize - 1))
 
-    // Create all 25 workspace cells explicitly
+    // Create all 25 workspace cells
     Repeater {
       model: 25
 
       WorkspaceCell {
-        id: workspaceCell
         workspaceId: index + 1
         width: root.workspaceWidth
         height: root.workspaceHeight
         isActive: workspaceId === root.activeWorkspace
 
-        // Position in grid
-        property int row: Math.floor(index / root.gridSize)
-        property int col: index % root.gridSize
-
-        x: col * (root.workspaceWidth + root.workspaceSpacing)
-        y: row * (root.workspaceHeight + root.workspaceSpacing)
+        property var gridPos: WindowUtils.getWorkspacePosition(workspaceId, root.gridSize)
+        x: gridPos.col * (root.workspaceWidth + root.workspaceSpacing)
+        y: gridPos.row * (root.workspaceHeight + root.workspaceSpacing)
 
         onClicked: {
           root.workspaceClicked(workspaceId);
@@ -69,17 +68,12 @@ Rectangle {
     anchors.centerIn: parent
     width: workspaceContainer.width
     height: workspaceContainer.height
-    z: 1e6
-
-    function getToplevelFromAddress(address) {
-      return Hyprland.toplevels.values.find(t => t.address === address);
-    }
+    z: 1000
 
     Repeater {
       model: HyprlandData.windowList
 
       delegate: DraggableWindow {
-        id: windowDelegate
         required property var modelData
         required property int index
 
@@ -92,19 +86,17 @@ Rectangle {
 
         // Calculate grid position from workspace ID
         property int wsId: modelData?.workspace?.id ?? 1
-        property int wsIndex: wsId - 1
-        property int gridRow: Math.floor(wsIndex / root.gridSize)
-        property int gridCol: wsIndex % root.gridSize
+        property var gridPos: WindowUtils.getWorkspacePosition(wsId, root.gridSize)
 
         // Only show windows in the visible 5x5 grid (workspaces 1-25)
-        visible: wsId >= 1 && wsId <= 25
+        visible: WorkspaceUtils.isWorkspaceVisible(wsId)
 
-        offsetX: gridCol * (root.workspaceWidth + root.workspaceSpacing)
-        offsetY: gridRow * (root.workspaceHeight + root.workspaceSpacing)
+        offsetX: gridPos.col * (root.workspaceWidth + root.workspaceSpacing)
+        offsetY: gridPos.row * (root.workspaceHeight + root.workspaceSpacing)
 
         onWindowDropped: targetWorkspace => {
           if (modelData?.workspace?.id && targetWorkspace !== modelData.workspace.id) {
-            Hyprland.dispatch(`movetoworkspacesilent ${targetWorkspace}, address:${modelData.address}`);
+            WindowUtils.moveWindowToWorkspace(modelData.address, targetWorkspace);
             HyprlandData.updateAll();
           }
         }
@@ -112,17 +104,28 @@ Rectangle {
         onWindowClicked: {
           if (modelData?.workspace?.id) {
             root.workspaceClicked(modelData.workspace.id);
+            WorkspaceUtils.focusWorkspace(modelData.address);
           }
         }
-        // TODO: on window resized
 
         onWindowClosed: {
           if (modelData?.address) {
-            Hyprland.dispatch(`closewindow address:${modelData.address}`);
+            WindowUtils.closeWindow(modelData.address);
             HyprlandData.updateAll();
           }
+        }
+
+        onWindowResized: {
+          // TODO: Implement window resize functionality
         }
       }
     }
   }
+
+  // TODO: Add special workspace boxes here for scratchpads
+  // SpecialWorkspaceContainer {
+  //   anchors.left: parent.right
+  //   anchors.leftMargin: 20
+  //   anchors.verticalCenter: parent.verticalCenter
+  // }
 }

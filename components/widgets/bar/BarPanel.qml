@@ -6,9 +6,9 @@ import Quickshell.Wayland
 import QtQuick
 
 import qs.services
-import qs.components
 import qs.modules.bar.widgets as Widgets
 import qs.modules.bar.popouts
+import qs.components.widgets.reusable
 
 PanelWindow {
   id: root

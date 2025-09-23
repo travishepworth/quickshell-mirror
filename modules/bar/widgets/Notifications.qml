@@ -3,7 +3,7 @@ import Quickshell
 import Quickshell.Io
 
 import qs.services
-import qs.components.widgets
+import qs.components.widgets.reusable
 
 IconTextWidget {
   id: root
