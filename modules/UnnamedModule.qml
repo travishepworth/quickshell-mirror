@@ -13,13 +13,20 @@ Item {
     edge: EdgePopup.Edge.Right
     position: 0.5
     enableTrigger: true
-    useImplicitSize: false
-    triggerLength: 300
+    useImplicitSize: true
+    triggerLength: 1500
+    edgeMargin: 0
 
-    Rectangle {
-      implicitWidth: 400
-      implicitHeight: 200
-      color: "darkblue"
+      Rectangle {
+        color: "transparent"
+        implicitWidth: 800
+        implicitHeight: 1440 - 100
+        Rectangle {
+          anchors.centerIn: parent
+          implicitWidth: 700
+          implicitHeight: 1200
+          color: "darkblue"
+        }
     }
   }
 }

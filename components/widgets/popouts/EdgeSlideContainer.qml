@@ -1,4 +1,4 @@
-// EdgeSlideContainer.qml - Animation container for edge-based popups
+// EdgeSlideContainer.qml - Fixed animation container with proper state management
 import QtQuick
 import Quickshell
 
@@ -28,7 +28,11 @@ Item {
   // Content
   default property alias content: contentArea.children
 
-  // Size based on content
+  // Animation state tracking
+  signal animationCompleted
+  property bool __isAnimating: false
+
+  // Size management
   implicitWidth: Math.max(1, contentArea.implicitWidth)
   implicitHeight: Math.max(1, contentArea.implicitHeight)
 
@@ -38,77 +42,126 @@ Item {
   // Main animation wrapper
   Item {
     id: contentWrapper
-    width: parent.width > 0 ? parent.width : 1
-    height: parent.height > 0 ? parent.height : 1
+    width: parent.width
+    height: parent.height
 
-    // Target positions (visible state)
-    property real targetX: 0
-    property real targetY: 0
-
-    // Hidden positions based on edge
+    // Calculate positions based on current size
     property real hiddenX: {
-      if (!root.parent)
-        return 0;
-      var w = root.width > 0 ? root.width : 1;
       switch (root.edge) {
       case EdgeSlideContainer.Edge.Left:
-        return -w;  // Slide from left
+        return -root.width;
       case EdgeSlideContainer.Edge.Right:
-        return w;   // Slide from right
+        return root.width;
       default:
-        return 0;   // No horizontal movement for top/bottom
+        return 0;
       }
     }
 
     property real hiddenY: {
-      if (!root.parent)
-        return 0;
-      var h = root.height > 0 ? root.height : 1;
       switch (root.edge) {
       case EdgeSlideContainer.Edge.Top:
-        return -h;  // Slide from top
+        return -root.height;
       case EdgeSlideContainer.Edge.Bottom:
-        return h;   // Slide from bottom
+        return root.height;
       default:
-        return 0;   // No vertical movement for left/right
+        return 0;
       }
     }
 
-    // State management
-    states: [
-      State {
-        name: "visible"
-        when: root.active && root.width > 0 && root.height > 0
-        PropertyChanges {
-          target: contentWrapper
-          x: targetX
-          y: targetY
-        }
-      },
-      State {
-        name: "hidden"
-        when: !root.active || root.width <= 0 || root.height <= 0
-        PropertyChanges {
-          target: contentWrapper
-          x: hiddenX
-          y: hiddenY
-        }
-      }
-    ]
+    property real visibleX: 0
+    property real visibleY: 0
 
-    // Smooth transitions
-    transitions: Transition {
-      ParallelAnimation {
-        NumberAnimation {
-          property: "x"
-          duration: root.animationDuration
-          easing.type: root.easingType
-        }
-        NumberAnimation {
-          property: "y"
-          duration: root.animationDuration
-          easing.type: root.easingType
-        }
+    // Initialize position
+    Component.onCompleted: {
+      // Start from hidden position
+      if (!root.active) {
+        x = hiddenX;
+        y = hiddenY;
+        opacity = root.enableFade ? 0 : 1;
+      }
+    }
+
+    // Manual animation control for better timing
+    ParallelAnimation {
+      id: showAnimation
+
+      NumberAnimation {
+        target: contentWrapper
+        property: "x"
+        from: contentWrapper.hiddenX
+        to: contentWrapper.visibleX
+        duration: root.animationDuration
+        easing.type: root.easingType
+      }
+
+      NumberAnimation {
+        target: contentWrapper
+        property: "y"
+        from: contentWrapper.hiddenY
+        to: contentWrapper.visibleY
+        duration: root.animationDuration
+        easing.type: root.easingType
+      }
+
+      NumberAnimation {
+        target: contentWrapper
+        property: "opacity"
+        from: 0
+        to: 1
+        duration: root.enableFade ? root.fadeAnimationDuration : 0
+        easing.type: Easing.InOutQuad
+      }
+
+      onStarted: {
+        console.log("Show animation started");
+        root.__isAnimating = true;
+      }
+
+      onFinished: {
+        console.log("Show animation finished");
+        root.__isAnimating = false;
+        root.animationCompleted();
+      }
+    }
+
+    ParallelAnimation {
+      id: hideAnimation
+
+      NumberAnimation {
+        target: contentWrapper
+        property: "x"
+        from: contentWrapper.visibleX
+        to: contentWrapper.hiddenX
+        duration: root.animationDuration
+        easing.type: root.easingType
+      }
+
+      NumberAnimation {
+        target: contentWrapper
+        property: "y"
+        from: contentWrapper.visibleY
+        to: contentWrapper.hiddenY
+        duration: root.animationDuration
+        easing.type: root.easingType
+      }
+
+      NumberAnimation {
+        target: contentWrapper
+        property: "opacity"
+        from: 1
+        to: 0
+        duration: root.enableFade ? root.fadeAnimationDuration : 0
+        easing.type: Easing.InOutQuad
+      }
+
+      onStarted: {
+        root.__isAnimating = true;
+      }
+
+      onFinished: {
+        console.log("Hide animation finished");
+        root.__isAnimating = false;
+        root.animationCompleted();
       }
     }
 
@@ -119,40 +172,48 @@ Item {
     }
   }
 
-  // Optional opacity animation
-  opacity: root.enableFade ? (root.active ? 1.0 : 0.0) : 1.0
+  // Handle active changes
+  onActiveChanged: {
+    if (root.implicitWidth<= 0 || root.implicitHeight <= 0) {
+      console.warn("EdgeSlideContainer: Invalid size, skipping animation");
+      return;
+    }
 
-  Behavior on opacity {
-    enabled: root.enableFade && root.visible
-    NumberAnimation {
-      duration: root.fadeAnimationDuration
-      easing.type: Easing.InOutQuad
+    // Stop any running animations
+    showAnimation.stop();
+    hideAnimation.stop();
+
+    if (active) {
+      // Ensure we start from hidden position
+      if (!__isAnimating) {
+        contentWrapper.x = contentWrapper.hiddenX;
+        contentWrapper.y = contentWrapper.hiddenY;
+        if (enableFade)
+          contentWrapper.opacity = 0;
+      }
+      showAnimation.start();
+    } else {
+      // Ensure we start from visible position
+      if (!__isAnimating) {
+        contentWrapper.x = contentWrapper.visibleX;
+        contentWrapper.y = contentWrapper.visibleY;
+        if (enableFade)
+          contentWrapper.opacity = 1;
+      }
+      hideAnimation.start();
     }
   }
 
-  // Defensive initialization
-  Component.onCompleted: {
-    // Delay initialization to ensure parent is ready
-    Qt.callLater(function () {
-      if (root.width > 0 && root.height > 0) {
-        contentWrapper.x = root.active ? contentWrapper.targetX : contentWrapper.hiddenX;
-        contentWrapper.y = root.active ? contentWrapper.targetY : contentWrapper.hiddenY;
-      }
-    });
-  }
-
-  // Update hidden position when size changes
+  // Update positions when size changes (defensive)
   onWidthChanged: {
-    if (width > 0) {
-      // Force binding re-evaluation
-      contentWrapper.hiddenX = contentWrapper.hiddenX;
+    if (!__isAnimating && !active) {
+      contentWrapper.x = contentWrapper.hiddenX;
     }
   }
 
   onHeightChanged: {
-    if (height > 0) {
-      // Force binding re-evaluation
-      contentWrapper.hiddenY = contentWrapper.hiddenY;
+    if (!__isAnimating && !active) {
+      contentWrapper.y = contentWrapper.hiddenY;
     }
   }
 
@@ -167,5 +228,21 @@ Item {
 
   function toggle() {
     active = !active;
+  }
+
+  function reset() {
+    showAnimation.stop();
+    hideAnimation.stop();
+    __isAnimating = false;
+
+    if (active) {
+      contentWrapper.x = contentWrapper.visibleX;
+      contentWrapper.y = contentWrapper.visibleY;
+      contentWrapper.opacity = 1;
+    } else {
+      contentWrapper.x = contentWrapper.hiddenX;
+      contentWrapper.y = contentWrapper.hiddenY;
+      contentWrapper.opacity = enableFade ? 0 : 1;
+    }
   }
 }
