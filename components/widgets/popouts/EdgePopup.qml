@@ -7,19 +7,19 @@ import qs.components.widgets.reusable
 
 Item {
   id: root
-
+  
   // Core properties
   property bool active: false
   default property alias content: contentArea.data
-
+  
   // Panel window properties
   property bool aboveWindows: true
   property bool focusable: false
-
+  
   // Animation configuration
   property int animationDuration: 300
   property var easingType: Easing.OutCubic
-
+  
   // Edge configuration
   enum Edge {
     Left,
@@ -28,20 +28,20 @@ Item {
     Bottom
   }
   property int edge: EdgePopup.Edge.Right
-
+  
   // Position along edge (0-1)
   property real position: 0.5
   property real positionOffset: 0  // Pixel offset
-
+  
   // Size configuration
   property bool useImplicitSize: true  // Use content's implicit size
   property int customWidth: 300
   property int customHeight: 400
   property int edgeMargin: 0  // Distance from screen edge when visible
-
+  
   // Optional fade
   property bool enableFade: true
-
+  
   // Trigger configuration
   property bool enableTrigger: true
   property int triggerWidth: 5
@@ -50,15 +50,19 @@ Item {
   property bool triggerOnClick: false
   property int hoverDelay: 300
   property bool showTriggerIndicator: false
-
+  
   // Close behavior
   property bool closeOnMouseExit: true
   property bool closeOnClickOutside: true
-
+  
+  // Internal state for animation
+  property bool __animating: false
+  property bool __popupVisible: false
+  
   // Trigger area (serves as anchor for the popup)
   EdgeTrigger {
     id: trigger
-
+    
     edge: {
       switch (root.edge) {
       case EdgePopup.Edge.Left:
@@ -71,7 +75,7 @@ Item {
         return EdgeTrigger.Edge.Bottom;
       }
     }
-
+    
     position: root.position
     positionOffset: root.positionOffset
     triggerWidth: root.triggerWidth
@@ -79,27 +83,32 @@ Item {
     triggerOnHover: root.triggerOnHover
     triggerOnClick: root.triggerOnClick
     hoverDelay: root.hoverDelay
-
+    
     onHoverStarted: {
-      if (root.enableTrigger && root.triggerOnHover) {
-        console.log("hover started");
-        root.active = true;
+      if (root.enableTrigger && root.triggerOnHover && !root.active) {
+        console.log("hover started - opening popup");
+        root.show();
       }
     }
-
+    
+    onHoverEnded: {
+      // Trigger only opens, doesn't close
+      // Closing is handled by the popup's own mouse areas
+    }
+    
     onTriggered: {
-      root.active = true;
+      root.show();
     }
   }
-
+  
   // Main Popup Window - now anchored to the trigger
   PopupWindow {
     id: popup
-    visible: root.active
-
+    visible: root.__popupVisible
+    
     // Anchor to the trigger window
     anchor.window: trigger
-
+    
     // Position the popup based on edge
     anchor.rect.x: {
       switch (root.edge) {
@@ -115,7 +124,7 @@ Item {
         return (trigger.width / 2) - (width / 2);
       }
     }
-
+    
     anchor.rect.y: {
       switch (root.edge) {
       case EdgePopup.Edge.Top:
@@ -130,20 +139,22 @@ Item {
         return (trigger.height / 2) - (height / 2);
       }
     }
-
+    
     // Size handling
     width: root.useImplicitSize ? contentArea.implicitWidth : root.customWidth
     height: root.useImplicitSize ? contentArea.implicitHeight : root.customHeight
-
+    
     // Background color (can be transparent or styled)
     color: "transparent"
-
-    // Content wrapper for future animation
+    
+    // Animation wrapper using EdgeSlideContainer
     EdgeSlideContainer {
-      id: contentWrapper
+      id: slideContainer
       anchors.fill: parent
+      
       active: root.active
       edge: {
+        // Map EdgePopup edge to EdgeSlideContainer edge
         switch (root.edge) {
         case EdgePopup.Edge.Left:
           return EdgeSlideContainer.Edge.Left;
@@ -155,20 +166,29 @@ Item {
           return EdgeSlideContainer.Edge.Bottom;
         }
       }
-
+      
       animationDuration: root.animationDuration
       easingType: root.easingType
       enableFade: root.enableFade
       fadeAnimationDuration: 200
-
-      // Content holder
+      
+      // Listen for animation completion
+      onActiveChanged: {
+        if (!active) {
+          // Start close animation
+          root.__animating = true;
+          hideTimer.start();
+        }
+      }
+      
+      // Content holder with its own mouse handling
       Item {
         id: contentArea
         anchors.fill: parent
-
+        
         // Each child can have its own MouseArea for interaction
         // This allows content to be self-contained with its own close behavior
-
+        
         // Optional: Monitor if any child has mouse
         property bool childHasMouse: {
           for (let i = 0; i < children.length; i++) {
@@ -181,20 +201,20 @@ Item {
           return false;
         }
       }
-
+      
       // Background close area - only for clicking outside content
       MouseArea {
         id: closeArea
         anchors.fill: parent
         enabled: root.active && root.closeOnClickOutside
         z: -1  // Behind content so content mouse areas work
-
+        
         onClicked: {
           // Only close if clicking on empty space
-          root.active = false;
+          root.hide();
         }
       }
-
+      
       // Hover exit detector - separate from click handling
       MouseArea {
         id: hoverExitDetector
@@ -203,37 +223,62 @@ Item {
         hoverEnabled: true
         acceptedButtons: Qt.NoButton  // Don't interfere with clicks
         z: -2  // Behind everything
-
+        
         onExited: {
           // Close when mouse leaves the popup entirely
-          root.active = false;
+          root.hide();
         }
       }
     }
   }
-
+  
+  // Timer to hide popup after animation completes
+  Timer {
+    id: hideTimer
+    interval: root.animationDuration + 50 // Add small buffer
+    repeat: false
+    onTriggered: {
+      root.__popupVisible = false;
+      root.__animating = false;
+    }
+  }
+  
+  // Handle active state changes
+  onActiveChanged: {
+    if (active) {
+      // Show immediately, then animate in
+      root.__popupVisible = true;
+    }
+    // For hiding, the animation handles it via hideTimer
+  }
+  
   // Public functions
   function toggleAboveWindow() {
     aboveWindows = !aboveWindows;
   }
-
+  
   function show() {
-    active = true;
+    if (!active && !__animating) {
+      active = true;
+    }
   }
-
+  
   function hide() {
-    active = false;
+    if (active && !__animating) {
+      active = false;
+    }
   }
-
+  
   function toggle() {
+    if (__animating) return;
     active = !active;
   }
-
+  
   function setPosition(pos, offset = 0) {
     position = Math.max(0, Math.min(1, pos));
     positionOffset = offset;
   }
-
+  
   Component.onCompleted: {
     console.log("EdgePopup initialized with edge:", edge);
   }
