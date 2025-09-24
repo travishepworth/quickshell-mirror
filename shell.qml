@@ -24,4 +24,8 @@ ShellRoot {
   OSD {
     id: osd
   }
+
+  UnnamedModule {
+    id: unnamedModule
+  }
 }
