@@ -1,0 +1,44 @@
+{
+  "Config": {
+    "userName": "travmonkey",
+    "workspaceCount": 5,
+    "singleMonitor": true,
+    "customIconOverrides": {
+      "spotify-client": "file:///opt/spotify/icons/spotify-linux-32.png"
+    }
+  },
+  "Display": {
+    "primary": "DP-1",
+    "resolutionWidth": 3440,
+    "resolutionHeight": 1440,
+    "monitors": []
+  },
+  "Appearance": {
+    "theme": "gruvbox-dark",
+    "darkMode": true,
+    "borderRadius": 4,
+    "borderWidth": 1,
+    "screenMargin": 6,
+    "fontFamily": "JetBrains Mono Nerd Font",
+    "fontSize": 18,
+    "autoThemeSwitch": false,
+    "generatedThemeSource": "pywal"
+  },
+  "Bar": {
+    "height": 46,
+    "vertical": true,
+    "rightSide": false,
+    "bottom": false,
+    "autoHide": false,
+    "showOnAllMonitors": false
+  },
+  "Widget": {
+    "height": 30,
+    "padding": 10,
+    "spacing": 6,
+    "containerWidth": 8,
+    "workspacePopoutIcons": true,
+    "animations": true,
+    "animationDuration": 200
+  }
+}
