@@ -40,5 +40,12 @@
     "workspacePopoutIcons": true,
     "animations": true,
     "animationDuration": 200
+  },
+  "ThemeIntegrations": {
+    "gtk": false,
+    "nvim": false,
+    "vscode": false,
+    "alacritty": false,
+    "kitty": false
   }
 }
