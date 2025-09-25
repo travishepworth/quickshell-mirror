@@ -15,7 +15,7 @@
   },
   "Appearance": {
     "theme": "gruvbox-dark",
-    "darkMode": true,
+    "darkMode": false,
     "borderRadius": 4,
     "borderWidth": 1,
     "screenMargin": 6,
@@ -31,6 +31,9 @@
     "bottom": false,
     "autoHide": false,
     "showOnAllMonitors": false
+  },
+  "Menu": {
+    "distanceFromWorkspaceContainer": 4
   },
   "Widget": {
     "height": 30,
