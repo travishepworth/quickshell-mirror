@@ -33,7 +33,8 @@
     "showOnAllMonitors": false
   },
   "Menu": {
-    "distanceFromWorkspaceContainer": 4
+    "distanceFromWorkspaceContainer": 4,
+    "startMenuPinned": true
   },
   "Widget": {
     "height": 30,
