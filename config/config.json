@@ -45,6 +45,38 @@
     "animations": true,
     "animationDuration": 200
   },
+  "ChatConfig": {
+    "enabled": true,
+    "defaultBackend": "gemini",
+    "currentBackend": "gemini",
+    "defaultModel": "gemini-2.5-pro",
+    "currentModel": "gemini-2.5-pro",
+    "backends": {
+      "gemini": {
+        "apiKey": "",
+        "models": [
+          "gemini-2.5-pro",
+          "gemini-2.5-flash"
+        ]
+      },
+      "openai": {
+        "apiKey": "",
+        "models": [
+          "gpt-4",
+          "gpt-4-turbo",
+          "gpt-4o",
+          "gpt-4o-mini"
+        ]
+      },
+      "anthropic": {
+        "apiKey": "",
+        "models": [
+          "claude-3"
+        ]
+      }
+    }
+
+  },
   "ThemeIntegrations": {
     "gtk": false,
     "nvim": false,
