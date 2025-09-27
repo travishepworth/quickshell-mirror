@@ -15,13 +15,13 @@
   },
   "Appearance": {
     "theme": "gruvbox-dark",
-    "darkMode": false,
+    "darkMode": true,
     "borderRadius": 4,
     "borderWidth": 1,
     "screenMargin": 6,
     "fontFamily": "JetBrains Mono Nerd Font",
     "fontSize": 18,
-    "autoThemeSwitch": false,
+    "autoThemeSwitch": true,
     "generatedThemeSource": "pywal"
   },
   "Bar": {
