@@ -12,6 +12,10 @@ Item {
   id: osdRoot
   anchors.fill: parent
 
+  // Left-to-right order of apps to track individually. "master" (below)
+  // automatically excludes everything in this list.
+  readonly property var trackedApps: ["Zen", "vesktop", "spotify"]
+
   property bool shouldShowOsd: false
   property real hideTimeout: 1000
 
@@ -48,7 +52,9 @@ Item {
     edge: EdgePopup.Edge.Bottom
     position: 0.5
     active: false
-    enableTrigger: true
+    // why are both of these necessary to prevent mouse?
+    enableTrigger: false
+    triggerOnHover: false
     property bool shouldShowOsd: osdRoot.shouldShowOsd
     triggerWidth: 5
     closeOnMouseExit: false
@@ -108,7 +114,7 @@ Item {
         spacing: 20
 
         PipewireVolumeBar {
-          targetApplication: "zen-bin"
+          targetApplication: osdRoot.trackedApps[0]
           orientation: Qt.Vertical
           iconSource: ""
           onVisibilityChanged: {
@@ -118,7 +124,7 @@ Item {
         }
 
         PipewireVolumeBar {
-          targetApplication: "discord"
+          targetApplication: osdRoot.trackedApps[1]
           orientation: Qt.Vertical
           iconSource: ""
           onVisibilityChanged: {
@@ -129,6 +135,7 @@ Item {
 
         PipewireVolumeBar {
           targetApplication: "master"
+          excludedApps: osdRoot.trackedApps
           orientation: Qt.Vertical
           iconSource: ""
           onVisibilityChanged: {
@@ -138,7 +145,7 @@ Item {
         }
 
         PipewireVolumeBar {
-          targetApplication: "spotify"
+          targetApplication: osdRoot.trackedApps[2]
           orientation: Qt.Vertical
           iconSource: ""
           onVisibilityChanged: {
