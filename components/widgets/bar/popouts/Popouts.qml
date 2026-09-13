@@ -36,7 +36,7 @@ Item {
   property bool hasPendingOpen: false
 
   // Gap between bar and main content (connector thickness)
-  property int connectorGap: 4
+  property int connectorGap: Appearance.borderRadius * 2
 
   function closePopout() {
     if (isClosing)
@@ -119,6 +119,7 @@ Item {
     id: mainPopup
     visible: root.occupied && loader.status === Loader.Ready
     color: "transparent"
+    // color: "blue"
 
     // Content dimensions
     readonly property int contentWidth: root.currentItem?.implicitWidth ?? 200
@@ -208,13 +209,16 @@ Item {
       Rectangle {
         id: contentContainer
         color: Theme.background
+        // color: "transparent"
+        // color: "purple"
         radius: Appearance.borderRadius
         border.color: Theme.foreground
+        // border.color: "red"
         border.width: Appearance.borderWidth
         anchors.centerIn: parent
 
         width: root.barConfig.vertical ? parent.width - root.connectorGap : parent.width
-        height: root.barConfig.vertical ? parent.height - Appearance.borderRadius : parent.height - root.connectorGap
+        height: root.barConfig.vertical ? parent.height - Appearance.borderRadius * 4 + Appearance.borderWidth * 2 : parent.height - root.connectorGap
 
         Loader {
           id: loader
@@ -256,22 +260,39 @@ Item {
       Rectangle {
         id: connector
         color: Theme.background
+        // color: "red"
+        // color: "transparent"
+
+        x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : 0
+        y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : 0 + Appearance.borderRadius * 2
+
+        width: root.barConfig.vertical ? root.connectorGap : parent.width
+        // height: root.barConfig.vertical ? contentContainer.height + Appearance.borderWidth + Appearance.borderRadius : root.connectorGap
+        height: root.barConfig.vertical ? contentContainer.height - Appearance.borderWidth * 2 : root.connectorGap
+      }
+
+      Rectangle {
+        id: cornerHolder
+        color: "transparent"
+        // color: "green"
 
         x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : 0
         y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : 0
 
-        width: root.barConfig.vertical ? root.connectorGap : parent.width
-        height: root.barConfig.vertical ? contentContainer.height + Appearance.borderWidth + Appearance.borderRadius : root.connectorGap
+        width: connector.width
+        height: mainPopup.height
       }
 
       Rectangle {
         id: topCorner
-        anchors.top: connector.top
+        anchors.top: cornerHolder.top
         anchors.left: connector.left
         anchors.right: connector.right
         width: connector.width
-        height: Appearance.borderRadius
-        color: "transparent"
+        height: connector.width
+        // height: Appearance.borderRadius
+        // color: "transparent"
+        color: "red"
         CornerPiece {
           isLeft: true
           isTop: false
@@ -280,15 +301,18 @@ Item {
 
       Rectangle {
         id: bottomCorner
-        anchors.bottom: connector.bottom
+        // anchors.bottom: connector.bottom
+        anchors.bottom: cornerHolder.bottom
         anchors.left: connector.left
         anchors.right: connector.right
         width: connector.width
-        height: Appearance.borderRadius
+        height: connector.width
+        // height: Appearance.borderRadius
         color: "transparent"
+        // color: "red"
         CornerPiece {
           isLeft: true
-          isTop: false
+          isTop: true
         }
       }
     }

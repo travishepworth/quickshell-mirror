@@ -21,6 +21,18 @@ Item {
 
   property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
 
+  // Exposed so the popout can bind to our hover state directly (passed
+  // through as `anchorItem` below) instead of relying purely on its own
+  // independent dismiss timer.
+  property alias hovered: hoverHandler.hovered
+
+  // Tracks whether a popout we opened is still open. This is the key fix
+  // for the close/reopen flicker: without it, moving the mouse out and
+  // back into the widget calls safeOpenPopout again even though the
+  // popout is already open, which tears it down and recreates it. The
+  // popout clears this flag itself (via anchorItem) when it actually closes.
+  property bool popoutOpen: false
+
   // Base ID for this monitor's 25-workspace range - calculate from monitor index
   readonly property int workspaceBase: {
     if (!monitor) return 1;
@@ -76,6 +88,11 @@ Item {
     return null;
   }
 
+  // NOTE: the original nerd-font glyphs arrived empty in the source (they
+  // were already stripped before reaching this file). These are safe
+  // placeholders using explicit \uXXXX escapes so they can't silently get
+  // lost again — swap the escape codes below for your real Nerd Font
+  // codepoints (also written as \uXXXX) if you have specific icons in mind.
   function formatIconVertical(relativeIndex) {
     const col = (relativeIndex - 1) % 5;
     switch(col) {
@@ -135,27 +152,41 @@ Item {
     }
   }
 
-  MouseArea {
-    id: hoverArea
-    anchors.fill: parent
-    hoverEnabled: true
-    onEntered: if (root.popouts) showTimer.restart()
-    onExited: showTimer.stop()
+  // Hover detection only — a HoverHandler (rather than a MouseArea) so it
+  // never eats mouse-press events meant for the workspace cell delegates.
+  // This mirrors how hover is detected in WorkspacePopout.qml.
+  HoverHandler {
+    id: hoverHandler
+    onHoveredChanged: {
+      if (hovered) {
+        if (root.popouts) showTimer.restart();
+      } else {
+        showTimer.stop();
+      }
+    }
   }
 
   Timer {
     id: showTimer
     interval: 10
     onTriggered: {
-      if (root.popouts && root.panel) {
+      // Guard against a stale fire (mouse left again within the 10ms
+      // window) AND against re-opening a popout that's already open for
+      // this widget — that's what caused the close/reopen flicker.
+      if (root.popouts && root.panel && hoverHandler.hovered && !root.popoutOpen) {
         let parentPosition = root.mapToItem(null, 0, 0);
+        root.popoutOpen = true;
         root.popouts.safeOpenPopout(root.panel, "workspace-grid", {
           monitor: root.monitor,
           anchorX: parentPosition.x,
           anchorY: parentPosition.y,
           anchorWidth: root.width,
           anchorHeight: root.height,
-          workspaceBase: root.workspaceBase
+          workspaceBase: root.workspaceBase,
+          // Live reference back to this widget so the popout can check
+          // whether the anchor is still hovered, and can clear
+          // popoutOpen when it actually closes.
+          anchorItem: root
         });
       }
     }
