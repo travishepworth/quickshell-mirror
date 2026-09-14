@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Shapes
-
 import qs.config
 
 Item {
@@ -54,8 +53,12 @@ Item {
 
   Shape {
     anchors.fill: parent
+    layer.enabled: true
+    layer.samples: 8
+    layer.smooth: true
     antialiasing: true
-    preferredRendererType: Shape.CurveRenderer
+    // preferredRendererType: Shape.CurveRenderer
+    preferredRendererType: Shape.GeometryRenderer
 
     ShapePath {
       strokeColor: root.strokeColor
@@ -64,7 +67,8 @@ Item {
       capStyle: ShapePath.FlatCap
       joinStyle: ShapePath.RoundJoin
 
-      startX: root.isLeft ? root.borderRadius + root.overshoot : parent.width - root.borderRadius - root.overshoot
+      // Start at the far corner along the top/bottom edge
+      startX: root.isLeft ? parent.width : 0
       startY: root.isTop ? 0 : parent.height
 
       PathLine {
@@ -80,9 +84,10 @@ Item {
         direction: root.isTop === root.isLeft ? PathArc.Counterclockwise : PathArc.Clockwise
       }
 
+      // End at the far corner along the left/right edge
       PathLine {
         x: root.isLeft ? 0 : parent.width
-        y: root.isTop ? root.borderRadius + root.overshoot : parent.height - root.borderRadius - root.overshoot
+        y: root.isTop ? parent.height : 0
       }
     }
   }

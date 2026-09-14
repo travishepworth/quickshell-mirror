@@ -19,15 +19,15 @@ Singleton {
   }
 
   function moveWindowToWorkspace(windowAddress, targetWorkspace) {
-    Hyprland.dispatch(`movetoworkspacesilent ${targetWorkspace}, address:${windowAddress}`);
+    Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${targetWorkspace}, follow = false, address = ${windowAddress} })`);
   }
 
   function closeWindow(windowAddress) {
-    Hyprland.dispatch(`closewindow address:${windowAddress}`);
+    Hyprland.dispatch(`hl.dsp.window.close{ address = ${windowAddress}}`);
   }
 
   function focusWindow(windowAddress) {
-    Hyprland.dispatch(`focuswindow address:${windowAddress}`);
+    Hyprland.dispatch(`hl.dsp.focus({ address = ${windowAddress}})`);
   }
 
   function getWorkspacePosition(workspaceId, gridSize) {

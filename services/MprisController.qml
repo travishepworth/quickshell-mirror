@@ -40,6 +40,31 @@ QtObject {
   property bool canSeek: activePlayer ? activePlayer.canSeek : false
   property bool isInitialized: Mpris.players !== null && Mpris.players.values.length > 0
 
+  // --- Art download trigger ---
+  // artUrl is already reactively derived from activePlayer.trackArtUrl, so
+  // this single handler fires for both "track changed on the same player"
+  // and "active player switched" — the two cases that should invalidate
+  // whatever art is currently shown. Without this, _artDownloader was
+  // fully wired up (command, exit handling, artReady/artVersion bump) but
+  // nothing ever actually set it running, so no art ever downloaded.
+  onArtUrlChanged: {
+    // Reset immediately so the UI falls back to its placeholder rather
+    // than briefly showing the previous track's art under the new one.
+    root.artDownloaded = false;
+
+    if (!root.artUrl) {
+      // Nothing to fetch (e.g. player has no art or dropped out).
+      return;
+    }
+
+    // Force a restart even if a previous download for a different URL is
+    // still in flight — setting running false-then-true cancels it and
+    // kicks off the new one instead of letting a stale download finish
+    // and stomp artDownloaded/artVersion after the fact.
+    root._artDownloader.running = false;
+    root._artDownloader.running = true;
+  }
+
   // --- Public ---
   function logCurrentSongProperties() {
     if (!hasActivePlayer) {

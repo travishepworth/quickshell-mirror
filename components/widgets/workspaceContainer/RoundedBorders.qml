@@ -7,7 +7,9 @@ Item {
   id: root
   property var screen: null
   property int frameWidth: Appearance.screenMargin
+  // TODO: breaks on change to borderWidth
   property int innerBorderRadius: Appearance.borderRadius
+  property int curveSize: innerBorderRadius - Appearance.borderWidth
   property color frameColor: Theme.background
   property color innerStrokeColor: Theme.foreground
   property color centerColor: "transparent"
@@ -72,8 +74,8 @@ Item {
       left: true
       top: true
     }
-    implicitWidth: frameWidth
-    implicitHeight: frameWidth
+    implicitWidth: curveSize
+    implicitHeight: curveSize
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -82,7 +84,7 @@ Item {
       borderRadius: root.innerBorderRadius
       fillColor: root.frameColor
       strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth
+      strokeWidth: root.strokeWidth * 1.5
       isLeft: true
       isTop: true
     }
@@ -95,8 +97,8 @@ Item {
       right: true
       top: true
     }
-    implicitWidth: frameWidth
-    implicitHeight: frameWidth
+    implicitWidth: curveSize
+    implicitHeight: curveSize
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -105,7 +107,7 @@ Item {
       borderRadius: root.innerBorderRadius
       fillColor: root.frameColor
       strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth
+      strokeWidth: root.strokeWidth * 1.5
       isLeft: false
       isTop: true
     }
@@ -118,8 +120,8 @@ Item {
       left: true
       bottom: true
     }
-    implicitWidth: frameWidth
-    implicitHeight: frameWidth
+    implicitWidth: curveSize
+    implicitHeight: curveSize
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -128,7 +130,7 @@ Item {
       borderRadius: root.innerBorderRadius
       fillColor: root.frameColor
       strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth
+      strokeWidth: root.strokeWidth * 1.5
       isLeft: true
       isTop: false
     }
@@ -141,8 +143,8 @@ Item {
       right: true
       bottom: true
     }
-    implicitWidth: frameWidth
-    implicitHeight: frameWidth
+    implicitWidth: curveSize
+    implicitHeight: curveSize
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -151,7 +153,7 @@ Item {
       borderRadius: root.innerBorderRadius
       fillColor: root.frameColor
       strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth
+      strokeWidth: root.strokeWidth * 1.5
       isLeft: false
       isTop: false
     }

@@ -8,6 +8,37 @@ import qs.config
 QtObject {
   id: utils
 
+  function charWidth(codePoint) {
+    return ((codePoint >= 0x1100 && codePoint <= 0x115F) || codePoint === 0x2329 || codePoint === 0x232A || (codePoint >= 0x2E80 && codePoint <= 0xA4CF && codePoint !== 0x303F) || (codePoint >= 0xAC00 && codePoint <= 0xD7A3) || (codePoint >= 0xF900 && codePoint <= 0xFAFF) || (codePoint >= 0xFE30 && codePoint <= 0xFE6F) || (codePoint >= 0xFF00 && codePoint <= 0xFF60) || (codePoint >= 0xFFE0 && codePoint <= 0xFFE6) || (codePoint >= 0x20000 && codePoint <= 0x3FFFD)) ? 2 : 1;
+  }
+
+  function visualWidth(text) {
+    let width = 0;
+    for (const ch of text)
+      width += charWidth(ch.codePointAt(0));
+    return width;
+  }
+
+  function truncate(text, maxLength, ellipsis = "...") {
+    const fullWidth = visualWidth(text);
+    if (fullWidth <= maxLength)
+      return text;
+
+    const ellipsisWidth = visualWidth(ellipsis);
+    const budget = maxLength - ellipsisWidth;
+
+    let width = 0;
+    let result = "";
+    for (const ch of text) {
+      const w = charWidth(ch.codePointAt(0));
+      if (width + w > budget)
+        break;
+      result += ch;
+      width += w;
+    }
+    return result + ellipsis;
+  }
+
   function getFileContent(filepath) {
     try {
       // WAY faster than using FileView for reads for some reason
@@ -123,11 +154,11 @@ QtObject {
   }
 
   // Truncate text with ellipsis
-  function truncate(text, maxLength, ellipsis = "...") {
-    if (text.length <= maxLength)
-      return text;
-    return text.slice(0, maxLength - ellipsis.length) + ellipsis;
-  }
+  // function truncate(text, maxLength, ellipsis = "...") {
+  //   if (text.length <= maxLength)
+  //     return text;
+  //   return text.slice(0, maxLength - ellipsis.length) + ellipsis;
+  // }
 
   // Get contrasting text color for background
   function getContrastColor(backgroundColor) {
@@ -263,22 +294,22 @@ QtObject {
    */
   function formatCommand(cmd) {
     // A helper to translate direction arguments into full words.
-    const getDirection = (arg) => {
+    const getDirection = arg => {
       switch (arg) {
-        case 'l':
-        case '--left':
-          return 'Left';
-        case 'd':
-        case '--down':
-          return 'Down';
-        case 'u':
-        case '--up':
-          return 'Up';
-        case 'r':
-        case '--right':
-          return 'Right';
-        default:
-          return '';
+      case 'l':
+      case '--left':
+        return 'Left';
+      case 'd':
+      case '--down':
+        return 'Down';
+      case 'u':
+      case '--up':
+        return 'Up';
+      case 'r':
+      case '--right':
+        return 'Right';
+      default:
+        return '';
       }
     };
 
@@ -287,115 +318,114 @@ QtObject {
     const [command, ...args] = parts;
 
     switch (command) {
-      case 'movefocus':
-        return `Move Focus ${getDirection(args[0])}`;
+    case 'movefocus':
+      return `Move Focus ${getDirection(args[0])}`;
+    case 'movewindow':
+      // Differentiates between moving with keys and moving with mouse.
+      return args.length > 0 ? `Move Window ${getDirection(args[0])}` : 'Move Window with Mouse';
+    case 'resizeactive':
+      const [x, y] = args.map(Number);
+      if (x < 0)
+        return 'Resize Window: Shrink Horizontally';
+      if (x > 0)
+        return 'Resize Window: Grow Horizontally';
+      if (y < 0)
+        return 'Resize Window: Shrink Vertically';
+      if (y > 0)
+        return 'Resize Window: Grow Vertically';
+      return 'Resize Window';
+    case 'resizewindow':
+      return 'Resize Window with Mouse';
+    case 'fullscreen':
+      return 'Toggle Fullscreen';
+    case 'killactive':
+      return 'Close Active Window';
+    case 'togglefloating':
+      return 'Toggle Floating Window';
+    case 'togglesplit':
+      return 'Toggle Layout Split';
+    case 'togglespecialworkspace':
+      return `Toggle Special Workspace '${args[0]}'`;
+    case 'movetoworkspace':
+      const workspace = args[0].includes(':') ? args[0].split(':')[1] : args[0];
+      return `Move Window to Special Workspace '${workspace}'`;
+    case 'exec':
+      const [executable, ...execArgs] = args;
 
-      case 'movewindow':
-        // Differentiates between moving with keys and moving with mouse.
-        return args.length > 0 ? `Move Window ${getDirection(args[0])}` : 'Move Window with Mouse';
+      // Handle script-based commands
+      if (executable.includes('wasd.sh')) {
+        const direction = getDirection(execArgs.find(arg => arg.startsWith('--')));
+        const isMove = execArgs.includes('--move');
+        const isSilent = execArgs.includes('--silent');
+        const action = isMove ? 'Move Window to' : 'Switch to';
+        return `${action} Workspace ${direction}${isSilent ? ' (Silent)' : ''}`;
+      }
+      if (executable.includes('workspaceSwitching.sh')) {
+        const workspaceNum = execArgs[0];
+        const isMove = execArgs.includes('--move');
+        const action = isMove ? 'Move Window to' : 'Switch to';
+        return `${action} Workspace ${workspaceNum}`;
+      }
+      if (executable.includes('brightness.sh')) {
+        return execArgs[0] === 'inc' ? 'Increase Brightness' : 'Decrease Brightness';
+      }
 
-      case 'resizeactive':
-        const [x, y] = args.map(Number);
-        if (x < 0) return 'Resize Window: Shrink Horizontally';
-        if (x > 0) return 'Resize Window: Grow Horizontally';
-        if (y < 0) return 'Resize Window: Shrink Vertically';
-        if (y > 0) return 'Resize Window: Grow Vertically';
-        return 'Resize Window';
-        
-      case 'resizewindow':
-        return 'Resize Window with Mouse';
-
-      case 'fullscreen':
-        return 'Toggle Fullscreen';
-
-      case 'killactive':
-        return 'Close Active Window';
-
-      case 'togglefloating':
-        return 'Toggle Floating Window';
-
-      case 'togglesplit':
-        return 'Toggle Layout Split';
-
-      case 'togglespecialworkspace':
-        return `Toggle Special Workspace '${args[0]}'`;
-
-      case 'movetoworkspace':
-        const workspace = args[0].includes(':') ? args[0].split(':')[1] : args[0];
-        return `Move Window to Special Workspace '${workspace}'`;
-
-      case 'exec':
-        const [executable, ...execArgs] = args;
-
-        // Handle script-based commands
-        if (executable.includes('wasd.sh')) {
-          const direction = getDirection(execArgs.find(arg => arg.startsWith('--')));
-          const isMove = execArgs.includes('--move');
-          const isSilent = execArgs.includes('--silent');
-          const action = isMove ? 'Move Window to' : 'Switch to';
-          return `${action} Workspace ${direction}${isSilent ? ' (Silent)' : ''}`;
+      // Handle program-based commands
+      if (executable === 'hyprctl') {
+        if (execArgs.join(' ').includes('workspaceopt allfloat')) {
+          return 'Toggle All Windows Floating';
         }
-        if (executable.includes('workspaceSwitching.sh')) {
-          const workspaceNum = execArgs[0];
-          const isMove = execArgs.includes('--move');
-          const action = isMove ? 'Move Window to' : 'Switch to';
-          return `${action} Workspace ${workspaceNum}`;
+      }
+      if (executable === 'playerctl') {
+        const action = execArgs.find(arg => ['play-pause', 'next', 'previous', 'stop'].includes(arg));
+        switch (action) {
+        case 'play-pause':
+          return 'Media: Play/Pause';
+        case 'next':
+          return 'Media: Next Track';
+        case 'previous':
+          return 'Media: Previous Track';
+        case 'stop':
+          return 'Media: Stop';
         }
-        if (executable.includes('brightness.sh')) {
-          return execArgs[0] === 'inc' ? 'Increase Brightness' : 'Decrease Brightness';
+        const volumeIndex = execArgs.indexOf('volume');
+        if (volumeIndex !== -1 && execArgs.length > volumeIndex) {
+          const volumeValue = execArgs[volumeIndex + 1] || '';
+          if (volumeValue.endsWith('+'))
+            return 'Media: Volume Up';
+          if (volumeValue.endsWith('-'))
+            return 'Media: Volume Down';
         }
+        return 'Media: Control';
+      }
+      if (executable === 'wpctl') {
+        if (execArgs.join(' ').includes('set-mute @DEFAULT_SOURCE@ toggle')) {
+          return 'Toggle Microphone Mute';
+        }
+      }
 
-        // Handle program-based commands
-        if (executable === 'hyprctl') {
-          if (execArgs.join(' ').includes('workspaceopt allfloat')) {
-            return 'Toggle All Windows Floating';
-          }
-        }
-        if (executable === 'playerctl') {
-          const action = execArgs.find(arg => ['play-pause', 'next', 'previous', 'stop'].includes(arg));
-          switch (action) {
-            case 'play-pause': return 'Media: Play/Pause';
-            case 'next': return 'Media: Next Track';
-            case 'previous': return 'Media: Previous Track';
-            case 'stop': return 'Media: Stop';
-          }
-          const volumeIndex = execArgs.indexOf('volume');
-          if (volumeIndex !== -1 && execArgs.length > volumeIndex) {
-              const volumeValue = execArgs[volumeIndex + 1] || '';
-              if (volumeValue.endsWith('+')) return 'Media: Volume Up';
-              if (volumeValue.endsWith('-')) return 'Media: Volume Down';
-          }
-          return 'Media: Control';
-        }
-        if (executable === 'wpctl') {
-          if (execArgs.join(' ').includes('set-mute @DEFAULT_SOURCE@ toggle')) {
-            return 'Toggle Microphone Mute';
-          }
-        }
+      // Handle application launchers defined by variables
+      const launchers = {
+        '$axiom_restart': 'Restart Axiom',
+        '$axiom_workspace': 'Show Axiom Workspaces',
+        '$axiom_launch': 'Show Axiom Launcher',
+        '$axiom_overlay': 'Show Axiom Overlay',
+        '$terminal': 'Launch Terminal',
+        '$browser': 'Launch Browser',
+        '$files': 'Launch File Manager',
+        '$task': 'Launch Task Manager',
+        '$mixer': 'Launch Audio Mixer',
+        '$chat': 'Launch Chat App',
+        '$discord': 'Launch Discord',
+        '$screenshot': 'Take Screenshot'
+      };
+      if (launchers[executable]) {
+        return launchers[executable];
+      }
 
-        // Handle application launchers defined by variables
-        const launchers = {
-          '$axiom_restart': 'Restart Axiom',
-          '$axiom_workspace': 'Show Axiom Workspaces',
-          '$axiom_launch': 'Show Axiom Launcher',
-          '$axiom_overlay': 'Show Axiom Overlay',
-          '$terminal': 'Launch Terminal',
-          '$browser': 'Launch Browser',
-          '$files': 'Launch File Manager',
-          '$task': 'Launch Task Manager',
-          '$mixer': 'Launch Audio Mixer',
-          '$chat': 'Launch Chat App',
-          '$discord': 'Launch Discord',
-          '$screenshot': 'Take Screenshot',
-        };
-        if (launchers[executable]) {
-          return launchers[executable];
-        }
-        
-        return `Execute: ${args.join(' ')}`;
-
-      default:
-        return `Unknown command: ${command}`;
+      return `Execute: ${args.join(' ')}`;
+    default:
+      return `Unknown command: ${command}`;
     }
   }
 }

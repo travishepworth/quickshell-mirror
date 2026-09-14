@@ -291,8 +291,8 @@ Item {
         width: connector.width
         height: connector.width
         // height: Appearance.borderRadius
-        // color: "transparent"
-        color: "red"
+        color: "transparent"
+        // color: "red"
         CornerPiece {
           isLeft: true
           isTop: false
@@ -336,6 +336,8 @@ Item {
 
   Component {
     id: mediaPlayerComponent
-    Item {} // Placeholder
+    MediaPopout {
+      wrapper: root
+    }
   }
 }

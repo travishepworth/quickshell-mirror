@@ -222,7 +222,7 @@ Item {
 
   Timer {
     id: dismissTimer
-    interval: 600
+    interval: 500
     onTriggered: root.dismiss()
   }
 
