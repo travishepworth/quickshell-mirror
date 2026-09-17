@@ -1,5 +1,7 @@
+// qs/components/reusable/PipewireVolumeBar.qml
 pragma ComponentBehavior: Bound
 import QtQuick
+import qs.services
 import qs.components.reusable
 import Quickshell.Services.Pipewire
 
@@ -12,18 +14,22 @@ Item {
   // -- Public API --
   property string targetApplication: ""
   property var excludedApps: []
+  property bool useSystemVolume: false
   property alias orientation: bar.orientation
   property alias iconSource: bar.iconSource
 
-  readonly property bool nodeFound: _targetNode !== null && _targetNode.ready && _targetNode.audio
+  readonly property bool nodeFound: !useSystemVolume && _targetNode !== null && _targetNode.ready && _targetNode.audio
   readonly property string nodeName: {
+    if (useSystemVolume) {
+      return "Master";
+    }
     if (!nodeFound) {
       return "Not Found";
     }
     return _targetNode.properties["application.process.binary"] || _targetNode.properties["application.name"] || _targetNode.nickname || _targetNode.description || "Unknown Stream";
   }
-  property real volume: nodeFound ? _targetNode.audio.volume : 0.0
-  property bool isMuted: !nodeFound || _targetNode.audio.muted
+  property real volume: useSystemVolume ? Audio.volume : (nodeFound ? _targetNode.audio.volume : 0.0)
+  property bool isMuted: useSystemVolume ? Audio.muted : (!nodeFound || _targetNode.audio.muted)
 
   // -- Configurable Appearance --
   // null
@@ -69,7 +75,7 @@ Item {
     anchors.fill: parent
     volumeLevel: component.volume
     isMuted: component.isMuted
-    enabled: component.nodeFound
+    enabled: component.nodeFound || component.useSystemVolume
     onVolumeChanged: component.setVolume(newVolume)
     onVolumeLevelChanged: {
       if (component._suppressNextVisibility) {
@@ -81,12 +87,21 @@ Item {
   }
 
   function setVolume(newVolume) {
+    const clamped = Math.max(0.0, Math.min(1.0, newVolume));
+    if (useSystemVolume) {
+      Audio.volume = clamped;
+      return;
+    }
     if (nodeFound) {
-      _targetNode.audio.volume = Math.max(0.0, Math.min(1.0, newVolume));
+      _targetNode.audio.volume = clamped;
     }
   }
 
   function toggleMute() {
+    if (useSystemVolume) {
+      Audio.muted = !Audio.muted;
+      return;
+    }
     if (nodeFound) {
       _targetNode.audio.muted = !_targetNode.audio.muted;
     }
@@ -131,7 +146,7 @@ Item {
   }
 
   function _updateTargetNode() {
-    if (targetApplication === "") {
+    if (useSystemVolume || targetApplication === "") {
       if (_targetNode !== null)
         _setTargetNode(null);
       return;

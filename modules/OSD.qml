@@ -12,9 +12,26 @@ Item {
   id: osdRoot
   anchors.fill: parent
 
-  // Left-to-right order of apps to track individually. "master" (below)
-  // automatically excludes everything in this list.
-  readonly property var trackedApps: ["Zen", "vesktop", "spotify"]
+  // Left-to-right order of bar slots. Each entry is the argument set for
+  // one bar:
+  //   app:     app-name substring to match, or the sentinels below
+  //   showOsd: whether a change on this slot should force the OSD open
+  //            (it always restarts the auto-hide timer regardless)
+  //   icon:    icon glyph shown on the bar (master's is volume-dependent,
+  //            see iconSource binding below - its entry here is unused
+  //            but kept for consistency/documentation)
+  // Sentinels:
+  //   "other"  - catches whatever isn't one of the other named apps
+  //              (was previously called "master")
+  //   "master" - the actual system/output volume
+  //              (was previously the hardcoded trailing bar)
+  readonly property var trackedApps: [
+    { app: "Zen", showOsd: true, icon: " " },
+    { app: "vesktop", showOsd: true, icon: " " },
+    { app: "other", showOsd: true, icon: " " },
+    { app: "spotify", showOsd: true, icon: " " },
+    { app: "master", showOsd: true, icon: "" }
+  ]
 
   property bool shouldShowOsd: false
   property real hideTimeout: 1000
@@ -113,57 +130,38 @@ Item {
         anchors.margins: 15
         spacing: 20
 
-        PipewireVolumeBar {
-          targetApplication: osdRoot.trackedApps[0]
-          orientation: Qt.Vertical
-          iconSource: ""
-          onVisibilityChanged: {
-            osdRoot.shouldShowOsd = true;
-            hideTimer.restart();
-          }
-        }
+        Repeater {
+          model: osdRoot.trackedApps
 
-        PipewireVolumeBar {
-          targetApplication: osdRoot.trackedApps[1]
-          orientation: Qt.Vertical
-          iconSource: ""
-          onVisibilityChanged: {
-            osdRoot.shouldShowOsd = true;
-            hideTimer.restart();
-          }
-        }
+          delegate: PipewireVolumeBar {
+            id: volBar
+            required property var modelData
+            required property int index
 
-        PipewireVolumeBar {
-          targetApplication: "master"
-          excludedApps: osdRoot.trackedApps
-          orientation: Qt.Vertical
-          iconSource: ""
-          onVisibilityChanged: {
-            osdRoot.shouldShowOsd = true;
-            hideTimer.restart();
-          }
-        }
+            readonly property bool isOtherSlot: modelData.app === "other"
+            readonly property bool isMasterSlot: modelData.app === "master"
 
-        PipewireVolumeBar {
-          targetApplication: osdRoot.trackedApps[2]
-          orientation: Qt.Vertical
-          iconSource: ""
-          onVisibilityChanged: {
-            osdRoot.shouldShowOsd = true;
-            hideTimer.restart();
-          }
-        }
+            orientation: Qt.Vertical
+            targetApplication: isMasterSlot ? "" : (isOtherSlot ? "master" : modelData.app)
+            excludedApps: isOtherSlot ? osdRoot.trackedApps.filter(a => a.app !== "other" && a.app !== "master").map(a => a.app) : []
+            useSystemVolume: isMasterSlot
+            iconSource: {
+              if (isMasterSlot) {
+                if (Audio.muted || Audio.volume === 0)
+                  return "";
+                if (Audio.volume > 0.4)
+                  return " ";
+                return " ";
+              }
+              return modelData.icon;
+            }
 
-        PipewireVolumeBar {
-          orientation: Qt.Vertical
-          volume: Audio.volume
-          isMuted: Audio.muted
-          iconSource: {
-            if (Audio.muted || Audio.volume === 0)
-              return "";
-            if (Audio.volume > 0.4)
-              return "";
-            return "";
+            onVisibilityChanged: {
+              if (modelData.showOsd) {
+                osdRoot.shouldShowOsd = true;
+              }
+              hideTimer.restart();
+            }
           }
         }
       }
