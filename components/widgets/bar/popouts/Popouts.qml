@@ -274,7 +274,6 @@ Item {
       Rectangle {
         id: cornerHolder
         color: "transparent"
-        // color: "green"
 
         x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : 0
         y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : 0
@@ -290,8 +289,8 @@ Item {
         anchors.right: connector.right
         width: connector.width
         height: connector.width
-        // height: Appearance.borderRadius
         color: "transparent"
+        clip: true
         // color: "red"
         CornerPiece {
           isLeft: true
@@ -301,14 +300,13 @@ Item {
 
       Rectangle {
         id: bottomCorner
-        // anchors.bottom: connector.bottom
         anchors.bottom: cornerHolder.bottom
         anchors.left: connector.left
         anchors.right: connector.right
         width: connector.width
         height: connector.width
-        // height: Appearance.borderRadius
         color: "transparent"
+        clip: true
         // color: "red"
         CornerPiece {
           isLeft: true

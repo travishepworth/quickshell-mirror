@@ -12,9 +12,6 @@ Item {
   property bool isLeft: true
   property bool isTop: true
 
-  // How far the stroke's straight sections extend past the tangent
-  // points, so it hands off to the neighboring border with a constant
-  // width instead of tapering right at the join.
   readonly property real overshoot: strokeWidth
 
   anchors.fill: parent
@@ -54,9 +51,9 @@ Item {
   Shape {
     anchors.fill: parent
     layer.enabled: true
-    layer.samples: 8
+    // layer.samples: 8
     layer.smooth: true
-    antialiasing: true
+    antialiasing: false
     // preferredRendererType: Shape.CurveRenderer
     preferredRendererType: Shape.GeometryRenderer
 
@@ -67,9 +64,8 @@ Item {
       capStyle: ShapePath.FlatCap
       joinStyle: ShapePath.RoundJoin
 
-      // Start at the far corner along the top/bottom edge
-      startX: root.isLeft ? parent.width : 0
-      startY: root.isTop ? 0 : parent.height
+      startX: root.isLeft ? parent.width : -root.overshoot
+      startY: root.isTop ? -root.overshoot : parent.height
 
       PathLine {
         x: root.isLeft ? root.borderRadius : parent.width - root.borderRadius
@@ -84,10 +80,9 @@ Item {
         direction: root.isTop === root.isLeft ? PathArc.Counterclockwise : PathArc.Clockwise
       }
 
-      // End at the far corner along the left/right edge
       PathLine {
-        x: root.isLeft ? 0 : parent.width
-        y: root.isTop ? parent.height : 0
+        x: root.isLeft ? -root.overshoot : parent.width + root.overshoot
+        y: root.isTop ? parent.height : -root.overshoot
       }
     }
   }

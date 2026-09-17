@@ -62,6 +62,7 @@ Item {
     edge: "right"
     frameWidth: root.frameWidth
     innerBorderRadius: root.innerBorderRadius
+    // frameColor: "green"
     frameColor: root.frameColor
     innerStrokeColor: root.innerStrokeColor
     strokeWidth: root.strokeWidth
@@ -74,8 +75,12 @@ Item {
       left: true
       top: true
     }
-    implicitWidth: curveSize
-    implicitHeight: curveSize
+    margins {
+      left: -strokeWidth
+      top: -strokeWidth
+    }
+    implicitWidth: curveSize + strokeWidth * 2
+    implicitHeight: curveSize + strokeWidth * 2
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -84,7 +89,7 @@ Item {
       borderRadius: root.innerBorderRadius
       fillColor: root.frameColor
       strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth * 1.5
+      strokeWidth: root.strokeWidth
       isLeft: true
       isTop: true
     }
@@ -97,8 +102,13 @@ Item {
       right: true
       top: true
     }
-    implicitWidth: curveSize
-    implicitHeight: curveSize
+    margins {
+      right: -strokeWidth
+      top: -strokeWidth
+    }
+    implicitWidth: curveSize + strokeWidth * 2
+    implicitHeight: curveSize + strokeWidth * 2
+    // color: "red"
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -107,7 +117,7 @@ Item {
       borderRadius: root.innerBorderRadius
       fillColor: root.frameColor
       strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth * 1.5
+      strokeWidth: root.strokeWidth
       isLeft: false
       isTop: true
     }
@@ -120,8 +130,12 @@ Item {
       left: true
       bottom: true
     }
-    implicitWidth: curveSize
-    implicitHeight: curveSize
+    margins {
+      left: -strokeWidth
+      bottom: -strokeWidth
+    }
+    implicitWidth: curveSize + strokeWidth * 2
+    implicitHeight: curveSize + strokeWidth * 2
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -130,7 +144,7 @@ Item {
       borderRadius: root.innerBorderRadius
       fillColor: root.frameColor
       strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth * 1.5
+      strokeWidth: root.strokeWidth
       isLeft: true
       isTop: false
     }
@@ -143,8 +157,12 @@ Item {
       right: true
       bottom: true
     }
-    implicitWidth: curveSize
-    implicitHeight: curveSize
+    margins {
+      right: -strokeWidth
+      bottom: -strokeWidth
+    }
+    implicitWidth: curveSize + strokeWidth * 2
+    implicitHeight: curveSize + strokeWidth * 2
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -153,7 +171,7 @@ Item {
       borderRadius: root.innerBorderRadius
       fillColor: root.frameColor
       strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth * 1.5
+      strokeWidth: root.strokeWidth
       isLeft: false
       isTop: false
     }
