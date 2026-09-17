@@ -1,4 +1,3 @@
-// qs/components/reusable/PipewireVolumeBar.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.components.reusable
@@ -34,6 +33,7 @@ Item {
   implicitHeight: bar.implicitHeight
 
   property var _targetNode: null
+  property bool _suppressNextVisibility: false
 
   // All candidate audio-stream nodes, kept persistently bound so their
   // .properties are populated (and stay populated) well before we need
@@ -72,6 +72,10 @@ Item {
     enabled: component.nodeFound
     onVolumeChanged: component.setVolume(newVolume)
     onVolumeLevelChanged: {
+      if (component._suppressNextVisibility) {
+        component._suppressNextVisibility = false;
+        return;
+      }
       component.visibilityChanged(component.volume);
     }
   }
@@ -119,10 +123,17 @@ Item {
     }
   }
 
+  function _setTargetNode(n) {
+    if (_targetNode === n)
+      return;
+    _suppressNextVisibility = true;
+    _targetNode = n;
+  }
+
   function _updateTargetNode() {
     if (targetApplication === "") {
       if (_targetNode !== null)
-        _targetNode = null;
+        _setTargetNode(null);
       return;
     }
     const nodes = Pipewire.nodes.values;
@@ -142,8 +153,7 @@ Item {
         }
         const isExcluded = excluded.some(ex => (appBinary && appBinary.includes(ex)) || (appName && appName.includes(ex)));
         if (!isExcluded) {
-          _targetNode = n;
-          component.visibilityChanged(component.volume);
+          component._setTargetNode(n);
           return;
         }
       }
@@ -160,7 +170,7 @@ Item {
         const appNickname = n.nickname?.toLowerCase();
         if ((appBinary && appBinary.includes(searchString)) || (appName && appName.includes(searchString)) || (appNickname && appNickname.includes(searchString))) {
           console.log("[PipewireVolumeBar] Found target node for", targetApplication, "->", appBinary || appName || appNickname);
-          _targetNode = n;
+          component._setTargetNode(n);
           return;
         }
       }
@@ -168,7 +178,7 @@ Item {
 
     if (_targetNode !== null) {
       console.log("[PipewireVolumeBar] Lost target node for", targetApplication);
-      _targetNode = null;
+      component._setTargetNode(null);
     }
   }
 }
