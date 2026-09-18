@@ -7,15 +7,14 @@ Item {
   property int borderRadius: Appearance.borderRadius
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
-  property int strokeWidth: Appearance.borderWidth * 1.5
+  property int strokeWidth: Appearance.borderWidth
 
   property bool isLeft: true
   property bool isTop: true
 
-  readonly property real overshoot: strokeWidth
-
   anchors.fill: parent
 
+  // --- FILL SHAPE ---
   Shape {
     anchors.fill: parent
     antialiasing: true
@@ -48,13 +47,13 @@ Item {
     }
   }
 
+  // --- STROKE SHAPE ---
   Shape {
     anchors.fill: parent
     layer.enabled: true
-    // layer.samples: 8
+    layer.samples: 1
     layer.smooth: true
-    antialiasing: false
-    // preferredRendererType: Shape.CurveRenderer
+    antialiasing: true
     preferredRendererType: Shape.GeometryRenderer
 
     ShapePath {
@@ -64,14 +63,17 @@ Item {
       capStyle: ShapePath.FlatCap
       joinStyle: ShapePath.RoundJoin
 
-      startX: root.isLeft ? parent.width : -root.overshoot
-      startY: root.isTop ? -root.overshoot : parent.height
+      // Start at the outer edge of the box
+      startX: root.isLeft ? parent.width : 0
+      startY: root.isTop ? Appearance.borderWidth : parent.height
 
+      // First edge line leading to the curve
       PathLine {
         x: root.isLeft ? root.borderRadius : parent.width - root.borderRadius
         y: root.isTop ? 0 : parent.height
       }
 
+      // The corner curve
       PathArc {
         x: root.isLeft ? 0 : parent.width
         y: root.isTop ? root.borderRadius : parent.height - root.borderRadius
@@ -80,9 +82,10 @@ Item {
         direction: root.isTop === root.isLeft ? PathArc.Counterclockwise : PathArc.Clockwise
       }
 
+      // Second edge line extending to the other edge of the box
       PathLine {
-        x: root.isLeft ? -root.overshoot : parent.width + root.overshoot
-        y: root.isTop ? parent.height : -root.overshoot
+        x: root.isLeft ? Appearance.borderWidth : parent.width
+        y: root.isTop ? parent.height : 0
       }
     }
   }

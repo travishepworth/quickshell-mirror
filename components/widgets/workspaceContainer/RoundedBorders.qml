@@ -82,6 +82,7 @@ Item {
     implicitWidth: curveSize + strokeWidth * 2
     implicitHeight: curveSize + strokeWidth * 2
     color: "transparent"
+    // color: "red"
     mask: Region {}
     aboveWindows: true
 
