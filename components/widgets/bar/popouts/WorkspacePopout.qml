@@ -21,53 +21,11 @@ Item {
   property int currentColumn: ((activeWorkspaceId - workspaceBase) % 5)
   readonly property int cell: (Widget.height && Widget.height > 0) ? Widget.height : 28
 
-  // The bar widget that opened us — a live item reference, not a snapshot —
-  // so we can keep checking whether the anchor itself is still hovered,
-  // and so we can clear its popoutOpen flag when we actually close.
-  readonly property var anchorItem: wrapper.currentData?.anchorItem ?? null
-  readonly property bool anchorHovered: root.anchorItem?.hovered ?? false
-
-  // Stay open as long as EITHER the popout or the widget that spawned it is
-  // hovered. This stops the dismiss countdown from starting the instant the
-  // popout appears, even though the mouse is usually still over the widget
-  // (which is what triggered the open in the first place).
-  readonly property bool keepAlive: hoverHandler.hovered || root.anchorHovered
-
-  function updateDismissTimer() {
-    if (root.keepAlive) {
-      dismissTimer.stop();
-    } else {
-      dismissTimer.restart();
-    }
-  }
-
-  // Central place to actually close: clears the widget's popoutOpen flag
-  // (so hovering the widget again is allowed to open a fresh popout) before
-  // asking the wrapper to tear us down.
-  function dismiss() {
-    if (root.anchorItem) {
-      root.anchorItem.popoutOpen = false;
-    }
-    root.wrapper.closePopout();
-  }
-
-  onKeepAliveChanged: updateDismissTimer()
-
-  // Safety net: however this popout ends up destroyed (dismiss(), the
-  // panel system closing it some other way, etc.) make sure the widget's
-  // flag never gets stuck true.
-  Component.onDestruction: {
-    if (root.anchorItem) {
-      root.anchorItem.popoutOpen = false;
-    }
-  }
+  property alias hovered: hoverHandler.hovered
 
   Component.onCompleted: {
     console.log("WorkspacePopout initialized for monitor", monitor?.name ?? "unknown");
     console.log("Workspace range:", workspaceBase, "to", workspaceBase + 24);
-    // Don't blindly start the countdown here — only arm it if neither the
-    // popout nor its anchor widget is currently hovered.
-    updateDismissTimer();
   }
 
   implicitWidth: (5 * cell + 6 * 6) + 20 // wtf is this
@@ -89,9 +47,8 @@ Item {
     border.width: 0
     radius: Appearance.borderRadius + 2
 
-    // Hover detection only. Whether that translates into "stay open" is
-    // decided by root.keepAlive above (combined with the anchor's hover),
-    // and root.updateDismissTimer() reacts to it.
+    // Hover detection only — root.hovered above (read by the wrapper)
+    // is just an alias to this.
     HoverHandler {
       id: hoverHandler
     }
@@ -218,12 +175,6 @@ Item {
         }
       }
     }
-  }
-
-  Timer {
-    id: dismissTimer
-    interval: 500
-    onTriggered: root.dismiss()
   }
 
   function getWorkspace(id) {

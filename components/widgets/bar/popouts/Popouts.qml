@@ -38,6 +38,52 @@ Item {
   // Gap between bar and main content (connector thickness)
   property int connectorGap: Appearance.borderRadius * 2
 
+  // ---- Centralized dismiss logic ----
+  // Content components (WorkspacePopout, MediaPopout, etc.) just need to
+  // expose a plain `hovered` property. Everything about *when* to dismiss
+  // lives here.
+  readonly property bool contentHovered: currentItem?.hovered ?? false
+  readonly property bool anchorHovered: currentData?.anchorItem?.hovered ?? false
+  readonly property bool keepAlive: contentHovered || anchorHovered
+
+  // Let individual popout content types opt out or customize timing via
+  // optional properties on themselves (e.g. `dismissDelay: 1000` or
+  // `autoDismiss: false` for something like a popout with an input field).
+  readonly property int dismissDelay: currentItem?.dismissDelay ?? 400
+  readonly property bool autoDismiss: currentItem?.autoDismiss ?? true
+
+  onKeepAliveChanged: updateDismissTimer()
+
+  function updateDismissTimer() {
+    if (!autoDismiss) {
+      dismissTimer.stop();
+      return;
+    }
+    if (keepAlive) {
+      dismissTimer.stop();
+    } else {
+      dismissTimer.restart();
+    }
+  }
+
+  // Central place to actually dismiss: clears the anchor's popoutOpen flag
+  // (so hovering the widget again is allowed to open a fresh popout) before
+  // asking the wrapper itself to tear down.
+  function requestDismiss() {
+    if (currentData?.anchorItem) {
+      currentData.anchorItem.popoutOpen = false;
+    }
+    closePopout();
+  }
+
+  Timer {
+    id: dismissTimer
+    interval: root.dismissDelay
+    repeat: false
+    onTriggered: root.requestDismiss()
+  }
+  // ---- end centralized dismiss logic ----
+
   function closePopout() {
     if (isClosing)
       return;
@@ -73,6 +119,7 @@ Item {
     currentData = data;
     currentName = name;
     occupied = true;
+    updateDismissTimer();
   }
 
   function changeContent(name, data) {
@@ -89,6 +136,7 @@ Item {
         }
       }
     }
+    updateDismissTimer();
   }
 
   Timer {
@@ -253,6 +301,7 @@ Item {
                 }
               }
             }
+            root.updateDismissTimer();
           }
         }
       }

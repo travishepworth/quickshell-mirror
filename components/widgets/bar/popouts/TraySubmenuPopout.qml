@@ -18,28 +18,18 @@ Item {
   // TODO: which of all these mins and maxes actually constrain the items
   readonly property int minWidth: 200
   readonly property int maxWidth: 800
-  
+
   implicitWidth: Math.max(minWidth, Math.min(maxWidth, menuLayout.implicitWidth + 20))
   implicitHeight: menuLayout.implicitHeight + 20 + Widget.padding * 2
-  
-  // Auto-close when mouse leaves
+
+  // Exposes our hover state to the wrapper's (TraySubmenuWrapper)
+  // centralized dismiss logic — timing and dismissal now live there.
+  property alias hovered: hoverHandler.hovered
+
   HoverHandler {
     id: hoverHandler
-    onHoveredChanged: {
-      if (hovered) {
-        exitTimer.stop();
-      } else {
-        exitTimer.restart();
-      }
-    }
   }
-  Timer {
-    id: exitTimer
-    interval: 40
-    onTriggered: {
-      root.wrapper.closePopout();
-    }
-  }
+
   // Menu opener to access this submenu's children
   QsMenuOpener {
     id: menuOpener
@@ -49,7 +39,7 @@ Item {
   MouseArea {
     anchors.fill: parent
     onClicked: {
-      root.wrapper.closePopout();
+      root.wrapper.requestDismiss();
     }
   }
   // Background container
@@ -80,7 +70,7 @@ Item {
           minItemWidth: root.minWidth - 40
           maxItemWidth: root.maxWidth - 40
           onItemClicked: function() {
-            root.wrapper.closePopout();
+            root.wrapper.requestDismiss();
           }
           onSubmenuRequested: function(itemDelegate) {
             let globalPos = itemDelegate.mapToGlobal(0, 0);

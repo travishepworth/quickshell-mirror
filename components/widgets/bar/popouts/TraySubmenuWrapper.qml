@@ -36,6 +36,43 @@ Item {
   property var pendingOpenData: null
   property bool hasPendingOpen: false
 
+  // ---- Centralized dismiss logic (mirrors Popout.qml) ----
+  // Content (TraySubmenuPopout) just exposes `hovered`. Deliberately NOT
+  // armed on load — a submenu opens while the cursor is still over the
+  // *parent* menu item, not the submenu itself, so arming immediately
+  // would close it before the mouse ever arrives. This only reacts to
+  // real hover transitions (onContentHoveredChanged never fires on
+  // initial construction), exactly like the original per-content
+  // exitTimer did.
+  readonly property bool contentHovered: currentItem?.hovered ?? false
+  readonly property int dismissDelay: currentItem?.dismissDelay ?? 40
+  readonly property bool autoDismiss: currentItem?.autoDismiss ?? true
+
+  onContentHoveredChanged: updateDismissTimer()
+
+  function updateDismissTimer() {
+    if (!autoDismiss) {
+      dismissTimer.stop();
+      return;
+    }
+    if (contentHovered) {
+      dismissTimer.stop();
+    } else {
+      dismissTimer.restart();
+    }
+  }
+
+  function requestDismiss() {
+    closePopout();
+  }
+
+  Timer {
+    id: dismissTimer
+    interval: root.dismissDelay
+    repeat: false
+    onTriggered: root.requestDismiss()
+  }
+
   function closePopout() {
     if (isClosing)
       return;
@@ -53,6 +90,7 @@ Item {
     currentAnchor = anchor;
     currentData = data;
     occupied = true;
+    dismissTimer.stop();
   }
 
   /**

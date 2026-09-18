@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.SystemTray
 import qs.config
+import qs.components.widgets.bar.popouts
 
 Item {
   id: tray
@@ -14,13 +15,6 @@ Item {
   property var panel
   property var screen
   property var properties
-
-  Component.onCompleted: {
-    // console.log("SystemTray initialized--------------------------------------------------------------");
-    // console.log("Bar config:", JSON.stringify(barConfig));
-    // console.log("Recieved popouts:", tray.popouts);
-    // console.log("Recieved panel:", tray.panel);
-  }
 
   property bool isVertical: barConfig.vertical
   property int iconSize: 18
@@ -34,10 +28,6 @@ Item {
   property int backgroundRadius: Appearance.borderRadius
   property color backgroundBorderColor: "transparent"
   property real backgroundBorderWidth: 0
-
-  // Track currently hovered item for popout positioning
-  property var hoveredTrayItem: null
-  property var hoveredItemGeometry: null
 
   // Dynamic dimensions based on orientation
   height: isVertical ? implicitHeight : Widget.height
@@ -116,58 +106,18 @@ Item {
         smooth: true
       }
 
-      MouseArea {
-        id: mouseArea
-        anchors.fill: parent
-        hoverEnabled: true
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-
-        onEntered: {
-          if (!ti || !ti.hasMenu)
-            return;
-
-          // Calculate global position for anchor
-          const globalPos = mapToItem(null, 0, 0);
-          const parentPos = tray.mapToItem(null, 0, 0);
-
-          tray.hoveredTrayItem = ti;
-          tray.hoveredItemGeometry = {
-            x: parentPos.x,
-            y: parentPos.y,
-            width: tray.width,
-            height: tray.height,
-            itemX: globalPos.x,
-            itemY: globalPos.y,
-            itemWidth: width,
-            itemHeight: height
-          };
-
-          if (tray.popouts && tray.panel) {
-            openMenuTimer.restart();
-          }
-        }
-
-        onExited: {
-          openMenuTimer.stop();
-        }
-
-        Timer {
-          id: openMenuTimer
-          interval: 150
-          onTriggered: {
-            if (tray.hoveredTrayItem && tray.hoveredTrayItem.hasMenu && tray.popouts && tray.panel) {
-              tray.popouts.safeOpenPopout(tray.panel, "system-tray-menu", {
-                trayItem: tray.hoveredTrayItem,
-                anchorX: tray.hoveredItemGeometry.x,
-                anchorY: tray.hoveredItemGeometry.y,
-                anchorWidth: tray.hoveredItemGeometry.width,
-                anchorHeight: tray.hoveredItemGeometry.height,
-                barConfig: tray.barConfig,
-                isVertical: tray.isVertical
-              });
-            }
-          }
-        }
+      PopoutAnchor {
+        id: anchor
+        popouts: tray.popouts
+        panel: tray.panel
+        popoutName: "system-tray-menu"
+        openDelay: 150
+        active: !!(delegateRoot.ti && delegateRoot.ti.hasMenu)
+        extraData: ({
+          trayItem: delegateRoot.ti,
+          barConfig: tray.barConfig,
+          isVertical: tray.isVertical
+        })
       }
     }
   }

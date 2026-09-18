@@ -13,13 +13,6 @@ Item {
   required property var wrapper
   property string currentName: "media-player"
 
-  // The bar widget that opened us — a live item reference, not a snapshot —
-  // so we can keep checking whether the anchor itself is still hovered,
-  // and so we can clear its popoutOpen flag when we actually close.
-  // Mirrors WorkspacePopout's anchorItem pattern.
-  readonly property var anchorItem: wrapper.currentData?.anchorItem ?? null
-  readonly property bool anchorHovered: root.anchorItem?.hovered ?? false
-
   // --- Seek state ---
   property bool isSeeking: false
   property real dragRatio: 0
@@ -27,51 +20,8 @@ Item {
   readonly property real displayProgress: isSeeking ? dragRatio : MprisController.progress
   readonly property real displayPosition: isSeeking ? dragRatio * MprisController.length : MprisController.position
 
-  // Stay open as long as the popout, its anchor widget, or an in-progress
-  // seek drag is active — never dismiss out from under someone dragging.
-  readonly property bool keepAlive: hoverHandler.hovered || root.anchorHovered || root.isSeeking
+  property bool hovered: hoverHandler.hovered || root.isSeeking
 
-  function updateDismissTimer() {
-    if (root.keepAlive) {
-      dismissTimer.stop();
-    } else {
-      dismissTimer.restart();
-    }
-  }
-
-  // Central place to actually close: clears the widget's popoutOpen flag
-  // (so hovering the widget again is allowed to open a fresh popout)
-  // before asking the wrapper to tear us down.
-  function dismiss() {
-    if (root.anchorItem) {
-      root.anchorItem.popoutOpen = false;
-    }
-    root.wrapper.closePopout();
-  }
-
-  onKeepAliveChanged: updateDismissTimer()
-
-  // Safety net: however this popout ends up destroyed, make sure the
-  // widget's flag never gets stuck true.
-  Component.onDestruction: {
-    if (root.anchorItem) {
-      root.anchorItem.popoutOpen = false;
-    }
-  }
-
-  Component.onCompleted: {
-    updateDismissTimer();
-  }
-
-  // --- Fixed layout constants ---
-  // Deliberately NOT derived from ColumnLayout/RowLayout implicit sizing.
-  // The wrapper (BarPopout) reads currentItem.implicitWidth/Height the
-  // instant the Loader finishes to size the PopupWindow, and re-reads it
-  // reactively after that. If that size depends on content (track title
-  // length, whether an album tag exists, etc.) the popout resizes and
-  // re-centers every time the song changes. Pinning it to constants means
-  // it's the same size for every track, full stop — no drift, no
-  // misalignment, no resize flicker.
   readonly property int margins: 24
   readonly property int sectionSpacing: 16
   readonly property int artSize: 56
@@ -98,8 +48,6 @@ Item {
     border.width: 0
     radius: Appearance.borderRadius + 2
 
-    // Hover detection only. Whether that translates into "stay open" is
-    // decided by root.keepAlive above.
     HoverHandler {
       id: hoverHandler
     }
@@ -153,12 +101,6 @@ Item {
           Layout.fillHeight: true
           Layout.alignment: Qt.AlignVCenter
           spacing: 2
-
-          // NOTE: no visible:text.length>0 toggles here. Rows that
-          // collapse when a field is empty change the column's height,
-          // which is exactly the per-track resize we're avoiding. Every
-          // row always renders (with a placeholder if empty) so the
-          // header is the same height for every track.
 
           Text {
             Layout.fillWidth: true
@@ -356,11 +298,5 @@ Item {
         }
       }
     }
-  }
-
-  Timer {
-    id: dismissTimer
-    interval: 500
-    onTriggered: root.dismiss()
   }
 }

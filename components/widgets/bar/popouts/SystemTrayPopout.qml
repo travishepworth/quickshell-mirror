@@ -27,6 +27,17 @@ Item {
 
   property bool openToLeft: false
 
+  // Exposes our "keep me alive" state to the wrapper's (Popout.qml)
+  // centralized dismiss logic. Not a literal hover alias — folds in
+  // submenuOpen too, so hovering into an open submenu never lets the
+  // parent menu get swept away underneath it.
+  readonly property bool hovered: hoverHandler.hovered || root.submenuOpen
+
+  // Submenus/tray menus close snappier than other popout types (was a
+  // 40ms exitTimer originally) — keep that feel via the wrapper's
+  // per-content dismissDelay override.
+  readonly property int dismissDelay: 40
+
   // TODO: wtf is this 20
   implicitWidth: Math.max(minWidth, menuLayout.implicitWidth + 20)
   implicitHeight: menuLayout.implicitHeight + 20 + Widget.padding * 2
@@ -44,27 +55,10 @@ Item {
     }
   }
 
+  // Hover detection only now — actually acting on the resulting `hovered`
+  // state is handled centrally by the wrapper (Popout.qml).
   HoverHandler {
     id: hoverHandler
-    onHoveredChanged: {
-      if (hovered) {
-        exitTimer.stop();
-      } else {
-        if (!root.submenuOpen) {
-          exitTimer.restart();
-        }
-      }
-    }
-  }
-
-  Timer {
-    id: exitTimer
-    interval: 40
-    onTriggered: {
-      if (!root.submenuOpen) {
-        root.wrapper.closePopout();
-      }
-    }
   }
 
   QsMenuOpener {
@@ -76,12 +70,12 @@ Item {
     id: submenuWrapper
     screen: root.wrapper.screen
     openToLeft: root.openToLeft
-    
+
+    // Just report state — root.hovered above folds this in, and the
+    // wrapper (Popout.qml) reacts to that automatically. No manual timer
+    // poking needed here anymore.
     onOccupiedChanged: {
       root.submenuOpen = occupied;
-      if (!occupied && !hoverHandler.hovered) {
-        exitTimer.restart();
-      }
     }
   }
 
@@ -89,8 +83,8 @@ Item {
   MouseArea {
     anchors.fill: parent
     onClicked: {
-      submenuWrapper.closePopout();
-      root.wrapper.closePopout();
+      submenuWrapper.requestDismiss();
+      root.wrapper.requestDismiss();
     }
   }
 
