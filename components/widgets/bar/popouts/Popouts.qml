@@ -8,13 +8,14 @@ import qs.components.widgets.bar
 import qs.components.widgets.bar.popouts
 import qs.components.reusable
 
-// This is somewhere I would argue a little repeated code for an entire all-in-one solution
-
 /**
  * Popout wrapper for bar widgets
- * Handles positioning, animation, and content loading for popouts that emerge from the bar
+ * Handles positioning, animation, and content loading for popouts that emerge from the bar.
+ * Open/close/queue state and dismiss timing live in PopoutWrapperBase — this
+ * file only adds what's specific to bar popouts: which content type to
+ * load, where to position it, and how to animate it in/out.
  */
-Item {
+PopoutWrapperBase {
   id: root
 
   required property ShellScreen screen
@@ -23,151 +24,56 @@ Item {
 
   property alias popupWindow: mainPopup
 
-  property var currentAnchor: null
-  property var currentData: null
-  property string currentName: ""
-  property bool occupied: false
-  property bool isClosing: false
+  // The content-type name travels inside currentData.name (see
+  // PopoutAnchor.qml) rather than as a separate argument, so this file
+  // never needs to override openPopout/safeOpenPopout from the base.
+  readonly property string currentName: currentData?.name ?? ""
 
-  property Item currentItem: loader.item ?? null
-  property var pendingOpenData: null
-  property var pendingOpenAnchor: null
-  property string pendingOpenName: ""
-  property bool hasPendingOpen: false
+  currentItem: loader.item ?? null
 
   // Gap between bar and main content (connector thickness)
   property int connectorGap: Appearance.borderRadius * 2
 
-  // ---- Centralized dismiss logic ----
-  // Content components (WorkspacePopout, MediaPopout, etc.) just need to
-  // expose a plain `hovered` property. Everything about *when* to dismiss
-  // lives here.
-  readonly property bool contentHovered: currentItem?.hovered ?? false
-  readonly property bool anchorHovered: currentData?.anchorItem?.hovered ?? false
-  readonly property bool keepAlive: contentHovered || anchorHovered
-
-  // Let individual popout content types opt out or customize timing via
-  // optional properties on themselves (e.g. `dismissDelay: 1000` or
-  // `autoDismiss: false` for something like a popout with an input field).
-  readonly property int dismissDelay: currentItem?.dismissDelay ?? 400
-  readonly property bool autoDismiss: currentItem?.autoDismiss ?? true
-
-  onKeepAliveChanged: updateDismissTimer()
-
-  function updateDismissTimer() {
-    if (!autoDismiss) {
-      dismissTimer.stop();
-      return;
-    }
-    if (keepAlive) {
-      dismissTimer.stop();
-    } else {
-      dismissTimer.restart();
-    }
-  }
-
-  // Central place to actually dismiss: clears the anchor's popoutOpen flag
-  // (so hovering the widget again is allowed to open a fresh popout) before
-  // asking the wrapper itself to tear down.
-  function requestDismiss() {
+  // Clear the anchor widget's popoutOpen flag on dismiss, so hovering it
+  // again is allowed to open a fresh popout. Safety net for however this
+  // popout ends up destroyed lives alongside it.
+  onAboutToDismiss: {
     if (currentData?.anchorItem) {
       currentData.anchorItem.popoutOpen = false;
     }
-    closePopout();
   }
 
-  Timer {
-    id: dismissTimer
-    interval: root.dismissDelay
-    repeat: false
-    onTriggered: root.requestDismiss()
-  }
-  // ---- end centralized dismiss logic ----
-
-  function closePopout() {
-    if (isClosing)
-      return;
-    isClosing = true;
-    closeDelayTimer.restart();
-  }
-
-  function safeOpenPopout(anchor, name, data) {
-    if (occupied && !isClosing) {
-      // Store the pending open request
-      pendingOpenData = data;
-      pendingOpenAnchor = anchor;
-      pendingOpenName = name;
-      hasPendingOpen = true;
-      // Close current popup
-      closePopout();
-    } else if (!occupied && !isClosing) {
-      // No popup open, open immediately
-      openPopout(anchor, name, data);
-    } else {
-      // Already closing, queue the open
-      pendingOpenData = data;
-      pendingOpenAnchor = anchor;
-      pendingOpenName = name;
-      hasPendingOpen = true;
+  Component.onDestruction: {
+    if (currentData?.anchorItem) {
+      currentData.anchorItem.popoutOpen = false;
     }
   }
 
-  function openPopout(anchor, name, data) {
-    if (isClosing)
-      return;
-    currentAnchor = anchor;
-    currentData = data;
-    currentName = name;
-    occupied = true;
-    updateDismissTimer();
-  }
-
+  // Optional helper for updating an already-open popout's content/data
+  // in place, without a close/reopen animation. Kept as (name, data) for
+  // API compatibility with any existing callers — internally folds name
+  // into the data blob the same way PopoutAnchor does.
   function changeContent(name, data) {
     if (isClosing)
       return;
-    currentData = data;
-    currentName = name;
+    const merged = data ? Object.assign({}, data) : {};
+    merged.name = name;
+    currentData = merged;
 
-    // Update the loaded item's properties with new data
-    if (loader.item && data) {
-      for (let key in data) {
+    if (loader.item) {
+      for (let key in merged) {
         if (loader.item.hasOwnProperty(key)) {
-          loader.item[key] = data[key];
+          loader.item[key] = merged[key];
         }
       }
     }
     updateDismissTimer();
   }
 
-  Timer {
-    id: closeDelayTimer
-    interval: Appearance.animationDuration
-    repeat: false
-    onTriggered: {
-      root.occupied = false;
-      root.isClosing = false;
-      root.currentAnchor = null;
-      root.currentData = null;
-      root.currentName = "";
-
-      if (root.hasPendingOpen) {
-        root.hasPendingOpen = false;
-        const data = root.pendingOpenData;
-        const anchor = root.pendingOpenAnchor;
-        const name = root.pendingOpenName;
-        root.pendingOpenData = null;
-        root.pendingOpenAnchor = null;
-        root.pendingOpenName = "";
-        root.openPopout(anchor, name, data);
-      }
-    }
-  }
-
   PopupWindow {
     id: mainPopup
     visible: root.occupied && loader.status === Loader.Ready
     color: "transparent"
-    // color: "blue"
 
     // Content dimensions
     readonly property int contentWidth: root.currentItem?.implicitWidth ?? 200
@@ -198,18 +104,14 @@ Item {
             return 0;
 
           if (root.barConfig.left) {
-            // Start at bar edge (extent from screen edge)
             return root.barConfig.extent;
           } else if (root.barConfig.right) {
-            // Position so animation slides from right
             return (root.currentData.anchorX ?? 0) - mainPopup.implicitWidth - Widget.padding + Appearance.borderWidth;
           } else {
-            // Top/Bottom: center horizontally with anchor
             let anchorCenter = (root.currentData.anchorX ?? 0) + (root.currentData.anchorWidth ?? 0) / 2;
             let popoutCenter = mainPopup.implicitWidth / 2;
             let targetX = anchorCenter - popoutCenter;
 
-            // Clamp to screen bounds
             return Math.max(Appearance.screenMargin, Math.min(targetX, root.screen.width - mainPopup.implicitWidth - Appearance.screenMargin));
           }
         }
@@ -223,12 +125,10 @@ Item {
           } else if (root.barConfig.bottom) {
             return (root.currentData.anchorY ?? 0) - mainPopup.implicitHeight - Widget.padding + Appearance.borderWidth;
           } else {
-            // Left/Right: center vertically with anchor
             let anchorCenter = (root.currentData.anchorY ?? 0) + (root.currentData.anchorHeight ?? 0) / 2;
             let popoutCenter = mainPopup.implicitHeight / 2;
             let targetY = anchorCenter - popoutCenter;
 
-            // Clamp to screen bounds
             return Math.max(Appearance.screenMargin, Math.min(targetY, root.screen.height - mainPopup.implicitHeight - Appearance.screenMargin));
           }
         }
@@ -253,15 +153,11 @@ Item {
       containerWidth: mainPopup.implicitWidth
       enableFade: false
 
-      // Main content container
       Rectangle {
         id: contentContainer
         color: Theme.background
-        // color: "transparent"
-        // color: "purple"
         radius: Appearance.borderRadius
         border.color: Theme.foreground
-        // border.color: "red"
         border.width: Appearance.borderWidth
         anchors.centerIn: parent
 
@@ -293,7 +189,6 @@ Item {
             if (item) {
               item.wrapper = root;
               if (root.currentData) {
-                // Pass through any additional data properties
                 for (let key in root.currentData) {
                   if (item.hasOwnProperty(key)) {
                     item[key] = root.currentData[key];
@@ -309,14 +204,11 @@ Item {
       Rectangle {
         id: connector
         color: Theme.background
-        // color: "red"
-        // color: "transparent"
 
         x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : 0
         y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : 0 + Appearance.borderRadius * 2
 
         width: root.barConfig.vertical ? root.connectorGap : parent.width
-        // height: root.barConfig.vertical ? contentContainer.height + Appearance.borderWidth + Appearance.borderRadius : root.connectorGap
         height: root.barConfig.vertical ? contentContainer.height - Appearance.borderWidth * 2 : root.connectorGap
       }
 
@@ -340,7 +232,6 @@ Item {
         height: connector.width
         color: "transparent"
         clip: true
-        // color: "red"
         CornerPiece {
           isLeft: true
           isTop: false
@@ -356,7 +247,6 @@ Item {
         height: connector.width
         color: "transparent"
         clip: true
-        // color: "red"
         CornerPiece {
           isLeft: true
           isTop: true
@@ -376,7 +266,6 @@ Item {
     id: systemTrayComponent
     SystemTrayPopout {
       wrapper: root
-      // sad workaround for right side bar LMAO
       openToLeft: barConfig.right ? true : mainPopup.isOnRightHalfOfScreen === 1
     }
   }

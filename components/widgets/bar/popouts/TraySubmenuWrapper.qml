@@ -1,4 +1,3 @@
-// TraySubmenuWrapper.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
@@ -7,243 +6,156 @@ import qs.components.widgets.bar
 import qs.components.reusable
 
 /**
- * Popout wrapper for submenus
- * Positions to the right of parent menu items with slide animation
- * If there is no space to the right it will open to the left instead
+ * Popout wrapper for submenus.
+ * Positions to the right of parent menu items with slide animation;
+ * opens to the left instead if there's no space to the right.
+ * Open/close/queue state and dismiss timing come from PopoutWrapperBase —
+ * this file only adds submenu-specific positioning and animation.
  */
-// TODO: merge with Popouts.qml and EdgePopout.qml to make a generic popouts for everything
-// Needs a bit of a refactor as well it is quite messy
-// commenting here later; maybe not merge them, but certainly refactors for all of them
 Item {
-  id: root
+  id: outer
 
   required property ShellScreen screen
   required property bool openToLeft
 
   property alias popupWindow: submenuPopup
-
-  property var currentData: null
-  property bool occupied: false
-  property bool isClosing: false
-  property Item currentItem: loader.item ?? null
-  property var currentAnchor: null
-  property int connectorGap: 4
-
   property int minWidth: 100
   property int maxWidth: 600
 
-  // Queue for safe reopening
-  property var pendingOpenData: null
-  property bool hasPendingOpen: false
+  // Forward everything the base needs, plus a bit of connector geometry.
+  PopoutWrapperBase {
+    id: root
+    anchors.fill: parent
 
-  // ---- Centralized dismiss logic (mirrors Popout.qml) ----
-  // Content (TraySubmenuPopout) just exposes `hovered`. Deliberately NOT
-  // armed on load — a submenu opens while the cursor is still over the
-  // *parent* menu item, not the submenu itself, so arming immediately
-  // would close it before the mouse ever arrives. This only reacts to
-  // real hover transitions (onContentHoveredChanged never fires on
-  // initial construction), exactly like the original per-content
-  // exitTimer did.
-  readonly property bool contentHovered: currentItem?.hovered ?? false
-  readonly property int dismissDelay: currentItem?.dismissDelay ?? 40
-  readonly property bool autoDismiss: currentItem?.autoDismiss ?? true
+    property int connectorGap: 4
 
-  onContentHoveredChanged: updateDismissTimer()
+    currentItem: loader.item ?? null
 
-  function updateDismissTimer() {
-    if (!autoDismiss) {
-      dismissTimer.stop();
-      return;
-    }
-    if (contentHovered) {
-      dismissTimer.stop();
-    } else {
-      dismissTimer.restart();
-    }
-  }
+    PopupWindow {
+      id: submenuPopup
 
-  function requestDismiss() {
-    closePopout();
-  }
+      visible: root.occupied && loader.status === Loader.Ready
+      color: "transparent"
 
-  Timer {
-    id: dismissTimer
-    interval: root.dismissDelay
-    repeat: false
-    onTriggered: root.requestDismiss()
-  }
-
-  function closePopout() {
-    if (isClosing)
-      return;
-    isClosing = true;
-    closeDelayTimer.restart();
-  }
-
-  function openPopout(anchor, data) {
-    console.log("Opening submenu at: ", data?.anchorX, data?.anchorY, " with width ", data?.anchorWidth);
-    console.log("Anchor:", anchor);
-    console.log("Data:", data);
-
-    if (isClosing)
-      return;
-    currentAnchor = anchor;
-    currentData = data;
-    occupied = true;
-    dismissTimer.stop();
-  }
-
-  /**
-   * Safe open function that ensures any existing popup is fully closed
-   * before opening a new one. Can be used for both initial opens and reopens.
-   */
-  function safeOpenPopout(anchor, data) {
-    if (occupied && !isClosing) {
-      // Store the pending open request
-      pendingOpenData = data;
-      hasPendingOpen = true;
-      // Close current popup
-      closePopout();
-    } else if (!occupied && !isClosing) {
-      // No popup open, open immediately
-      openPopout(anchor, data);
-    } else {
-      // Already closing, queue the open
-      pendingOpenData = data;
-      hasPendingOpen = true;
-    }
-  }
-
-  Timer {
-    id: closeDelayTimer
-    interval: Appearance.animationDuration
-    repeat: false
-    onTriggered: {
-      root.occupied = false;
-      root.isClosing = false;
-      root.currentData = null;
-
-      // Check if there's a pending open request
-      if (root.hasPendingOpen) {
-        root.hasPendingOpen = false;
-        const data = root.pendingOpenData;
-        root.pendingOpenData = null;
-        // Open the new popup
-        root.openPopout(null, data);
+      readonly property int contentWidth: {
+        const itemWidth = root.currentItem?.implicitWidth ?? outer.minWidth;
+        return Math.max(outer.minWidth, Math.min(outer.maxWidth, itemWidth));
       }
-    }
-  }
+      readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
 
-  PopupWindow {
-    id: submenuPopup
+      implicitWidth: contentWidth + root.connectorGap
+      implicitHeight: contentHeight
 
-    visible: root.occupied && loader.status === Loader.Ready
-    color: "transparent"
+      property int offset: Widget.padding * 4 - Appearance.borderWidth
+      property int baseX: root.currentData?.anchorX ?? 0
+      property int openLeftX: baseX - submenuPopup.contentWidth - root.connectorGap - offset + Widget.padding * 3
+      property int openRightX: baseX + (root.currentData?.anchorWidth ?? 0) + offset
+      property int finalX: outer.openToLeft ? openLeftX : openRightX
+      property int finalY: 0
 
-    readonly property int contentWidth: {
-      const itemWidth = root.currentItem?.implicitWidth ?? root.minWidth;
-      return Math.max(root.minWidth, Math.min(root.maxWidth, itemWidth));
-    }
-    readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
-
-    implicitWidth: contentWidth + root.connectorGap
-    implicitHeight: contentHeight
-
-    property int offset: Widget.padding * 4 - Appearance.borderWidth
-    property int baseX: root.currentData?.anchorX ?? 0
-    property int openLeftX: baseX - submenuPopup.contentWidth - root.connectorGap - offset + Widget.padding * 3
-    property int openRightX: baseX + (root.currentData?.anchorWidth ?? 0) + offset
-    property int finalX: root.openToLeft ? openLeftX : openRightX
-    property int finalY: 0
-
-    anchor {
-      window: root.currentAnchor
-      rect {
-        x: finalX
-        y: (root.currentData?.anchorY ?? 0)
-        width: 1
-        height: 1
+      anchor {
+        window: root.currentAnchor
+        rect {
+          x: finalX
+          y: (root.currentData?.anchorY ?? 0)
+          width: 1
+          height: 1
+        }
       }
-    }
 
-    SlideAnimation {
-      id: slideContainer
-      anchors.fill: parent
+      SlideAnimation {
+        id: slideContainer
+        anchors.fill: parent
 
-      active: root.occupied && !root.isClosing
-      slideFromRight: root.openToLeft
-      slideFromLeft: !root.openToLeft
-      slideFromTop: false
-      slideFromBottom: false
-      animationDuration: Appearance.animationDuration
-      enableFade: false
+        active: root.occupied && !root.isClosing
+        slideFromRight: outer.openToLeft
+        slideFromLeft: !outer.openToLeft
+        slideFromTop: false
+        slideFromBottom: false
+        animationDuration: Appearance.animationDuration
+        enableFade: false
 
-      Rectangle {
-        id: contentContainer
+        Rectangle {
+          id: contentContainer
 
-        color: Theme.background
-        radius: Appearance.borderRadius
-        border.color: Theme.foreground
-        border.width: Appearance.borderWidth
+          color: Theme.background
+          radius: Appearance.borderRadius
+          border.color: Theme.foreground
+          border.width: Appearance.borderWidth
 
-        x: root.openToLeft ? Appearance.borderWidth : (root.connectorGap - Appearance.borderRadius)
-        y: 0
-        width: parent.width - root.connectorGap + (root.openToLeft ? Appearance.borderWidth + Appearance.borderRadius : 0)
-        height: parent.height
+          x: outer.openToLeft ? Appearance.borderWidth : (root.connectorGap - Appearance.borderRadius)
+          y: 0
+          width: parent.width - root.connectorGap + (outer.openToLeft ? Appearance.borderWidth + Appearance.borderRadius : 0)
+          height: parent.height
 
-        Loader {
-          id: loader
-          anchors.fill: parent
-          anchors.margins: Widget.spacing
-          active: root.occupied
-          asynchronous: false
+          Loader {
+            id: loader
+            anchors.fill: parent
+            anchors.margins: Widget.spacing
+            active: root.occupied
+            asynchronous: false
 
-          sourceComponent: Component {
-            TraySubmenuPopout {
-              wrapper: root
-              menuItem: root.currentData?.menuItem
+            sourceComponent: Component {
+              TraySubmenuPopout {
+                wrapper: root
+                menuItem: root.currentData?.menuItem
+              }
             }
+
+            onLoaded: root.updateDismissTimer()
+          }
+        }
+
+        Rectangle {
+          id: connector
+
+          // color: Theme.bg0
+          color: "green"
+          x: outer.openToLeft ? (parent.width - root.connectorGap) : root.connectorGap
+          y: 0
+          width: root.connectorGap
+          height: parent.height
+        }
+
+        Rectangle {
+          id: topCorner
+          anchors.top: connector.top
+          anchors.left: connector.left
+          anchors.right: connector.right
+          width: connector.width
+          height: Appearance.borderRadius
+          color: "red"
+          // color: "transparent"
+          CornerPiece {
+            isLeft: true
+            isTop: false
+          }
+        }
+
+        Rectangle {
+          id: bottomCorner
+          anchors.bottom: connector.bottom
+          anchors.left: connector.left
+          anchors.right: connector.right
+          width: connector.width
+          height: Appearance.borderRadius
+          color: "transparent"
+          CornerPiece {
+            isLeft: true
+            isTop: false
           }
         }
       }
-
-      Rectangle {
-        id: connector
-
-        color: Theme.bg0
-        x: root.openToLeft ? (parent.width - root.connectorGap) : 0
-        y: 0
-        width: root.connectorGap
-        height: parent.height
-      }
-      // close enough for now on these
-      Rectangle {
-        id: topCorner
-        anchors.top: connector.top
-        anchors.left: connector.left
-        anchors.right: connector.right
-        width: connector.width
-        height: Appearance.borderRadius
-        color: "transparent"
-        CornerPiece {
-          isLeft: true
-          isTop: false
-        }
-      }
-
-      Rectangle {
-        id: bottomCorner
-        anchors.bottom: connector.bottom
-        anchors.left: connector.left
-        anchors.right: connector.right
-        width: connector.width
-        height: Appearance.borderRadius
-        color: "transparent"
-        CornerPiece {
-          isLeft: true
-          isTop: false
-        }
-      }
     }
   }
+
+  // Thin forwarding so external callers (SystemTrayPopout, TraySubmenuPopout)
+  // keep using `submenuWrapper.safeOpenPopout(...)` / `closePopout()` /
+  // `requestDismiss()` / `occupied` / `popupWindow` exactly as before,
+  // without needing to reach into the inner PopoutWrapperBase directly.
+  property alias occupied: root.occupied
+  property alias currentItem: root.currentItem
+  function safeOpenPopout(anchor, data) { root.safeOpenPopout(anchor, data); }
+  function closePopout() { root.closePopout(); }
+  function requestDismiss() { root.requestDismiss(); }
 }
