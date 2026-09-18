@@ -37,7 +37,7 @@ Item {
   // "keep me alive" conditions, e.g. an active drag or an open submenu).
   // Timing and dismissal live here, once, for every popout type.
   readonly property bool contentHovered: currentItem?.hovered ?? false
-  readonly property int dismissDelay: currentItem?.dismissDelay ?? 500
+  readonly property int dismissDelay: currentItem?.dismissDelay ?? 250
   readonly property bool autoDismiss: currentItem?.autoDismiss ?? true
 
   onContentHoveredChanged: updateDismissTimer()

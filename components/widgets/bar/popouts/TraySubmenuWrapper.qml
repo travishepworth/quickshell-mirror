@@ -109,8 +109,8 @@ Item {
         Rectangle {
           id: connector
 
-          // color: Theme.bg0
-          color: "green"
+          color: Theme.bg0
+          // color: "green"
           x: outer.openToLeft ? (parent.width - root.connectorGap) : root.connectorGap
           y: 0
           width: root.connectorGap
@@ -124,8 +124,8 @@ Item {
           anchors.right: connector.right
           width: connector.width
           height: Appearance.borderRadius
-          color: "red"
-          // color: "transparent"
+          // color: "red"
+          color: "transparent"
           CornerPiece {
             isLeft: true
             isTop: false

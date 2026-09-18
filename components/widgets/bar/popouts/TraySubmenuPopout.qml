@@ -18,7 +18,7 @@ Item {
   // TODO: which of all these mins and maxes actually constrain the items
   readonly property int minWidth: 200
   readonly property int maxWidth: 800
-  readonly property int dismissDelay: 40
+  readonly property int dismissDelay: 100
 
   implicitWidth: Math.max(minWidth, Math.min(maxWidth, menuLayout.implicitWidth + 20))
   implicitHeight: menuLayout.implicitHeight + 20 + Widget.padding * 2
