@@ -182,6 +182,8 @@ PopoutWrapperBase {
               return systemTrayComponent;
             case "calendar":
               return calendarComponent;
+            case "notifications":
+              return notificationsComponent;
             default:
               return null;
             }
@@ -322,6 +324,13 @@ PopoutWrapperBase {
   Component {
     id: calendarComponent
     CalendarPopout {
+      wrapper: root
+    }
+  }
+
+  Component {
+    id: notificationsComponent
+    NotificationsPopout {
       wrapper: root
     }
   }

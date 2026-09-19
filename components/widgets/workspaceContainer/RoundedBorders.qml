@@ -86,7 +86,7 @@ Item {
     // color: "red"
     mask: Region {}
     aboveWindows: true
-    WlrLayershell.layer: WlrLayer.Overlay
+    // WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius
@@ -115,7 +115,7 @@ Item {
     color: "transparent"
     mask: Region {}
     aboveWindows: true
-    WlrLayershell.layer: WlrLayer.Overlay
+    // WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius
@@ -143,7 +143,7 @@ Item {
     color: "transparent"
     mask: Region {}
     aboveWindows: true
-    WlrLayershell.layer: WlrLayer.Overlay
+    // WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius
@@ -171,7 +171,7 @@ Item {
     color: "transparent"
     mask: Region {}
     aboveWindows: true
-    WlrLayershell.layer: WlrLayer.Overlay
+    // WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius

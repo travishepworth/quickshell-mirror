@@ -1,0 +1,271 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+
+import qs.config
+import qs.services
+import qs.components.methods
+import qs.components.reusable
+
+PopupWindow {
+  id: popup
+
+  required property var notification
+  property var anchorWindow: null
+
+  property int toastWidth: 360
+  property int toastMaxHeight: 220
+  property int dismissDuration: 5000
+  property real dragDismissThreshold: 150
+  property int leftOffset: 20
+  property int targetY: 20
+
+  signal dismissed()
+
+  readonly property var visibleActions: (notification.actions ?? []).filter(a => a.identifier !== "default")
+  readonly property var defaultAction: (notification.actions ?? []).find(a => a.identifier === "default")
+
+  implicitWidth: toastWidth
+  implicitHeight: Math.min(mainColumn.implicitHeight + Widget.padding * 2, toastMaxHeight)
+
+  visible: false
+  color: "transparent"
+
+  anchor.window: anchorWindow
+
+  Component.onCompleted: {
+    anchor.rect.x = leftOffset;
+    anchor.rect.y = targetY;
+    anchor.rect.width = implicitWidth;
+    anchor.rect.height = implicitHeight;
+    visible = true;
+    slideIn.start();
+  }
+
+  // Reposition instantly (used for stack reflow); the visual "movement"
+  // reads fine since it's accompanied by other toasts sliding at once.
+  function updatePosition(newTargetY) {
+    targetY = newTargetY;
+    anchor.rect.y = targetY;
+  }
+
+  // Only hides the toast — the notification stays tracked so it's still
+  // visible/actionable from the bell popout afterwards.
+  function dismiss() {
+    if (slideOut.running)
+      return;
+    slideOut.start();
+  }
+
+  ParallelAnimation {
+    id: slideIn
+    NumberAnimation {
+      target: card
+      property: "y"
+      from: -16
+      to: 0
+      duration: Appearance.animationDuration
+      easing.type: Easing.OutCubic
+    }
+    NumberAnimation {
+      target: card
+      property: "opacity"
+      from: 0
+      to: 1
+      duration: Appearance.animationDuration
+      easing.type: Easing.OutCubic
+    }
+  }
+
+  NumberAnimation {
+    id: slideOut
+    target: card
+    property: "opacity"
+    to: 0
+    duration: Appearance.animationDuration / 2
+    easing.type: Easing.InQuad
+    onFinished: {
+      popup.visible = false;
+      popup.dismissed();
+    }
+  }
+
+  NumberAnimation {
+    id: snapBack
+    target: card
+    property: "x"
+    to: 0
+    duration: Appearance.animationDuration / 2
+    easing.type: Easing.OutCubic
+  }
+
+  // expireTimeout === 0 is the freedesktop-spec signal for "never expire".
+  readonly property bool neverExpires: notification.expireTimeout === 0
+
+  Timer {
+    id: dismissTimer
+    interval: popup.dismissDuration
+    running: !popup.neverExpires && popup.visible && !dragArea.containsMouse
+    onTriggered: popup.dismiss()
+  }
+
+  Item {
+    id: card
+    anchors.fill: parent
+    opacity: 0
+
+    StyledContainer {
+      id: content
+      anchors.fill: parent
+      backgroundColor: Theme.background
+      borderColor: Theme.backgroundAlt
+      borderWidth: Appearance.borderWidth
+      borderRadius: Appearance.borderRadius + 2
+      clip: true
+
+      MouseArea {
+        id: dragArea
+        anchors.fill: parent
+        hoverEnabled: true
+
+        property real pressX: 0
+        property real dragDelta: 0
+
+        onPressed: mouse => {
+          pressX = mouse.x;
+          dragDelta = 0;
+        }
+
+        onPositionChanged: mouse => {
+          if (!pressed)
+            return;
+          dragDelta = mouse.x - pressX;
+          content.x = dragDelta * 0.5;
+          card.opacity = 1 - Math.abs(dragDelta) / (popup.dragDismissThreshold * 2);
+          if (Math.abs(dragDelta) > popup.dragDismissThreshold)
+            popup.dismiss();
+        }
+
+        onReleased: {
+          if (Math.abs(dragDelta) < popup.dragDismissThreshold)
+            snapBack.start();
+        }
+
+        ColumnLayout {
+          id: mainColumn
+          anchors.fill: parent
+          anchors.margins: Widget.padding
+          spacing: Widget.spacing / 2
+
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Widget.spacing
+
+            NotificationAvatar {
+              appIcon: popup.notification.appIcon ?? ""
+              image: popup.notification.image ?? ""
+              baseSize: 30
+            }
+
+            ColumnLayout {
+              Layout.fillWidth: true
+              spacing: 2
+
+              StyledText {
+                Layout.fillWidth: true
+                text: popup.notification.appName || ""
+                textColor: Theme.foregroundAlt
+                textSize: Appearance.fontSize - 2
+                elide: Text.ElideRight
+              }
+
+              MouseArea {
+                Layout.fillWidth: true
+                implicitHeight: textCol.implicitHeight
+                cursorShape: popup.defaultAction ? Qt.PointingHandCursor : Qt.ArrowCursor
+                onClicked: {
+                  if (popup.defaultAction) {
+                    popup.defaultAction.invoke();
+                    popup.dismiss();
+                  }
+                }
+
+                ColumnLayout {
+                  id: textCol
+                  width: parent.width
+                  spacing: 2
+
+                  StyledText {
+                    Layout.fillWidth: true
+                    text: popup.notification.summary || ""
+                    font.bold: true
+                    elide: Text.ElideRight
+                    maximumLineCount: 2
+                    wrapMode: Text.Wrap
+                  }
+
+                  StyledText {
+                    visible: (popup.notification.body ?? "") !== ""
+                    Layout.fillWidth: true
+                    text: popup.notification.body ?? ""
+                    textColor: Theme.foregroundAlt
+                    textSize: Appearance.fontSize - 1
+                    wrapMode: Text.Wrap
+                    maximumLineCount: 3
+                    elide: Text.ElideRight
+                  }
+                }
+              }
+            }
+
+            StyledIconButton {
+              Layout.fillWidth: false
+              Layout.fillHeight: false
+              Layout.preferredWidth: 22
+              Layout.preferredHeight: 22
+              Layout.alignment: Qt.AlignTop
+
+              iconText: "󰅖"
+              iconSize: 12
+              borderRadius: 11
+              iconColor: Theme.foregroundAlt
+              hoverColor: Theme.backgroundHighlight
+
+              onClicked: popup.dismiss()
+            }
+          }
+
+          Flickable {
+            Layout.fillWidth: true
+            visible: popup.visibleActions.length > 0
+            implicitHeight: actionRow.implicitHeight
+            contentWidth: actionRow.implicitWidth
+            interactive: contentWidth > width
+            flickableDirection: Flickable.HorizontalFlick
+            clip: true
+
+            RowLayout {
+              id: actionRow
+              spacing: Widget.spacing
+
+              Repeater {
+                model: popup.visibleActions
+
+                StyledTextButton {
+                  required property var modelData
+                  text: modelData.text
+                  textPadding: 6
+                  onClicked: {
+                    modelData.invoke();
+                    popup.dismiss();
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

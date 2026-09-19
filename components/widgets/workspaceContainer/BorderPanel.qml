@@ -30,7 +30,7 @@ PanelWindow {
   
   exclusiveZone: frameWidth
   aboveWindows: true
-  WlrLayershell.layer: WlrLayer.Overlay
+  // WlrLayershell.layer: WlrLayer.Overlay
   color: "transparent"
   mask: Region {}
   

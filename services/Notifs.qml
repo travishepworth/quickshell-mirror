@@ -28,9 +28,11 @@ Singleton {
      * Dismisses all currently tracked notifications.
      */
   function clearAll() {
-    // Iterate backwards when removing items from a model to avoid index shifting issues.
-    for (var i = notifications.values.length - 1; i >= 0; i--) {
-      const notif = notifications.values.find(i);
+    // Snapshot first: dismissing mutates the live tracked-notifications
+    // model out from under us as we iterate.
+    const values = notifications.values;
+    for (var i = values.length - 1; i >= 0; i--) {
+      const notif = values[i];
       if (notif) {
         notif.dismiss();
       }
@@ -41,10 +43,26 @@ Singleton {
     options = options || {};
     const notif = server.createNotification(appName, summary, body, options);
     notif.tracked = true; // Automatically track this notification
+    root.receivedAtFor(notif);
     if (!root.dnd || notif.urgency === NotificationUrgency.Critical) {
       root.showPopup(notif);
     }
     return notif;
+  }
+
+  // MARK: - Received-time tracking
+  //
+  // Notification exposes no timestamp of its own, so we stamp arrival
+  // time ourselves, keyed by id, and clean up once the notification closes.
+  property var _receivedAt: ({})
+
+  function receivedAtFor(notification) {
+    if (!notification)
+      return Date.now();
+    if (root._receivedAt[notification.id] === undefined) {
+      root._receivedAt[notification.id] = Date.now();
+    }
+    return root._receivedAt[notification.id];
   }
 
   // MARK: - Internal Implementation
@@ -64,7 +82,7 @@ Singleton {
     imageSupported: true
     persistenceSupported: true
     // Optional, set to false if you don't want the server to outlive a QML reload
-    keepOnReload: false 
+    keepOnReload: false
 
     Component.onCompleted: {
       // This log is the most important for debugging.
@@ -92,6 +110,7 @@ Singleton {
       if (!notification.transient) {
         notification.tracked = true;
       }
+      root.receivedAtFor(notification);
 
       // Suppress popups if Do Not Disturb is on, unless the notification is critical.
       if (!root.dnd || notification.urgency === NotificationUrgency.Critical) {
@@ -101,7 +120,7 @@ Singleton {
       // You can connect to the closed signal if you need to know when a
       // notification is dismissed by the client or times out.
       notification.closed.connect(reason => {
-          // console.log("Notification", notification.id, "closed:", reason)
+          delete root._receivedAt[notification.id];
       });
     }
   }

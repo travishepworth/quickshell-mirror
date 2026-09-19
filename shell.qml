@@ -41,9 +41,9 @@ ShellRoot {
     id: themeSelector
   }
 
-  // Menu {
-  //   id: mainMenu
-  // }
+  Menu {
+    id: mainMenu
+  }
 
   AppLauncher {
     id: appLauncher

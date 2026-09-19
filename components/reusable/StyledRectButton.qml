@@ -27,6 +27,11 @@ Rectangle {
   property color borderPressColor: component.borderColor
   property int borderWidth: Appearance.borderWidth
   property real borderRadius: Appearance.borderRadius
+
+  property string badgeText: ""
+  property bool badgeVisible: component.badgeText !== ""
+  property color badgeBackgroundColor: Theme.error
+  property color badgeTextColor: Theme.background
   
   // -- Implementation --
   // UHH maybe having one button for layouts and not layouts is not the move
@@ -34,8 +39,8 @@ Rectangle {
   Layout.fillWidth: true
   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
   // TODO: different bar extents break this
-  implicitWidth: Bar.extent - (Widget.padding * 2)
-  implicitHeight: Bar.extent - (Widget.padding * 2)
+  implicitWidth: Widget.height
+  implicitHeight: Widget.height
   
   color: mouseArea.pressed ? component.pressColor : 
          (mouseArea.containsMouse ? component.hoverColor : component.backgroundColor)
@@ -77,5 +82,26 @@ Rectangle {
     text: component.tooltipText
     visible: false
     delay: 500
+  }
+
+  Rectangle {
+    id: badge
+    visible: component.badgeVisible
+    anchors.top: parent.top
+    anchors.right: parent.right
+    anchors.topMargin: -2
+    anchors.rightMargin: -2
+    implicitWidth: Math.max(14, badgeLabel.implicitWidth + 6)
+    implicitHeight: 14
+    radius: height / 2
+    color: component.badgeBackgroundColor
+
+    StyledText {
+      id: badgeLabel
+      anchors.centerIn: parent
+      text: component.badgeText
+      textSize: Appearance.fontSize - 4
+      textColor: component.badgeTextColor
+    }
   }
 }

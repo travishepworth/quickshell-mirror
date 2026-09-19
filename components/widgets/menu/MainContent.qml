@@ -10,7 +10,6 @@ import qs.services
 import qs.config
 import qs.components.methods
 import qs.components.reusable
-import qs.components.widgets.notifications
 import qs.components.widgets.menu
 import qs.components.widgets.menu.calendar
 import qs.components.widgets.menu.chat
@@ -41,10 +40,6 @@ StyledContainer {
     {
       name: "",
       loader: calendarLoader
-    },
-    {
-      name: "",
-      loader: notificationLoader
     }
   ]
 
@@ -102,14 +97,6 @@ StyledContainer {
             PropertyChanges {
               target: contentRow
               x: -root.width * 2
-            }
-          },
-          State {
-            name: "tab3"
-            when: root.currentTab === 3
-            PropertyChanges {
-              target: contentRow
-              x: -root.width * 3
             }
           }
         ]
@@ -175,23 +162,6 @@ StyledContainer {
               id: calendarLoader
               sourceComponent: CalendarMenu {
                 width: calendarScrollView.availableWidth
-              }
-            }
-          }
-
-          // --- Tab 4: Notifications ---
-          StyledScrollView {
-            id: notificationScrollView
-            width: root.width
-            height: parent.height
-            showScrollBar: true
-            contentPadding: Widget.padding
-            scrollbarOpacity: slideAnimation.running ? 0 : 1
-
-            Loader {
-              id: notificationLoader
-              sourceComponent: NotificationList {
-                width: notificationScrollView.availableWidth
               }
             }
           }

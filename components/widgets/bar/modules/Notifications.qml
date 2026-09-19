@@ -5,13 +5,10 @@ import QtQuick
 import qs.config
 import qs.services
 import qs.components.reusable
-import qs.components.widgets.bar
+import qs.components.widgets.bar.popouts
 
-StyledRectButton {
-  id: component
-
-  // -- Signals --
-  // null
+Item {
+  id: root
 
   // -- Public API --
   property var barConfig
@@ -19,14 +16,28 @@ StyledRectButton {
   property var panel
   property var screen
   property var properties
-  // null
 
-  // -- Configurable Appearance --
-  iconText: ""
-  iconColor: Theme.background
-  borderHoverColor: Theme.accent
-  backgroundColor: Theme.accent
+  implicitWidth: Widget.height
+  implicitHeight: Widget.height
 
-  // -- Implementation --
-  onClicked: ShellManager.togglePinnedPanel("mainMenu")
+  StyledRectButton {
+    id: button
+    anchors.fill: parent
+
+    iconText: Notifs.dnd ? "󰂛" : "󰂚"
+    iconColor: Notifs.dnd ? Theme.foregroundAlt : Theme.background
+    borderHoverColor: Theme.accent
+    backgroundColor: Theme.accentAlt
+
+    badgeVisible: Notifs.count > 0
+    badgeText: Notifs.count > 99 ? "99+" : String(Notifs.count)
+  }
+
+  PopoutAnchor {
+    id: anchor
+    popouts: root.popouts
+    panel: root.panel
+    popoutName: "notifications"
+    openDelay: 150
+  }
 }

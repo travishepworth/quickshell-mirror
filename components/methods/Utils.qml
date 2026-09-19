@@ -93,6 +93,18 @@ QtObject {
     }
   }
 
+  // Format an epoch-ms timestamp as a short relative time ("now", "5m", "3h", "2d")
+  function formatRelativeTime(epochMs) {
+    const diffSec = Math.max(0, Math.floor((Date.now() - epochMs) / 1000));
+    if (diffSec < 60)
+      return "now";
+    if (diffSec < 3600)
+      return Math.floor(diffSec / 60) + "m";
+    if (diffSec < 86400)
+      return Math.floor(diffSec / 3600) + "h";
+    return Math.floor(diffSec / 86400) + "d";
+  }
+
   // Format bytes to human readable
   function formatBytes(bytes, decimals = 2) {
     if (bytes === 0)
