@@ -11,34 +11,52 @@ QtObject {
     Left,
     Right
   }
+  function enrichBarConfig(barConfig, index = 0) {
+    const loc = Bar.getLocationFromString(barConfig.location ?? "Top");
+
+    return {
+      "id": barConfig.id || "",
+      "primary": barConfig.primary ?? (index === 0),
+      "enabled": barConfig.enabled ?? true,
+      "display": barConfig.display || "",
+      "extent": barConfig.extent ?? Bar.extent,
+      "spacing": barConfig.spacing ?? Bar.spacing,
+      "location": loc,
+      "autoHide": barConfig.autoHide ?? false,
+      "widgets": barConfig.widgets || null,
+      "vertical": loc === Bar.Left || loc === Bar.Right,
+      "left": loc === Bar.Left,
+      "right": loc === Bar.Right,
+      "top": loc === Bar.Top,
+      "bottom": loc === Bar.Bottom
+    };
+  }
+
   property var bars: {
     const configs = ConfigManager.config.Bar || [];
     const result = [];
 
     for (let i = 0; i < configs.length; i++) {
-      const barConfig = configs[i];
-      const loc = Bar.getLocationFromString(barConfig.location ?? "Top");
-
-      result.push({
-        "id": barConfig.id || "",
-        "primary": barConfig.primary ?? (i === 0),
-        "enabled": barConfig.enabled ?? true,
-        "display": barConfig.display || "",
-        "extent": barConfig.extent ?? Bar.extent,
-        "spacing": barConfig.spacing ?? Bar.spacing,
-        "location": loc,
-        "autoHide": barConfig.autoHide ?? false,
-        "widgets": barConfig.widgets || null,
-        "vertical": loc === Bar.Left || loc === Bar.Right,
-        "left": loc === Bar.Left,
-        "right": loc === Bar.Right,
-        "top": loc === Bar.Top,
-        "bottom": loc === Bar.Bottom
-      });
+      result.push(Bar.enrichBarConfig(configs[i], i));
     }
 
     // Ensuer primary bar is first
     return result.sort((a, b) => (a.primary === b.primary) ? 0 : a.primary ? -1 : 1);
+  }
+
+  readonly property var availableWidgetTypes: {
+    const oneOf = ConfigManager.configSchema?.definitions?.BarWidget?.oneOf || [];
+    return oneOf.map(refObj => {
+      const refName = refObj.$ref.replace("#/definitions/", "");
+      const def = ConfigManager.configSchema.definitions[refName];
+      if (!def)
+        return null;
+      return {
+        "type": def.properties?.type?.const,
+        "label": def.properties?.type?.description || def.properties?.type?.const,
+        "propertiesSchema": def.properties?.properties?.properties || null
+      };
+    }).filter(t => t !== null);
   }
   // Global convenience properties for first bar
   readonly property bool enabled: Bar.bars[0]?.enabled ?? true

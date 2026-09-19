@@ -12,6 +12,7 @@ ColumnLayout {
   property string description: ""
   property int maxItems: 99
   property var itemDelegate: null
+  property var itemHeaderExtra: null
   
   signal itemAdded()
   signal itemRemoved(int index)
@@ -86,7 +87,15 @@ ColumnLayout {
               textSize: Appearance.fontSize - 1
               font.bold: true
             }
-            
+
+            Loader {
+              sourceComponent: root.itemHeaderExtra
+              onLoaded: {
+                item.itemData = Qt.binding(() => parent.parent.parent.modelData);
+                item.itemIndex = Qt.binding(() => parent.parent.parent.index);
+              }
+            }
+
             Item {
               Layout.fillWidth: true
             }
@@ -102,10 +111,10 @@ ColumnLayout {
               hoverColor: Theme.accent
               
               onClicked: {
-                root.itemMoved(parent.parent.parent.parent.index, parent.parent.parent.parent.index - 1);
+                root.itemMoved(parent.parent.parent.index, parent.parent.parent.index - 1);
               }
             }
-            
+
             StyledRectButton {
               visible: parent.parent.parent.index < root.items.length - 1
               Layout.preferredWidth: 24
@@ -115,9 +124,9 @@ ColumnLayout {
               iconText: "▼"
               iconSize: 10
               hoverColor: Theme.accent
-              
+
               onClicked: {
-                root.itemMoved(parent.parent.parent.parent.index, parent.parent.parent.parent.index + 1);
+                root.itemMoved(parent.parent.parent.index, parent.parent.parent.index + 1);
               }
             }
             
@@ -131,7 +140,7 @@ ColumnLayout {
               hoverColor: Theme.error
               
               onClicked: {
-                root.itemRemoved(parent.parent.parent.parent.index);
+                root.itemRemoved(parent.parent.parent.index);
               }
             }
           }
@@ -147,8 +156,8 @@ ColumnLayout {
             Layout.fillWidth: true
             sourceComponent: root.itemDelegate
             onLoaded: {
-              item.itemData = Qt.binding(() => parent.parent.parent.modelData);
-              item.itemIndex = Qt.binding(() => parent.parent.parent.index);
+              item.itemData = Qt.binding(() => parent.parent.modelData);
+              item.itemIndex = Qt.binding(() => parent.parent.index);
             }
           }
         }

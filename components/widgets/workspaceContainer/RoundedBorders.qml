@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import qs.config
 import qs.components.reusable
 
@@ -85,6 +86,7 @@ Item {
     // color: "red"
     mask: Region {}
     aboveWindows: true
+    WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius
@@ -113,6 +115,7 @@ Item {
     color: "transparent"
     mask: Region {}
     aboveWindows: true
+    WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius
@@ -140,6 +143,7 @@ Item {
     color: "transparent"
     mask: Region {}
     aboveWindows: true
+    WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius
@@ -167,6 +171,7 @@ Item {
     color: "transparent"
     mask: Region {}
     aboveWindows: true
+    WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius

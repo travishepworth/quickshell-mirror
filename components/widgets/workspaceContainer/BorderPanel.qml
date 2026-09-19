@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import qs.config
 PanelWindow {
   id: border
@@ -29,6 +30,7 @@ PanelWindow {
   
   exclusiveZone: frameWidth
   aboveWindows: true
+  WlrLayershell.layer: WlrLayer.Overlay
   color: "transparent"
   mask: Region {}
   

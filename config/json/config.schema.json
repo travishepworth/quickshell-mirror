@@ -171,17 +171,19 @@
         { "$ref": "#/definitions/NetworkWidget" },
         { "$ref": "#/definitions/SystemTrayWidget" },
         { "$ref": "#/definitions/NotificationsWidget" },
-        { "$ref": "#/definitions/LogoWidget" }
+        { "$ref": "#/definitions/LogoWidget" },
+        { "$ref": "#/definitions/BatteryWidget" }
       ]
     },
     "WindowWidget": {
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": { 
+        "type": {
           "const": "Window",
           "description": "Window Title"
-        }
+        },
+        "visible": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -189,10 +191,11 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": { 
+        "type": {
           "const": "Media",
           "description": "Media Player"
-        }
+        },
+        "visible": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -200,10 +203,11 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": { 
+        "type": {
           "const": "Workspaces",
           "description": "Workspace Switcher"
-        }
+        },
+        "visible": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -211,10 +215,11 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": { 
+        "type": {
           "const": "Time",
           "description": "Clock"
-        }
+        },
+        "visible": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -222,10 +227,11 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": { 
+        "type": {
           "const": "TimeJapanese",
           "description": "Japanese Clock"
-        }
+        },
+        "visible": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -233,10 +239,11 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": { 
+        "type": {
           "const": "Tailscale",
           "description": "Tailscale Status"
-        }
+        },
+        "visible": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -244,10 +251,11 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": { 
+        "type": {
           "const": "Network",
           "description": "Network Status"
-        }
+        },
+        "visible": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -255,10 +263,11 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": { 
+        "type": {
           "const": "SystemTray",
           "description": "System Tray"
-        }
+        },
+        "visible": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -266,10 +275,23 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": { 
+        "type": {
           "const": "Notifications",
           "description": "Notification Center"
-        }
+        },
+        "visible": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "BatteryWidget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "const": "Battery",
+          "description": "Battery Status"
+        },
+        "visible": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -277,10 +299,11 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": { 
+        "type": {
           "const": "Logo",
           "description": "Custom Logo"
         },
+        "visible": { "type": "boolean" },
         "properties": {
           "type": "object",
           "properties": {

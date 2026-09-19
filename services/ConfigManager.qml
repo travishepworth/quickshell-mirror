@@ -13,6 +13,7 @@ QtObject {
   // --- Public ---
   readonly property var config: _config
   readonly property var theme: _theme
+  readonly property var configSchema: _configSchema
   readonly property string configDir: "../config/user/"
   readonly property string configFile: "config.json" // TODO: load all config files from dir (if necessary)
 

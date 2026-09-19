@@ -22,7 +22,6 @@ ColumnLayout {
     implicitWidth: Menu.cardUnit
 
     Rectangle {
-      id: root
       anchors.fill: parent
       color: Theme.background
       radius: Menu.cardBorderRadius
@@ -34,8 +33,12 @@ ColumnLayout {
         anchors.margins: Widget.padding
         spacing: Widget.spacing
 
-        BarEditorHeader {
-          Layout.fillWidth: true
+        Text {
+          text: "Modules"
+          color: Theme.foreground
+          font.family: Appearance.fontFamily
+          font.pixelSize: Appearance.fontSize + 4
+          font.bold: true
         }
 
         Rectangle {
@@ -45,19 +48,14 @@ ColumnLayout {
           opacity: 0.3
         }
 
-        BarTabStrip {
-          Layout.fillWidth: true
-        }
-
         ScrollView {
           Layout.fillWidth: true
           Layout.fillHeight: true
           clip: true
           ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-          BarFieldsPanel {
+          LayoutConfig {
             width: parent.parent.width - Widget.padding * 2
-            bar: BarManager.selectedBar()
           }
         }
       }
