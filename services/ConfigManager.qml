@@ -238,7 +238,11 @@ QtObject {
 
   function _loadObjectToConfig(object) {
     if (_validateConfig(object)) {
-      ConfigManager._config = object;
+      // Deep clone so this is always a new object reference, otherwise QML
+      // won't emit a change signal when the same localConfig object (mutated
+      // in place across edits) is re-applied, and live updates after the
+      // first change silently stop working.
+      configManager._config = JSON.parse(JSON.stringify(object));
     }
   }
 

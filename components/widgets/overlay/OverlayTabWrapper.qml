@@ -11,7 +11,7 @@ Item {
   property int currentIndex: 0
 
   implicitWidth: currentViewWidth + Menu.cardSpacing * 2
-  implicitHeight: currentViewHeight + Menu.cardSpacing * 2 + controlPanel.height + 20
+  implicitHeight: currentViewHeight + Menu.cardSpacing * 2
 
   // Store current view dimensions to avoid binding loops
   property real currentViewWidth: viewsRepeater.count > 0 && viewsRepeater.itemAt(wrapper.currentIndex) ? 
@@ -149,131 +149,6 @@ Item {
                 easing.type: Easing.InOutQuad
               }
             }
-          }
-        }
-      }
-    }
-  }
-
-  // Control panel with navigation
-  Rectangle {
-    id: controlPanel
-    anchors {
-      top: contentContainer.bottom
-      topMargin: 20
-      horizontalCenter: parent.horizontalCenter
-    }
-    width: controlLayout.implicitWidth + 20
-    height: 40
-    radius: 8
-    color: "transparent"
-    border.color: Theme.foreground
-    border.width: 0
-
-    RowLayout {
-      id: controlLayout
-      anchors.centerIn: parent
-      spacing: 12
-
-      // Left arrow
-      Rectangle {
-        Layout.preferredWidth: 30
-        Layout.preferredHeight: 30
-        radius: Menu.cardBorderRadius
-        color: leftArrowMouse.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
-        border.color: Theme.border
-        border.width: Menu.cardBorderWidth
-
-        Text {
-          anchors.centerIn: parent
-          text: "‹"
-          font.pixelSize: 20
-          font.bold: true
-          color: Theme.foreground
-        }
-
-        MouseArea {
-          id: leftArrowMouse
-          anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: {
-            wrapper.currentIndex = (wrapper.currentIndex - 1 + wrapper.viewsModel.length) % wrapper.viewsModel.length;
-          }
-        }
-      }
-
-      // View indicators
-      Rectangle {
-        Layout.preferredWidth: indicatorRow.implicitWidth + 12
-        Layout.preferredHeight: 30
-        radius: Menu.cardBorderRadius
-        color: Theme.backgroundAlt
-        border.color: Theme.border
-        border.width: Menu.cardBorderWidth
-
-        Row {
-          id: indicatorRow
-          anchors.centerIn: parent
-          spacing: 6
-
-          Repeater {
-            model: wrapper.viewsModel.length
-
-            Rectangle {
-              id: indicatorDot
-              required property int index
-              width: 12
-              height: 12
-              radius: Menu.cardBorderRadius
-              color: wrapper.currentIndex === index ? Theme.accent : dotMouse.containsMouse ? Theme.foreground : Theme.background
-              border.color: Theme.border
-              border.width: Menu.cardBorderWidth
-
-              MouseArea {
-                id: dotMouse
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                hoverEnabled: true
-                onClicked: {
-                  wrapper.currentIndex = indicatorDot.index;
-                }
-              }
-
-              Behavior on color {
-                ColorAnimation {
-                  duration: Appearance.animationDuration / 2
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // Right arrow
-      Rectangle {
-        Layout.preferredWidth: 30
-        Layout.preferredHeight: 30
-        radius: Menu.cardBorderRadius
-        color: rightArrowMouse.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
-        border.color: Theme.border
-        border.width: Menu.cardBorderWidth
-
-        Text {
-          anchors.centerIn: parent
-          text: "›"
-          font.pixelSize: 20
-          font.bold: true
-          color: Theme.foreground
-        }
-
-        MouseArea {
-          id: rightArrowMouse
-          anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: {
-            wrapper.currentIndex = (wrapper.currentIndex + 1) % wrapper.viewsModel.length;
           }
         }
       }

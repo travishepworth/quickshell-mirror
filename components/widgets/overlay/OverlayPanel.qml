@@ -123,8 +123,23 @@ PanelWindow {
     }
 
     OverlayTabWrapper {
+      id: tabWrapper
       anchors.centerIn: parent
       screen: overlay.screen
+    }
+
+    OverlayPageNavigator {
+      anchors {
+        bottom: parent.bottom
+        bottomMargin: Widget.padding * 2
+        horizontalCenter: parent.horizontalCenter
+      }
+      visible: tabWrapper.viewsModel.length > 1
+      currentIndex: tabWrapper.currentIndex
+      count: tabWrapper.viewsModel.length
+      onPrevious: tabWrapper.currentIndex = (tabWrapper.currentIndex - 1 + tabWrapper.viewsModel.length) % tabWrapper.viewsModel.length
+      onNext: tabWrapper.currentIndex = (tabWrapper.currentIndex + 1) % tabWrapper.viewsModel.length
+      onSelect: index => tabWrapper.currentIndex = index
     }
   }
 }

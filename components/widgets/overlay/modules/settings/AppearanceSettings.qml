@@ -87,13 +87,14 @@ SchemaSection {
 
   SchemaTextField {
     label: "Font Family"
-    value: localConfig.Appearance?.fontFamily || "Inter"
+    currentConfigValue: localConfig.Appearance?.fontFamily || "Inter"
     placeholderText: "Font name"
     onValueChanged: {
       if (!localConfig.Appearance)
         localConfig.Appearance = {};
       localConfig.Appearance.fontFamily = value;
       SettingsMenu.markDirty();
+      SettingsMenu.applyChanges();
     }
   }
 
@@ -108,6 +109,7 @@ SchemaSection {
         localConfig.Appearance = {};
       localConfig.Appearance.fontSize = value;
       SettingsMenu.markDirty();
+      SettingsMenu.applyChanges();
     }
   }
   SchemaSwitch {
@@ -130,6 +132,7 @@ SchemaSection {
     onValueChanged: {
       root.localConfig.Widget.animationDuration = value;
       SettingsMenu.markDirty();
+      SettingsMenu.applyChanges();
     }
   }
   SchemaSpinBox {
