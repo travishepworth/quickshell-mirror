@@ -27,7 +27,7 @@ Rectangle {
   
   // -- Implementation --
   implicitWidth: label.implicitWidth + (textPadding * 2)
-  implicitHeight: label.implicitHeight + textPadding
+  implicitHeight: label.implicitHeight + (textPadding * 2)
   Layout.alignment: Qt.AlignVCenter
   
   color: mouseArea.pressed ? pressColor : (mouseArea.containsMouse ? hoverColor : backgroundColor)

@@ -23,7 +23,6 @@ Rectangle {
   // Local state management
   property var localConfig: SettingsMenu.localConfig
   property bool isDirty: SettingsMenu.isDirty
-  property bool isStaged: SettingsMenu.isStaged
 
   Component.onCompleted: {
     SettingsMenu.loadConfig();
@@ -87,7 +86,7 @@ Rectangle {
                 if (!root.localConfig.Widget)
                   root.localConfig.Widget = {};
                 root.localConfig.Widget.height = value;
-                SettingsMenu.continueStaging();
+                SettingsMenu.applyChanges();
               }
               onIsDirtyChanged: {
                 SettingsMenu.markDirty();
@@ -104,7 +103,7 @@ Rectangle {
                 if (!root.localConfig.Widget)
                   root.localConfig.Widget = {};
                 root.localConfig.Widget.padding = value;
-                SettingsMenu.continueStaging();
+                SettingsMenu.applyChanges();
               }
               onIsDirtyChanged: {
                 SettingsMenu.markDirty();
@@ -120,7 +119,7 @@ Rectangle {
                 if (!root.localConfig.Widget)
                   root.localConfig.Widget = {};
                 root.localConfig.Widget.spacing = value;
-                SettingsMenu.continueStaging();
+                SettingsMenu.applyChanges();
               }
               onIsDirtyChanged: {
                 SettingsMenu.markDirty();

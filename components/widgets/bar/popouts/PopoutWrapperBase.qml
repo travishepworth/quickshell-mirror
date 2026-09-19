@@ -88,7 +88,7 @@ Item {
       pendingOpenData = data;
       pendingOpenAnchor = anchor;
       hasPendingOpen = true;
-      closePopout();
+      requestDismiss();
     } else if (!occupied && !isClosing) {
       openPopout(anchor, data);
     } else {

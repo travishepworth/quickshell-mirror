@@ -23,7 +23,7 @@ SchemaSection {
   //     if (value === checked) return;
   //     root.localConfig.Appearance.autoThemeSwitch = value;
   //     SettingsMenu.markDirty();
-  //     SettingsMenu.continueStaging();
+  //     SettingsMenu.applyChanges();
   //   }
   // }
 
@@ -43,7 +43,7 @@ SchemaSection {
         if (!localConfig.Appearance)
           localConfig.Appearance = {};
         localConfig.Appearance.borderRadius = value;
-        SettingsMenu.continueStaging();
+        SettingsMenu.applyChanges();
       }
       onDirtied: {
         SettingsMenu.markDirty();
@@ -60,7 +60,7 @@ SchemaSection {
         if (!localConfig.Appearance)
           localConfig.Appearance = {};
         localConfig.Appearance.borderWidth = value;
-        SettingsMenu.continueStaging();
+        SettingsMenu.applyChanges();
       }
       onDirtied: {
         SettingsMenu.markDirty();
@@ -77,7 +77,7 @@ SchemaSection {
         if (!localConfig.Appearance)
           localConfig.Appearance = {};
         localConfig.Appearance.screenMargin = value;
-        SettingsMenu.continueStaging();
+        SettingsMenu.applyChanges();
       }
       onIsDirtyChanged: {
         SettingsMenu.markDirty();
@@ -117,7 +117,7 @@ SchemaSection {
       if (value === checked) return;
       root.localConfig.Widget.animations = value;
       SettingsMenu.markDirty();
-      SettingsMenu.continueStaging();
+      SettingsMenu.applyChanges();
     }
   }
   SchemaSpinBox {
@@ -139,7 +139,7 @@ SchemaSection {
     maximum: 1000
     onValueChanged: {
       root.localConfig.Widget.containerWidth = value;
-      SettingsMenu.continueStaging();
+      SettingsMenu.applyChanges();
     }
     onIsDirtyChanged: {
       SettingsMenu.markDirty();
@@ -153,7 +153,7 @@ SchemaSection {
       if (value === checked) return;
       root.localConfig.Appearance.workspacePopoutIcons = value;
       SettingsMenu.markDirty();
-      SettingsMenu.continueStaging();
+      SettingsMenu.applyChanges();
     }
   }
 }

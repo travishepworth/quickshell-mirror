@@ -17,9 +17,9 @@ ShellRoot {
     id: notificationPopup
   }
 
-  // Overlay {
-  //   id: overlay
-  // }
+  Overlay {
+    id: overlay
+  }
 
   Bar {
     id: mainBar

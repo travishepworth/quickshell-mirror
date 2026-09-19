@@ -19,12 +19,12 @@ PanelWindow {
   property int gridSpacing: 20
   property real backgroundDim: 0.5
 
-  property string iconLock: ""
-  property string iconLogout: ""
-  property string iconPoweroff: ""
-  property string iconSuspend: ""
-  property string iconReboot: ""
-  property string iconHibernate: ""
+  property string iconLock: " "
+  property string iconLogout: " "
+  property string iconPoweroff: " "
+  property string iconSuspend: " "
+  property string iconReboot: " "
+  property string iconHibernate: " "
 
   Component.onCompleted: {
     ShellManager.openPowerMenu.connect(function() {

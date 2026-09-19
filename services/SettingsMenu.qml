@@ -6,54 +6,42 @@ QtObject {
   id: settingsMenu
 
   property var localConfig: ({})
+  property var _savedConfig: ({})
   property bool isDirty: false
-  property bool isStaged: false
 
   Component.onCompleted: {
     loadConfig();
   }
 
   function loadConfig() {
-    localConfig = {};
     localConfig = JSON.parse(JSON.stringify(ConfigManager.config));
+    _savedConfig = JSON.parse(JSON.stringify(ConfigManager.config));
+    isDirty = false;
   }
 
   function checkDirty() {
-    return JSON.stringify(localConfig) !== JSON.stringify(ConfigManager.config);
-  }
-
-  function stageChanges() {
-    ConfigManager.stageConfig(localConfig);
-    isStaged = true;
-  }
-
-  function continueStaging() {
-    if (isStaged) {
-      ConfigManager.stageConfig(localConfig);
-    }
+    return JSON.stringify(localConfig) !== JSON.stringify(_savedConfig);
   }
 
   function markDirty() {
     settingsMenu.isDirty = checkDirty();
   }
 
-  function unstageChanges() {
-    ConfigManager.forceReload();
-    isStaged = false;
+  // Applies the in-progress edits to the running config in memory, without writing to disk.
+  function applyChanges() {
+    ConfigManager.applyConfig(localConfig);
   }
 
   function saveChanges() {
+    ConfigManager.applyConfig(localConfig);
     ConfigManager.saveConfig();
-    isStaged = false;
+    _savedConfig = JSON.parse(JSON.stringify(localConfig));
     isDirty = false;
-    loadConfig();
   }
 
   function resetChanges() {
     console.log("Resetting changes");
     ConfigManager.hardResetConfig();
-    isStaged = false;
-    isDirty = false;
     loadConfig();
   }
 }

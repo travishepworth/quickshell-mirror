@@ -2,10 +2,9 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 
-// NOTE: this is very semi - permanent. It certainly needs to be redone, but I will get to it eventually
-
 import qs.services
 import qs.config
+import qs.components.reusable
 
 Item {
   id: root
@@ -39,14 +38,14 @@ Item {
   width: implicitWidth
   height: implicitHeight
 
-  Rectangle {
+  StyledContainer {
     id: content
     anchors.fill: parent
 
-    color: Theme.background
-    border.color: Theme.backgroundAlt
-    border.width: 0
-    radius: Appearance.borderRadius + 2
+    backgroundColor: Theme.background
+    borderColor: Theme.backgroundAlt
+    borderWidth: 0
+    borderRadius: Appearance.borderRadius + 2
 
     HoverHandler {
       id: hoverHandler
@@ -64,13 +63,13 @@ Item {
         Layout.preferredHeight: root.artSize
         spacing: 12
 
-        Rectangle {
+        StyledContainer {
           id: artFrame
           Layout.preferredWidth: root.artSize
           Layout.preferredHeight: root.artSize
           Layout.alignment: Qt.AlignTop
-          radius: Appearance.borderRadius
-          color: Theme.backgroundAlt
+          borderRadius: Appearance.borderRadius
+          backgroundColor: Theme.backgroundAlt
           clip: true
 
           Image {
@@ -86,13 +85,12 @@ Item {
             visible: status === Image.Ready
           }
 
-          Text {
+          StyledText {
             anchors.centerIn: parent
             visible: artImage.status !== Image.Ready
             text: MprisController.isPlaying ? "♪" : "⏸"
-            font.pixelSize: 22
-            font.family: Appearance.fontFamily
-            color: Theme.foregroundAlt
+            textSize: 22
+            textColor: Theme.foregroundAlt
           }
         }
 
@@ -102,35 +100,32 @@ Item {
           Layout.alignment: Qt.AlignVCenter
           spacing: 2
 
-          Text {
+          StyledText {
             Layout.fillWidth: true
             text: MprisController.trackTitle || "No track playing"
-            color: Theme.accent
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 1.05
+            textColor: Theme.accent
+            textSize: Appearance.fontSize * 1.05
             font.bold: true
             elide: Text.ElideRight
             maximumLineCount: 1
           }
 
-          Text {
+          StyledText {
             Layout.fillWidth: true
             text: MprisController.trackArtist || " "
-            color: Theme.foregroundAlt
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 0.9
+            textColor: Theme.foregroundAlt
+            textSize: Appearance.fontSize * 0.9
             elide: Text.ElideRight
             maximumLineCount: 1
           }
 
-          Text {
+          StyledText {
             Layout.fillWidth: true
             // MprisController doesn't surface the album itself, but the
             // underlying Mpris player object does.
             text: (MprisController.activePlayer?.trackAlbum ?? "") || " "
-            color: Theme.foregroundAlt
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 0.8
+            textColor: Theme.foregroundAlt
+            textSize: Appearance.fontSize * 0.8
             opacity: 0.7
             elide: Text.ElideRight
             maximumLineCount: 1
@@ -152,18 +147,20 @@ Item {
           readonly property real trackHeight: 6
           readonly property real thumbSize: 12
 
-          Rectangle {
+          StyledContainer {
             id: sliderTrack
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width
             height: sliderArea.trackHeight
-            radius: height / 2
-            color: Theme.backgroundAlt
+            borderRadius: height / 2
+            borderWidth: 0
+            backgroundColor: Theme.backgroundAlt
 
-            Rectangle {
+            StyledContainer {
               height: parent.height
-              radius: parent.radius
-              color: Theme.accent
+              borderRadius: parent.borderRadius
+              borderWidth: 0
+              backgroundColor: Theme.accent
               width: Math.max(sliderArea.thumbSize / 2, parent.width * root.displayProgress)
 
               Behavior on width {
@@ -173,14 +170,14 @@ Item {
             }
           }
 
-          Rectangle {
+          StyledContainer {
             id: sliderThumb
             width: sliderArea.thumbSize
             height: sliderArea.thumbSize
-            radius: width / 2
-            color: Theme.accent
-            border.color: Theme.background
-            border.width: 2
+            borderRadius: width / 2
+            backgroundColor: Theme.accent
+            borderColor: Theme.background
+            borderWidth: 2
             anchors.verticalCenter: parent.verticalCenter
             x: Math.min(Math.max(0, sliderTrack.width * root.displayProgress - width / 2),
                         sliderTrack.width - width / 2)
@@ -191,26 +188,25 @@ Item {
 
           // Floating time readout shown while dragging — the "feedback"
           // for the slider.
-          Rectangle {
+          StyledContainer {
             id: seekTooltip
             visible: root.isSeeking
-            color: Theme.background
-            border.color: Theme.backgroundAlt
-            border.width: 1
-            radius: 4
+            backgroundColor: Theme.background
+            borderColor: Theme.backgroundAlt
+            borderWidth: 1
+            borderRadius: 4
             width: seekTooltipText.implicitWidth + 10
             height: seekTooltipText.implicitHeight + 6
             x: Math.min(Math.max(0, sliderThumb.x + sliderThumb.width / 2 - width / 2),
                         sliderArea.width - width)
             y: -height - 6
 
-            Text {
+            StyledText {
               id: seekTooltipText
               anchors.centerIn: parent
               text: MprisController.formatTime(root.displayPosition)
-              color: Theme.foregroundAlt
-              font.family: Appearance.fontFamily
-              font.pixelSize: Appearance.fontSize * 0.8
+              textColor: Theme.foregroundAlt
+              textSize: Appearance.fontSize * 0.8
             }
           }
 
@@ -252,20 +248,18 @@ Item {
           Layout.fillWidth: true
           Layout.preferredHeight: root.timeRowHeight
 
-          Text {
+          StyledText {
             text: MprisController.formatTime(root.displayPosition)
-            color: Theme.foregroundAlt
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 0.8
+            textColor: Theme.foregroundAlt
+            textSize: Appearance.fontSize * 0.8
           }
 
           Item { Layout.fillWidth: true }
 
-          Text {
+          StyledText {
             text: MprisController.formatTime(MprisController.length)
-            color: Theme.foregroundAlt
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 0.8
+            textColor: Theme.foregroundAlt
+            textSize: Appearance.fontSize * 0.8
           }
         }
       }
@@ -277,22 +271,62 @@ Item {
         Layout.alignment: Qt.AlignHCenter
         spacing: 22
 
-        MediaButton {
-          glyph: "⏮"
+        StyledIconButton {
+          readonly property int size: 30
+
+          Layout.fillWidth: false
+          Layout.fillHeight: false
+          Layout.preferredWidth: size
+          Layout.preferredHeight: size
+
+          iconText: "⏮"
+          iconSize: size * 0.42
+          borderRadius: size / 2
+          iconColor: Theme.foregroundAlt
+          backgroundColor: Theme.backgroundAlt
+          hoverColor: Theme.accentAlt
+          pressColor: Theme.accentAlt
+
           enabled: MprisController.canGoPrevious
           onClicked: MprisController.previous()
         }
 
-        MediaButton {
-          size: 44
-          emphasized: true
-          glyph: MprisController.isPlaying ? "⏸" : "▶"
+        StyledIconButton {
+          readonly property int size: 42
+
+          Layout.fillWidth: false
+          Layout.fillHeight: false
+          Layout.preferredWidth: size
+          Layout.preferredHeight: size
+
+          iconText: MprisController.isPlaying ? "⏸" : "▶"
+          iconSize: size * 0.42
+          borderRadius: size / 2
+          iconColor: Theme.background
+          backgroundColor: Theme.accent
+          hoverColor: Theme.accent
+          pressColor: Theme.accent
+
           enabled: MprisController.canTogglePlaying
           onClicked: MprisController.togglePlayPause()
         }
 
-        MediaButton {
-          glyph: "⏭"
+        StyledIconButton {
+          readonly property int size: 30
+
+          Layout.fillWidth: false
+          Layout.fillHeight: false
+          Layout.preferredWidth: size
+          Layout.preferredHeight: size
+
+          iconText: "⏭"
+          iconSize: size * 0.42
+          borderRadius: size / 2
+          iconColor: Theme.foregroundAlt
+          backgroundColor: Theme.backgroundAlt
+          hoverColor: Theme.accentAlt
+          pressColor: Theme.accentAlt
+
           enabled: MprisController.canGoNext
           onClicked: MprisController.next()
         }

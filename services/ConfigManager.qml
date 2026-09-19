@@ -15,7 +15,6 @@ QtObject {
   readonly property var theme: _theme
   readonly property string configDir: "../config/user/"
   readonly property string configFile: "config.json" // TODO: load all config files from dir (if necessary)
-  property bool usingStagedConfig: false
 
   /**
      * @brief Requests a change to the current theme.
@@ -79,12 +78,11 @@ QtObject {
   }
 
   /**
-   * * @brief Stages a full configuration object to memory without saving.
+   * @brief Applies a full configuration object to memory without saving to disk.
    */
-  function stageConfig(object) {
+  function applyConfig(object) {
     _loadObjectToConfig(object);
-    usingStagedConfig = true;
-    console.log("[ConfigManager] Staged new configuration object to memory.");
+    console.log("[ConfigManager] Applied configuration object to memory.");
   }
 
   /**

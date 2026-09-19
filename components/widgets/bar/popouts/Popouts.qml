@@ -85,7 +85,7 @@ PopoutWrapperBase {
       if (root.barConfig.vertical) {
         return contentWidth + root.connectorGap;
       }
-      return contentWidth;
+      return contentWidth + Appearance.borderRadius * 2 + Appearance.borderWidth * 2;
     }
 
     implicitHeight: {
@@ -161,7 +161,7 @@ PopoutWrapperBase {
         border.width: Appearance.borderWidth
         anchors.centerIn: parent
 
-        width: root.barConfig.vertical ? parent.width - root.connectorGap : parent.width
+        width: root.barConfig.vertical ? parent.width - root.connectorGap : parent.width - Appearance.borderRadius * 4 + Appearance.borderWidth * 2
         height: root.barConfig.vertical ? parent.height - Appearance.borderRadius * 4 + Appearance.borderWidth * 2 : parent.height - root.connectorGap
 
         Loader {
@@ -180,6 +180,8 @@ PopoutWrapperBase {
               return mediaPlayerComponent;
             case "system-tray-menu":
               return systemTrayComponent;
+            case "calendar":
+              return calendarComponent;
             default:
               return null;
             }
@@ -205,10 +207,10 @@ PopoutWrapperBase {
         id: connector
         color: Theme.background
 
-        x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : 0
-        y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : 0 + Appearance.borderRadius * 2
+        x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : Appearance.borderRadius * 2
+        y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : Appearance.borderRadius * 2
 
-        width: root.barConfig.vertical ? root.connectorGap : parent.width
+        width: root.barConfig.vertical ? root.connectorGap : contentContainer.width - Appearance.borderWidth * 2
         height: root.barConfig.vertical ? contentContainer.height - Appearance.borderWidth * 2 : root.connectorGap
       }
 
@@ -223,23 +225,28 @@ PopoutWrapperBase {
         height: mainPopup.height
       }
 
+      // Vertical bars (left/right): round the nub-to-box transition at
+      // the box's top and bottom edges.
       Rectangle {
         id: topCorner
+        visible: root.barConfig.vertical
         anchors.top: cornerHolder.top
         anchors.left: connector.left
         anchors.right: connector.right
         width: connector.width
         height: connector.width
         color: "transparent"
+        // color: "red"
         clip: true
         CornerPiece {
-          isLeft: true
+          isLeft: root.barConfig.left
           isTop: false
         }
       }
 
       Rectangle {
         id: bottomCorner
+        visible: root.barConfig.vertical
         anchors.bottom: cornerHolder.bottom
         anchors.left: connector.left
         anchors.right: connector.right
@@ -248,8 +255,43 @@ PopoutWrapperBase {
         color: "transparent"
         clip: true
         CornerPiece {
-          isLeft: true
+          isLeft: root.barConfig.left
           isTop: true
+        }
+      }
+
+      // Horizontal bars (top/bottom): round the nub-to-box transition at
+      // the box's left and right edges instead. The corner-piece squares
+      // are sized to the connector gap directly (not the nub's own width,
+      // which spans the full popout for a horizontal bar) so the curve
+      // isn't drawn far outside the visible window and clipped away.
+      Rectangle {
+        id: leftCorner
+        visible: !root.barConfig.vertical
+        x: 0
+        y: connector.y
+        width: root.connectorGap
+        height: connector.height
+        color: "transparent"
+        clip: true
+        CornerPiece {
+          isLeft: false
+          isTop: root.barConfig.top
+        }
+      }
+
+      Rectangle {
+        id: rightCorner
+        visible: !root.barConfig.vertical
+        x: parent.width - root.connectorGap
+        y: connector.y
+        width: root.connectorGap
+        height: connector.height
+        color: "transparent"
+        clip: true
+        CornerPiece {
+          isLeft: true
+          isTop: root.barConfig.top
         }
       }
     }
@@ -273,6 +315,13 @@ PopoutWrapperBase {
   Component {
     id: mediaPlayerComponent
     MediaPopout {
+      wrapper: root
+    }
+  }
+
+  Component {
+    id: calendarComponent
+    CalendarPopout {
       wrapper: root
     }
   }

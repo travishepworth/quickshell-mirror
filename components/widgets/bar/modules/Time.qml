@@ -4,6 +4,7 @@ import Quickshell
 import QtQuick
 
 import qs.config
+import qs.components.widgets.bar.popouts
 
 Item {
   id: root
@@ -168,5 +169,13 @@ Item {
         }
       }
     }
+  }
+
+  PopoutAnchor {
+    id: anchor
+    popouts: root.popouts
+    panel: root.panel
+    popoutName: "calendar"
+    openDelay: 150
   }
 }

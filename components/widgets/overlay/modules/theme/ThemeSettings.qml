@@ -18,7 +18,6 @@ Rectangle {
 
   property var localConfig: SettingsMenu.localConfig
   property bool isDirty: SettingsMenu.isDirty
-  property bool isStaged: SettingsMenu.isStaged
 
   ColumnLayout {
     anchors.fill: parent
@@ -63,7 +62,7 @@ Rectangle {
         //       root.localConfig.Appearance = {};
         //     root.localConfig.Appearance.enableGeneratedTheme = value;
         //     SettingsMenu.markDirty();
-        //     SettingsMenu.continueStaging();
+        //     SettingsMenu.applyChanges();
         //   }
         // }
 

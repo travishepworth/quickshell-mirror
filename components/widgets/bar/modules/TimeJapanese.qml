@@ -5,6 +5,7 @@ import QtQuick
 
 import qs.config
 import qs.components.reusable
+import qs.components.widgets.bar.popouts
 
 Item {
   id: root
@@ -129,7 +130,6 @@ Item {
 
           // Seconds
           Column {
-            visible: false
             spacing: 0
             anchors.horizontalCenter: parent.horizontalCenter
             Text {
@@ -205,18 +205,26 @@ Item {
             }
           }
 
-          // Text {
-          //   color: Theme.background
-          //   font.family: Appearance.fontFamily
-          //   font.pixelSize: Appearance.fontSize
-          //   text: {
-          //     const days = ["日", "月", "火", "水", "木", "金", "土"];
-          //     return days[clock.date.getDay()];
-          //   }
-          //   anchors.horizontalCenter: parent.horizontalCenter
-          // }
+          Text {
+            color: Theme.background
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize
+            text: {
+              const days = ["日", "月", "火", "水", "木", "金", "土"];
+              return days[clock.date.getDay()];
+            }
+            anchors.horizontalCenter: parent.horizontalCenter
+          }
         }
       }
     }
+  }
+
+  PopoutAnchor {
+    id: anchor
+    popouts: root.popouts
+    panel: root.panel
+    popoutName: "calendar"
+    openDelay: 150
   }
 }

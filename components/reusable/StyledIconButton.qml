@@ -30,7 +30,18 @@ ToolButton {
   Layout.fillHeight: true
   Layout.fillWidth: true
   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-  
+
+  opacity: enabled ? 1.0 : 0.4
+  scale: component.pressed ? 0.92 : 1.0
+
+  Behavior on scale {
+    NumberAnimation { duration: 80 }
+  }
+
+  HoverHandler {
+    cursorShape: Qt.PointingHandCursor
+  }
+
   contentItem: Text {
     text: component.iconText
     font.family: Appearance.fontFamily
@@ -39,13 +50,13 @@ ToolButton {
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
   }
-  
+
   background: Rectangle {
     color: component.pressed ? component.pressColor : (component.hovered ? component.hoverColor : component.backgroundColor)
     border.color: component.borderColor
     border.width: component.borderWidth
     radius: component.borderRadius
-    
+
     Behavior on color {
       ColorAnimation {
         duration: 150
