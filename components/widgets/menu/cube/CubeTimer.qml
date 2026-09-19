@@ -58,7 +58,7 @@ ColumnLayout {
 
   Process {
     id: cubeScriptProcess
-    command: ["python3", root.pythonScriptPath]
+    command: [Config.venvPythonPath, root.pythonScriptPath]
     onExited: {
       console.log("Command:", command.join(" "));
       console.log("Stdout:", stdout);

@@ -9,3 +9,5 @@ config/themes/generated
 
 config/user
 config/state
+
+.venv

@@ -24,6 +24,7 @@ QtObject {
 
   readonly property string axiomPath: root.homeDirectory + ".config/quickshell/axiom/"
   readonly property string scriptsPath: root.axiomPath + "scripts/"
+  readonly property string venvPythonPath: root.axiomPath + ".venv/bin/python3"
 
   readonly property string configPath: root.axiomPath + "config/"
   readonly property string statePath: root.configPath + "state/"

@@ -131,6 +131,7 @@ QtObject {
   property string _themesPath: _configPath + "/config/themes"
   property string _generatedThemesPath: _themesPath + "/generated"
   property string _pythonScriptPath: _configPath + "/scripts/generate_theme.py"
+  property string _venvPythonPath: _configPath + "/.venv/bin/python3"
 
   property ListModel _allThemesModel: ListModel {}
   property ListModel _defaultThemesModel: ListModel {}
@@ -175,9 +176,10 @@ QtObject {
       const wallpaperPath = wallpaperUrl.toString().replace("file://", "");
       const scriptPath = root._pythonScriptPath.replace("file://", "");
       const outputDir = root._generatedThemesPath.replace("file://", "");
+      const pythonPath = root._venvPythonPath.replace("file://", "");
 
       console.log("[ThemeManager] Generating theme", themeIndex, "using backend:", backend);
-      generationProcess.command = ["python3", scriptPath, wallpaperPath, "--output_dir", outputDir, "--backend", backend];
+      generationProcess.command = [pythonPath, scriptPath, wallpaperPath, "--output_dir", outputDir, "--backend", backend];
       console.log("[ThemeManager] Executing:", generationProcess.command.join(" "));
       generationProcess.running = true;
     }
