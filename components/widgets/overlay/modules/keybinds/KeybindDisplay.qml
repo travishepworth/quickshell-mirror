@@ -11,13 +11,9 @@ Rectangle {
 
   // --- PROPERTIES ---
 
-  // The main model containing all keybind categories
-  // e.g., { "WINDOW": [...], "WORKSPACE": [...], "OTHER": [...] }
+  // Ordered sections from HyprConfigManager: [{ title, binds: [{ label, combos }] }]
   required property var keybinds
   required property var screen
-
-  // Defines the order in which sections will be displayed
-  property var sectionOrder: ["WINDOW", "WORKSPACE", "OTHER"]
 
   // A flat list model that will be built from the 'keybinds' object.
   // This is used by the Repeater to create a continuous flow.
@@ -35,56 +31,22 @@ Rectangle {
   border.color: Theme.border
   border.width: Appearance.borderWidth
 
-
   // --- JAVASCRIPT LOGIC ---
-  function formatTitle(key) {
-    if (!key || typeof key !== 'string') return "";
-    let formatted = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
-    
-    if (key === "WINDOW" || key === "WORKSPACE" || key === "MODIFIERS") {
-        return formatted + " Management";
-    }
-    return formatted;
-  }
-
-  // This function transforms the structured 'keybinds' object into a
-  // flat list ('displayModel') for the Repeater, merging keybinds with the same action.
+  // Flattens the sections into header + keybind items so the Flow can wrap continuously.
   function buildDisplayModel() {
-    var newModel = [];
-    for (const sectionKey of sectionOrder) {
-      if (keybinds && keybinds.hasOwnProperty(sectionKey) && keybinds[sectionKey].length > 0) {
-        
-        // Add header item
+    const newModel = [];
+    for (const section of keybinds || []) {
+      if (section.binds.length === 0)
+        continue;
+      newModel.push({
+        type: "header",
+        title: section.title
+      });
+      for (const bind of section.binds) {
         newModel.push({
-          type: "header",
-          title: formatTitle(sectionKey)
+          type: "keybind",
+          data: bind
         });
-
-        // Group keybinds by action
-        const groupedKeybinds = {};
-        for (const keybindItem of keybinds[sectionKey]) {
-            const action = keybindItem.action;
-            if (!groupedKeybinds[action]) {
-                groupedKeybinds[action] = [];
-            }
-            groupedKeybinds[action].push({
-                mod: keybindItem.mod,
-                bind: keybindItem.bind
-            });
-        }
-
-        // Add merged keybind items for the current section
-        for (const action in groupedKeybinds) {
-            if (groupedKeybinds.hasOwnProperty(action)) {
-                newModel.push({
-                    type: "keybind",
-                    data: {
-                        action: action,
-                        binds: groupedKeybinds[action]
-                    }
-                });
-            }
-        }
       }
     }
     displayModel = newModel;
@@ -109,11 +71,15 @@ Rectangle {
         required property var modelData
 
         sourceComponent: {
-          switch(modelData.type) {
-            case "header": return headerComponent;
-            case "separator": return separatorComponent;
-            case "keybind": return keybindComponent;
-            default: return null;
+          switch (modelData.type) {
+          case "header":
+            return headerComponent;
+          case "separator":
+            return separatorComponent;
+          case "keybind":
+            return keybindComponent;
+          default:
+            return null;
           }
         }
         onLoaded: {
@@ -136,11 +102,11 @@ Rectangle {
       StyledText {
         anchors.centerIn: parent
         text: header.itemData.title
-        
+
         font.bold: true
         color: Theme.accent
       }
-      
+
       Rectangle {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
