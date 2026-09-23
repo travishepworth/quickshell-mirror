@@ -83,19 +83,15 @@ StyledContainer {
           id: albumArt
           anchors.fill: parent
           fillMode: Image.PreserveAspectCrop
-          source: MprisController.artUrl ? MprisController.artUrl : ""
+          // The downloaded copy (see MprisController): the remote URL can
+          // fail to load, and artVersion changes whenever a new file lands
+          source: MprisController.artDownloaded && MprisController.artVersion >= 0 ? "file://" + MprisController.artFilePath : ""
           smooth: true
           asynchronous: true
           cache: true
-
-          onStatusChanged: {
-            if (status === Image.Error) {
-              console.warn("Failed to load album art from:", source);
-              source = "qrc:/images/default_album_art.png";
-            } else if (status === Image.Ready) {
-              // console.log("[MediaControl] Successfully loaded album art");
-            }
-          }
+          // Never assign `source` here: that would break the binding and
+          // freeze the art on the failed track
+          visible: status === Image.Ready
         }
       }
 
@@ -182,7 +178,7 @@ StyledContainer {
               running: MprisController.isPlaying && MprisController.hasActivePlayer
               repeat: true
               onTriggered: {
-                MprisController.updatePosition()
+                MprisController.updatePosition();
               }
             }
 

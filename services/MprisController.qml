@@ -50,16 +50,26 @@ QtObject {
     // Reset immediately so the UI falls back to its placeholder rather
     // than briefly showing the previous track's art under the new one.
     root.artDownloaded = false;
+    // Coalesced: players often clear the URL and set the new one in quick
+    // succession on a track change
+    Qt.callLater(root._fetchArt);
+  }
 
-    if (!root.artUrl) {
-      // Nothing to fetch (e.g. player has no art or dropped out).
+  // The URL the running download is for; a result for any other URL is stale
+  property string _artFetchUrl: ""
+
+  // Built here from the current values (not a binding): bindings on artUrl
+  // may not have updated yet inside onArtUrlChanged, which used to start
+  // curl with the previous, often empty, URL
+  function _fetchArt() {
+    const url = root.artUrl;
+    if (!url || url === root._artFetchUrl && root._artDownloader.running)
       return;
-    }
-
-    // Force a restart even if a previous download for a different URL is
-    // still in flight — setting running false-then-true cancels it and
-    // kicks off the new one instead of letting a stale download finish
-    // and stomp artDownloaded/artVersion after the fact.
+    root._artFetchUrl = url;
+    // URL and path go in as arguments ($1, $2), never into the script
+    // text; downloads land in .part and are renamed, so an interrupted one
+    // is never mistaken for a cached file
+    root._artDownloader.command = ["bash", "-c", 'mkdir -p "$(dirname "$2")" && { [ -s "$2" ] || { curl --fail -sSL --max-time 15 "$1" -o "$2.part" && mv -f "$2.part" "$2"; }; }', "art", url, root.artFilePath];
     root._artDownloader.running = false;
     root._artDownloader.running = true;
   }
@@ -162,15 +172,21 @@ QtObject {
   // Album art downloader
   property Process _artDownloader: Process {
     running: false
-    command: ["bash", "-c", `mkdir -p /tmp/quickshell-media-art && [ -f '${root.artFilePath}' ] || curl --fail -sSL '${root.artUrl}' -o '${root.artFilePath}'`]
     onExited: (exitCode, exitStatus) => {
+      const url = root._artFetchUrl;
+      root._artFetchUrl = "";
+      // The track moved on while this was downloading: fetch the new one
+      if (url !== root.artUrl) {
+        Qt.callLater(root._fetchArt);
+        return;
+      }
       if (exitCode === 0) {
-        console.log("[MprisController] Successfully downloaded album art to:", root.artFilePath);
+        console.log("[MprisController] Album art ready:", root.artFilePath);
         root.artDownloaded = true;
         root.artVersion++;
         root.artReady();
       } else {
-        console.warn("Failed to download album art from:", root.artUrl, "Exit code:", exitCode);
+        console.warn("[MprisController] Failed to download album art from:", url, "Exit code:", exitCode);
         root.artDownloaded = false;
       }
     }

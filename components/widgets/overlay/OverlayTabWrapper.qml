@@ -14,19 +14,24 @@ Item {
   // it's always the last page and can't be removed
   readonly property int editorIndex: viewsModel.length
   readonly property int pageCount: viewsModel.length + 1
-  readonly property Item currentPage: wrapper.currentIndex === wrapper.editorIndex ? editorPage : viewsRepeater.itemAt(wrapper.currentIndex)
+  // itemAt() isn't a notifying read: `count` makes this re-evaluate once
+  // the Repeater has created its pages (on launch they don't exist yet)
+  readonly property Item currentPage: wrapper.currentIndex === wrapper.editorIndex ? editorPage : (viewsRepeater.count > wrapper.currentIndex ? viewsRepeater.itemAt(wrapper.currentIndex) : null)
 
-  // The views rebuild on every config change (including the editor's own
-  // saves); stay on the editor if it was showing, else keep the index valid
-  property int _lastEditorIndex: 0
+  // A new launch opens on the first page; closing and re-opening keeps the
+  // page (this wrapper lives as long as the overlay window). The views
+  // rebuild on every config change, including the editor's own saves: stay
+  // on the editor if the user is on it, otherwise keep the index valid.
+  // Tracked from real navigation only: while the views are still loading
+  // the editor briefly sits at index 0, which isn't the user being on it.
+  property bool _onEditor: false
+  onCurrentIndexChanged: wrapper._onEditor = wrapper.viewsModel.length > 0 && wrapper.currentIndex === wrapper.editorIndex
   onEditorIndexChanged: {
-    if (wrapper.currentIndex === wrapper._lastEditorIndex)
+    if (wrapper._onEditor)
       wrapper.currentIndex = wrapper.editorIndex;
     else
       wrapper.currentIndex = Math.min(wrapper.currentIndex, wrapper.editorIndex);
-    wrapper._lastEditorIndex = wrapper.editorIndex;
   }
-  Component.onCompleted: wrapper._lastEditorIndex = wrapper.editorIndex
 
   implicitWidth: currentViewWidth + OverlayConfig.cardSpacing * 2
   implicitHeight: currentViewHeight + OverlayConfig.cardSpacing * 2
