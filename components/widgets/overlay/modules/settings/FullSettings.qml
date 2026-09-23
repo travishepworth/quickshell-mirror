@@ -67,6 +67,11 @@ Rectangle {
           config: root.localConfig
           onEdited: (path, value) => SettingsMenu.setValue(path, value)
         }
+
+        SavedConfigsSection {
+          Layout.leftMargin: Widget.padding
+          Layout.rightMargin: Widget.padding
+        }
       }
     }
   }

@@ -32,6 +32,11 @@ IconTextWidget {
     const names = [node.name, node.properties?.["application.name"], node.properties?.["application.process.binary"]];
     return names.some(n => n && root.ignoredApps.includes(n.toLowerCase()));
   }
+  // Quickshell has no type for `Stream/Input/Video`, so a screen/camera
+  // consumer is Untracked and `isStream` is false; read the media class.
+  function isVideoStream(node) {
+    return (node.properties?.["media.class"] ?? "") === "Stream/Input/Video";
+  }
   function isPortal(node) {
     return (node.name || "").startsWith("xdg-desktop-portal");
   }
@@ -42,8 +47,8 @@ IconTextWidget {
   }
 
   readonly property var micUsers: properties.showMic ? [...new Set(Audio.micCaptures.filter(n => !ignored(n)).map(n => appName(n)))] : []
-  readonly property var screenUsers: properties.showScreen ? users(s => s.type === PwNodeType.VideoSource && isPortal(s), t => t.isStream) : []
-  readonly property var cameraUsers: properties.showCamera ? users(s => s.type === PwNodeType.VideoSource && !isPortal(s), t => t.isStream) : []
+  readonly property var screenUsers: properties.showScreen ? users(s => s.type === PwNodeType.VideoSource && isPortal(s), t => isVideoStream(t)) : []
+  readonly property var cameraUsers: properties.showCamera ? users(s => s.type === PwNodeType.VideoSource && !isPortal(s), t => isVideoStream(t)) : []
 
   readonly property var glyphs: [...(micUsers.length ? ["\u{F036C}"] : []), ...(screenUsers.length ? ["\u{F0379}"] : []), ...(cameraUsers.length ? ["\u{F0100}"] : [])]
   readonly property bool hidden: glyphs.length === 0

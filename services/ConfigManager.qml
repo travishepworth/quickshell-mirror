@@ -87,9 +87,21 @@ QtObject {
     var scriptPath = Config.scriptsPath;
     var themePath = Config.themePath + Appearance.theme + ".json";
     const integrations = [
-      { enabled: ThemeIntegrations.kitty, process: _kittyProcess, script: "theme_kitty.sh" },
-      { enabled: ThemeIntegrations.cava, process: _cavaProcess, script: "theme_cava.sh" },
-      { enabled: ThemeIntegrations.k9s, process: _k9sProcess, script: "theme_k9s.sh" }
+      {
+        enabled: ThemeIntegrations.kitty,
+        process: _kittyProcess,
+        script: "theme_kitty.sh"
+      },
+      {
+        enabled: ThemeIntegrations.cava,
+        process: _cavaProcess,
+        script: "theme_cava.sh"
+      },
+      {
+        enabled: ThemeIntegrations.k9s,
+        process: _k9sProcess,
+        script: "theme_k9s.sh"
+      }
     ];
     for (const integration of integrations) {
       // A busy integration only skips itself, not the ones after it
@@ -98,6 +110,23 @@ QtObject {
       integration.process.command = [scriptPath + integration.script, themePath];
       integration.process.running = true;
     }
+  }
+
+  /**
+   * @brief Replaces the whole config with a parsed config object (e.g. a
+   * saved configuration), running it through the same migrate/prune/
+   * defaults/validate pipeline as config.json, then saves it.
+   * @return true if the config was valid and saved.
+   */
+  function restoreConfig(object) {
+    const prepared = _prepareConfig(object);
+    if (!prepared) {
+      console.error("[ConfigManager] Restored config is invalid, keeping the current one.");
+      return false;
+    }
+    configManager._config = prepared.config;
+    saveConfig();
+    return true;
   }
 
   /**
@@ -222,6 +251,21 @@ QtObject {
       return defaults;
     }
 
+    const prepared = _prepareConfig(parsed, schema);
+    if (!prepared) {
+      console.error("[ConfigManager] config.json is invalid, using defaults until it is fixed.");
+      return defaults;
+    }
+
+    if (prepared.migrated)
+      Qt.callLater(() => _write(prepared.config));
+    console.log("[ConfigManager] Configuration loaded and validated successfully.");
+    return prepared.config;
+  }
+
+  // Migrate → prune unknown keys → fill defaults → validate a parsed config.
+  // Returns { config, migrated }, or null if the result is invalid.
+  function _prepareConfig(parsed, schema = _configSchema) {
     const migration = ConfigMigration.migrate(parsed);
     if (migration.migrated) {
       console.log("[ConfigManager] Migrated config to version", ConfigMigration.currentVersion + ":");
@@ -235,15 +279,12 @@ QtObject {
     removed.forEach(path => console.warn("[ConfigManager] Ignoring unknown config key:", path));
 
     const filled = SchemaValidation.applyDefaults(config, schema);
-    if (!_validateConfig(filled, schema)) {
-      console.error("[ConfigManager] config.json is invalid, using defaults until it is fixed.");
-      return defaults;
-    }
-
-    if (migration.migrated)
-      Qt.callLater(() => _write(filled));
-    console.log("[ConfigManager] Configuration loaded and validated successfully.");
-    return filled;
+    if (!_validateConfig(filled, schema))
+      return null;
+    return {
+      config: filled,
+      migrated: migration.migrated
+    };
   }
 
   // Writes a config object to disk as-is (no reload); used after migration

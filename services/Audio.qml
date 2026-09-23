@@ -178,12 +178,23 @@ QtObject {
 
   // -- Microphone use --
 
+  // Active links into an app input stream from a non-stream node. Quickshell
+  // only types exact media classes, so virtual sources (`Audio/Source/Virtual`,
+  // e.g. EasyEffects or a loopback) read as Untracked; their media.class is
+  // checked below once the tracker has bound them.
+  readonly property var _captureLinks: Pipewire.linkGroups.values.filter(g => g && g.state === PwLinkState.Active && g.target?.type === PwNodeType.AudioInStream && g.source && !g.source.isStream)
+
+  property PwObjectTracker captureTracker: PwObjectTracker {
+    objects: root._captureLinks.map(g => g.source)
+  }
+
   // App input streams actively recording from a microphone. Recording a
   // sink monitor (visualisers, peak meters) doesn't count.
   readonly property var micCaptures: {
     const targets = [];
-    for (const g of Pipewire.linkGroups.values) {
-      if (g && g.state === PwLinkState.Active && g.source?.type === PwNodeType.AudioSource && g.target?.type === PwNodeType.AudioInStream && !targets.includes(g.target))
+    for (const g of _captureLinks) {
+      const isMic = g.source.type === PwNodeType.AudioSource || (g.source.properties?.["media.class"] ?? "").startsWith("Audio/Source");
+      if (isMic && !targets.includes(g.target))
         targets.push(g.target);
     }
     return targets;
