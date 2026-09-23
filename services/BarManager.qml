@@ -46,7 +46,7 @@ QtObject {
     // via Qt.callLater so this doesn't reassign localConfig synchronously
     // inside the same call stack as the edit that triggered it - otherwise
     // any control whose own currentConfigValue depends on localConfig (e.g.
-    // BarFieldsPanel's fields) re-enters its own binding and QML reports a
+    // BarFieldsForm's fields) re-enters its own binding and QML reports a
     // binding loop.
     Qt.callLater(root._refreshLocalConfig);
   }

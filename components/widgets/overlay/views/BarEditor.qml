@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.services
-import qs.components.widgets.overlay.columns
+import qs.components.widgets.overlay.views.barEditor
 
 // Arranges the Bar Editor's 3 columns (settings, modules, preview) so the
 // preview sits where the real bar would sit relative to the other two:
@@ -33,11 +33,11 @@ BaseView {
     id: leftLayout
     RowLayout {
       spacing: OverlayConfig.cardSpacing
-      BarEditorPreview {
+      BarPreview {
         Layout.fillHeight: true
       }
-      BarEditor {}
-      BarEditorLayout {}
+      BarFieldsPanel {}
+      BarModulesPanel {}
     }
   }
 
@@ -45,9 +45,9 @@ BaseView {
     id: rightLayout
     RowLayout {
       spacing: OverlayConfig.cardSpacing
-      BarEditor {}
-      BarEditorLayout {}
-      BarEditorPreview {
+      BarFieldsPanel {}
+      BarModulesPanel {}
+      BarPreview {
         Layout.fillHeight: true
       }
     }
@@ -57,13 +57,13 @@ BaseView {
     id: topLayout
     ColumnLayout {
       spacing: OverlayConfig.cardSpacing
-      BarEditorPreview {
+      BarPreview {
         Layout.fillWidth: true
       }
       RowLayout {
         spacing: OverlayConfig.cardSpacing
-        BarEditor {}
-        BarEditorLayout {}
+        BarFieldsPanel {}
+        BarModulesPanel {}
       }
     }
   }
@@ -74,10 +74,10 @@ BaseView {
       spacing: OverlayConfig.cardSpacing
       RowLayout {
         spacing: OverlayConfig.cardSpacing
-        BarEditor {}
-        BarEditorLayout {}
+        BarFieldsPanel {}
+        BarModulesPanel {}
       }
-      BarEditorPreview {
+      BarPreview {
         Layout.fillWidth: true
       }
     }

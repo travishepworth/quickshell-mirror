@@ -4,17 +4,15 @@ import Quickshell
 import Quickshell.Io
 
 import qs.config
+import qs.components.widgets.overlay
 import qs.components.widgets.common
 import qs.services
 
-Rectangle {
+OverlayCard {
   id: root
+
   color: Theme.magenta
-  anchors.fill: parent
-  border.color: Theme.foreground
-  border.width: Appearance.borderWidth
-  radius: Appearance.borderRadius
-  
+
   property real cpuUsage: SystemManager.cpuUsage
   property real cpuTemp: SystemManager.cpuTemp
 
@@ -26,7 +24,7 @@ Rectangle {
   SystemMonitor {
     anchors.fill: parent
     anchors.margins: OverlayConfig.cardPadding
-    
+
     label: "CPU"
     iconText: ""
     iconColor: Theme.background

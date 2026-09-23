@@ -16,9 +16,9 @@ Item {
   // Force horizontal rendering regardless of the real bar's orientation -
   // this is just a "what does this module look like" swatch.
   readonly property var previewBarConfig: Bar.enrichBarConfig({
-      "location": "Top",
-      "extent": Widget.height
-    })
+    "location": "Top",
+    "extent": Widget.height
+  })
 
   implicitWidth: loader.item ? loader.item.implicitWidth : 0
   implicitHeight: Widget.height

@@ -25,7 +25,6 @@ QtObject {
   // --- Everything else ---
   property string identity: activePlayer ? activePlayer.identity : ""
   property string trackTitle: activePlayer ? activePlayer.trackTitle : ""
-  property string trackId: activePlayer ? activePlayer.trackId : ""
   property string trackArtist: activePlayer ? activePlayer.trackArtist : ""
   property string artUrl: activePlayer ? activePlayer.trackArtUrl : ""
   property string artFileName: artUrl ? Qt.md5(artUrl) + ".jpg" : ""
@@ -76,7 +75,6 @@ QtObject {
     console.log("[MprisController]   Playback State:", playbackState === MprisPlaybackState.Playing ? "Playing" : (playbackState === MprisPlaybackState.Paused ? "Paused" : "Stopped"));
     console.log("[MprisController]   Track Title:", trackTitle);
     console.log("[MprisController]   Track Artist:", trackArtist);
-    console.log("[MprisController]   Track ID:", trackId);
     console.log("[MprisController]   Position (ms):", position);
     console.log("[MprisController]   Length (ms):", length);
     console.log("[MprisController]   Progress:", (progress * 100).toFixed(2) + "%");

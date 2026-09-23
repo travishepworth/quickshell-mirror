@@ -5,16 +5,13 @@ import QtQuick.Layouts
 
 import qs.services
 import qs.config
+import qs.components.widgets.overlay
 import qs.components.reusable
 import qs.components.widgets.common
 
-StyledContainer {
+OverlayCard {
   id: root
-  anchors.fill: parent
-  backgroundColor: Theme.background
-  borderColor: Theme.foreground
-  borderWidth: Appearance.borderWidth
-  visible: true
+
   clip: true
 
   Loader {
@@ -72,7 +69,7 @@ StyledContainer {
 
           onStatusChanged: {
             if (status === Image.Error) {
-              source = "qrc:/images/default_album_art.png"
+              source = "qrc:/images/default_album_art.png";
             }
           }
         }
@@ -101,14 +98,14 @@ StyledContainer {
             running: MprisController.isPlaying && MprisController.hasActivePlayer
             repeat: true
             onTriggered: {
-              MprisController.updatePosition()
+              MprisController.updatePosition();
             }
           }
 
           Connections {
             target: MprisController
             function onMetadataUpdated() {
-              MprisController.updatePosition()
+              MprisController.updatePosition();
             }
           }
         }

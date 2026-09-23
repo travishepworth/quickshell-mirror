@@ -27,7 +27,7 @@ PanelWindow {
   property string iconHibernate: " "
 
   Component.onCompleted: {
-    ShellManager.openPowerMenu.connect(function() {
+    ShellManager.openPowerMenu.connect(function () {
       rootWindow.toggle();
     });
   }
@@ -54,9 +54,17 @@ PanelWindow {
   IpcHandler {
     target: "powermenu"
     enabled: screen.name === General.primaryMonitor
-    function toggle() { rootWindow.toggle() }
-    function show() { if (!rootWindow.shown) rootWindow.toggle() }
-    function hide() { if (rootWindow.shown) rootWindow.toggle() }
+    function toggle() {
+      rootWindow.toggle();
+    }
+    function show() {
+      if (!rootWindow.shown)
+        rootWindow.toggle();
+    }
+    function hide() {
+      if (rootWindow.shown)
+        rootWindow.toggle();
+    }
   }
 
   HyprlandFocusGrab {
@@ -68,14 +76,16 @@ PanelWindow {
 
   visible: shown
   onClosed: shown = false
-  Keys.onEscapePressed: rootWindow.toggle()
 
   Rectangle {
     anchors.fill: parent
+    // Keys can't attach to the window itself
+    focus: true
+    Keys.onEscapePressed: rootWindow.toggle()
     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, rootWindow.backgroundDim)
     MouseArea {
-        anchors.fill: parent
-        onClicked: rootWindow.toggle()
+      anchors.fill: parent
+      onClicked: rootWindow.toggle()
     }
   }
 
@@ -104,19 +114,22 @@ PanelWindow {
           property string icon: ""
           property alias mouseArea: buttonMouseArea
           signal clicked
-          
+
           implicitWidth: rootWindow.buttonSize
           implicitHeight: rootWindow.buttonSize
-          
+
           color: buttonMouseArea.containsMouse ? Theme.accent : Theme.backgroundHighlight
           border.color: Theme.border
           border.width: Appearance.borderWidth
           radius: Appearance.borderRadius
-          
+
           Behavior on color {
-            ColorAnimation { duration: Appearance.animNormal; easing.type: Easing.InOutQuad }
+            ColorAnimation {
+              duration: Appearance.animNormal
+              easing.type: Easing.InOutQuad
+            }
           }
-          
+
           StyledText {
             anchors.centerIn: parent
             text: iconButton.icon
@@ -125,7 +138,7 @@ PanelWindow {
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
           }
-          
+
           MouseArea {
             id: buttonMouseArea
             anchors.fill: parent
@@ -140,10 +153,10 @@ PanelWindow {
       Loader {
         sourceComponent: iconButtonComponent
         onLoaded: {
-          item.icon = iconLock
-          item.clicked.connect(function() {
-            ShellManager.lockScreen()
-          })
+          item.icon = iconLock;
+          item.clicked.connect(function () {
+            ShellManager.lockScreen();
+          });
         }
       }
 
@@ -151,10 +164,10 @@ PanelWindow {
       Loader {
         sourceComponent: iconButtonComponent
         onLoaded: {
-          item.icon = iconLogout
-          item.clicked.connect(function() {
-            Utils.launchWithArgs("hyprctl", "dispatch", "exit")
-          })
+          item.icon = iconLogout;
+          item.clicked.connect(function () {
+            Utils.launchWithArgs("hyprctl", "dispatch", "exit");
+          });
         }
       }
 
@@ -162,10 +175,10 @@ PanelWindow {
       Loader {
         sourceComponent: iconButtonComponent
         onLoaded: {
-          item.icon = iconPoweroff
-          item.clicked.connect(function() {
-            Utils.launchWithArgs("systemctl", "poweroff")
-          })
+          item.icon = iconPoweroff;
+          item.clicked.connect(function () {
+            Utils.launchWithArgs("systemctl", "poweroff");
+          });
         }
       }
 
@@ -173,11 +186,11 @@ PanelWindow {
       Loader {
         sourceComponent: iconButtonComponent
         onLoaded: {
-          item.icon = iconSuspend
-          item.clicked.connect(function() {
-            Utils.launchWithArgs("systemctl", "suspend")
-            rootWindow.toggle()
-          })
+          item.icon = iconSuspend;
+          item.clicked.connect(function () {
+            Utils.launchWithArgs("systemctl", "suspend");
+            rootWindow.toggle();
+          });
         }
       }
 
@@ -185,10 +198,10 @@ PanelWindow {
       Loader {
         sourceComponent: iconButtonComponent
         onLoaded: {
-          item.icon = iconReboot
-          item.clicked.connect(function() {
-            Utils.launchWithArgs("systemctl", "reboot")
-          })
+          item.icon = iconReboot;
+          item.clicked.connect(function () {
+            Utils.launchWithArgs("systemctl", "reboot");
+          });
         }
       }
 
@@ -196,11 +209,11 @@ PanelWindow {
       Loader {
         sourceComponent: iconButtonComponent
         onLoaded: {
-          item.icon = iconHibernate
-          item.clicked.connect(function() {
-            Utils.launchWithArgs("systemctl", "hibernate")
-            rootWindow.toggle()
-          })
+          item.icon = iconHibernate;
+          item.clicked.connect(function () {
+            Utils.launchWithArgs("systemctl", "hibernate");
+            rootWindow.toggle();
+          });
         }
       }
     }

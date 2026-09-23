@@ -2,11 +2,19 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
-import qs.services
 
+// Title row of a PanelCard, with Save (shown while `dirty`) and Reset
+// buttons for whichever service owns the panel's pending edits
 Rectangle {
   id: root
-  property string title: "Settings"
+  property string title
+  property bool dirty: false
+  // Hide both buttons for panels with nothing to save
+  property bool showActions: true
+
+  signal save
+  signal reset
+
   Layout.fillWidth: true
   Layout.preferredHeight: Widget.height + Widget.padding
   color: "transparent"
@@ -33,7 +41,7 @@ Rectangle {
       Layout.preferredHeight: Widget.height - 4
       color: saveArea.containsMouse ? Qt.lighter(Theme.accent, 1.1) : Theme.accent
       radius: Appearance.borderRadius
-      visible: SettingsMenu.isDirty
+      visible: root.showActions && root.dirty
 
       RowLayout {
         anchors.centerIn: parent
@@ -59,12 +67,13 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: SettingsMenu.saveChanges()
+        onClicked: root.save()
       }
     }
 
     // Reset button
     Rectangle {
+      visible: root.showActions
       Layout.preferredWidth: 80
       Layout.preferredHeight: Widget.height - 4
       color: Theme.backgroundHighlight
@@ -98,7 +107,7 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: SettingsMenu.resetChanges()
+        onClicked: root.reset()
       }
     }
   }

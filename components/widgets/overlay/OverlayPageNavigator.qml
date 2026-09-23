@@ -12,8 +12,8 @@ Rectangle {
   required property int currentIndex
   required property int count
 
-  signal previous()
-  signal next()
+  signal previous
+  signal next
   signal select(int index)
 
   width: controlLayout.implicitWidth + 20

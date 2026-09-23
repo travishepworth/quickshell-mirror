@@ -14,27 +14,17 @@ Item {
   implicitHeight: currentViewHeight + OverlayConfig.cardSpacing * 2
 
   // Store current view dimensions to avoid binding loops
-  property real currentViewWidth: viewsRepeater.count > 0 && viewsRepeater.itemAt(wrapper.currentIndex) ? 
-                                   viewsRepeater.itemAt(wrapper.currentIndex).implicitWidth : 0
-  property real currentViewHeight: viewsRepeater.count > 0 && viewsRepeater.itemAt(wrapper.currentIndex) ? 
-                                    viewsRepeater.itemAt(wrapper.currentIndex).implicitHeight : 0
+  property real currentViewWidth: viewsRepeater.count > 0 && viewsRepeater.itemAt(wrapper.currentIndex) ? viewsRepeater.itemAt(wrapper.currentIndex).implicitWidth : 0
+  property real currentViewHeight: viewsRepeater.count > 0 && viewsRepeater.itemAt(wrapper.currentIndex) ? viewsRepeater.itemAt(wrapper.currentIndex).implicitHeight : 0
 
   function buildViewsModel(viewConfigArray) {
-    if (!viewConfigArray || viewConfigArray.length === 0) {
-      return [];
-    }
-    const array = viewConfigArray.filter(viewConf => viewConf.visible !== false).map(viewConf => {
-      const componentType = "views/" + viewConf.type + ".qml";
-      if (!viewConf.type) {
-        console.warn("Unknown view type in menu config:", viewConf);
-        return null;
-      }
+    return (viewConfigArray || []).filter(viewConf => viewConf.visible !== false).map(viewConf => {
+      // views/<type>.qml; unknown types are rejected by schema validation
       return {
-        component: componentType,
-        properties: viewConf.properties || {}
+        "component": "views/" + viewConf.type + ".qml",
+        "viewConfig": viewConf
       };
-    }).filter(item => item !== null);
-    return array;
+    });
   }
 
   Item {
@@ -85,7 +75,7 @@ Item {
             id: viewContainer
             required property int index
             required property var modelData
-            
+
             anchors.centerIn: parent
             implicitWidth: viewWrapper.implicitWidth
             implicitHeight: viewWrapper.implicitHeight

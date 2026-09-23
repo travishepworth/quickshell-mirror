@@ -12,7 +12,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 4
+  readonly property int currentVersion: 6
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -32,6 +32,10 @@ QtObject {
       result = _v2ToV3(result, changes);
     if (version < 4)
       result = _v3ToV4(result, changes);
+    if (version < 5)
+      result = _v4ToV5(result, changes);
+    if (version < 6)
+      result = _v5ToV6(result, changes);
 
     return {
       config: result,
@@ -250,6 +254,59 @@ QtObject {
       _set(out, "OSD.timeout", timeout);
       changes.push("Popouts.osdTimeout → OSD.timeout");
     }
+    return out;
+  }
+
+  // Overlay views went from bare type names (whose contents were hardcoded
+  // QML) to JSON-built views. The old types have no JSON equivalent, so a
+  // list using them is dropped and the schema default (the old layout,
+  // rebuilt in JSON) fills it back in.
+  function _v4ToV5(old, changes) {
+    const out = old;
+    out.version = 5;
+    const legacy = ["OverView", "ConfigEditor", "KeybindView", "ThemeSelector"];
+    const views = out.Overlay?.views;
+    if (Array.isArray(views) && views.some(v => legacy.includes(v?.type))) {
+      delete out.Overlay.views;
+      changes.push("Overlay.views → new JSON layout (reset to default)");
+    }
+    return out;
+  }
+
+  // Overlay columns lost their `type`: every column is a stack of cells,
+  // and the prebuilt Settings/ThemeEditor columns became modules in a Tall
+  // cell.
+  function _v5ToV6(old, changes) {
+    const out = old;
+    out.version = 6;
+    let rewritten = 0;
+    (out.Overlay?.views ?? []).forEach(view => {
+      if (!Array.isArray(view?.columns))
+        return;
+      view.columns = view.columns.map(column => {
+        if (!column || column.type === undefined)
+          return column;
+        rewritten++;
+        if (column.type === "Cells")
+          return {
+            cells: column.cells ?? []
+          };
+        return {
+          cells: [
+            {
+              layout: "Tall",
+              slots: {
+                main: {
+                  type: column.type
+                }
+              }
+            }
+          ]
+        };
+      });
+    });
+    if (rewritten > 0)
+      changes.push(`Overlay columns → cell stacks (${rewritten} rewritten)`);
     return out;
   }
 }

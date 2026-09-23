@@ -1,23 +1,18 @@
 import QtQuick
 
 import qs.config
+import qs.components.widgets.overlay
 
-Rectangle {
+// properties: { color: base00-base0F (or any name Theme.resolveColor accepts), label }
+OverlayCard {
   id: swatch
 
-  required property color swatchColor
-  required property string swatchName
-  required property string swatchSemantic
-
-  anchors.fill: parent
-  color: swatchColor
-  radius: Appearance.borderRadius
-  border.color: Theme.foreground
+  color: Theme.resolveColor(swatch.properties.color)
   border.width: Math.max(Appearance.borderWidth, 3)
 
   Text {
     id: label
-    text: swatch.swatchName
+    text: swatch.properties.color
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
     anchors.bottomMargin: OverlayConfig.cardSpacing / 2
@@ -30,7 +25,7 @@ Rectangle {
 
   Text {
     id: semanticLabel
-    text: swatch.swatchSemantic
+    text: swatch.properties.label
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.top: parent.top
     anchors.topMargin: OverlayConfig.cardSpacing / 2

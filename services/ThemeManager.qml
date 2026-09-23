@@ -47,8 +47,8 @@ QtObject {
   function applyTheme(themeName, isGenerated) {
     const fullThemeName = isGenerated ? "generated/" + themeName : themeName;
     if (ConfigManager.config.Appearance && ConfigManager.config.Appearance.theme === fullThemeName) {
-        console.log("[ThemeManager] Theme", fullThemeName, "is already applied.");
-        return;
+      console.log("[ThemeManager] Theme", fullThemeName, "is already applied.");
+      return;
     }
     console.log("[ThemeManager] Requesting to apply theme:", fullThemeName);
     ConfigManager.setTheme(fullThemeName);
@@ -70,8 +70,8 @@ QtObject {
    */
   function generateThemesFromWallpaper(wallpaperUrl) {
     if (isGenerating) {
-        console.log("[ThemeManager]: Generation already in progress.");
-        return;
+      console.log("[ThemeManager]: Generation already in progress.");
+      return;
     }
     console.log("[ThemeManager] Starting generation process for:", wallpaperUrl.toString());
     _generationController.start(wallpaperUrl);
@@ -89,7 +89,6 @@ QtObject {
 
       console.log("[ThemeManager] Applying paired theme:", pairedThemeName, "Generated:", isPairedThemeGenerated);
       applyTheme(pairedThemeName, isPairedThemeGenerated);
-
     } else {
       if (!config.Appearance.autoThemeSwitch)
         console.log("Auto theme switching is disabled.");
@@ -143,18 +142,18 @@ QtObject {
   // --- Processes ---
   property Process _k9sProcess: Process {
     id: k9sProcess
-    stderr: StdioCollector{}
-    stdout: StdioCollector{}
+    stderr: StdioCollector {}
+    stdout: StdioCollector {}
   }
   property Process _cavaProcess: Process {
     id: cavaProcess
-    stderr: StdioCollector{}
-    stdout: StdioCollector{}
+    stderr: StdioCollector {}
+    stdout: StdioCollector {}
   }
   property Process _kittyProcess: Process {
     id: kittyProcess
-    stderr: StdioCollector{}
-    stdout: StdioCollector{}
+    stderr: StdioCollector {}
+    stdout: StdioCollector {}
   }
 
   // --- Generation Logic ---
@@ -203,8 +202,12 @@ QtObject {
   property Process _generationProcess: Process {
     id: generationProcess
     onRunningChanged: root.generationStatusChanged()
-    stdout: StdioCollector{ id: stdoutCollector }
-    stderr: StdioCollector{ id: stderrCollector }
+    stdout: StdioCollector {
+      id: stdoutCollector
+    }
+    stderr: StdioCollector {
+      id: stderrCollector
+    }
     onExited: (exitCode, exitStatus) => {
       const success = (exitStatus === 0 && exitCode === 0);
       _generationController.onProcessFinished(success, stderrCollector.text);
@@ -233,46 +236,61 @@ QtObject {
   }
 
   property FolderListModel _defaultThemeLoader: FolderListModel {
-    nameFilters: ["*.json"]; showDirs: false
+    nameFilters: ["*.json"]
+    showDirs: false
     onStatusChanged: {
-      if (status === FolderListModel.Ready) {
+      // Ready is reported once before the rows arrive, then again with them
+      if (status === FolderListModel.Ready && count > 0) {
         for (let i = 0; i < count; i++) {
           // TODO: should be within the theme's json
           // idk why tf I did it like this
           // Should read filecontent here and parse variant and generated
           const filename = get(i, "fileName");
-          if (filename === "generated") continue;
-          if (filename === "theme.schema.json") continue;
+          if (filename === "generated")
+            continue;
+          if (filename === "theme.schema.json")
+            continue;
 
-          root._defaultThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
-          root._allThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
+          root._defaultThemesModel.append({
+            name: get(i, "fileBaseName"),
+            filePath: get(i, "filePath"),
+            isGenerated: false
+          });
+          root._allThemesModel.append({
+            name: get(i, "fileBaseName"),
+            filePath: get(i, "filePath"),
+            isGenerated: false
+          });
         }
         root._defaultThemesLoaded = true;
-        if (root._defaultThemesModel.count === 0) {
-          console.warn("[ThemeManager] No default themes found in:", root._themesPath);
-        } else {
-          console.log("[ThemeManager] Default themes loaded:", root._defaultThemesModel.count);
-        }
+        console.log("[ThemeManager] Default themes loaded:", root._defaultThemesModel.count);
       }
     }
   }
 
   property FolderListModel _generatedThemeLoader: FolderListModel {
-    nameFilters: ["*.json"]; showDirs: false
+    nameFilters: ["*.json"]
+    showDirs: false
     onStatusChanged: {
-      if (status === FolderListModel.Ready) {
+      // Ready is reported once before the rows arrive, then again with them
+      if (status === FolderListModel.Ready && count > 0) {
         for (let i = 0; i < count; i++) {
           const fileName = get(i, "fileBaseName");
-          if (fileName === "pywal-dark") continue;
-          root._generatedThemesModel.append({ name: fileName, filePath: get(i, "filePath"), isGenerated: true });
-          root._allThemesModel.append({ name: fileName, filePath: get(i, "filePath"), isGenerated: true });
+          if (fileName === "pywal-dark")
+            continue;
+          root._generatedThemesModel.append({
+            name: fileName,
+            filePath: get(i, "filePath"),
+            isGenerated: true
+          });
+          root._allThemesModel.append({
+            name: fileName,
+            filePath: get(i, "filePath"),
+            isGenerated: true
+          });
         }
         root._generatedThemesLoaded = true;
-        if (root._generatedThemesModel.count === 0) {
-          console.warn("[ThemeManager] No generated themes found in:", root._generatedThemesPath);
-        } else {
-          console.log("[ThemeManager] Generated themes loaded:", root._generatedThemesModel.count);
-        }
+        console.log("[ThemeManager] Generated themes loaded:", root._generatedThemesModel.count);
       }
     }
   }

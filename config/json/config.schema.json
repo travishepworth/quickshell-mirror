@@ -365,11 +365,61 @@
       "properties": {
         "views": {
           "type": "array",
-          "description": "Tabs shown in the overlay, in order.",
+          "description": "Pages shown in the overlay, in order. A Custom view lays out columns side by side; a Cells column stacks cell layouts, whose slots each hold one module.",
           "default": [
-            { "type": "OverView" },
-            { "type": "ConfigEditor" },
-            { "type": "KeybindView" },
+            { "type": "Custom", "name": "Overview", "columns": [
+              { "cells": [
+                { "layout": "Vert2x1", "slots": {
+                  "topLeft": { "type": "Cpu" },
+                  "bottomLeft": { "type": "Memory" },
+                  "right": { "type": "Volume", "properties": { "targetApplication": "youtube-music" } }
+                } },
+                { "layout": "Single", "slots": {
+                  "main": { "type": "Media" }
+                } }
+              ] }
+            ] },
+            { "type": "Custom", "name": "Settings", "columns": [
+              { "cells": [
+                { "layout": "Tall", "slots": {
+                  "main": { "type": "Settings" }
+                } }
+              ] },
+              { "cells": [
+                { "layout": "Tall", "slots": {
+                  "main": { "type": "ThemeEditor" }
+                } }
+              ] },
+              { "cells": [
+                { "layout": "Grid2x2", "slots": {
+                  "topLeft": { "type": "ColorSwatch", "properties": { "color": "base00", "label": "bg0" } },
+                  "topRight": { "type": "ColorSwatch", "properties": { "color": "base01", "label": "bg1" } },
+                  "bottomLeft": { "type": "ColorSwatch", "properties": { "color": "base02", "label": "bg2" } },
+                  "bottomRight": { "type": "ColorSwatch", "properties": { "color": "base03", "label": "bg3" } }
+                } },
+                { "layout": "Grid2x2", "slots": {
+                  "topLeft": { "type": "ColorSwatch", "properties": { "color": "base04", "label": "fg4" } },
+                  "topRight": { "type": "ColorSwatch", "properties": { "color": "base05", "label": "fg3" } },
+                  "bottomLeft": { "type": "ColorSwatch", "properties": { "color": "base06", "label": "fg2" } },
+                  "bottomRight": { "type": "ColorSwatch", "properties": { "color": "base07", "label": "fg1" } }
+                } }
+              ] },
+              { "cells": [
+                { "layout": "Grid2x2", "slots": {
+                  "topLeft": { "type": "ColorSwatch", "properties": { "color": "base08", "label": "error" } },
+                  "topRight": { "type": "ColorSwatch", "properties": { "color": "base09", "label": "warning" } },
+                  "bottomLeft": { "type": "ColorSwatch", "properties": { "color": "base0A", "label": "info" } },
+                  "bottomRight": { "type": "ColorSwatch", "properties": { "color": "base0B", "label": "success" } }
+                } },
+                { "layout": "Grid2x2", "slots": {
+                  "topLeft": { "type": "ColorSwatch", "properties": { "color": "base0C", "label": "accentAlt" } },
+                  "topRight": { "type": "ColorSwatch", "properties": { "color": "base0D", "label": "accentHighlight" } },
+                  "bottomLeft": { "type": "ColorSwatch", "properties": { "color": "base0E", "label": "accent" } },
+                  "bottomRight": { "type": "ColorSwatch", "properties": { "color": "base0F", "label": "decorative" } }
+                } }
+              ] }
+            ] },
+            { "type": "Keybinds" },
             { "type": "BarEditor" }
           ],
           "items": { "$ref": "#/definitions/OverlayView" }
@@ -462,14 +512,177 @@
     "OverlayView": {
       "type": "object",
       "required": ["type"],
+      "oneOf": [
+        { "$ref": "#/definitions/CustomOverlayView" },
+        { "$ref": "#/definitions/KeybindsOverlayView" },
+        { "$ref": "#/definitions/BarEditorOverlayView" }
+      ]
+    },
+    "CustomOverlayView": {
+      "type": "object",
+      "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["OverView", "ConfigEditor", "KeybindView", "BarEditor", "ThemeSelector"]
-        },
+        "type": { "const": "Custom", "description": "Custom" },
         "visible": { "type": "boolean" },
-        "properties": { "type": "object" }
+        "name": { "type": "string", "title": "Name", "default": "" },
+        "columns": { "type": "array", "default": [], "items": { "$ref": "#/definitions/OverlayColumn" } }
+      }
+    },
+    "KeybindsOverlayView": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Keybinds", "description": "Keybinds" },
+        "visible": { "type": "boolean" }
+      }
+    },
+    "BarEditorOverlayView": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "BarEditor", "description": "Bar Editor" },
+        "visible": { "type": "boolean" }
+      }
+    },
+
+    "OverlayColumn": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cells": { "type": "array", "default": [], "items": { "$ref": "#/definitions/OverlayCell" } }
+      }
+    },
+
+    "OverlayCell": {
+      "type": "object",
+      "required": ["layout"],
+      "additionalProperties": false,
+      "description": "One cell split into slots, defined in OverlayConfig.layouts. Cells are one card, except Tall (two cards high) and Wide (two cards wide). Slots per layout: Single/Tall/Wide main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.",
+      "properties": {
+        "layout": { "type": "string", "title": "Layout", "default": "Single", "enum": ["Single", "Tall", "Wide", "Grid2x2", "Vert1x1", "Vert1x2", "Vert2x1", "Horiz1x1", "Horiz1x2", "Horiz2x1"] },
+        "slots": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": false,
+          "properties": {
+            "main": { "$ref": "#/definitions/OverlayModule" },
+            "topLeft": { "$ref": "#/definitions/OverlayModule" },
+            "topRight": { "$ref": "#/definitions/OverlayModule" },
+            "bottomLeft": { "$ref": "#/definitions/OverlayModule" },
+            "bottomRight": { "$ref": "#/definitions/OverlayModule" },
+            "top": { "$ref": "#/definitions/OverlayModule" },
+            "bottom": { "$ref": "#/definitions/OverlayModule" },
+            "left": { "$ref": "#/definitions/OverlayModule" },
+            "right": { "$ref": "#/definitions/OverlayModule" }
+          }
+        }
+      }
+    },
+
+    "OverlayModule": {
+      "type": "object",
+      "required": ["type"],
+      "oneOf": [
+        { "$ref": "#/definitions/CpuOverlayModule" },
+        { "$ref": "#/definitions/GpuOverlayModule" },
+        { "$ref": "#/definitions/MemoryOverlayModule" },
+        { "$ref": "#/definitions/StorageOverlayModule" },
+        { "$ref": "#/definitions/MediaOverlayModule" },
+        { "$ref": "#/definitions/SettingsOverlayModule" },
+        { "$ref": "#/definitions/ThemeEditorOverlayModule" },
+        { "$ref": "#/definitions/VolumeOverlayModule" },
+        { "$ref": "#/definitions/ColorSwatchOverlayModule" }
+      ]
+    },
+    "CpuOverlayModule": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Cpu", "description": "CPU usage" }
+      }
+    },
+    "GpuOverlayModule": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Gpu", "description": "GPU usage" }
+      }
+    },
+    "MemoryOverlayModule": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Memory", "description": "Memory usage" }
+      }
+    },
+    "StorageOverlayModule": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Storage", "description": "Disk usage" }
+      }
+    },
+    "MediaOverlayModule": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Media", "description": "Media player" }
+      }
+    },
+    "SettingsOverlayModule": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Settings", "description": "Settings panel (use a Tall cell)" }
+      }
+    },
+    "ThemeEditorOverlayModule": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "ThemeEditor", "description": "Theme editor (use a Tall cell)" }
+      }
+    },
+    "VolumeOverlayModule": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Volume", "description": "App volume" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "targetApplication": { "type": "string", "title": "Application", "default": "", "description": "App whose stream volume is shown. Empty shows the system volume." },
+            "orientation": { "type": "string", "title": "Orientation", "default": "Vertical", "enum": ["Vertical", "Horizontal"] }
+          }
+        }
+      }
+    },
+    "ColorSwatchOverlayModule": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "ColorSwatch", "description": "Theme color swatch" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "color": { "type": "string", "title": "Color", "default": "base00", "x-options": "colors" },
+            "label": { "type": "string", "title": "Label", "default": "", "description": "Secondary label, e.g. the semantic role." }
+          }
+        }
       }
     },
 
