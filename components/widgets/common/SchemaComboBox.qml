@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import qs.config
 import qs.components.reusable
 import qs.components.methods
@@ -87,13 +87,12 @@ ColumnLayout {
           borderRadius: Appearance.borderRadius
 
           layer.enabled: true
-          layer.effect: DropShadow {
-            transparentBorder: true
-            horizontalOffset: 0
-            verticalOffset: 2
-            radius: 8
-            samples: 17
-            color: "#40000000"
+          // Qt 6 MultiEffect: Qt5Compat DropShadow fails to build its shader here
+          layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowColor: "#40000000"
+            shadowBlur: 0.5
+            shadowVerticalOffset: 2
           }
         }
 

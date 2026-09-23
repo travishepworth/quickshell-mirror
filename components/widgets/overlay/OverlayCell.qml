@@ -52,6 +52,7 @@ Item {
 
       OverlayModule {
         config: root.slots[slot.modelData]
+        rect: slot.rect
       }
     }
   }

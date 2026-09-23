@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
 // CPU / memory / temperature / GPU / disk usage, polled only while something
@@ -11,7 +12,11 @@ import Quickshell.Io
 // Everything on the hot path is a sysfs / procfs read through FileView, so
 // polling never spawns a process. The exceptions are disk usage (`df`, on
 // its own slow timer) and NVIDIA GPUs (`nvidia-smi`, only without an AMD
-// card). Metric names: "cpu", "mem", "cpuTemp", "gpu", "disk".
+// card). Metric names: "cpu", "mem", "cpuTemp", "gpu", "disk", "net"
+// (throughput from /proc/net/dev, plus connection details from nmcli on a
+// slow timer) and "processes" (`top`, two frames so %CPU is current).
+// Request `history: true` to also keep the last `historyLength` samples of
+// each polled metric (for graphs).
 QtObject {
   id: root
 
@@ -25,19 +30,52 @@ QtObject {
   property real gpuTemp: 0
   // Mount path -> { used, total, usage } for every requested disk path
   property var disks: ({})
+  // Bytes per second, summed over every interface but loopback
+  property real netRx: 0
+  property real netTx: 0
+  // The primary connection: kind ("ethernet"/"wifi"/""), name (SSID or
+  // connection name), device, wifi signal (0-100), IPv4 address
+  property var netInfo: ({
+      "kind": "",
+      "name": "",
+      "device": "",
+      "signal": 0,
+      "ip": ""
+    })
+  property bool wifiEnabled: false
+  // [{ pid, user, cpu, mem, command }], every process, by CPU (descending)
+  property var processes: []
+
+  // Oldest first, `historyLength` samples at most (only kept on request)
+  readonly property int historyLength: 60
+  property var cpuHistory: []
+  property var memHistory: []
+  property var gpuHistory: []
+  property var cpuTempHistory: []
+  property var netRxHistory: []
+  property var netTxHistory: []
 
   // What this machine can report, known once discovery has run
   readonly property bool hasCpuTemp: _cpuTempPath !== ""
   readonly property bool hasGpu: _gpuBusyPath !== "" || _hasNvidia
 
   function acquire(owner, request) {
-    const consumers = root._consumers.filter(c => c.owner !== owner);
-    consumers.push({
-      "owner": owner,
+    const entry = {
       "interval": request?.interval ?? 2000,
       "metrics": request?.metrics ?? [],
-      "diskPaths": request?.diskPaths ?? []
-    });
+      "diskPaths": request?.diskPaths ?? [],
+      "history": request?.history ?? false
+    };
+    // Re-registering the same request is a no-op, so a consumer that
+    // re-registers often can't churn every binding derived from _consumers
+    const existing = root._consumers.find(c => c.owner === owner);
+    if (existing && JSON.stringify(existing.request) === JSON.stringify(entry))
+      return;
+    const consumers = root._consumers.filter(c => c.owner !== owner);
+    consumers.push(Object.assign({
+      "owner": owner,
+      "request": entry
+    }, entry));
     root._consumers = consumers;
   }
 
@@ -49,6 +87,17 @@ QtObject {
     return root._metrics.includes(metric);
   }
 
+  function kill(pid) {
+    Quickshell.execDetached(["kill", String(pid)]);
+    Qt.callLater(root._poll);
+  }
+
+  function setWifi(on) {
+    Quickshell.execDetached(["nmcli", "radio", "wifi", on ? "on" : "off"]);
+    root.wifiEnabled = on;
+    root._netInfoTimer.restart();
+  }
+
   // -- Private --
   property var _consumers: []
 
@@ -56,6 +105,7 @@ QtObject {
   // (the QML JS engine has no Array.flatMap)
   readonly property var _metrics: [...new Set([].concat(..._consumers.map(c => c.metrics)))]
   readonly property var _diskPaths: [...new Set([].concat(..._consumers.map(c => c.diskPaths)))]
+  readonly property bool _history: _consumers.some(c => c.history)
   readonly property int _interval: _consumers.length > 0 ? Math.max(500, Math.min(..._consumers.map(c => c.interval))) : 2000
 
   // Found by _discover; empty when this machine has no such sensor
@@ -68,8 +118,40 @@ QtObject {
   // Previous /proc/stat totals, for the usage delta
   property real _lastCpuTotal: 0
   property real _lastCpuIdle: 0
+  // Previous /proc/net/dev totals and when they were read
+  property real _lastRx: -1
+  property real _lastTx: -1
+  property real _lastNetTime: 0
+
+  // Samples the current values into the histories (one tick behind the
+  // reads, which land asynchronously)
+  function _record() {
+    if (!_history)
+      return;
+    const push = (list, value) => {
+      const next = list.concat([value]);
+      return next.length > historyLength ? next.slice(next.length - historyLength) : next;
+    };
+    if (wants("cpu"))
+      cpuHistory = push(cpuHistory, cpuUsage);
+    if (wants("mem"))
+      memHistory = push(memHistory, memUsage);
+    if (wants("gpu"))
+      gpuHistory = push(gpuHistory, gpuUsage);
+    if (wants("cpuTemp"))
+      cpuTempHistory = push(cpuTempHistory, cpuTemp);
+    if (wants("net")) {
+      netRxHistory = push(netRxHistory, netRx);
+      netTxHistory = push(netTxHistory, netTx);
+    }
+  }
 
   function _poll() {
+    _record();
+    if (wants("net"))
+      _netDev.reload();
+    if (wants("processes") && !_top.running)
+      _top.running = true;
     if (wants("cpu"))
       _stat.reload();
     if (wants("mem"))
@@ -106,6 +188,46 @@ QtObject {
     _lastCpuIdle = idle;
   }
 
+  function _parseNetDev(text) {
+    let rx = 0, tx = 0;
+    text.split("\n").slice(2).forEach(line => {
+      const [name, rest] = line.split(":");
+      if (!rest || name.trim() === "lo")
+        return;
+      const fields = rest.trim().split(/\s+/).map(Number);
+      rx += fields[0] || 0;
+      tx += fields[8] || 0;
+    });
+    const now = Date.now();
+    if (_lastRx >= 0 && now > _lastNetTime) {
+      const secs = (now - _lastNetTime) / 1000;
+      netRx = Math.max(0, (rx - _lastRx) / secs);
+      netTx = Math.max(0, (tx - _lastTx) / secs);
+    }
+    _lastRx = rx;
+    _lastTx = tx;
+    _lastNetTime = now;
+  }
+
+  function _parseTop(text) {
+    // Only the second frame: the first averages over each process' life
+    const frames = text.split(/^top - /m);
+    const lines = (frames[frames.length - 1] ?? "").split("\n");
+    const header = lines.findIndex(l => /^\s*PID\s/.test(l));
+    if (header < 0)
+      return;
+    processes = lines.slice(header + 1).filter(l => l.trim() !== "").map(l => {
+      const f = l.trim().split(/\s+/);
+      return {
+        "pid": Number(f[0]),
+        "user": f[1],
+        "cpu": Number(f[8]) || 0,
+        "mem": Number(f[9]) || 0,
+        "command": f.slice(11).join(" ")
+      };
+    }).filter(p => p.pid > 0 && !p.command.startsWith("top"));
+  }
+
   function _parseMeminfo(text) {
     const kb = key => Number((text.match(new RegExp("^" + key + ":\\s+(\\d+)", "m")) || [])[1] || 0);
     const total = kb("MemTotal");
@@ -123,6 +245,7 @@ QtObject {
     if (!_active) {
       _lastCpuTotal = 0;
       _lastCpuIdle = 0;
+      _lastRx = -1;
     } else {
       Qt.callLater(root._poll);
       Qt.callLater(root._pollDisks);
@@ -143,6 +266,74 @@ QtObject {
     repeat: true
     running: root._active && root.wants("disk")
     onTriggered: root._pollDisks()
+  }
+
+  // Connection details change rarely: nmcli every 10s while "net" is wanted
+  property Timer _netInfoTimer: Timer {
+    interval: 10000
+    repeat: true
+    triggeredOnStart: true
+    running: root._active && root.wants("net")
+    onTriggered: {
+      if (!root._nmcli.running)
+        root._nmcli.running = true;
+    }
+  }
+
+  property FileView _netDev: FileView {
+    path: "/proc/net/dev"
+    onLoaded: root._parseNetDev(text())
+  }
+
+  property Process _top: Process {
+    command: ["top", "-b", "-n", "2", "-d", "0.5", "-w", "512", "-o", "%CPU"]
+    stdout: StdioCollector {
+      onStreamFinished: root._parseTop(text)
+    }
+  }
+
+  // Primary connection (first connected non-loopback, non-tun device), its
+  // IPv4 address and wifi signal, and the wifi radio state
+  property Process _nmcli: Process {
+    command: ["sh", "-c", `
+      nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device | while IFS=: read -r dev type state conn; do
+        case "$type" in loopback|tun|bridge|wifi-p2p) continue ;; esac
+        [ "$state" = "connected" ] || continue
+        echo "dev $dev"; echo "kind $type"; echo "name $conn"
+        echo "ip $(nmcli -g IP4.ADDRESS device show "$dev" | head -n1 | cut -d/ -f1)"
+        [ "$type" = "wifi" ] && echo "signal $(nmcli -t -f IN-USE,SIGNAL device wifi list ifname "$dev" --rescan no | awk -F: '$1=="*"{print $2}')"
+        break
+      done
+      echo "radio $(nmcli radio wifi)"
+    `]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        const info = {
+          "kind": "",
+          "name": "",
+          "device": "",
+          "signal": 0,
+          "ip": ""
+        };
+        for (const line of text.trim().split("\n")) {
+          const i = line.indexOf(" ");
+          const key = line.slice(0, i), value = line.slice(i + 1);
+          if (key === "dev")
+            info.device = value;
+          else if (key === "kind")
+            info.kind = value;
+          else if (key === "name")
+            info.name = value;
+          else if (key === "ip")
+            info.ip = value;
+          else if (key === "signal")
+            info.signal = Number(value) || 0;
+          else if (key === "radio")
+            root.wifiEnabled = value === "enabled";
+        }
+        root.netInfo = info;
+      }
+    }
   }
 
   property FileView _stat: FileView {

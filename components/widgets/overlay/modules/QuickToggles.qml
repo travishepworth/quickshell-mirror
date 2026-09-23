@@ -1,0 +1,166 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Io
+import qs.config
+import qs.services
+import qs.components.widgets.overlay
+import qs.components.widgets.overlay.modules.common
+
+// A grid of toggle tiles. Toggles whose tool isn't installed (night light:
+// hyprsunset/wlsunset, power saver: powerprofilesctl) are hidden.
+// properties: { toggles: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver"] }
+OverlayCard {
+  id: root
+
+  // Found once: which optional tools exist
+  property string nightLightTool: ""
+  property bool hasPowerProfiles: false
+  property bool nightLightOn: false
+  property string powerProfile: ""
+
+  readonly property var defs: ({
+      "wifi": {
+        "icon": SystemManager.wifiEnabled ? "\u{F05A9}" : "\u{F05AA}",
+        "label": "Wi-Fi",
+        "active": SystemManager.wifiEnabled,
+        "available": true
+      },
+      "bluetooth": {
+        "icon": BluetoothManager.enabled ? "\u{F00AF}" : "\u{F00B2}",
+        "label": "Bluetooth",
+        "active": BluetoothManager.enabled,
+        "available": BluetoothManager.available
+      },
+      "caffeine": {
+        "icon": "\u{F0176}",
+        "label": "Caffeine",
+        "active": IdleInhibit.enabled,
+        "available": true
+      },
+      "dnd": {
+        "icon": Notifs.dnd ? "\u{F009B}" : "\u{F009A}",
+        "label": "Do not disturb",
+        "active": Notifs.dnd,
+        "available": true
+      },
+      "darkMode": {
+        "icon": "\u{F0594}",
+        "label": "Dark mode",
+        "active": Appearance.darkMode,
+        "available": true
+      },
+      "nightLight": {
+        "icon": "\u{F1A5C}",
+        "label": "Night light",
+        "active": root.nightLightOn,
+        "available": root.nightLightTool !== ""
+      },
+      "powerSaver": {
+        "icon": "\u{F032A}",
+        "label": "Power saver",
+        "active": root.powerProfile === "power-saver",
+        "available": root.hasPowerProfiles
+      }
+    })
+
+  // Config and tool availability only (never toggle state), so the tiles
+  // aren't rebuilt whenever something is switched
+  readonly property var known: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver"]
+  readonly property var toggles: (root.properties.toggles ?? ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"]).filter(t => root.known.includes(t))
+  readonly property var shown: root.toggles.filter(t => t === "bluetooth" ? BluetoothManager.available : t === "nightLight" ? root.nightLightTool !== "" : t === "powerSaver" ? root.hasPowerProfiles : true)
+  readonly property int columns: root.shape === "horizontal" ? Math.ceil(root.shown.length / (root.rows >= 2 ? 2 : 1)) : root.shape === "vertical" ? (root.cols >= 2 ? 2 : 1) : Math.ceil(Math.sqrt(root.shown.length))
+
+  function toggle(name) {
+    switch (name) {
+    case "wifi":
+      SystemManager.setWifi(!SystemManager.wifiEnabled);
+      break;
+    case "bluetooth":
+      BluetoothManager.toggleEnabled();
+      break;
+    case "caffeine":
+      IdleInhibit.toggle();
+      break;
+    case "dnd":
+      Notifs.dnd = !Notifs.dnd;
+      break;
+    case "darkMode":
+      ThemeManager.toggleDarkMode();
+      break;
+    case "nightLight":
+      if (root.nightLightOn)
+        Quickshell.execDetached(["pkill", "-x", root.nightLightTool]);
+      else
+        Quickshell.execDetached(root.nightLightTool === "hyprsunset" ? ["hyprsunset", "-t", "4500"] : ["wlsunset", "-t", "4500"]);
+      root.nightLightOn = !root.nightLightOn;
+      break;
+    case "powerSaver":
+      {
+        const next = root.powerProfile === "power-saver" ? "balanced" : "power-saver";
+        Quickshell.execDetached(["powerprofilesctl", "set", next]);
+        root.powerProfile = next;
+      }
+      break;
+    }
+  }
+
+  // Wi-Fi state comes from SystemManager's (slow) network poll
+  Component.onCompleted: {
+    if (root.toggles.includes("wifi"))
+      SystemManager.acquire(root, {
+        "metrics": ["net"],
+        "interval": 5000
+      });
+  }
+  Component.onDestruction: SystemManager.release(root)
+
+  Process {
+    running: true
+    command: ["sh", "-c", `
+      for t in hyprsunset wlsunset; do command -v $t >/dev/null && { echo "night $t"; pgrep -x $t >/dev/null && echo "nighton 1"; break; }; done
+      command -v powerprofilesctl >/dev/null && echo "profile $(powerprofilesctl get)"
+      true
+    `]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        for (const line of text.trim().split("\n")) {
+          const [key, value] = line.split(" ");
+          if (key === "night")
+            root.nightLightTool = value;
+          else if (key === "nighton")
+            root.nightLightOn = true;
+          else if (key === "profile") {
+            root.hasPowerProfiles = true;
+            root.powerProfile = value;
+          }
+        }
+      }
+    }
+  }
+
+  GridLayout {
+    anchors.fill: parent
+    anchors.margins: root.pad
+    columns: Math.max(1, root.columns)
+    columnSpacing: Widget.spacing
+    rowSpacing: Widget.spacing
+
+    Repeater {
+      model: root.shown
+
+      IconToggle {
+        required property string modelData
+        readonly property var def: root.defs[modelData]
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        icon: def.icon
+        label: def.label
+        active: def.active
+        showLabel: !root.compact && height > Appearance.fontSize * 4
+        onClicked: root.toggle(modelData)
+      }
+    }
+  }
+}

@@ -370,12 +370,12 @@
             { "type": "Custom", "name": "Overview", "columns": [
               { "cells": [
                 { "layout": "Vert2x1", "slots": {
-                  "topLeft": { "type": "Cpu" },
-                  "bottomLeft": { "type": "Memory" },
-                  "right": { "type": "Volume", "properties": { "targetApplication": "youtube-music" } }
+                  "topLeft": { "type": "SystemGraphs", "properties": { "metrics": ["cpu"] } },
+                  "bottomLeft": { "type": "SystemGraphs", "properties": { "metrics": ["mem"] } },
+                  "right": { "type": "VolumeDials" }
                 } },
                 { "layout": "Single", "slots": {
-                  "main": { "type": "Media" }
+                  "main": { "type": "NowPlaying" }
                 } }
               ] }
             ] },
@@ -586,61 +586,31 @@
       "type": "object",
       "required": ["type"],
       "oneOf": [
-        { "$ref": "#/definitions/CpuOverlayModule" },
-        { "$ref": "#/definitions/GpuOverlayModule" },
-        { "$ref": "#/definitions/MemoryOverlayModule" },
-        { "$ref": "#/definitions/StorageOverlayModule" },
-        { "$ref": "#/definitions/MediaOverlayModule" },
         { "$ref": "#/definitions/SettingsOverlayModule" },
         { "$ref": "#/definitions/ThemeEditorOverlayModule" },
-        { "$ref": "#/definitions/VolumeOverlayModule" },
+        { "$ref": "#/definitions/NowPlayingOverlayModule" },
+        { "$ref": "#/definitions/AudioMixerOverlayModule" },
+        { "$ref": "#/definitions/VolumeDialsOverlayModule" },
+        { "$ref": "#/definitions/SystemGraphsOverlayModule" },
+        { "$ref": "#/definitions/DisksOverlayModule" },
+        { "$ref": "#/definitions/TopProcessesOverlayModule" },
+        { "$ref": "#/definitions/UpdatesOverlayModule" },
+        { "$ref": "#/definitions/QuickTogglesOverlayModule" },
+        { "$ref": "#/definitions/WorkspacesMapOverlayModule" },
+        { "$ref": "#/definitions/NotificationsOverlayModule" },
+        { "$ref": "#/definitions/BluetoothDevicesOverlayModule" },
+        { "$ref": "#/definitions/SessionOverlayModule" },
+        { "$ref": "#/definitions/ScreenshotOverlayModule" },
+        { "$ref": "#/definitions/ClockCalendarOverlayModule" },
+        { "$ref": "#/definitions/WeatherOverlayModule" },
+        { "$ref": "#/definitions/BatteryOverlayModule" },
+        { "$ref": "#/definitions/NetworkOverlayModule" },
+        { "$ref": "#/definitions/FavouritesOverlayModule" },
+        { "$ref": "#/definitions/ChatOverlayModule" },
+        { "$ref": "#/definitions/NotesOverlayModule" },
+        { "$ref": "#/definitions/WallpaperPickerOverlayModule" },
         { "$ref": "#/definitions/ColorSwatchOverlayModule" }
       ]
-    },
-    "CpuOverlayModule": {
-      "type": "object",
-      "x-shapes": ["square", "horizontal"],
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "Cpu", "description": "CPU usage" }
-      }
-    },
-    "GpuOverlayModule": {
-      "type": "object",
-      "x-shapes": ["square", "horizontal"],
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "Gpu", "description": "GPU usage" }
-      }
-    },
-    "MemoryOverlayModule": {
-      "type": "object",
-      "x-shapes": ["square", "horizontal"],
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "Memory", "description": "Memory usage" }
-      }
-    },
-    "StorageOverlayModule": {
-      "type": "object",
-      "x-shapes": ["square", "horizontal"],
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "Storage", "description": "Disk usage" }
-      }
-    },
-    "MediaOverlayModule": {
-      "type": "object",
-      "x-shapes": ["square", "horizontal"],
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "Media", "description": "Media player" }
-      }
     },
     "SettingsOverlayModule": {
       "type": "object",
@@ -660,21 +630,293 @@
         "type": { "const": "ThemeEditor", "description": "Theme editor (use a Tall cell)" }
       }
     },
-    "VolumeOverlayModule": {
+    "NowPlayingOverlayModule": {
       "type": "object",
-      "x-shapes": ["vertical", "horizontal"],
+      "x-shapes": ["square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "type": { "const": "Volume", "description": "App volume" },
+        "type": { "const": "NowPlaying", "description": "Now playing" }
+      }
+    },
+    "AudioMixerOverlayModule": {
+      "type": "object",
+      "x-shapes": ["vertical", "square"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "AudioMixer", "description": "Audio mixer" },
         "properties": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "targetApplication": { "type": "string", "title": "Application", "default": "", "description": "App whose stream volume is shown. Empty shows the system volume." },
-            "orientation": { "type": "string", "title": "Orientation", "default": "Vertical", "enum": ["Vertical", "Horizontal"] }
+            "mode": {"type": "string", "title": "Start on", "default": "output", "enum": ["output", "input"]}
           }
         }
+      }
+    },
+    "VolumeDialsOverlayModule": {
+      "type": "object",
+      "x-shapes": ["square", "horizontal", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "VolumeDials", "description": "Volume dials" }
+      }
+    },
+    "SystemGraphsOverlayModule": {
+      "type": "object",
+      "x-shapes": ["square", "horizontal", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "SystemGraphs", "description": "System graphs" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "metrics": {"type": "array", "title": "Metrics", "default": ["cpu", "mem"], "items": {"type": "string", "enum": ["cpu", "mem", "gpu", "cpuTemp", "net"]}}
+          }
+        }
+      }
+    },
+    "DisksOverlayModule": {
+      "type": "object",
+      "x-shapes": ["horizontal", "square", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Disks", "description": "Disk usage" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "paths": {"type": "array", "title": "Mount points", "default": ["/"], "items": {"type": "string"}, "description": "Comma-separated, e.g. /, /home"}
+          }
+        }
+      }
+    },
+    "TopProcessesOverlayModule": {
+      "type": "object",
+      "x-shapes": ["vertical", "square"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "TopProcesses", "description": "Top processes" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "count": {"type": "integer", "title": "Processes", "default": 8, "minimum": 1, "maximum": 30},
+            "sortBy": {"type": "string", "title": "Sort by", "default": "cpu", "enum": ["cpu", "mem"]}
+          }
+        }
+      }
+    },
+    "UpdatesOverlayModule": {
+      "type": "object",
+      "x-shapes": ["square", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Updates", "description": "Package updates" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "intervalMinutes": {"type": "integer", "title": "Check interval (min)", "default": 60, "minimum": 5, "maximum": 1440},
+            "includeAur": {"type": "boolean", "title": "Include AUR", "default": false},
+            "aurHelper": {"type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": {"includeAur": true}}
+          }
+        }
+      }
+    },
+    "QuickTogglesOverlayModule": {
+      "type": "object",
+      "x-shapes": ["square", "horizontal", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "QuickToggles", "description": "Quick toggles" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "toggles": {"type": "array", "title": "Toggles", "default": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"], "description": "Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed.", "items": {"type": "string", "enum": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver"]}}
+          }
+        }
+      }
+    },
+    "WorkspacesMapOverlayModule": {
+      "type": "object",
+      "x-shapes": ["horizontal", "square", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "WorkspacesMap", "description": "Workspaces" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "count": {"type": "integer", "title": "Workspaces", "default": 10, "minimum": 1, "maximum": 30},
+            "showEmpty": {"type": "boolean", "title": "Show empty workspaces", "default": true}
+          }
+        }
+      }
+    },
+    "NotificationsOverlayModule": {
+      "type": "object",
+      "x-shapes": ["vertical", "square"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Notifications", "description": "Notifications" }
+      }
+    },
+    "BluetoothDevicesOverlayModule": {
+      "type": "object",
+      "x-shapes": ["vertical", "square"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "BluetoothDevices", "description": "Bluetooth devices" }
+      }
+    },
+    "SessionOverlayModule": {
+      "type": "object",
+      "x-shapes": ["horizontal", "square", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Session", "description": "Session / power" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "actions": {"type": "array", "title": "Actions", "default": ["lock", "suspend", "logout", "reboot", "poweroff"], "items": {"type": "string", "enum": ["lock", "suspend", "logout", "reboot", "poweroff"]}}
+          }
+        }
+      }
+    },
+    "ScreenshotOverlayModule": {
+      "type": "object",
+      "x-shapes": ["square", "horizontal"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Screenshot", "description": "Screenshot" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "directory": {"type": "string", "title": "Save to", "default": "~/Pictures/Screenshots"}
+          }
+        }
+      }
+    },
+    "ClockCalendarOverlayModule": {
+      "type": "object",
+      "x-shapes": ["square", "vertical", "horizontal"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "ClockCalendar", "description": "Clock & calendar" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "use24h": {"type": "boolean", "title": "24-hour clock", "default": true},
+            "showSeconds": {"type": "boolean", "title": "Show seconds", "default": false}
+          }
+        }
+      }
+    },
+    "WeatherOverlayModule": {
+      "type": "object",
+      "x-shapes": ["square", "horizontal", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Weather", "description": "Weather" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "location": {"type": "string", "title": "Location", "default": "", "description": "City name; empty uses your IP's location."},
+            "latitude": {"type": "string", "title": "Latitude", "default": "", "description": "Exact coordinates; with longitude, overrides the location lookup."},
+            "longitude": {"type": "string", "title": "Longitude", "default": ""},
+            "units": {"type": "string", "title": "Units", "default": "celsius", "enum": ["celsius", "fahrenheit"]}
+          }
+        }
+      }
+    },
+    "BatteryOverlayModule": {
+      "type": "object",
+      "x-shapes": ["square", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Battery", "description": "Battery" }
+      }
+    },
+    "NetworkOverlayModule": {
+      "type": "object",
+      "x-shapes": ["square", "horizontal", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Network", "description": "Network" }
+      }
+    },
+    "FavouritesOverlayModule": {
+      "type": "object",
+      "x-shapes": ["square", "horizontal", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Favourites", "description": "Favourite apps" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "apps": {"type": "array", "title": "Apps", "default": [], "items": {"type": "string"}, "description": "Desktop entry ids, comma-separated (e.g. firefox, kitty). Empty shows recently launched apps."},
+            "showLabels": {"type": "boolean", "title": "Show names", "default": true}
+          }
+        }
+      }
+    },
+    "ChatOverlayModule": {
+      "type": "object",
+      "x-shapes": ["vertical", "square"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Chat", "description": "AI chat" }
+      }
+    },
+    "NotesOverlayModule": {
+      "type": "object",
+      "x-shapes": ["vertical", "square", "horizontal"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Notes", "description": "Notes" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {"type": "string", "title": "Note name", "default": "", "description": "Notes with the same name share their text."}
+          }
+        }
+      }
+    },
+    "WallpaperPickerOverlayModule": {
+      "type": "object",
+      "x-shapes": ["horizontal", "square", "vertical"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "WallpaperPicker", "description": "Wallpapers" }
       }
     },
     "ColorSwatchOverlayModule": {

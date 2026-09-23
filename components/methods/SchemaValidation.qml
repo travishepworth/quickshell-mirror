@@ -15,7 +15,9 @@ QtObject {
   // a property change: callers evaluate these functions inside bindings
   // (e.g. ConfigManager's eager load), and a notifying write here would
   // re-trigger those bindings in a loop.
-  readonly property var _ctx: ({ root: {} })
+  readonly property var _ctx: ({
+      root: {}
+    })
 
   function validateAgainstSchema(value, schema, path = '') {
     _ctx.root = schema;
@@ -279,6 +281,9 @@ QtObject {
 
   function _validateOneOf(value, oneOfSchemas, path, errors) {
     const matchingSchemas = [];
+    // Errors from options whose `type` const matched, so a discriminated
+    // union reports why the right option failed instead of just "no match"
+    const typedErrors = [];
 
     for (let i = 0; i < oneOfSchemas.length; i++) {
       const subErrors = [];
@@ -296,11 +301,16 @@ QtObject {
 
       if (subErrors.length === 0) {
         matchingSchemas.push(i);
+      } else if (resolvedSchema.properties?.type?.const !== undefined) {
+        typedErrors.push(...subErrors);
       }
     }
 
     if (matchingSchemas.length === 0) {
-      errors.push(`${path}: value does not match any schema in oneOf`);
+      if (typedErrors.length > 0)
+        errors.push(...typedErrors);
+      else
+        errors.push(`${path}: value does not match any schema in oneOf`);
     } else if (matchingSchemas.length > 1) {
       errors.push(`${path}: value matches multiple schemas in oneOf (indices: ${matchingSchemas.join(', ')})`);
     }

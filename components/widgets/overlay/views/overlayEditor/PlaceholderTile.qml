@@ -29,8 +29,10 @@ Item {
     switch (root.module?.type) {
     case "ColorSwatch":
       return props.color ?? "";
-    case "Volume":
-      return props.targetApplication || "system";
+    case "SystemGraphs":
+      return (props.metrics ?? []).join(", ");
+    case "Disks":
+      return (props.paths ?? []).join(", ");
     }
     return "";
   }

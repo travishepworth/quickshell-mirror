@@ -202,7 +202,8 @@ QtObject {
         updateAllMetadata();
         running = false;
       } else if (attempts >= maxAttempts) {
-        console.warn("No MPRIS players detected after", attempts, "attempts. Stopping poller.");
+        // Not a problem: onPlayersChanged picks up players that start later
+        console.log("[MprisController] No MPRIS players yet after", attempts, "attempts.");
         running = false;
       }
     }
@@ -246,5 +247,27 @@ QtObject {
     if (activePlayer !== newPlayer) {
       activePlayer = newPlayer;
     }
+  }
+
+  // Every player, for player switchers
+  readonly property var players: Mpris.players?.values ?? []
+  // A player the user picked; kept until it goes away
+  property var _pinnedPlayer: null
+
+  function selectPlayer(player) {
+    root._pinnedPlayer = player;
+    root.activePlayer = player;
+    updateAllMetadata();
+  }
+
+  // Players come and go after startup: keep a pinned player while it
+  // exists, otherwise re-pick (and drop a player that has vanished)
+  onPlayersChanged: {
+    if (root._pinnedPlayer && root.players.includes(root._pinnedPlayer))
+      return;
+    root._pinnedPlayer = null;
+    _updateActivePlayer();
+    if (root.activePlayer)
+      updateAllMetadata();
   }
 }

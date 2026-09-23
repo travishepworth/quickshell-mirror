@@ -15,6 +15,9 @@ Item {
   id: root
 
   required property var wrapper
+  // Inside an overlay module: no background of its own, and lists fill
+  // the height it is given instead of their popout cap
+  property bool embedded: false
   property bool hovered: hoverHandler.hovered
 
   // Set from the widget's PopoutAnchor payload
@@ -50,7 +53,7 @@ Item {
 
   StyledContainer {
     anchors.fill: parent
-    backgroundColor: Theme.background
+    backgroundColor: root.embedded ? "transparent" : Theme.background
     borderWidth: 0
     borderRadius: Appearance.borderRadius + 2
 
@@ -110,9 +113,10 @@ Item {
       StyledScrollView {
         id: scroll
         Layout.fillWidth: true
-        Layout.preferredHeight: Math.min(root.maxListHeight, list.implicitHeight + contentPadding * 2)
+        Layout.preferredHeight: root.embedded ? -1 : Math.min(root.maxListHeight, list.implicitHeight + contentPadding * 2)
+        Layout.fillHeight: root.embedded
         contentPadding: 0
-        showScrollBar: list.implicitHeight > root.maxListHeight
+        showScrollBar: root.embedded || list.implicitHeight > root.maxListHeight
 
         ColumnLayout {
           id: list

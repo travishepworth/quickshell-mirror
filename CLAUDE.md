@@ -81,6 +81,19 @@ Also `pragma Singleton`, but these are typed config *readers*, not owners — on
 
 Views and modules are `oneOf`s discriminated by `type`, like `BarWidget`.
 
+**Writing overlay modules:**
+- **Shape-aware.** `OverlayCard` exposes the slot's `slotRect`, `cols`/`rows` (half units), `shape` and `compact` (a quarter slot), plus `pad`. Each module picks its internal layout from these: side by side when horizontal, stacked when vertical, the key figure only when compact.
+- **Shared parts** live in `modules/common/`: `ModuleHeader`, `Sparkline`, `StatFigure`, `IconToggle`.
+- **Popouts can be embedded.** Bar popouts that modules reuse (AudioMixer, Bluetooth, Notifications, Updates) take `embedded: true` (no background of their own; lists fill the height) and `wrapper: null`.
+- **Data sources.**
+  - `SystemManager` adds `history: true` (60-sample ring buffers), a `net` metric (`/proc/net/dev` rates plus a 10s nmcli poll for `netInfo`/`wifiEnabled`, with `setWifi`) and a `processes` metric (two-frame `top`, with `kill(pid)`).
+  - Weather comes from `common/WeatherSource.qml`, a plain component that the bar widget and the module both instantiate.
+- **Never derive a Repeater model, or anything passed to `acquire()`, from live values.** Build it from config (and tool availability) only. A model that re-evaluates on every sample rebuilds its delegates (and Canvases) many times a second. That once pushed qs past 25 GB. `SystemManager.acquire()` now ignores identical re-registrations.
+- **Testing a module safely.**
+  - The running shell only picks up schema changes on a QML reload, and a reload only fires when a file it has *loaded* changes. A new module file doesn't count until something uses it.
+  - A config checked against a stale schema fails validation, and the whole shell falls back to defaults until it's fixed.
+  - So confirm the schema was reloaded after your edit before putting a new module into `config.json`. Add modules one at a time and watch `qs`'s RSS.
+
 **Overlay editor:**
 - `views/OverlayEditor.qml` with its pieces in `views/overlayEditor/`. It's not in config: `OverlayTabWrapper` adds it as a persistent page after the Repeater, so it's always last, can't be removed, and survives the page rebuild that every config change causes.
 - All edits go through `services/OverlayManager.qml`, a draft copy of `Overlay.views` like `BarManager`: `problems` blocks Save, and Save merges onto the latest config.

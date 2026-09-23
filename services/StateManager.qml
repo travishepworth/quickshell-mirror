@@ -58,6 +58,9 @@ QtObject {
   property Component _componet: Component {
     id: fileViewComponent
     FileView {
+      // A missing state file is normal (nothing saved yet): load() falls
+      // back to its default
+      printErrors: false
       blockWrites: true
       atomicWrites: true
       onSaveFailed: error => {

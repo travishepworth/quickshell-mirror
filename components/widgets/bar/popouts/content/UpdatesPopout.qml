@@ -11,6 +11,9 @@ Item {
   id: root
 
   required property var wrapper
+  // Inside an overlay module: no background of its own, and lists fill
+  // the height it is given instead of their popout cap
+  property bool embedded: false
   property bool hovered: hoverHandler.hovered
 
   // [{ name, from, to }]
@@ -18,7 +21,7 @@ Item {
   property var aurPackages: []
 
   readonly property int margins: 20
-  readonly property int maxRows: 15
+  property int maxRows: 15
 
   implicitWidth: Math.max(320, column.implicitWidth + margins * 2)
   implicitHeight: column.implicitHeight + margins * 2
@@ -71,7 +74,7 @@ Item {
 
   StyledContainer {
     anchors.fill: parent
-    backgroundColor: Theme.background
+    backgroundColor: root.embedded ? "transparent" : Theme.background
     borderWidth: 0
     borderRadius: Appearance.borderRadius + 2
 

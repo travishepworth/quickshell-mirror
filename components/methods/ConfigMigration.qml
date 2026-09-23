@@ -12,7 +12,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 6
+  readonly property int currentVersion: 7
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -36,6 +36,8 @@ QtObject {
       result = _v4ToV5(result, changes);
     if (version < 6)
       result = _v5ToV6(result, changes);
+    if (version < 7)
+      result = _v6ToV7(result, changes);
 
     return {
       config: result,
@@ -307,6 +309,59 @@ QtObject {
     });
     if (rewritten > 0)
       changes.push(`Overlay columns → cell stacks (${rewritten} rewritten)`);
+    return out;
+  }
+
+  // The first overlay modules (Cpu, Gpu, Memory, Storage, Volume, Media)
+  // were replaced by the module suite: each slot gets its successor
+  function _v6ToV7(old, changes) {
+    const out = old;
+    out.version = 7;
+    const successors = {
+      "Cpu": {
+        "type": "SystemGraphs",
+        "properties": {
+          "metrics": ["cpu"]
+        }
+      },
+      "Memory": {
+        "type": "SystemGraphs",
+        "properties": {
+          "metrics": ["mem"]
+        }
+      },
+      "Gpu": {
+        "type": "SystemGraphs",
+        "properties": {
+          "metrics": ["gpu"]
+        }
+      },
+      "Storage": {
+        "type": "Disks"
+      },
+      "Volume": {
+        "type": "VolumeDials"
+      },
+      "Media": {
+        "type": "NowPlaying"
+      }
+    };
+    let replaced = 0;
+    (out.Overlay?.views ?? []).forEach(view => {
+      (view?.columns ?? []).forEach(column => {
+        (column?.cells ?? []).forEach(cell => {
+          Object.keys(cell?.slots ?? {}).forEach(slot => {
+            const next = successors[cell.slots[slot]?.type];
+            if (next) {
+              cell.slots[slot] = JSON.parse(JSON.stringify(next));
+              replaced++;
+            }
+          });
+        });
+      });
+    });
+    if (replaced > 0)
+      changes.push(`Overlay: ${replaced} old module(s) → their replacements`);
     return out;
   }
 }

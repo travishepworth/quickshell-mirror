@@ -1,0 +1,201 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+
+// Weather from Open-Meteo (no API key), shared by the bar Weather widget
+// and the overlay Weather module. Location comes from latitude/longitude,
+// else `location` (geocoded), else the machine's IP. Refreshes every
+// `intervalMinutes`; a failed refresh keeps the last good data.
+Item {
+  id: root
+
+  // -- Settings --
+  property var latitude: ""
+  property var longitude: ""
+  property string location: ""
+  // "celsius" | "fahrenheit"
+  property string units: "celsius"
+  property int intervalMinutes: 30
+
+  // -- Data --
+  // { latitude, longitude, name }, resolved once per location setting
+  property var place: null
+  // Open-Meteo forecast response: current, hourly (12h), daily (5 days)
+  property var weather: null
+  readonly property var current: weather?.current ?? null
+  readonly property var condition: current ? conditionFor(current.weather_code, current.is_day) : null
+  readonly property string unitSymbol: units === "fahrenheit" ? "°F" : "°C"
+
+  property bool _failing: false
+  property bool _alive: true
+  Component.onDestruction: _alive = false
+  readonly property string _locationKey: [latitude, longitude, location].join("|")
+
+  // WMO weather interpretation codes
+  function conditionFor(code, isDay) {
+    const day = isDay !== 0;
+    if (code === 0)
+      return {
+        "icon": day ? "\u{F0599}" : "\u{F0594}",
+        "label": "Clear"
+      };
+    if (code <= 2)
+      return {
+        "icon": day ? "\u{F0595}" : "\u{F0F31}",
+        "label": "Partly cloudy"
+      };
+    if (code === 3)
+      return {
+        "icon": "\u{F0590}",
+        "label": "Overcast"
+      };
+    if (code === 45 || code === 48)
+      return {
+        "icon": "\u{F0591}",
+        "label": "Fog"
+      };
+    if (code >= 51 && code <= 57)
+      return {
+        "icon": "\u{F0597}",
+        "label": "Drizzle"
+      };
+    if ([65, 67, 82].includes(code))
+      return {
+        "icon": "\u{F0596}",
+        "label": "Heavy rain"
+      };
+    if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82))
+      return {
+        "icon": "\u{F0597}",
+        "label": "Rain"
+      };
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86)
+      return {
+        "icon": "\u{F0598}",
+        "label": "Snow"
+      };
+    if (code >= 95)
+      return {
+        "icon": "\u{F0593}",
+        "label": "Thunderstorm"
+      };
+    return {
+      "icon": "\u{F0590}",
+      "label": "Unknown"
+    };
+  }
+
+  // onFail (optional) replaces the warning, for requests with a fallback
+  function getJson(url, onResult, onFail) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url);
+    xhr.onreadystatechange = () => {
+      // A reply can land after this instance was destroyed (config reload)
+      if (xhr.readyState !== XMLHttpRequest.DONE || !root || !root._alive)
+        return;
+      let result = null;
+      if (xhr.status === 200) {
+        try {
+          result = JSON.parse(xhr.responseText);
+        } catch (e) {}
+      }
+      if (!result) {
+        if (onFail) {
+          onFail();
+          return;
+        }
+        // Warn once per outage, not on every retry
+        if (!root._failing)
+          console.warn(`[Weather] Request failed (${xhr.status}): ${url}`);
+        root._failing = true;
+        return;
+      }
+      root._failing = false;
+      onResult(result);
+    };
+    xhr.send();
+  }
+
+  function resolvePlace(then) {
+    const p = root;
+    const lat = parseFloat(p.latitude);
+    const lon = parseFloat(p.longitude);
+    if (!isNaN(lat) && !isNaN(lon)) {
+      place = {
+        "latitude": lat,
+        "longitude": lon,
+        "name": p.location || `${lat.toFixed(2)}, ${lon.toFixed(2)}`
+      };
+      then();
+    } else if (p.location) {
+      getJson(`https://geocoding-api.open-meteo.com/v1/search?count=1&name=${encodeURIComponent(p.location)}`, data => {
+        const r = data.results?.[0];
+        if (!r) {
+          console.warn(`[Weather] Unknown location: ${p.location}`);
+          return;
+        }
+        root.place = {
+          "latitude": r.latitude,
+          "longitude": r.longitude,
+          "name": [r.name, r.admin1, r.country_code].filter(Boolean).join(", ")
+        };
+        then();
+      });
+    } else {
+      // Two free IP geolocation services, as either may rate-limit
+      const fromIpapi = () => getJson("https://ipapi.co/json/", data => {
+          if (data.latitude === undefined)
+            return;
+          root.place = {
+            "latitude": data.latitude,
+            "longitude": data.longitude,
+            "name": [data.city, data.region_code].filter(Boolean).join(", ")
+          };
+          then();
+        });
+      getJson("https://ipinfo.io/json", data => {
+        const [lat, lon] = (data.loc ?? "").split(",").map(Number);
+        if (isNaN(lat) || isNaN(lon)) {
+          fromIpapi();
+          return;
+        }
+        root.place = {
+          "latitude": lat,
+          "longitude": lon,
+          "name": [data.city, data.region].filter(Boolean).join(", ")
+        };
+        then();
+      }, fromIpapi);
+    }
+  }
+
+  function refresh() {
+    if (!place) {
+      resolvePlace(refresh);
+      return;
+    }
+    const params = ["latitude=" + place.latitude, "longitude=" + place.longitude, "current=temperature_2m,apparent_temperature,weather_code,is_day,wind_speed_10m,relative_humidity_2m", "hourly=temperature_2m,weather_code,is_day", "forecast_hours=12", "daily=weather_code,temperature_2m_max,temperature_2m_min", "timezone=auto", "forecast_days=5", "temperature_unit=" + root.units, "wind_speed_unit=" + (root.units === "fahrenheit" ? "mph" : "kmh")];
+    getJson("https://api.open-meteo.com/v1/forecast?" + params.join("&"), data => root.weather = data);
+  }
+
+  on_LocationKeyChanged: {
+    place = null;
+    refreshSoon.restart();
+  }
+  onUnitsChanged: refreshSoon.restart()
+
+  // Coalesces setting changes into one refresh. A Timer rather than
+  // Qt.callLater, so it dies with this instance on a config reload.
+  Timer {
+    id: refreshSoon
+    interval: 250
+    onTriggered: root.refresh()
+  }
+
+  Timer {
+    interval: Math.max(1, root.intervalMinutes) * 60000
+    running: true
+    repeat: true
+    triggeredOnStart: true
+    onTriggered: root.refresh()
+  }
+}

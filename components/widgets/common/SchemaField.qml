@@ -79,6 +79,9 @@ Loader {
     if (row.kind === "array")
       return arrayField;
     switch (fieldSchema.type) {
+    case "array":
+      // Strings only: from a fixed set (chips), or free text
+      return fieldSchema.items?.enum ? chipsField : stringListField;
     case "boolean":
       return switchField;
     case "integer":
@@ -157,6 +160,58 @@ Loader {
       description: root.description
       currentConfigValue: root.current ?? ""
       onValueChanged: root.commit(value)
+    }
+  }
+
+  // An array of strings from `items.enum`: one toggle chip per option,
+  // committed in the enum's order
+  Component {
+    id: chipsField
+    ColumnLayout {
+      spacing: 4
+      StyledText {
+        text: root.label
+        Layout.fillWidth: true
+      }
+      Flow {
+        Layout.fillWidth: true
+        spacing: Widget.spacing / 2
+        Repeater {
+          model: root.fieldSchema.items.enum
+          StyledTextButton {
+            id: chip
+            required property string modelData
+            readonly property bool selected: (root.current ?? []).includes(chip.modelData)
+            text: chip.modelData
+            backgroundColor: chip.selected ? Theme.accent : Theme.backgroundHighlight
+            textColor: chip.selected ? Theme.background : Theme.foreground
+            onClicked: {
+              const current = root.current ?? [];
+              const next = chip.selected ? current.filter(v => v !== chip.modelData) : current.concat([chip.modelData]);
+              root.commit(root.fieldSchema.items.enum.filter(v => next.includes(v)));
+            }
+          }
+        }
+      }
+      StyledText {
+        visible: root.description !== ""
+        Layout.fillWidth: true
+        wrapMode: Text.WordWrap
+        text: root.description
+        textSize: Appearance.fontSize - 2
+        opacity: 0.6
+      }
+    }
+  }
+
+  // A free array of strings, edited as a comma-separated list
+  Component {
+    id: stringListField
+    SchemaTextField {
+      label: root.label
+      description: root.description
+      currentConfigValue: (root.current ?? []).join(", ")
+      onValueChanged: root.commit(value.split(",").map(v => v.trim()).filter(v => v !== ""))
     }
   }
 }

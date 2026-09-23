@@ -12,6 +12,9 @@ Item {
 
   // A slot entry: { type, properties }, or undefined for an empty slot
   property var config
+  // The slot's [col, row, colSpan, rowSpan] in its cell's layout; passed on
+  // as the module's `slotRect`, from which OverlayCard derives its shape
+  property var rect: [0, 0, 2, 2]
 
   anchors.fill: parent
 
@@ -25,7 +28,8 @@ Item {
       return;
     }
     loader.setSource(host.componentPath, {
-      "properties": host.config.properties || {}
+      "properties": host.config.properties || {},
+      "slotRect": host.rect
     });
   }
   onComponentPathChanged: _load()
@@ -34,6 +38,9 @@ Item {
   Loader {
     id: loader
     anchors.fill: parent
-    onLoaded: item.properties = Qt.binding(() => host.config?.properties || {})
+    onLoaded: {
+      item.properties = Qt.binding(() => host.config?.properties || {});
+      item.slotRect = Qt.binding(() => host.rect);
+    }
   }
 }

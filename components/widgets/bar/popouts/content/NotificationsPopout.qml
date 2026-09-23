@@ -11,6 +11,9 @@ Item {
   id: root
 
   required property var wrapper
+  // Inside an overlay module: no background of its own, and lists fill
+  // the height it is given instead of their popout cap
+  property bool embedded: false
   property bool hovered: hoverHandler.hovered
 
   readonly property int margins: 20
@@ -63,7 +66,7 @@ Item {
     id: content
     anchors.fill: parent
 
-    backgroundColor: Theme.background
+    backgroundColor: root.embedded ? "transparent" : Theme.background
     borderColor: Theme.backgroundAlt
     borderWidth: 0
     borderRadius: Appearance.borderRadius + 2
