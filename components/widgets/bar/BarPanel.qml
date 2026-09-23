@@ -46,6 +46,7 @@ PanelWindow {
     barConfig: root.barConfig
     panel: root
     screen: root.screen
+    layoutSource: bar.barContainer
   }
 
   // Use the standalone Bar component

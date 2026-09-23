@@ -1,7 +1,6 @@
 // SystemTray.qml - Fixed icon rendering
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.SystemTray
 import qs.config
@@ -29,13 +28,8 @@ Item {
   property color backgroundBorderColor: "transparent"
   property real backgroundBorderWidth: 0
 
-  // Dynamic dimensions based on orientation
-  height: isVertical ? implicitHeight : Widget.height
-  width: isVertical ? Widget.height : implicitWidth
   implicitWidth: isVertical ? Widget.height : (layoutLoader.item ? layoutLoader.item.implicitWidth + leftPadding + rightPadding : 0)
   implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + topPadding + bottomPadding : 0) : Widget.height
-  Layout.preferredWidth: isVertical ? Widget.height : implicitWidth
-  Layout.preferredHeight: isVertical ? implicitHeight : Widget.height
 
   Rectangle {
     anchors.fill: parent

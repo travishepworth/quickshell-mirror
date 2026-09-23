@@ -21,12 +21,10 @@ Item {
   property var screen
   property var properties
 
-  // Dynamic dimensions based on orientation
-  height: isVertical ? implicitHeight : Widget.height
-  width: isVertical ? Widget.height : implicitWidth
+  readonly property int priority: 5
 
-  implicitWidth: isVertical ? Widget.height : (layoutLoader.item ? layoutLoader.item.implicitWidth + Widget.padding * 2 : 100)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Widget.padding * 2 : Widget.height) : Widget.height
+  implicitWidth: isVertical ? Widget.height : (layoutLoader.item ? layoutLoader.item.implicitWidth + Widget.padding * 2 : 0)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Widget.padding * 2 : 0) : Widget.height
 
   SystemClock {
     id: clock

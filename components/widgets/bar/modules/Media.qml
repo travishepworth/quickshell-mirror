@@ -19,13 +19,13 @@ Item {
 
   property bool isVertical: barConfig.vertical
 
-  readonly property int crossAxisSize: Widget.height
-  readonly property int mainAxisSize: 320
+  // Always the same size, so the widget (and the popout hanging off it)
+  // doesn't move when the track changes; the label elides to fit
+  readonly property string sizePolicy: "fixed"
+  readonly property int preferredSize: 320
 
-  implicitWidth: isVertical ? crossAxisSize : mainAxisSize
-  implicitHeight: isVertical ? mainAxisSize : crossAxisSize
-  width: implicitWidth
-  height: implicitHeight
+  implicitWidth: iconText.implicitWidth
+  implicitHeight: iconText.implicitHeight
 
   IconTextWidget {
     id: iconText
@@ -36,7 +36,6 @@ Item {
     icon: MprisController.isPlaying ? "♪" : "⏸"
     text: root.formatTrack()
 
-    maxTextLength: 30
     backgroundColor: MprisController.isPlaying ? Theme.green : Theme.bg2
   }
 
@@ -44,8 +43,7 @@ Item {
     if (!MprisController.activePlayer)
       return "No player";
     const artist = Utils.truncate(MprisController.trackArtist, 10, "");
-    const title = Utils.truncate(MprisController.trackTitle, 20, "");
-    return "󰠃 " + artist + " - " + title;
+    return "󰠃 " + artist + " - " + MprisController.trackTitle;
   }
 
   PopoutAnchor {

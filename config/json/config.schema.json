@@ -409,6 +409,18 @@
       }
     },
 
+    "WidgetLayout": {
+      "type": "object",
+      "title": "Layout",
+      "description": "Overrides for how much room a bar widget takes. Anything left out uses the widget's own sizing.",
+      "additionalProperties": false,
+      "properties": {
+        "size": { "type": "integer", "title": "Size", "minimum": 0, "maximum": 2000, "description": "Length along the bar (px). Fixed and elastic widgets use it as their size / maximum." },
+        "minSize": { "type": "integer", "title": "Minimum size", "minimum": 0, "maximum": 2000, "description": "Smallest length the widget may shrink to when the bar is crowded (px)." },
+        "priority": { "type": "integer", "title": "Priority", "minimum": -100, "maximum": 100, "description": "When a section can't fit its widgets, lower priorities are hidden first." }
+      }
+    },
+
     "BarWidget": {
       "type": "object",
       "required": ["type"],
@@ -431,7 +443,8 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "Window", "description": "Window Title" },
-        "visible": { "type": "boolean" }
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" }
       },
       "additionalProperties": false
     },
@@ -440,7 +453,8 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "Media", "description": "Media Player" },
-        "visible": { "type": "boolean" }
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" }
       },
       "additionalProperties": false
     },
@@ -449,7 +463,8 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "Workspaces", "description": "Workspace Switcher" },
-        "visible": { "type": "boolean" }
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" }
       },
       "additionalProperties": false
     },
@@ -458,7 +473,8 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "Time", "description": "Clock" },
-        "visible": { "type": "boolean" }
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" }
       },
       "additionalProperties": false
     },
@@ -467,7 +483,8 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "TimeJapanese", "description": "Japanese Clock" },
-        "visible": { "type": "boolean" }
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" }
       },
       "additionalProperties": false
     },
@@ -476,7 +493,8 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "Tailscale", "description": "Tailscale Status" },
-        "visible": { "type": "boolean" }
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" }
       },
       "additionalProperties": false
     },
@@ -485,7 +503,8 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "Network", "description": "Network Status" },
-        "visible": { "type": "boolean" }
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" }
       },
       "additionalProperties": false
     },
@@ -494,7 +513,8 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "SystemTray", "description": "System Tray" },
-        "visible": { "type": "boolean" }
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" }
       },
       "additionalProperties": false
     },
@@ -503,7 +523,8 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "Notifications", "description": "Notification Center" },
-        "visible": { "type": "boolean" }
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" }
       },
       "additionalProperties": false
     },
@@ -512,7 +533,8 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "Battery", "description": "Battery Status" },
-        "visible": { "type": "boolean" }
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" }
       },
       "additionalProperties": false
     },
@@ -522,6 +544,7 @@
       "properties": {
         "type": { "const": "Logo", "description": "Custom Logo" },
         "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
         "properties": {
           "type": "object",
           "properties": {

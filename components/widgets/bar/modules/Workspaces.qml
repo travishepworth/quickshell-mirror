@@ -65,6 +65,7 @@ Item {
   }
 
   readonly property int groupSize: 5
+  readonly property int priority: 10
 
   implicitWidth: isVertical ? Widget.height : (groupSize * Widget.height + (groupSize - 1) * 6)
   implicitHeight: isVertical ? (groupSize * Widget.height + (groupSize - 1) * 6) : Widget.height

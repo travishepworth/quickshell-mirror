@@ -11,7 +11,6 @@ IconTextWidget {
 
   property bool isConnected: false
   property string tailnetName: ""
-  property bool showText: true
 
   property var barConfig
   property var popouts
@@ -21,14 +20,11 @@ IconTextWidget {
 
   isVertical: barConfig.vertical
 
-
   icon: isConnected ? "󰳌" : "󰌙"
   // text: isConnected ? tailnetName : ""
   text: isConnected ? "k8s" : ""
 
   backgroundColor: isConnected ? Theme.warning : Theme.backgroundHighlight
-
-  maxTextLength: 15
 
   iconScale: 1.1
   textScale: 0.9

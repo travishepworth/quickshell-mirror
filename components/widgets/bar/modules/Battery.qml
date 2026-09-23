@@ -20,6 +20,8 @@ IconTextWidget {
   property string timeRemaining: ""
   property string warningLevel: "none"
 
+  isVertical: barConfig.vertical
+
   icon: getBatteryIcon()
   text: `${percentage}%`
 

@@ -36,6 +36,44 @@ PopoutWrapperBase {
   // Gap between bar and main content (connector thickness)
   property int connectorGap: Appearance.borderRadius * 2
 
+  // The bar's BarContainer. Its layoutUpdated signal re-anchors an open
+  // popout, so it stays attached to a widget that moves or resizes.
+  property var layoutSource: null
+
+  // Where the anchor widget currently is, in bar-window coordinates. Read
+  // live from currentData.anchorItem; the anchorX/anchorY snapshot in the
+  // payload is only the fallback for callers that don't pass an item.
+  property rect anchorRect: Qt.rect(0, 0, 0, 0)
+
+  function updateAnchorRect() {
+    const data = root.currentData;
+    if (!data)
+      return;
+    const item = data.anchorItem;
+    if (item) {
+      try {
+        const pos = item.mapToItem(null, 0, 0);
+        root.anchorRect = Qt.rect(pos.x, pos.y, item.width, item.height);
+        return;
+      } catch (e) {
+        // Anchor was destroyed (e.g. the bar rebuilt on a config reload)
+      }
+    }
+    root.anchorRect = Qt.rect(data.anchorX ?? 0, data.anchorY ?? 0, data.anchorWidth ?? 0, data.anchorHeight ?? 0);
+  }
+
+  onCurrentDataChanged: updateAnchorRect()
+
+  Connections {
+    target: root.layoutSource
+    // Positions settle through bindings after the signal, so read them once
+    // they have
+    function onLayoutUpdated() {
+      if (root.occupied)
+        Qt.callLater(root.updateAnchorRect);
+    }
+  }
+
   // Clear the anchor widget's popoutOpen flag on dismiss, so hovering it
   // again is allowed to open a fresh popout. Safety net for however this
   // popout ends up destroyed lives alongside it.
@@ -80,7 +118,7 @@ PopoutWrapperBase {
     // Content dimensions
     readonly property int contentWidth: root.currentItem?.implicitWidth ?? 200
     readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
-    readonly property int isOnRightHalfOfScreen: (root.currentData?.anchorX ?? 0) > (root.screen.width / 2) ? true : false
+    readonly property int isOnRightHalfOfScreen: root.anchorRect.x > (root.screen.width / 2) ? true : false
 
     // Along-bar clamp range, in bar-window coordinates. The perpendicular
     // screen borders may sit inside the bar window (bar mapped first) or
@@ -113,9 +151,9 @@ PopoutWrapperBase {
           if (root.barConfig.left) {
             return root.barConfig.extent;
           } else if (root.barConfig.right) {
-            return (root.currentData.anchorX ?? 0) - mainPopup.implicitWidth - Widget.padding + Appearance.borderWidth;
+            return root.anchorRect.x - mainPopup.implicitWidth - Widget.padding + Appearance.borderWidth;
           } else {
-            let anchorCenter = (root.currentData.anchorX ?? 0) + (root.currentData.anchorWidth ?? 0) / 2;
+            let anchorCenter = root.anchorRect.x + root.anchorRect.width / 2;
             let popoutCenter = mainPopup.implicitWidth / 2;
             let targetX = anchorCenter - popoutCenter;
 
@@ -130,9 +168,9 @@ PopoutWrapperBase {
           if (root.barConfig.top) {
             return root.barConfig.extent;
           } else if (root.barConfig.bottom) {
-            return (root.currentData.anchorY ?? 0) - mainPopup.implicitHeight - Widget.padding + Appearance.borderWidth;
+            return root.anchorRect.y - mainPopup.implicitHeight - Widget.padding + Appearance.borderWidth;
           } else {
-            let anchorCenter = (root.currentData.anchorY ?? 0) + (root.currentData.anchorHeight ?? 0) / 2;
+            let anchorCenter = root.anchorRect.y + root.anchorRect.height / 2;
             let popoutCenter = mainPopup.implicitHeight / 2;
             let targetY = anchorCenter - popoutCenter;
 
