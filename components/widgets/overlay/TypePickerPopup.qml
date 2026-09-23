@@ -54,7 +54,7 @@ Popup {
         anchors.rightMargin: Widget.padding
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
-        text: rowDelegate.modelData.label
+        text: I18n.tr(rowDelegate.modelData.label)
       }
 
       MouseArea {

@@ -20,10 +20,10 @@ StyledContainer {
   property int currentTab: 0
   readonly property var tabs: [
     {
-      name: "Applications"
+      name: I18n.tr("Applications")
     },
     {
-      name: "Devices"
+      name: I18n.tr("Devices")
     }
   ]
   readonly property real tabBarHeight: 40
@@ -142,7 +142,7 @@ StyledContainer {
               property var filteredNodes: Pipewire.nodes.values.filter(node => node.isSink && !node.isStream)
 
               StyledText {
-                text: "No output devices found."
+                text: I18n.tr("No output devices found.")
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 visible: false // TODO: fix

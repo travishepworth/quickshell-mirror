@@ -79,12 +79,12 @@ IconTextWidget {
     onClicked: {
       const lines = [];
       if (root.micUsers.length)
-        lines.push(`Microphone: ${root.micUsers.join(", ")}`);
+        lines.push(I18n.tr("Microphone: {0}", root.micUsers.join(", ")));
       if (root.screenUsers.length)
-        lines.push(`Screen: ${root.screenUsers.join(", ")}`);
+        lines.push(I18n.tr("Screen: {0}", root.screenUsers.join(", ")));
       if (root.cameraUsers.length)
-        lines.push(`Camera: ${root.cameraUsers.join(", ")}`);
-      Quickshell.execDetached(["notify-send", "-a", "Privacy", "In use", lines.join("\n")]);
+        lines.push(I18n.tr("Camera: {0}", root.cameraUsers.join(", ")));
+      Quickshell.execDetached(["notify-send", "-a", I18n.tr("Privacy"), I18n.tr("In use"), lines.join("\n")]);
     }
   }
 }

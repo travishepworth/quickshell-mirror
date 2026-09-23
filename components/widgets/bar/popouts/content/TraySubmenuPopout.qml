@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.SystemTray
 import qs.config
+
 /**
  * Submenu content
  */
@@ -69,10 +70,10 @@ Item {
           itemPadding: root.itemPadding
           minItemWidth: root.minWidth - 40
           maxItemWidth: root.maxWidth - 40
-          onItemClicked: function() {
+          onItemClicked: function () {
             root.wrapper.requestDismiss();
           }
-          onSubmenuRequested: function(itemDelegate) {
+          onSubmenuRequested: function (itemDelegate) {
             let globalPos = itemDelegate.mapToGlobal(0, 0);
             console.log("Opening submenu for:", itemDelegate.menuItem.text, "at", globalPos);
             root.wrapper.safeOpenPopout(root.wrapper.popupWindow, {
@@ -91,7 +92,7 @@ Item {
       // Empty state
       Text {
         visible: menuOpener.children.length === 0
-        text: "No submenu items"
+        text: I18n.tr("No submenu items")
         color: Theme.accent
         opacity: 0.5
         Layout.fillWidth: true

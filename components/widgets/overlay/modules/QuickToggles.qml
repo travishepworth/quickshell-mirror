@@ -23,43 +23,43 @@ OverlayCard {
   readonly property var defs: ({
       "wifi": {
         "icon": SystemManager.wifiEnabled ? "\u{F05A9}" : "\u{F05AA}",
-        "label": "Wi-Fi",
+        "label": I18n.tr("Wi-Fi"),
         "active": SystemManager.wifiEnabled,
         "available": true
       },
       "bluetooth": {
         "icon": BluetoothManager.enabled ? "\u{F00AF}" : "\u{F00B2}",
-        "label": "Bluetooth",
+        "label": I18n.tr("Bluetooth"),
         "active": BluetoothManager.enabled,
         "available": BluetoothManager.available
       },
       "caffeine": {
         "icon": "\u{F0176}",
-        "label": "Caffeine",
+        "label": I18n.tr("Caffeine"),
         "active": IdleInhibit.enabled,
         "available": true
       },
       "dnd": {
         "icon": Notifs.dnd ? "\u{F009B}" : "\u{F009A}",
-        "label": "Do not disturb",
+        "label": I18n.tr("Do not disturb"),
         "active": Notifs.dnd,
         "available": true
       },
       "darkMode": {
         "icon": "\u{F0594}",
-        "label": "Dark mode",
+        "label": I18n.tr("Dark mode"),
         "active": Appearance.darkMode,
         "available": true
       },
       "nightLight": {
         "icon": "\u{F1A5C}",
-        "label": "Night light",
+        "label": I18n.tr("Night light"),
         "active": root.nightLightOn,
         "available": root.nightLightTool !== ""
       },
       "powerSaver": {
         "icon": "\u{F032A}",
-        "label": "Power saver",
+        "label": I18n.tr("Power saver"),
         "active": root.powerProfile === "power-saver",
         "available": root.hasPowerProfiles
       }

@@ -19,7 +19,7 @@ A [Quickshell](https://quickshell.org) desktop shell config (QML) for Hyprland, 
 ## Formatting
 
 - `.qmlformat.ini` pins `qmlformat` settings: spaces not tabs, 2-space indent, no max column width. Run `/usr/lib/qt6/bin/qmlformat -i` on changed `.qml` files before committing. The `qmlformat` on PATH is Qt5's, which can't parse `pragma ComponentBehavior` and fails silently (exit 1, no output).
-- The QML JS engine has no `Array.prototype.flatMap`; use `[].concat(...arr.map(...))`.
+- The QML JS engine has no `Array.prototype.flatMap` (use `[].concat(...arr.map(...))`) and no `Object.fromEntries` (use `reduce`).
 
 ## Architecture
 
@@ -66,6 +66,18 @@ Also `pragma Singleton`, but these are typed config *readers*, not owners — on
 `config/Theme.qml` exposes the base16 palette (`base00`-`base0F`) plus semantic aliases (`background`, `accent`, `error`, etc.) resolved through `_themeData.semantic`, and a `stringToColorMap` + `resolveColor(name)` for dynamic color lookup by string (used when a color name comes from JSON/config rather than a static binding).
 
 `config/json/config.schema.json` is the single source of truth: shape, `default`s, and — via `title`/`description`/`minimum`/`maximum`/`enum`/`x-options` — the settings UI, which is generated from it (`components/widgets/common/SchemaForm.qml`; `x-settings: false` hides a key). Adding a setting = add it to the schema (with a default) and a reader property. `x-options: "colors"` makes a string a color picker over `base00`–`base0F` (read it with `Theme.resolveColor`, which also accepts semantic names and hex); `x-showIf` hides a field unless a sibling has a given value. An `array` whose `items` is an object schema renders as an add/remove/reorder list of those fields (`SchemaArrayItem`). There is no separate defaults file. The live file is `config/user/config.json` (gitignored, UI-owned); bump `version` and extend `ConfigMigration` when changing its layout. Theme JSON files live in `config/themes/*.json` (static) and `config/themes/generated/*.json` (pywal-style, generated from wallpaper).
+
+### Translation (`config/I18n.qml`)
+
+`General.language` picks the language. English is the source language: user-visible text is written in English, inline, as `I18n.tr("Text")`.
+- **Dynamic values** use placeholders, so the whole sentence stays one key: `I18n.tr("{0} updates", count)`. Don't build sentences with template strings.
+- **Dates and times** go through `I18n.formatDate(date, format)`, never `Qt.formatDateTime`, so day and month names follow the language. Named formats come from `I18n.dateFormat("longDate" | "mediumDate" | "shortDate" | "monthYear" | "fullDate" | "time24" | "time12")`.
+- **The schema form translates itself.** The generic `Schema*` form widgets translate their own `label`/`title`/`description` and dropdown option labels. Callers pass English, and schema titles and descriptions need no code.
+- **Adding a language** means adding `config/i18n/<code>.json`: `{"_meta": {"name", "locale", "formats"}, "strings": {english: translation}}`. It then appears in the language dropdown (`x-options: "languages"`).
+- **Missing entries fall back to English.** The active dictionary reloads live when edited.
+- **Checking coverage.** Run `scripts/check_i18n.py` after changing text; it lists missing and unused entries (`--fill` adds the missing ones empty, `--untranslated` finds UI literals not wrapped in `tr()`).
+  - Keys only chosen at runtime (e.g. `I18n.tr(form.shape)`) must be declared in a comment next to the call, as `I18n.tr("square") ...`, so the checker sees them.
+- **Leave developer-facing strings in English:** logs, validation errors, migration notes.
 
 ### Bar / widget composition pattern
 

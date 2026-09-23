@@ -57,7 +57,7 @@ OverlayCard {
 
     ModuleHeader {
       icon: root.kindIcon
-      title: root.info.name || "Disconnected"
+      title: root.info.name || I18n.tr("Disconnected")
       StyledText {
         visible: root.info.kind === "wifi" && !root.compact
         text: `${root.info.signal}%`
@@ -75,7 +75,7 @@ OverlayCard {
       visible: !root.compact && root.tailscale !== ""
       Layout.fillWidth: true
       elide: Text.ElideRight
-      text: `Tailscale · ${root.tailscale}`
+      text: I18n.tr("Tailscale · {0}", root.tailscale)
       textSize: Appearance.fontSize - 2
       textColor: root.tailscale.startsWith("Running") ? Theme.success : Theme.foreground
       opacity: 0.8

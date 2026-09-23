@@ -57,7 +57,7 @@ OverlayCard {
           visible: !root.compact
           Layout.fillWidth: true
           elide: Text.ElideRight
-          text: `${source.condition?.label ?? ""} · feels ${Math.round(root.current?.apparent_temperature ?? 0)}°`
+          text: I18n.tr("{0} · feels {1}°", source.condition?.label ?? "", Math.round(root.current?.apparent_temperature ?? 0))
           opacity: 0.8
         }
         StyledText {
@@ -119,7 +119,7 @@ OverlayCard {
           Layout.fillWidth: true
           StyledText {
             Layout.preferredWidth: Appearance.fontSize * 4
-            text: parent.index === 0 ? "Today" : Qt.formatDate(new Date(parent.daily.time[parent.index]), "ddd")
+            text: parent.index === 0 ? I18n.tr("Today") : I18n.formatDate(new Date(parent.daily.time[parent.index]), "ddd")
           }
           StyledText {
             text: source.conditionFor(parent.daily.weather_code[parent.index], 1).icon

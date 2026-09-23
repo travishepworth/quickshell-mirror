@@ -23,12 +23,12 @@ PanelWindow {
   property real slideOffset: isLocked ? 0 : -height
 
   Component.onCompleted: {
-    ShellManager.lockScreen.connect(function() {
+    ShellManager.lockScreen.connect(function () {
       rootWindow.lock();
     });
-    console.log("========== LockScreen ==========")
+    console.log("========== LockScreen ==========");
     console.log("  > Screen:", screen.name, "Primary:", isPrimaryScreen, "Width:", screen.width, "Height:", screen.height, "Aspect Ratio:", aspectRatio);
-    console.log("================================")
+    console.log("================================");
   }
 
   anchors {
@@ -47,11 +47,11 @@ PanelWindow {
   function lock() {
     visible = true;
     isLocked = true;
-    
+
     if (isPrimaryScreen) {
       passwordInput.text = "";
       Authentication.clearMessage();
-      }
+    }
   }
 
   function unlock() {
@@ -219,7 +219,7 @@ PanelWindow {
         spacing: Appearance.screenMargin
 
         StyledText {
-          text: "hey " + General.displayName
+          text: I18n.tr("hey ") + General.displayName
           textSize: Appearance.fontSize * 3
           textColor: Theme.foreground
           horizontalAlignment: Text.AlignHCenter
@@ -281,7 +281,7 @@ PanelWindow {
 
           StyledTextEntry {
             id: passwordInput
-            placeholderText: "Enter password..."
+            placeholderText: I18n.tr("Enter password...")
             width: parent.width
             input.passwordCharacter: "•"
             input.passwordMaskDelay: 0

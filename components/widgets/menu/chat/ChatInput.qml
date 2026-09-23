@@ -25,10 +25,11 @@ RowLayout {
     id: textEntry
     expandable: true
     Layout.fillWidth: true
-    placeholderText: "Type a message or use / for commands..."
+    placeholderText: I18n.tr("Type a message or use / for commands...")
     onAccepted: control.submit()
     onTextChanged: {
-      Chat.updateCommandState(text)}
+      Chat.updateCommandState(text);
+    }
     Component.onCompleted: {
       control.wantsKeyboardFocus = true;
     }
@@ -46,16 +47,21 @@ RowLayout {
     opacity: enabled ? 1.0 : 0.5
     onClicked: control.submit()
 
-    Behavior on opacity { OpacityAnimator { duration: Appearance.animNormal } }
+    Behavior on opacity {
+      OpacityAnimator {
+        duration: Appearance.animNormal
+      }
+    }
   }
 
   function focus() {
     root.wantsKeyboardFocus = true;
     textEntry.forceActiveFocus();
   }
-  
+
   function submit() {
-    if (!submitButton.enabled) return;
+    if (!submitButton.enabled)
+      return;
     Chat.sendMessage(textEntry.text);
     textEntry.text = "";
     textEntry.input.forceActiveFocus();

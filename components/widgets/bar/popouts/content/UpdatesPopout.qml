@@ -66,7 +66,7 @@ Item {
 
     StyledText {
       visible: section.packages.length > root.maxRows
-      text: `+${section.packages.length - root.maxRows} more`
+      text: I18n.tr("+{0} more", section.packages.length - root.maxRows)
       textColor: Theme.foregroundAlt
       textSize: Appearance.fontSize - 2
     }
@@ -89,18 +89,18 @@ Item {
       spacing: Widget.padding
 
       Section {
-        title: "Repositories"
+        title: I18n.tr("Repositories")
         packages: root.repoPackages
       }
 
       Section {
-        title: "AUR"
+        title: I18n.tr("AUR")
         packages: root.aurPackages
       }
 
       StyledText {
         visible: root.repoPackages.length + root.aurPackages.length === 0
-        text: "System is up to date"
+        text: I18n.tr("System is up to date")
         textColor: Theme.foregroundAlt
       }
     }

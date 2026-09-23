@@ -32,7 +32,7 @@ OverlayCard {
     ModuleHeader {
       visible: !root.compact
       icon: "\u{F0A30}"
-      title: "Processes"
+      title: I18n.tr("Processes")
       StyledText {
         text: root.sortBy === "cpu" ? "by CPU" : "by memory"
         textSize: Appearance.fontSize - 2

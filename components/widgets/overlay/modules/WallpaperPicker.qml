@@ -16,7 +16,7 @@ OverlayCard {
   StyledText {
     anchors.centerIn: parent
     visible: ThemeManager.wallpaperModel.count === 0
-    text: "No wallpapers in ~/Pictures/wallpapers"
+    text: I18n.tr("No wallpapers in ~/Pictures/wallpapers")
     opacity: 0.6
   }
 

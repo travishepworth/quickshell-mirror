@@ -25,7 +25,7 @@ Item {
     if (!daily || !conditionFor)
       return [];
     return daily.time.map((date, i) => ({
-          "label": i === 0 ? "Today" : Qt.formatDate(new Date(date + "T12:00"), "ddd"),
+          "label": i === 0 ? I18n.tr("Today") : I18n.formatDate(new Date(date + "T12:00"), "ddd"),
           "icon": conditionFor(daily.weather_code[i], 1).icon,
           "max": Math.round(daily.temperature_2m_max[i]),
           "min": Math.round(daily.temperature_2m_min[i])
@@ -79,7 +79,7 @@ Item {
             font.bold: true
           }
           StyledText {
-            text: root.current ? `Feels like ${Math.round(root.current.apparent_temperature)}°  ·  ${root.current.relative_humidity_2m}% humidity  ·  ${Math.round(root.current.wind_speed_10m)} ${root.weather.current_units?.wind_speed_10m ?? "km/h"}` : ""
+            text: root.current ? I18n.tr("Feels like {0}°  ·  {1}% humidity  ·  {2} {3}", Math.round(root.current.apparent_temperature), root.current.relative_humidity_2m, Math.round(root.current.wind_speed_10m), root.weather.current_units?.wind_speed_10m ?? "km/h") : ""
             textColor: Theme.foregroundAlt
             textSize: Appearance.fontSize - 2
           }

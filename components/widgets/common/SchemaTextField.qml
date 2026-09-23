@@ -23,7 +23,7 @@ ColumnLayout {
   spacing: 4
 
   StyledText {
-    text: root.label
+    text: I18n.tr(root.label)
     Layout.fillWidth: true
   }
 
@@ -45,7 +45,7 @@ ColumnLayout {
 
   StyledText {
     visible: root.description !== ""
-    text: root.description
+    text: I18n.tr(root.description)
     opacity: 0.7
     textSize: Appearance.fontSize - 2
     wrapMode: Text.WordWrap

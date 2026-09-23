@@ -129,7 +129,7 @@ Item {
         iconText: row.device.connected ? "\u{F0338}" : "\u{F0337}"
         backgroundColor: "transparent"
         borderHoverColor: Theme.accent
-        tooltipText: row.device.connected ? "Disconnect" : (row.device.paired ? "Connect" : "Pair and connect")
+        tooltipText: I18n.tr(row.device.connected ? "Disconnect" : (row.device.paired ? "Connect" : "Pair and connect"))
         onClicked: BluetoothManager.toggleDevice(row.device)
       }
 
@@ -141,7 +141,7 @@ Item {
         iconColor: Theme.error
         backgroundColor: "transparent"
         borderHoverColor: Theme.error
-        tooltipText: "Forget"
+        tooltipText: I18n.tr("Forget")
         onClicked: BluetoothManager.forget(row.device)
       }
     }
@@ -169,7 +169,7 @@ Item {
 
         StyledText {
           Layout.fillWidth: true
-          text: BluetoothManager.adapter?.name ? `Bluetooth · ${BluetoothManager.adapter.name}` : "Bluetooth"
+          text: BluetoothManager.adapter?.name ? I18n.tr("Bluetooth · {0}", BluetoothManager.adapter.name) : I18n.tr("Bluetooth")
           elide: Text.ElideRight
           font.bold: true
           textColor: Theme.accent
@@ -177,7 +177,7 @@ Item {
 
         StyledText {
           visible: BluetoothManager.discovering
-          text: "Scanning…"
+          text: I18n.tr("Scanning…")
           textSize: Appearance.fontSize - 2
           textColor: Theme.foregroundAlt
         }
@@ -196,7 +196,7 @@ Item {
         visible: !BluetoothManager.enabled
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
-        text: !BluetoothManager.available ? "No Bluetooth adapter found" : BluetoothManager.blocked ? "Bluetooth is blocked (rfkill)" : "Bluetooth is off"
+        text: I18n.tr(!BluetoothManager.available ? "No Bluetooth adapter found" : BluetoothManager.blocked ? "Bluetooth is blocked (rfkill)" : "Bluetooth is off")
         textColor: Theme.foregroundAlt
       }
 
@@ -213,7 +213,7 @@ Item {
         spacing: Widget.spacing
 
         Repeater {
-          model: [`Devices (${BluetoothManager.pairedDevices.length})`, "Discover"]
+          model: [I18n.tr("Devices ({0})", BluetoothManager.pairedDevices.length), I18n.tr("Discover")]
 
           StyledTabButton {
             required property int index
@@ -258,7 +258,7 @@ Item {
             Layout.bottomMargin: Widget.padding
             visible: root.shownDevices.length === 0
             horizontalAlignment: Text.AlignHCenter
-            text: root.currentTab === 0 ? "No paired devices" : "Looking for devices…"
+            text: I18n.tr(root.currentTab === 0 ? "No paired devices" : "Looking for devices…")
             textColor: Theme.foregroundAlt
           }
         }

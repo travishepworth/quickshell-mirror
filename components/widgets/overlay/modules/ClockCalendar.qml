@@ -16,8 +16,9 @@ OverlayCard {
   readonly property date now: clock.date
   property int monthOffset: 0
   readonly property date shownMonth: new Date(root.now.getFullYear(), root.now.getMonth() + root.monthOffset, 1)
-  readonly property int firstDay: Qt.locale().firstDayOfWeek % 7
-  readonly property string timeFormat: (root.properties.use24h ?? true ? "HH:mm" : "h:mm") + (root.properties.showSeconds ? ":ss" : "") + (root.properties.use24h ?? true ? "" : " AP")
+  readonly property int firstDay: I18n.locale.firstDayOfWeek % 7
+  // The language's time format (e.g. 午後 3:05 in Japanese), seconds added after the minutes
+  readonly property string timeFormat: I18n.dateFormat(root.properties.use24h ?? true ? "time24" : "time12").replace("mm", root.properties.showSeconds ? "mm:ss" : "mm")
 
   // 6 weeks of days for the shown month: { day, inMonth, today }
   readonly property var days: {
@@ -58,13 +59,13 @@ OverlayCard {
       }
       StyledText {
         Layout.alignment: root.showCalendar ? Qt.AlignLeft : Qt.AlignHCenter
-        text: Qt.formatDateTime(root.now, root.timeFormat)
+        text: I18n.formatDate(root.now, root.timeFormat)
         textSize: root.compact ? Appearance.fontSize * 2 : root.showCalendar ? Appearance.fontSize * 2.6 : Math.min(root.height * 0.3, root.width * 0.16)
         font.bold: true
       }
       StyledText {
         Layout.alignment: root.showCalendar ? Qt.AlignLeft : Qt.AlignHCenter
-        text: Qt.formatDate(root.now, root.compact ? "ddd d MMM" : "dddd, d MMMM")
+        text: I18n.formatDate(root.now, I18n.dateFormat(root.compact ? "shortDate" : "longDate"))
         textSize: root.compact ? Appearance.fontSize - 2 : Appearance.fontSize
         opacity: 0.7
       }
@@ -85,7 +86,7 @@ OverlayCard {
         Layout.fillWidth: true
         StyledText {
           Layout.fillWidth: true
-          text: Qt.formatDate(root.shownMonth, "MMMM yyyy")
+          text: I18n.formatDate(root.shownMonth, I18n.dateFormat("monthYear"))
           font.bold: true
           MouseArea {
             anchors.fill: parent
@@ -122,7 +123,7 @@ OverlayCard {
             required property int index
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
-            text: Qt.locale().dayName((root.firstDay + index) % 7, Locale.NarrowFormat)
+            text: I18n.locale.dayName((root.firstDay + index) % 7, Locale.NarrowFormat)
             textSize: Appearance.fontSize - 2
             opacity: 0.6
           }

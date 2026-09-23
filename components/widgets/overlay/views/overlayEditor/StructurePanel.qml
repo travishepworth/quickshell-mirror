@@ -16,8 +16,8 @@ Item {
 
   function viewLabel(view, index) {
     if (view.type === "Custom")
-      return view.name || `Page ${index + 1}`;
-    return OverlayConfig.availableViewTypes.find(t => t.type === view.type)?.label ?? view.type;
+      return view.name || I18n.tr("Page {0}", index + 1);
+    return I18n.tr(OverlayConfig.availableViewTypes.find(t => t.type === view.type)?.label ?? view.type);
   }
 
   // StyledTextEntry writes each keystroke back to its `text`, which drops
@@ -39,7 +39,7 @@ Item {
   Component.onCompleted: root.syncName()
 
   PanelCard {
-    title: "Overlay"
+    title: I18n.tr("Overlay")
     dirty: OverlayManager.isDirty
     canSave: OverlayManager.problems.length === 0
     onSave: OverlayManager.saveChanges()
@@ -49,14 +49,14 @@ Item {
       Layout.fillWidth: true
       visible: OverlayManager.problems.length > 0
       wrapMode: Text.WordWrap
-      text: `Can't save: ${OverlayManager.problems[0] ?? ""}`
+      text: I18n.tr("Can't save: {0}", OverlayManager.problems[0] ?? "")
       textColor: Theme.error
     }
 
     // --- Pages ---
 
     SectionTitle {
-      text: "Pages"
+      text: I18n.tr("Pages")
     }
 
     ColumnLayout {
@@ -107,26 +107,26 @@ Item {
             }
             StyledText {
               visible: pageRow.modelData.type !== "Custom"
-              text: "fixed"
+              text: I18n.tr("fixed")
               textColor: pageRow.selected ? Theme.background : Theme.foreground
               textSize: Appearance.fontSize - 2
               opacity: 0.6
             }
             EditorButton {
               iconText: "▴"
-              tooltipText: "Move page up"
+              tooltipText: I18n.tr("Move page up")
               enabled: pageRow.index > 0
               onClicked: OverlayManager.moveView(pageRow.index, -1)
             }
             EditorButton {
               iconText: "▾"
-              tooltipText: "Move page down"
+              tooltipText: I18n.tr("Move page down")
               enabled: pageRow.index < OverlayManager.localViews.length - 1
               onClicked: OverlayManager.moveView(pageRow.index, 1)
             }
             EditorButton {
               iconText: "×"
-              tooltipText: "Remove page"
+              tooltipText: I18n.tr("Remove page")
               hoverColor: Theme.error
               onClicked: OverlayManager.removeView(pageRow.index)
             }
@@ -148,14 +148,14 @@ Item {
           anchors.fill: parent
           anchors.leftMargin: Widget.padding
           verticalAlignment: Text.AlignVCenter
-          text: `${OverlayManager.localViews.length + 1}   Overlay editor (always last)`
+          text: `${OverlayManager.localViews.length + 1}   ` + I18n.tr("Overlay editor (always last)")
         }
       }
     }
 
     StyledTextButton {
       id: addPageButton
-      text: "+ page"
+      text: I18n.tr("+ page")
       onClicked: viewPicker.open()
     }
 
@@ -177,7 +177,7 @@ Item {
       visible: root.view !== null && !root.isCustom
       Layout.fillWidth: true
       wrapMode: Text.WordWrap
-      text: "A fixed page: it has no layout to edit."
+      text: I18n.tr("A fixed page: it has no layout to edit.")
       opacity: 0.6
     }
 
@@ -185,7 +185,7 @@ Item {
       id: nameEntry
       Layout.fillWidth: true
       visible: root.isCustom
-      placeholderText: "Page name"
+      placeholderText: I18n.tr("Page name")
       onAccepted: OverlayManager.renameView(OverlayManager.selectedViewIndex, nameEntry.text)
 
       Connections {
@@ -212,24 +212,24 @@ Item {
 
           StyledText {
             Layout.fillWidth: true
-            text: `Column ${column.index + 1}`
+            text: I18n.tr("Column {0}", column.index + 1)
             font.bold: true
           }
           EditorButton {
             iconText: "‹"
-            tooltipText: "Move column left"
+            tooltipText: I18n.tr("Move column left")
             enabled: column.index > 0
             onClicked: OverlayManager.moveColumn(column.index, -1)
           }
           EditorButton {
             iconText: "›"
-            tooltipText: "Move column right"
+            tooltipText: I18n.tr("Move column right")
             enabled: column.index < root.view.columns.length - 1
             onClicked: OverlayManager.moveColumn(column.index, 1)
           }
           EditorButton {
             iconText: "×"
-            tooltipText: "Remove column"
+            tooltipText: I18n.tr("Remove column")
             hoverColor: Theme.error
             onClicked: OverlayManager.removeColumn(column.index)
           }
@@ -251,24 +251,24 @@ Item {
               elide: Text.ElideRight
               text: {
                 const modules = Object.values(cellRow.modelData.slots ?? {}).map(m => m.type);
-                return cellRow.modelData.layout + (modules.length > 0 ? ` · ${modules.join(", ")}` : " · empty");
+                return cellRow.modelData.layout + " · " + (modules.length > 0 ? modules.join(", ") : I18n.tr("empty"));
               }
             }
             EditorButton {
               iconText: "▴"
-              tooltipText: "Move cell up"
+              tooltipText: I18n.tr("Move cell up")
               enabled: cellRow.index > 0
               onClicked: OverlayManager.moveCell(column.index, cellRow.index, -1)
             }
             EditorButton {
               iconText: "▾"
-              tooltipText: "Move cell down"
+              tooltipText: I18n.tr("Move cell down")
               enabled: cellRow.index < column.modelData.cells.length - 1
               onClicked: OverlayManager.moveCell(column.index, cellRow.index, 1)
             }
             EditorButton {
               iconText: "×"
-              tooltipText: "Remove cell"
+              tooltipText: I18n.tr("Remove cell")
               hoverColor: Theme.error
               onClicked: OverlayManager.removeCell(column.index, cellRow.index)
             }
@@ -277,7 +277,7 @@ Item {
 
         StyledTextButton {
           Layout.leftMargin: Widget.padding
-          text: "+ cell"
+          text: I18n.tr("+ cell")
           onClicked: OverlayManager.addCell(column.index)
         }
       }
@@ -285,7 +285,7 @@ Item {
 
     StyledTextButton {
       visible: root.isCustom
-      text: "+ column"
+      text: I18n.tr("+ column")
       onClicked: OverlayManager.addColumn()
     }
   }

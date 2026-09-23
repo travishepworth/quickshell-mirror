@@ -45,7 +45,7 @@ OverlayCard {
       };
     case "mem":
       return {
-        "label": "Memory",
+        "label": I18n.tr("Memory"),
         "value": Math.round(SystemManager.memUsage),
         "unit": "%",
         "sub": `${(SystemManager.memUsedBytes / 1073741824).toFixed(1)} / ${(SystemManager.memTotalBytes / 1073741824).toFixed(1)} GiB`,
@@ -65,7 +65,7 @@ OverlayCard {
       };
     case "cpuTemp":
       return {
-        "label": "CPU temp",
+        "label": I18n.tr("CPU temp"),
         "value": SystemManager.cpuTemp,
         "unit": "°C",
         "sub": "",
@@ -78,7 +78,7 @@ OverlayCard {
         const rx = root.formatRate(SystemManager.netRx);
         const tx = root.formatRate(SystemManager.netTx);
         return {
-          "label": "Network",
+          "label": I18n.tr("Network"),
           "value": rx[0],
           "unit": rx[1],
           "sub": `↑ ${tx[0]} ${tx[1]}`,

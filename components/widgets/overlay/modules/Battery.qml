@@ -25,7 +25,7 @@ OverlayCard {
     StyledText {
       visible: !root.compact
       Layout.alignment: Qt.AlignHCenter
-      text: "On AC power"
+      text: I18n.tr("On AC power")
       opacity: 0.6
     }
   }
@@ -58,7 +58,7 @@ OverlayCard {
     StyledText {
       visible: !root.compact
       Layout.alignment: Qt.AlignHCenter
-      text: Battery.isCharging ? `Charging · ${Battery.timeToFull} to full` : Battery.isFull ? "Fully charged" : `${Battery.timeRemaining} left`
+      text: Battery.isCharging ? I18n.tr("Charging · {0} to full", Battery.timeToFull) : Battery.isFull ? I18n.tr("Fully charged") : I18n.tr("{0} left", Battery.timeRemaining)
       textSize: Appearance.fontSize - 2
       opacity: 0.7
     }

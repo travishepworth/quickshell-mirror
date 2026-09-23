@@ -14,44 +14,44 @@ ColumnLayout {
   property int stepSize: 1
   property alias value: spinBox.value
   property bool isDirty: (root.value !== root.currentConfigValue)
-  
+
   // Central height control
   property int controlHeight: Widget.height
   readonly property int buttonSize: controlHeight - (containerMargins * 2)
   readonly property int containerMargins: 4
-  
-  signal dirtied()
-  
+
+  signal dirtied
+
   onIsDirtyChanged: {
     if (isDirty) {
       root.dirtied();
     }
   }
-  
+
   required property string label
   property string description: ""
-  
+
   onCurrentConfigValueChanged: {
     spinBox.value = root.currentConfigValue;
   }
-  
+
   Layout.fillWidth: true
   spacing: 4
-  
+
   StyledText {
-    text: root.label
+    text: I18n.tr(root.label)
     Layout.fillWidth: true
   }
-  
+
   StyledContainer {
     Layout.fillWidth: true
     Layout.preferredHeight: root.controlHeight
-    
+
     RowLayout {
       anchors.fill: parent
       anchors.margins: root.containerMargins
       spacing: 4
-      
+
       StyledRectButton {
         Layout.preferredWidth: root.buttonSize
         Layout.preferredHeight: root.buttonSize
@@ -65,7 +65,7 @@ ColumnLayout {
           }
         }
       }
-      
+
       SpinBox {
         id: spinBox
         Layout.fillWidth: true
@@ -93,7 +93,7 @@ ColumnLayout {
           root.valueChanged();
         }
       }
-      
+
       StyledRectButton {
         Layout.preferredWidth: root.buttonSize
         Layout.preferredHeight: root.buttonSize
@@ -109,10 +109,10 @@ ColumnLayout {
       }
     }
   }
-  
+
   StyledText {
     visible: root.description !== ""
-    text: root.description
+    text: I18n.tr(root.description)
     opacity: 0.7
     textSize: Appearance.fontSize - 2
     wrapMode: Text.WordWrap

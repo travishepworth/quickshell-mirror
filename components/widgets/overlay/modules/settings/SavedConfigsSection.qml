@@ -12,8 +12,8 @@ import qs.components.widgets.common
  */
 SchemaSection {
   id: root
-  title: "Saved Configurations"
-  description: "Snapshots of the entire configuration, stored in " + SavedConfigs.savedDir + ". Restoring replaces the current configuration."
+  title: I18n.tr("Saved Configurations")
+  description: I18n.tr("Snapshots of the entire configuration, stored in ") + SavedConfigs.savedDir + ". Restoring replaces the current configuration."
   expanded: false
 
   // Row awaiting a confirming click: { name, action }
@@ -27,13 +27,13 @@ SchemaSection {
       id: nameEntry
       Layout.fillWidth: true
       Layout.preferredHeight: Widget.height
-      placeholderText: "Configuration name"
+      placeholderText: I18n.tr("Configuration name")
       onAccepted: root.save()
     }
 
     StyledTextButton {
       Layout.preferredHeight: Widget.height
-      text: SavedConfigs.exists(nameEntry.text) ? "Overwrite" : "Save"
+      text: I18n.tr(SavedConfigs.exists(nameEntry.text) ? "Overwrite" : "Save")
       onClicked: root.save()
     }
   }
@@ -48,7 +48,7 @@ SchemaSection {
 
   StyledText {
     visible: SavedConfigs.model.count === 0
-    text: "No saved configurations yet."
+    text: I18n.tr("No saved configurations yet.")
     opacity: 0.5
     Layout.fillWidth: true
   }

@@ -30,7 +30,7 @@ OverlayCard {
     width: parent.width - root.pad * 2
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
-    text: "Add apps in this module's settings"
+    text: I18n.tr("Add apps in this module's settings")
     opacity: 0.6
   }
 

@@ -97,7 +97,7 @@ OverlayCard {
     StyledText {
       visible: !root.compact
       Layout.alignment: Qt.AlignHCenter
-      text: "Nothing playing"
+      text: I18n.tr("Nothing playing")
       opacity: 0.6
     }
   }
@@ -165,7 +165,7 @@ OverlayCard {
       StyledText {
         Layout.fillWidth: true
         elide: Text.ElideRight
-        text: MprisController.trackTitle || "Unknown track"
+        text: MprisController.trackTitle || I18n.tr("Unknown track")
         textSize: Appearance.fontSize + 4
         font.bold: true
       }

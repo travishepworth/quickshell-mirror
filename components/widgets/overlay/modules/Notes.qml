@@ -48,7 +48,7 @@ OverlayCard {
     ModuleHeader {
       visible: !root.compact
       icon: "\u{F09ED}"
-      title: root.properties.name || "Notes"
+      title: root.properties.name || I18n.tr("Notes")
     }
 
     ScrollView {
@@ -59,7 +59,7 @@ OverlayCard {
       TextArea {
         id: editor
         wrapMode: TextArea.Wrap
-        placeholderText: "Write something…"
+        placeholderText: I18n.tr("Write something…")
         color: Theme.foreground
         placeholderTextColor: Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.4)
         font.family: Appearance.fontFamily

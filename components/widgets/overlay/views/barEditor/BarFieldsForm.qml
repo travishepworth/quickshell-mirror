@@ -11,7 +11,7 @@ SchemaSection {
 
   required property var bar
 
-  title: root.bar ? (root.bar.id || "Bar") : "Bar"
+  title: root.bar ? (root.bar.id || I18n.tr("Bar")) : I18n.tr("Bar")
   expanded: true
 
   GridLayout {
@@ -21,7 +21,7 @@ SchemaSection {
     rowSpacing: Widget.spacing
 
     SchemaSwitch {
-      label: "Enabled"
+      label: I18n.tr("Enabled")
       checked: root.bar?.enabled || false
       onToggled: value => {
         root.bar.enabled = value;
@@ -30,9 +30,9 @@ SchemaSection {
     }
 
     SchemaSwitch {
-      label: "Primary"
+      label: I18n.tr("Primary")
       checked: BarManager.selectedBarIndex === 0
-      description: "The primary bar is the first one"
+      description: I18n.tr("The primary bar is the first one")
       onToggled: value => {
         if (value)
           BarManager.setPrimary(BarManager.selectedBarIndex);
@@ -40,9 +40,9 @@ SchemaSection {
     }
 
     SchemaSwitch {
-      label: "Reserve Space"
+      label: I18n.tr("Reserve Space")
       checked: root.bar?.reserveSpace ?? true
-      description: "Keep windows from tiling underneath the bar"
+      description: I18n.tr("Keep windows from tiling underneath the bar")
       onToggled: value => {
         root.bar.reserveSpace = value;
         BarManager.applyChanges();
@@ -50,7 +50,7 @@ SchemaSection {
     }
 
     SchemaComboBox {
-      label: "Location"
+      label: I18n.tr("Location")
       options: ["Top", "Bottom", "Left", "Right"]
       currentValue: root.bar?.location || "Top"
       onSelectionChanged: newValue => {
@@ -60,10 +60,10 @@ SchemaSection {
     }
 
     SchemaComboBox {
-      label: "Monitor"
+      label: I18n.tr("Monitor")
       options: ["", ...Quickshell.screens.map(s => s.name)]
       currentValue: root.bar?.monitor || ""
-      description: "Which monitor this bar is shown on"
+      description: I18n.tr("Which monitor this bar is shown on")
       onSelectionChanged: newValue => {
         root.bar.monitor = newValue;
         BarManager.applyChanges();
@@ -71,8 +71,8 @@ SchemaSection {
     }
 
     SchemaSpinBox {
-      label: "Extent"
-      description: "Thickness of the bar (px)"
+      label: I18n.tr("Extent")
+      description: I18n.tr("Thickness of the bar (px)")
       currentConfigValue: root.bar?.extent || 30
       minimum: 10
       maximum: 200
@@ -83,8 +83,8 @@ SchemaSection {
     }
 
     SchemaSpinBox {
-      label: "Spacing"
-      description: "Spacing between widgets (px)"
+      label: I18n.tr("Spacing")
+      description: I18n.tr("Spacing between widgets (px)")
       currentConfigValue: root.bar?.spacing || 4
       minimum: 0
       maximum: 50

@@ -10,7 +10,7 @@ Item {
   implicitHeight: OverlayConfig.span(4)
 
   PanelCard {
-    title: "Modules"
+    title: I18n.tr("Modules")
     showActions: false
 
     LayoutConfig {

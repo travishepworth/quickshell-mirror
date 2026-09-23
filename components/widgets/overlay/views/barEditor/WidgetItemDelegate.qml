@@ -86,13 +86,13 @@ ColumnLayout {
       }
 
       StyledText {
-        text: root.typeInfo ? root.typeInfo.label : (root.widgetType || "Unknown")
+        text: root.typeInfo ? I18n.tr(root.typeInfo.label) : (root.widgetType || I18n.tr("Unknown"))
         font.bold: true
         Layout.fillWidth: true
       }
 
       StyledText {
-        text: root.rows.length > 0 ? `${root.rows.length} options` : "No options"
+        text: root.rows.length > 0 ? I18n.tr("{0} options", root.rows.length) : I18n.tr("No options")
         opacity: 0.6
         textSize: Appearance.fontSize - 2
       }

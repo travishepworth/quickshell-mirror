@@ -6,23 +6,23 @@ import qs.config
 import qs.components.reusable
 
 StyledContainer {
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: Widget.spacing
+  ColumnLayout {
+    anchors.fill: parent
+    spacing: Widget.spacing
 
-        Calendar {
-            width: parent.width
-        }
+    Calendar {
+      width: parent.width
+    }
 
-        /*
+    /*
         StyledSeparator {
             Layout.fillWidth: true
         }
 
         StyledText {
-            text: "Upcoming Events"
+            text: I18n.tr("Upcoming Events")
             font.bold: true
         }
         */
-    }
+  }
 }

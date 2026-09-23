@@ -52,7 +52,7 @@ Item {
         width: parent.width
         horizontalAlignment: Text.AlignHCenter
         elide: Text.ElideRight
-        text: root.module ? (root.typeInfo?.label ?? root.module.type) : "+"
+        text: root.module ? I18n.tr(root.typeInfo?.label ?? root.module.type) : "+"
         textColor: root.ink
         textSize: root.module ? Appearance.fontSize - 2 : Appearance.fontSize + 4
         font.bold: true

@@ -30,7 +30,7 @@ IconTextWidget {
   icon: !BluetoothManager.enabled ? "\u{F00B2}" : connected.length > 0 ? "\u{F00B1}" : "\u{F00AF}"
   text: {
     if (connected.length > 1)
-      return `${connected.length} devices`;
+      return I18n.tr("{0} devices", connected.length);
     if (!firstDevice)
       return "";
     const battery = properties.showBattery && firstDevice.batteryAvailable ? ` ${Math.round(firstDevice.battery * 100)}%` : "";

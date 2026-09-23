@@ -63,7 +63,7 @@ IconTextWidget {
   MouseArea {
     anchors.fill: parent
     onClicked: {
-      Notify.send("Tailscale", root.isConnected ? "Connected to: " + root.tailnetName : "Disconnected");
+      Notify.send("Tailscale", root.isConnected ? I18n.tr("Connected to: {0}", root.tailnetName) : I18n.tr("Disconnected"));
     }
   }
 }

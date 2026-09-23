@@ -28,7 +28,7 @@ RowLayout {
     Layout.fillWidth: false
     Layout.fillHeight: false
     iconText: "+"
-    tooltipText: "Add bar"
+    tooltipText: I18n.tr("Add bar")
     hoverColor: Theme.accent
     onClicked: BarManager.addBar()
   }
@@ -41,7 +41,7 @@ RowLayout {
     enabled: BarManager.localConfig.length > 1
     opacity: enabled ? 1 : 0.4
     iconText: "×"
-    tooltipText: "Remove selected bar"
+    tooltipText: I18n.tr("Remove selected bar")
     hoverColor: Theme.error
     onClicked: BarManager.removeBar(BarManager.selectedBarIndex)
   }

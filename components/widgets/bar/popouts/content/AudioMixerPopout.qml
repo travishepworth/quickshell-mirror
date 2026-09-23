@@ -42,7 +42,7 @@ Item {
   height: implicitHeight
 
   function deviceName(node) {
-    return node?.description || node?.nickname || node?.name || "No device";
+    return node?.description || node?.nickname || node?.name || I18n.tr("No device");
   }
   function deviceIcon(node, muted, level) {
     const kind = Audio.deviceKind(node);
@@ -68,7 +68,7 @@ Item {
       spacing: Widget.spacing
 
       StyledText {
-        text: root.isInput ? "Input" : "Output"
+        text: I18n.tr(root.isInput ? "Input" : "Output")
         font.bold: true
         textColor: Theme.accent
       }
@@ -98,7 +98,7 @@ Item {
         spacing: Widget.spacing
 
         Repeater {
-          model: [`Applications (${root.apps.length})`, "Devices"]
+          model: [I18n.tr("Applications ({0})", root.apps.length), I18n.tr("Devices")]
 
           StyledTabButton {
             required property int index
@@ -164,7 +164,7 @@ Item {
             Layout.bottomMargin: Widget.padding
             visible: root.currentTab === 0 && root.apps.length === 0
             horizontalAlignment: Text.AlignHCenter
-            text: root.isInput ? "No apps recording" : "No apps playing audio"
+            text: I18n.tr(root.isInput ? "No apps recording" : "No apps playing audio")
             textColor: Theme.foregroundAlt
           }
 
@@ -196,7 +196,7 @@ Item {
             Layout.bottomMargin: Widget.padding
             visible: root.currentTab === 1 && root.devices.length === 0
             horizontalAlignment: Text.AlignHCenter
-            text: "No devices found"
+            text: I18n.tr("No devices found")
             textColor: Theme.foregroundAlt
           }
         }

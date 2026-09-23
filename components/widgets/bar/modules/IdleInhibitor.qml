@@ -21,7 +21,7 @@ IconTextWidget {
   isVertical: barConfig.vertical
 
   icon: IdleInhibit.enabled ? "\u{F0176}" : "\u{F0FAA}"
-  text: IdleInhibit.enabled ? "Awake" : "Idle"
+  text: I18n.tr(IdleInhibit.enabled ? "Awake" : "Idle")
   showText: properties.showLabel
 
   backgroundColor: Theme.resolveColor(IdleInhibit.enabled ? properties.activeColor : properties.inactiveColor)

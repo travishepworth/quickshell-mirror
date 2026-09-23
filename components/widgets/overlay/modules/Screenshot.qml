@@ -20,7 +20,7 @@ OverlayCard {
   property bool recording: false
   property string _pending: ""
 
-  readonly property var modes: [["region", "\u{F0EB4}", "Region"], ["window", "\u{F05B6}", "Window"], ["screen", "\u{F0E51}", "Screen"]].concat(root.hasRecorder ? [["record", root.recording ? "\u{F04DB}" : "\u{F044A}", root.recording ? "Stop" : "Record"]] : [])
+  readonly property var modes: [["region", "\u{F0EB4}", I18n.tr("Region")], ["window", "\u{F05B6}", I18n.tr("Window")], ["screen", "\u{F0E51}", I18n.tr("Screen")]].concat(root.hasRecorder ? [["record", root.recording ? "\u{F04DB}" : "\u{F044A}", I18n.tr(root.recording ? "Stop" : "Record")]] : [])
 
   function capture(mode) {
     if (mode === "record" && root.recording) {
@@ -62,7 +62,7 @@ OverlayCard {
       onStreamFinished: {
         const file = text.trim();
         if (file)
-          Notifs.sendNotification("Screenshot", "Screenshot saved", `${file} (copied to clipboard)`, {});
+          Notifs.sendNotification(I18n.tr("Screenshot"), I18n.tr("Screenshot saved"), I18n.tr("{0} (copied to clipboard)", file), {});
       }
     }
   }

@@ -38,7 +38,7 @@ ColumnLayout {
       iconColor: locked ? Theme.background : Theme.foreground
       backgroundColor: locked ? Theme.accent : Theme.backgroundAlt
       hoverColor: Theme.accent
-      tooltipText: locked ? "Center locked: it stays dead center, other sections make room" : "Lock the center section in place"
+      tooltipText: I18n.tr(locked ? "Center locked: it stays dead center, other sections make room" : "Lock the center section in place")
 
       onClicked: {
         const bar = BarManager.selectedBar();
@@ -54,23 +54,23 @@ ColumnLayout {
     model: [
       {
         "key": "left",
-        "label": "Left"
+        "label": I18n.tr("Left")
       },
       {
         "key": "leftCenter",
-        "label": "Left Center"
+        "label": I18n.tr("Left Center")
       },
       {
         "key": "center",
-        "label": "Center"
+        "label": I18n.tr("Center")
       },
       {
         "key": "rightCenter",
-        "label": "Right Center"
+        "label": I18n.tr("Right Center")
       },
       {
         "key": "right",
-        "label": "Right"
+        "label": I18n.tr("Right")
       }
     ]
 

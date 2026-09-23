@@ -17,6 +17,11 @@ ColumnLayout {
   // Options are color names (Theme.resolveColor): paint the box and each
   // row in the color it names
   property bool swatches: false
+  // value -> label shown for it; values without one are shown translated
+  property var optionLabels: ({})
+  function optionLabel(value) {
+    return root.optionLabels?.[value] ?? I18n.tr(value);
+  }
 
   readonly property color _currentColor: root.swatches && root.currentValue ? Theme.resolveColor(root.currentValue) : Theme.backgroundAlt
   readonly property color _currentTextColor: root.swatches && root.currentValue ? Utils.getContrastColor(root._currentColor) : Theme.foreground
@@ -27,7 +32,7 @@ ColumnLayout {
   spacing: 4
 
   StyledText {
-    text: root.label
+    text: I18n.tr(root.label)
     visible: root.label !== ""
     Layout.fillWidth: true
   }
@@ -46,7 +51,7 @@ ColumnLayout {
       spacing: 0
 
       StyledText {
-        text: root.currentValue
+        text: root.swatches ? root.currentValue : root.optionLabel(root.currentValue)
         textColor: root._currentTextColor
         Layout.fillWidth: true
         elide: Text.ElideRight
@@ -124,7 +129,7 @@ ColumnLayout {
           anchors.fill: parent
           anchors.leftMargin: Widget.padding
           anchors.rightMargin: Widget.padding
-          text: optionDelegate.modelData
+          text: root.swatches ? optionDelegate.modelData : root.optionLabel(optionDelegate.modelData)
           textColor: root.swatches ? Utils.getContrastColor(optionDelegate.swatchColor) : Theme.foreground
           verticalAlignment: Text.AlignVCenter
           elide: Text.ElideRight
@@ -153,7 +158,7 @@ ColumnLayout {
 
   StyledText {
     visible: root.description !== ""
-    text: root.description
+    text: I18n.tr(root.description)
     opacity: 0.7
     textSize: Appearance.fontSize - 2
     wrapMode: Text.WordWrap

@@ -110,12 +110,12 @@ Item {
           itemHeight: root.itemHeight
           itemPadding: root.itemPadding
 
-          onItemClicked: function() {
-            // submenuWrapper.closePopout();
-            // root.wrapper.closePopout();
+          onItemClicked: function () {
+          // submenuWrapper.closePopout();
+          // root.wrapper.closePopout();
           }
 
-          onSubmenuRequested: function(itemDelegate) {
+          onSubmenuRequested: function (itemDelegate) {
             // Everything in the popup window's coordinates: the submenu
             // attaches to the side of this popout's box, level with the item
             const windowPos = itemDelegate.mapToItem(null, 0, 0);
@@ -132,7 +132,7 @@ Item {
             if (!menuItem.hasChildren) {
               const mouseArea = children[children.length - 1]; // Get the MouseArea
               if (mouseArea && mouseArea.hasOwnProperty("entered")) {
-                mouseArea.entered.connect(function() {
+                mouseArea.entered.connect(function () {
                   submenuWrapper.closePopout();
                 });
               }
@@ -144,7 +144,7 @@ Item {
       // Empty state
       Text {
         visible: menuOpener.children.count === 0
-        text: "No menu items"
+        text: I18n.tr("No menu items")
         color: Theme.accent
         // font.family: Config.appearance.fontFamily
         // font.pixelSize: Config.appearance.fontSize - 2

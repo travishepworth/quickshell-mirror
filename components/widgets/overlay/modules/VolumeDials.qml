@@ -48,7 +48,7 @@ OverlayCard {
       StyledText {
         visible: !root.compact
         Layout.alignment: Qt.AlignHCenter
-        text: dial.muted ? `${dial.label} · muted` : `${dial.label} · ${Math.round(dial.level * 100)}%`
+        text: dial.muted ? I18n.tr("{0} · muted", dial.label) : `${dial.label} · ${Math.round(dial.level * 100)}%`
         textSize: Appearance.fontSize - 2
         opacity: 0.8
       }
@@ -68,7 +68,7 @@ OverlayCard {
       level: Audio.volume
       muted: Audio.muted
       icon: Audio.muted ? "\u{F0581}" : "\u{F057E}"
-      label: "Output"
+      label: I18n.tr("Output")
       onToggled: Audio.toggleMute()
       onStepped: delta => Audio.setVolume(Math.max(0, Math.min(1, Audio.volume + delta)))
     }
@@ -79,7 +79,7 @@ OverlayCard {
       level: Audio.sourceVolume
       muted: Audio.sourceMuted
       icon: Audio.sourceMuted ? "\u{F036D}" : "\u{F036C}"
-      label: "Mic"
+      label: I18n.tr("Mic")
       onToggled: Audio.toggleSourceMute()
       onStepped: delta => Audio.setSourceVolume(Math.max(0, Math.min(1, Audio.sourceVolume + delta)), 1)
     }

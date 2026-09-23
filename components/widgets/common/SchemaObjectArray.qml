@@ -15,20 +15,20 @@ ColumnLayout {
   property var itemHeaderExtra: null
   // Optional component shown in the header, between the label and "+"
   property var headerExtra: null
-  
-  signal itemAdded()
+
+  signal itemAdded
   signal itemRemoved(int index)
   signal itemMoved(int fromIndex, int toIndex)
-  
+
   Layout.fillWidth: true
   spacing: Widget.spacing
-  
+
   RowLayout {
     Layout.fillWidth: true
     spacing: Widget.spacing
-    
+
     StyledText {
-      text: root.label
+      text: I18n.tr(root.label)
       textSize: Appearance.fontSize + 1
       font.bold: true
       Layout.fillWidth: true
@@ -39,7 +39,7 @@ ColumnLayout {
       sourceComponent: root.headerExtra
       Layout.alignment: Qt.AlignVCenter
     }
-    
+
     StyledRectButton {
       visible: root.items.length < root.maxItems
       Layout.preferredWidth: Widget.height
@@ -49,49 +49,49 @@ ColumnLayout {
       iconText: "+"
       iconSize: Appearance.fontSize + 4
       hoverColor: Theme.accent
-      
+
       onClicked: {
         root.itemAdded();
       }
     }
   }
-  
+
   StyledText {
     visible: root.description !== ""
-    text: root.description
+    text: I18n.tr(root.description)
     opacity: 0.7
     textSize: Appearance.fontSize - 2
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
-  
+
   ColumnLayout {
     Layout.fillWidth: true
     spacing: Widget.spacing
-    
+
     // Keyed by count, not by the array: editing an item updates its
     // delegate in place instead of rebuilding every row (which would take
     // focus away from a text field on each keystroke)
     Repeater {
       model: root.items.length
-      
+
       delegate: StyledContainer {
         required property int index
         readonly property var modelData: root.items[index]
-        
+
         Layout.fillWidth: true
         implicitHeight: itemContent.implicitHeight + (Widget.padding * 2)
-        
+
         ColumnLayout {
           id: itemContent
           anchors.fill: parent
           anchors.margins: Widget.padding
           spacing: Widget.spacing
-          
+
           RowLayout {
             Layout.fillWidth: true
             spacing: 4
-            
+
             StyledText {
               text: "#" + (parent.parent.parent.index + 1)
               textColor: Theme.accent
@@ -110,7 +110,7 @@ ColumnLayout {
             Item {
               Layout.fillWidth: true
             }
-            
+
             StyledRectButton {
               visible: parent.parent.parent.index > 0
               Layout.preferredWidth: 24
@@ -120,7 +120,7 @@ ColumnLayout {
               iconText: "▲"
               iconSize: 10
               hoverColor: Theme.accent
-              
+
               onClicked: {
                 root.itemMoved(parent.parent.parent.index, parent.parent.parent.index - 1);
               }
@@ -140,7 +140,7 @@ ColumnLayout {
                 root.itemMoved(parent.parent.parent.index, parent.parent.parent.index + 1);
               }
             }
-            
+
             StyledRectButton {
               Layout.preferredWidth: 24
               Layout.preferredHeight: 24
@@ -149,20 +149,20 @@ ColumnLayout {
               iconText: "×"
               iconSize: 18
               hoverColor: Theme.error
-              
+
               onClicked: {
                 root.itemRemoved(parent.parent.parent.index);
               }
             }
           }
-          
+
           StyledSeparator {
             Layout.fillWidth: true
             separatorHeight: 1
             separatorColor: Theme.border
             opacity: 0.3
           }
-          
+
           Loader {
             Layout.fillWidth: true
             sourceComponent: root.itemDelegate
@@ -175,16 +175,16 @@ ColumnLayout {
       }
     }
   }
-  
+
   StyledContainer {
     visible: root.items.length === 0
     Layout.fillWidth: true
     Layout.preferredHeight: 80
     backgroundColor: Theme.background
-    
+
     StyledText {
       anchors.centerIn: parent
-      text: "No items - click + to add"
+      text: I18n.tr("No items - click + to add")
       opacity: 0.5
     }
   }

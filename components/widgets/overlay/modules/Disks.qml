@@ -36,7 +36,7 @@ OverlayCard {
     ModuleHeader {
       visible: !root.compact
       icon: "\u{F02CA}"
-      title: "Disks"
+      title: I18n.tr("Disks")
     }
 
     Repeater {

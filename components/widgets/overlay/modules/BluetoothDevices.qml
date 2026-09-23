@@ -15,7 +15,7 @@ OverlayCard {
     visible: root.compact
     anchors.centerIn: parent
     value: BluetoothManager.enabled ? String(BluetoothManager.connectedDevices.length) : "off"
-    label: "connected"
+    label: I18n.tr("connected")
     valueColor: BluetoothManager.connectedDevices.length > 0 ? Theme.accent : Theme.foreground
   }
 

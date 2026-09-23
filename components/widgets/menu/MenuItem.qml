@@ -15,38 +15,38 @@ import qs.config
  * Example:
  * MenuItem {
  *   heightOverride: 40
- *   StyledTextButton { text: "Click Me" }
+ *   StyledTextButton { text: I18n.tr("Click Me") }
  * }
  */
 StyledContainer {
-    id: menuItem
+  id: menuItem
 
-    // --- Public API ---
+  // --- Public API ---
 
-    // Set a specific height for this item. If -1, height is determined by its content.
-    property real heightOverride: -1
+  // Set a specific height for this item. If -1, height is determined by its content.
+  property real heightOverride: -1
 
-    // Allows content to be placed directly inside <MenuItem> tags.
-    default property alias content: contentHolder.data
+  // Allows content to be placed directly inside <MenuItem> tags.
+  default property alias content: contentHolder.data
 
-    // --- Layout ---
+  // --- Layout ---
 
-    // Ensure it fills the width of the parent Layout.
-    Layout.fillWidth: true
+  // Ensure it fills the width of the parent Layout.
+  Layout.fillWidth: true
 
-    // Set the height based on the override or the content's bounding box.
-    height: heightOverride > -1 ? heightOverride : contentHolder.childrenRect.height
+  // Set the height based on the override or the content's bounding box.
+  height: heightOverride > -1 ? heightOverride : contentHolder.childrenRect.height
 
-    // --- Internal Implementation ---
+  // --- Internal Implementation ---
 
-    // Make the container transparent by default to act as a pure wrapper.
-    // The content inside (e.g., a button) can provide its own background.
-    backgroundColor: "transparent"
+  // Make the container transparent by default to act as a pure wrapper.
+  // The content inside (e.g., a button) can provide its own background.
+  backgroundColor: "transparent"
 
-    // This Item holds the actual content and is used to calculate the
-    // automatic height based on its children.
-    Item {
-        id: contentHolder
-        anchors.fill: parent
-    }
+  // This Item holds the actual content and is used to calculate the
+  // automatic height based on its children.
+  Item {
+    id: contentHolder
+    anchors.fill: parent
+  }
 }

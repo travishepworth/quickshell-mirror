@@ -13,7 +13,7 @@ PanelCard {
 
   property var localConfig: SettingsMenu.localConfig
 
-  title: "Theme"
+  title: I18n.tr("Theme")
   dirty: SettingsMenu.isDirty
   onSave: SettingsMenu.saveChanges()
   onReset: SettingsMenu.resetChanges()
@@ -39,7 +39,7 @@ PanelCard {
 
   SchemaSection {
     id: pywalThemes
-    title: "Generated Themes"
+    title: I18n.tr("Generated Themes")
     expanded: false
     Layout.leftMargin: Widget.padding
     Layout.rightMargin: Widget.padding
@@ -72,8 +72,8 @@ PanelCard {
   // }
 
   SchemaSwitch {
-    label: "Enable Light Mode"
-    description: "Toggle light mode for supported themes."
+    label: I18n.tr("Enable Light Mode")
+    description: I18n.tr("Toggle light mode for supported themes.")
     checked: !Appearance.darkMode || false
     onToggled: value => {
       ThemeManager.toggleDarkMode();
@@ -82,14 +82,14 @@ PanelCard {
 
   SchemaSection {
     id: userThemes
-    title: "User Themes"
+    title: I18n.tr("User Themes")
     Layout.leftMargin: Widget.padding
     Layout.rightMargin: Widget.padding
   }
 
   SchemaSection {
     id: defaultThemes
-    title: "Default Themes"
+    title: I18n.tr("Default Themes")
     Layout.leftMargin: Widget.padding
     Layout.rightMargin: Widget.padding
 

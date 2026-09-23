@@ -14,7 +14,7 @@ PanelCard {
   // Local state management
   property var localConfig: SettingsMenu.localConfig
 
-  title: "Settings"
+  title: I18n.tr("Settings")
   dirty: SettingsMenu.isDirty
   onSave: SettingsMenu.saveChanges()
   onReset: SettingsMenu.resetChanges()

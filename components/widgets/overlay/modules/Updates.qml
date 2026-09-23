@@ -30,7 +30,7 @@ OverlayCard {
     visible: root.compact
     anchors.centerIn: parent
     value: PackageUpdates.checking && root.total === 0 ? "…" : String(root.total)
-    label: "updates"
+    label: I18n.tr("updates")
     valueColor: root.total > 0 ? Theme.accent : Theme.foreground
   }
 
@@ -43,10 +43,10 @@ OverlayCard {
     ModuleHeader {
       Layout.margins: root.pad / 2
       icon: "\u{F06B0}"
-      title: root.total > 0 ? `${root.total} updates` : "Up to date"
+      title: root.total > 0 ? I18n.tr("{0} updates", root.total) : I18n.tr("Up to date")
       StyledText {
         visible: PackageUpdates.checking
-        text: "checking…"
+        text: I18n.tr("checking…")
         textSize: Appearance.fontSize - 2
         opacity: 0.6
       }

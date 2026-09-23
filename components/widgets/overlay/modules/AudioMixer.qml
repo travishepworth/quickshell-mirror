@@ -27,7 +27,7 @@ OverlayCard {
         StyledTabButton {
           required property var modelData
           Layout.fillWidth: true
-          text: `${modelData[1]}  ${modelData[2]}`
+          text: `${modelData[1]}  ${I18n.tr(modelData[2])}`
           checked: root.mode === modelData[0]
           onClicked: root.mode = modelData[0]
         }

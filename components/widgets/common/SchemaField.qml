@@ -33,8 +33,19 @@ Loader {
       return Object.keys(ConfigManager.config.Chat.backends);
     case "colors":
       return Theme.baseColorNames;
+    case "languages":
+      return I18n.languages.map(l => l.code);
     }
     return null;
+  }
+  // Labels shown for option values (`x-enumLabels`, or language names)
+  readonly property var optionLabels: {
+    if (fieldSchema["x-options"] === "languages")
+      return I18n.languages.reduce((labels, l) => {
+        labels[l.code] = l.name;
+        return labels;
+      }, {});
+    return fieldSchema["x-enumLabels"] ?? {};
   }
 
   Layout.fillWidth: true
@@ -94,7 +105,7 @@ Loader {
   Component {
     id: groupHeader
     StyledText {
-      text: root.label
+      text: I18n.tr(root.label)
       font.bold: true
       textColor: Theme.accent
       topPadding: Widget.spacing
@@ -129,6 +140,7 @@ Loader {
       label: root.label
       description: root.description
       options: root.options
+      optionLabels: root.optionLabels
       swatches: root.isColor
       currentValue: root.current ?? ""
       onSelectionChanged: value => root.commit(value)
@@ -170,7 +182,7 @@ Loader {
     ColumnLayout {
       spacing: 4
       StyledText {
-        text: root.label
+        text: I18n.tr(root.label)
         Layout.fillWidth: true
       }
       Flow {
@@ -182,7 +194,7 @@ Loader {
             id: chip
             required property string modelData
             readonly property bool selected: (root.current ?? []).includes(chip.modelData)
-            text: chip.modelData
+            text: root.optionLabels[chip.modelData] ?? I18n.tr(chip.modelData)
             backgroundColor: chip.selected ? Theme.accent : Theme.backgroundHighlight
             textColor: chip.selected ? Theme.background : Theme.foreground
             onClicked: {
@@ -197,7 +209,7 @@ Loader {
         visible: root.description !== ""
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
-        text: root.description
+        text: I18n.tr(root.description)
         textSize: Appearance.fontSize - 2
         opacity: 0.6
       }

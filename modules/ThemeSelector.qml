@@ -23,7 +23,7 @@ Item {
   Connections {
     target: ThemeManager
     function onGenerationFailed(errorText) {
-      Notifs.sendNotification("Theme Generation", "Failed to generate themes", "There was an error while processing the wallpaper. Details: " + errorText, {});
+      Notifs.sendNotification(I18n.tr("Theme Generation"), I18n.tr("Failed to generate themes"), I18n.tr("There was an error while processing the wallpaper. Details: {0}", errorText), {});
     }
   }
 
@@ -118,7 +118,7 @@ Item {
 
               StyledText {
                 anchors.centerIn: parent
-                text: "No wallpapers found in pictures/wallpapers"
+                text: I18n.tr("No wallpapers found in pictures/wallpapers")
                 textColor: Theme.foregroundAlt
                 visible: ThemeManager.wallpaperModel.count === 0 && !ThemeManager.isGenerating
               }
@@ -155,16 +155,16 @@ Item {
                   anchors.rightMargin: themeSelectorRoot.internalPadding
 
                   StyledText {
-                    text: "Dark?"
+                    text: I18n.tr("Dark?")
                     Layout.fillWidth: true
                   }
                   StyledSwitch {
                     // CORRECTED: Bind 'checked' to the actual dark mode state.
                     checked: Appearance.darkMode
-                
+
                     // CORRECTED: Disable the switch if auto-switching is off or there's no paired theme.
                     enabled: Appearance.autoThemeSwitch && ThemeManager.currentTheme.paired
-                
+
                     onToggled: ThemeManager.toggleDarkMode()
                   }
                 }
@@ -209,7 +209,7 @@ Item {
                       text: modelData.name
                       backgroundColor: Appearance.theme === modelData.name ? Theme.accent : Theme.backgroundHighlight
                       textHoverColor: Appearance.theme === modelData.name ? Theme.foreground : Theme.background
-                  
+
                       // CORRECTED: Specify that this is NOT a generated theme.
                       onClicked: ThemeManager.applyTheme(modelData.name, false)
                     }
@@ -217,7 +217,7 @@ Item {
 
                   StyledText {
                     anchors.centerIn: parent
-                    text: "No default themes found."
+                    text: I18n.tr("No default themes found.")
                     textColor: Theme.foregroundAlt
                     visible: ThemeManager.defaultThemes.count === 0
                   }
@@ -239,7 +239,7 @@ Item {
                       text: modelData.name
                       backgroundColor: Appearance.theme === ("generated/" + modelData.name) ? Theme.accent : Theme.backgroundHighlight
                       textHoverColor: Appearance.theme === ("generated/" + modelData.name) ? Theme.foreground : Theme.background
-                  
+
                       // CORRECTED: Specify that this IS a generated theme.
                       onClicked: ThemeManager.applyTheme(modelData.name, true)
                     }
@@ -247,7 +247,7 @@ Item {
 
                   StyledText {
                     anchors.centerIn: parent
-                    text: "Select a wallpaper to generate themes."
+                    text: I18n.tr("Select a wallpaper to generate themes.")
                     textColor: Theme.foregroundAlt
                     wrapMode: Text.WordWrap
                     horizontalAlignment: Text.AlignHCenter

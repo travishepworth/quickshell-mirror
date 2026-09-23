@@ -110,7 +110,7 @@ StyledContainer {
       iconText: node?.audio.muted ? iconMuted : iconUnmuted
       iconSize: iconPixelSize
 
-      tooltipText: isDevice ? (isDefaultDevice ? "Default Output Device" : "Click to set as default") : (node?.audio.muted ? "Unmute" : "Mute")
+      tooltipText: I18n.tr(isDevice ? (isDefaultDevice ? "Default Output Device" : "Click to set as default") : (node?.audio.muted ? "Unmute" : "Mute"))
 
       onClicked: {
         if (!isReady)

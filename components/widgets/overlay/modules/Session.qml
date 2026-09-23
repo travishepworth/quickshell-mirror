@@ -15,11 +15,11 @@ OverlayCard {
   id: root
 
   readonly property var defs: ({
-      "lock": ["\u{F033E}", "Lock", false],
-      "suspend": ["\u{F04B2}", "Suspend", false],
-      "logout": ["\u{F0343}", "Log out", true],
-      "reboot": ["\u{F0709}", "Reboot", true],
-      "poweroff": ["\u{F0425}", "Power off", true]
+      "lock": ["\u{F033E}", I18n.tr("Lock"), false],
+      "suspend": ["\u{F04B2}", I18n.tr("Suspend"), false],
+      "logout": ["\u{F0343}", I18n.tr("Log out"), true],
+      "reboot": ["\u{F0709}", I18n.tr("Reboot"), true],
+      "poweroff": ["\u{F0425}", I18n.tr("Power off"), true]
     })
   readonly property var actions: (root.properties.actions ?? ["lock", "suspend", "logout", "reboot", "poweroff"]).filter(a => a in root.defs)
   property string armed: ""
@@ -89,7 +89,7 @@ OverlayCard {
           StyledText {
             visible: !root.compact && button.height > Appearance.fontSize * 4
             Layout.alignment: Qt.AlignHCenter
-            text: button.armed ? "Confirm?" : root.defs[button.modelData][1]
+            text: button.armed ? I18n.tr("Confirm?") : root.defs[button.modelData][1]
             textColor: button.armed ? Theme.background : Theme.foreground
             textSize: Appearance.fontSize - 2
           }

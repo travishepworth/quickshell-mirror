@@ -30,13 +30,7 @@ Item {
   readonly property int gridHeight: cellSize * 6 + cellSpacing * 5
 
   implicitWidth: gridWidth + margins * 2
-  implicitHeight: margins * 2
-                  + headerHeight
-                  + sectionSpacing
-                  + weekdayHeight + 4
-                  + gridHeight
-                  + sectionSpacing
-                  + footerHeight
+  implicitHeight: margins * 2 + headerHeight + sectionSpacing + weekdayHeight + 4 + gridHeight + sectionSpacing + footerHeight
   width: implicitWidth
   height: implicitHeight
 
@@ -45,7 +39,8 @@ Item {
     precision: SystemClock.Hours
   }
 
-  readonly property var weekdayLabels: ["日", "月", "火", "水", "木", "金", "土"]
+  // Sunday first, narrow names in the shell's language
+  readonly property var weekdayLabels: [0, 1, 2, 3, 4, 5, 6].map(day => I18n.locale.dayName(day, Locale.NarrowFormat))
 
   // 42-cell (6x7) grid covering the viewed month plus the leading/trailing
   // days needed to fill whole weeks.
@@ -89,9 +84,7 @@ Item {
         month: cellMonth,
         year: cellYear,
         inMonth: inMonth,
-        isToday: cellYear === todayClock.date.getFullYear()
-                 && cellMonth === todayClock.date.getMonth()
-                 && day === todayClock.date.getDate()
+        isToday: cellYear === todayClock.date.getFullYear() && cellMonth === todayClock.date.getMonth() && day === todayClock.date.getDate()
       });
     }
     return days;
@@ -147,7 +140,7 @@ Item {
         StyledText {
           Layout.fillWidth: true
           horizontalAlignment: Text.AlignHCenter
-          text: Qt.formatDateTime(root.viewDate, "yyyy年 M月")
+          text: I18n.formatDate(root.viewDate, I18n.dateFormat("monthYear"))
           textColor: Theme.accent
           textSize: Appearance.fontSize * 1.05
           font.bold: true
@@ -214,7 +207,9 @@ Item {
             color: modelData.isToday ? Theme.accent : (dayMouseArea.containsMouse && modelData.inMonth ? Theme.backgroundHighlight : "transparent")
 
             Behavior on color {
-              ColorAnimation { duration: Appearance.animFast }
+              ColorAnimation {
+                duration: Appearance.animFast
+              }
             }
 
             StyledText {
@@ -243,7 +238,7 @@ Item {
 
         StyledText {
           Layout.fillWidth: true
-          text: Qt.formatDateTime(todayClock.date, "yyyy年M月d日") + "（" + root.weekdayLabels[todayClock.date.getDay()] + "）"
+          text: I18n.formatDate(todayClock.date, I18n.dateFormat("fullDate"))
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize * 0.8
           opacity: 0.8

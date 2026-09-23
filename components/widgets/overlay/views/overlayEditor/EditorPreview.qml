@@ -90,7 +90,7 @@ OverlayCard {
 
               EditorButton {
                 iconText: "×"
-                tooltipText: "Remove cell"
+                tooltipText: I18n.tr("Remove cell")
                 hoverColor: Theme.error
                 onClicked: OverlayManager.removeCell(column.index, cellBox.index)
               }

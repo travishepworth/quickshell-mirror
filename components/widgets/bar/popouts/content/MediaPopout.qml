@@ -29,12 +29,7 @@ Item {
   readonly property int controlsHeight: 44
 
   implicitWidth: 320
-  implicitHeight: margins * 2
-                  + artSize
-                  + sectionSpacing
-                  + sliderHeight + 4 + timeRowHeight
-                  + sectionSpacing
-                  + controlsHeight
+  implicitHeight: margins * 2 + artSize + sectionSpacing + sliderHeight + 4 + timeRowHeight + sectionSpacing + controlsHeight
   width: implicitWidth
   height: implicitHeight
 
@@ -80,8 +75,7 @@ Item {
             cache: false
             // artVersion is bumped whenever a fresh file lands at
             // artFilePath, so referencing it here forces a reload.
-            source: (MprisController.artDownloaded && MprisController.artVersion >= 0)
-                    ? ("file://" + MprisController.artFilePath) : ""
+            source: (MprisController.artDownloaded && MprisController.artVersion >= 0) ? ("file://" + MprisController.artFilePath) : ""
             visible: status === Image.Ready
           }
 
@@ -102,7 +96,7 @@ Item {
 
           StyledText {
             Layout.fillWidth: true
-            text: MprisController.trackTitle || "No track playing"
+            text: MprisController.trackTitle || I18n.tr("No track playing")
             textColor: Theme.accent
             textSize: Appearance.fontSize * 1.05
             font.bold: true
@@ -165,7 +159,9 @@ Item {
 
               Behavior on width {
                 enabled: !root.isSeeking
-                NumberAnimation { duration: Appearance.animNormal }
+                NumberAnimation {
+                  duration: Appearance.animNormal
+                }
               }
             }
           }
@@ -179,11 +175,14 @@ Item {
             borderColor: Theme.background
             borderWidth: 2
             anchors.verticalCenter: parent.verticalCenter
-            x: Math.min(Math.max(0, sliderTrack.width * root.displayProgress - width / 2),
-                        sliderTrack.width - width / 2)
+            x: Math.min(Math.max(0, sliderTrack.width * root.displayProgress - width / 2), sliderTrack.width - width / 2)
             scale: seekMouseArea.pressed ? 1.3 : 1.0
 
-            Behavior on scale { NumberAnimation { duration: Appearance.animFast } }
+            Behavior on scale {
+              NumberAnimation {
+                duration: Appearance.animFast
+              }
+            }
           }
 
           // Floating time readout shown while dragging — the "feedback"
@@ -197,8 +196,7 @@ Item {
             borderRadius: 4
             width: seekTooltipText.implicitWidth + 10
             height: seekTooltipText.implicitHeight + 6
-            x: Math.min(Math.max(0, sliderThumb.x + sliderThumb.width / 2 - width / 2),
-                        sliderArea.width - width)
+            x: Math.min(Math.max(0, sliderThumb.x + sliderThumb.width / 2 - width / 2), sliderArea.width - width)
             y: -height - 6
 
             StyledText {
@@ -254,7 +252,9 @@ Item {
             textSize: Appearance.fontSize * 0.8
           }
 
-          Item { Layout.fillWidth: true }
+          Item {
+            Layout.fillWidth: true
+          }
 
           StyledText {
             text: MprisController.formatTime(MprisController.length)

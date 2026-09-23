@@ -144,7 +144,7 @@ Rectangle {
       iconColor: root.muted ? Theme.error : Theme.foreground
       backgroundColor: "transparent"
       borderHoverColor: Theme.accent
-      tooltipText: root.muted ? "Unmute" : "Mute"
+      tooltipText: I18n.tr(root.muted ? "Unmute" : "Mute")
       onClicked: root.muteToggled()
     }
   }

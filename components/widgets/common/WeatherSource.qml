@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+import qs.config
+
 // Weather from Open-Meteo (no API key), shared by the bar Weather widget
 // and the overlay Weather module. Location comes from latitude/longitude,
 // else `location` (geocoded), else the machine's IP. Refreshes every
@@ -36,51 +38,51 @@ Item {
     if (code === 0)
       return {
         "icon": day ? "\u{F0599}" : "\u{F0594}",
-        "label": "Clear"
+        "label": I18n.tr("Clear")
       };
     if (code <= 2)
       return {
         "icon": day ? "\u{F0595}" : "\u{F0F31}",
-        "label": "Partly cloudy"
+        "label": I18n.tr("Partly cloudy")
       };
     if (code === 3)
       return {
         "icon": "\u{F0590}",
-        "label": "Overcast"
+        "label": I18n.tr("Overcast")
       };
     if (code === 45 || code === 48)
       return {
         "icon": "\u{F0591}",
-        "label": "Fog"
+        "label": I18n.tr("Fog")
       };
     if (code >= 51 && code <= 57)
       return {
         "icon": "\u{F0597}",
-        "label": "Drizzle"
+        "label": I18n.tr("Drizzle")
       };
     if ([65, 67, 82].includes(code))
       return {
         "icon": "\u{F0596}",
-        "label": "Heavy rain"
+        "label": I18n.tr("Heavy rain")
       };
     if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82))
       return {
         "icon": "\u{F0597}",
-        "label": "Rain"
+        "label": I18n.tr("Rain")
       };
     if ((code >= 71 && code <= 77) || code === 85 || code === 86)
       return {
         "icon": "\u{F0598}",
-        "label": "Snow"
+        "label": I18n.tr("Snow")
       };
     if (code >= 95)
       return {
         "icon": "\u{F0593}",
-        "label": "Thunderstorm"
+        "label": I18n.tr("Thunderstorm")
       };
     return {
       "icon": "\u{F0590}",
-      "label": "Unknown"
+      "label": I18n.tr("Unknown")
     };
   }
 

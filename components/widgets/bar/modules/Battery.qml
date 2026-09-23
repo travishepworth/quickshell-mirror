@@ -92,10 +92,10 @@ IconTextWidget {
   }
 
   function getBatteryStatus() {
-    let status = isCharging ? "Charging" : "Discharging";
+    let status = I18n.tr(isCharging ? "Charging" : "Discharging");
     let details = `${status}: ${percentage}%`;
     if (timeRemaining && timeRemaining !== "N/A") {
-      details += isCharging ? ` (${timeRemaining} to full)` : ` (${timeRemaining} remaining)`;
+      details += " " + (isCharging ? I18n.tr("({0} to full)", timeRemaining) : I18n.tr("({0} remaining)", timeRemaining));
     }
     return details;
   }
@@ -169,7 +169,7 @@ IconTextWidget {
   MouseArea {
     anchors.fill: parent
     onClicked: {
-      Notify.send("Battery Status", root.getBatteryStatus());
+      Notify.send(I18n.tr("Battery Status"), root.getBatteryStatus());
     }
   }
 
@@ -177,9 +177,9 @@ IconTextWidget {
   onLevelChanged: {
     if (properties.notify && level !== _notifiedLevel) {
       if (level === "critical")
-        Notify.send("Critical Battery", `Battery critically low: ${percentage}%`);
+        Notify.send(I18n.tr("Critical Battery"), I18n.tr("Battery critically low: {0}%", percentage));
       else if (level === "low" && _notifiedLevel !== "critical")
-        Notify.send("Low Battery", `Battery low: ${percentage}%`);
+        Notify.send(I18n.tr("Low Battery"), I18n.tr("Battery low: {0}%", percentage));
     }
     _notifiedLevel = level;
   }

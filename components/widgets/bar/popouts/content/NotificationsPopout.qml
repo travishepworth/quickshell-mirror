@@ -38,7 +38,7 @@ Item {
       const key = notif.appName || "";
       if (!byApp[key]) {
         byApp[key] = {
-          appName: notif.appName || "Unknown",
+          appName: notif.appName || I18n.tr("Unknown"),
           appIcon: notif.appIcon || "",
           notifications: [],
           newestTime: 0
@@ -57,7 +57,9 @@ Item {
 
   Connections {
     target: Notifs.notifications
-    function onValuesChanged() { root.rebuildGroups(); }
+    function onValuesChanged() {
+      root.rebuildGroups();
+    }
   }
 
   Component.onCompleted: rebuildGroups()
@@ -87,16 +89,18 @@ Item {
         spacing: Widget.spacing
 
         StyledText {
-          text: "Notifications" + (Notifs.count > 0 ? ` (${Notifs.count})` : "")
+          text: I18n.tr("Notifications") + (Notifs.count > 0 ? ` (${Notifs.count})` : "")
           textSize: Appearance.fontSize * 1.05
           font.bold: true
           textColor: Theme.accent
         }
 
-        Item { Layout.fillWidth: true }
+        Item {
+          Layout.fillWidth: true
+        }
 
         StyledText {
-          text: "DND"
+          text: I18n.tr("DND")
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 1
         }
@@ -107,7 +111,7 @@ Item {
         }
 
         StyledTextButton {
-          text: "Clear All"
+          text: I18n.tr("Clear All")
           textPadding: 6
           enabled: Notifs.count > 0
           opacity: enabled ? 1.0 : 0.5
@@ -144,7 +148,7 @@ Item {
             Layout.fillWidth: true
             Layout.topMargin: Widget.padding * 2
             horizontalAlignment: Text.AlignHCenter
-            text: "No notifications"
+            text: I18n.tr("No notifications")
             textColor: Theme.foregroundAlt
             opacity: 0.6
           }

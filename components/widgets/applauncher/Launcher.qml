@@ -99,7 +99,7 @@ PanelWindow {
 
         StyledTextEntry {
           id: searchInput
-          placeholderText: "Search Applications..."
+          placeholderText: I18n.tr("Search Applications...")
           width: parent.width
           focus: rootWindow.shown
 

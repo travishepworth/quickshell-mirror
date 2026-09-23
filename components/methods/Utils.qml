@@ -97,12 +97,12 @@ QtObject {
   function formatRelativeTime(epochMs) {
     const diffSec = Math.max(0, Math.floor((Date.now() - epochMs) / 1000));
     if (diffSec < 60)
-      return "now";
+      return I18n.tr("now");
     if (diffSec < 3600)
-      return Math.floor(diffSec / 60) + "m";
+      return I18n.tr("{0}m", Math.floor(diffSec / 60));
     if (diffSec < 86400)
-      return Math.floor(diffSec / 3600) + "h";
-    return Math.floor(diffSec / 86400) + "d";
+      return I18n.tr("{0}h", Math.floor(diffSec / 3600));
+    return I18n.tr("{0}d", Math.floor(diffSec / 86400));
   }
 
   // Format bytes to human readable

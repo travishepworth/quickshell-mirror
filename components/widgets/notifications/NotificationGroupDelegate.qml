@@ -39,14 +39,14 @@ StyledContainer {
 
         StyledText {
           Layout.fillWidth: true
-          text: root.groupData.appName || "Unknown"
+          text: root.groupData.appName || I18n.tr("Unknown")
           font.bold: true
           elide: Text.ElideRight
         }
 
         StyledText {
           Layout.fillWidth: true
-          text: Utils.formatRelativeTime(root.groupData.newestTime) + (root.groupData.notifications.length > 1 ? ` · ${root.groupData.notifications.length} notifications` : "")
+          text: Utils.formatRelativeTime(root.groupData.newestTime) + (root.groupData.notifications.length > 1 ? " · " + I18n.tr("{0} notifications", root.groupData.notifications.length) : "")
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 2
           opacity: 0.7
@@ -65,7 +65,7 @@ StyledContainer {
         borderRadius: 11
         iconColor: Theme.foregroundAlt
         hoverColor: Theme.backgroundHighlight
-        tooltipText: "Dismiss all"
+        tooltipText: I18n.tr("Dismiss all")
 
         onClicked: root.dismissGroup()
       }
@@ -85,7 +85,9 @@ StyledContainer {
         hoverColor: Theme.backgroundHighlight
 
         Behavior on rotation {
-          NumberAnimation { duration: Appearance.animNormal }
+          NumberAnimation {
+            duration: Appearance.animNormal
+          }
         }
 
         onClicked: root.collapsed = !root.collapsed

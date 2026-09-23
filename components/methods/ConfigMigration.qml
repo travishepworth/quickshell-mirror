@@ -12,7 +12,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 7
+  readonly property int currentVersion: 8
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -38,6 +38,8 @@ QtObject {
       result = _v5ToV6(result, changes);
     if (version < 7)
       result = _v6ToV7(result, changes);
+    if (version < 8)
+      result = _v7ToV8(result, changes);
 
     return {
       config: result,
@@ -362,6 +364,29 @@ QtObject {
     });
     if (replaced > 0)
       changes.push(`Overlay: ${replaced} old module(s) → their replacements`);
+    return out;
+  }
+
+  // The Time widget's `style` ("standard" / "japanese") became the global
+  // General.language: a Japanese clock carries over as language "ja"
+  function _v7ToV8(old, changes) {
+    const out = old;
+    out.version = 8;
+    let japanese = false;
+    (out.Bars ?? []).forEach(bar => {
+      Object.values(bar?.widgets ?? {}).forEach(zone => {
+        (zone ?? []).forEach(widget => {
+          if (widget?.type === "Time" && widget.properties && "style" in widget.properties) {
+            japanese = japanese || widget.properties.style === "japanese";
+            delete widget.properties.style;
+          }
+        });
+      });
+    });
+    if (japanese && !out.General?.language) {
+      _set(out, "General.language", "ja");
+      changes.push("Time style: japanese → General.language: ja");
+    }
     return out;
   }
 }

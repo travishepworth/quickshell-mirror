@@ -57,7 +57,7 @@ Rectangle {
         }
 
         Text {
-          text: "Save"
+          text: I18n.tr("Save")
           color: Theme.background
           font.family: Appearance.fontFamily
           font.pixelSize: Appearance.fontSize - 1
@@ -98,7 +98,7 @@ Rectangle {
         }
 
         Text {
-          text: "Reset"
+          text: I18n.tr("Reset")
           color: Theme.foreground
           font.family: Appearance.fontFamily
           font.pixelSize: Appearance.fontSize - 1

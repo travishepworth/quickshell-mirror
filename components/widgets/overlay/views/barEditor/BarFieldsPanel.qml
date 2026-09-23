@@ -11,7 +11,7 @@ Item {
   implicitHeight: OverlayConfig.span(4)
 
   PanelCard {
-    title: "Bar Editor"
+    title: I18n.tr("Bar Editor")
     dirty: BarManager.isDirty
     onSave: BarManager.saveChanges()
     onReset: BarManager.resetChanges()
