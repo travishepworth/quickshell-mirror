@@ -87,6 +87,8 @@ BaseWidget {
   content: Grid {
     columns: root.isVertical ? 1 : Math.max(1, root.segments.length)
     spacing: root.isVertical ? Widget.spacing : Widget.padding
+    horizontalItemAlignment: Grid.AlignHCenter
+    verticalItemAlignment: Grid.AlignVCenter
 
     Repeater {
       model: root.segments

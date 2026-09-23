@@ -41,15 +41,26 @@ BaseWidget {
     width: root.isVertical ? root.width : length
     height: root.isVertical ? length : root.height
 
-    Text {
+    // One Text per line, so stacked glyphs (a multi-line icon on a vertical
+    // bar) each centre on their own width rather than the widest line's
+    Column {
       id: iconLabel
       visible: root._hasIcon
       x: root.isVertical ? Math.round((run.width - width) / 2) : 0
       y: root.isVertical ? 0 : Math.round((run.height - height) / 2)
-      color: root.foregroundColor
-      text: root.icon
-      font.family: Appearance.fontFamily
-      font.pixelSize: Appearance.fontSize * root.iconScale
+
+      Repeater {
+        model: root.icon.split("\n")
+
+        Text {
+          required property string modelData
+          x: Math.round((iconLabel.width - width) / 2)
+          color: root.foregroundColor
+          text: modelData
+          font.family: Appearance.fontFamily
+          font.pixelSize: Appearance.fontSize * root.iconScale
+        }
+      }
     }
 
     // Space left for the label along the main axis

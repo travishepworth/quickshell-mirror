@@ -23,7 +23,10 @@ IconTextWidget {
 
   readonly property var ignoredApps: (properties.ignoreApps || "").split(",").map(a => a.trim().toLowerCase()).filter(a => a !== "")
 
-  readonly property var activeGroups: Pipewire.linkGroups.values.filter(g => g && g.state === PwLinkState.Active && g.source && g.target)
+  // Links out of a video source (mic use comes from Audio). A link group's
+  // state reads Unlinked until the group is bound, so all are tracked.
+  readonly property var videoGroups: Pipewire.linkGroups.values.filter(g => g && g.source?.type === PwNodeType.VideoSource && g.target)
+  readonly property var activeGroups: videoGroups.filter(g => g.state === PwLinkState.Active)
 
   function appName(node) {
     return node.properties?.["application.name"] || node.nickname || node.name || "Unknown";
@@ -63,9 +66,10 @@ IconTextWidget {
   backgroundColor: Theme.resolveColor(properties.activeColor)
   foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
-  // Binds the linked nodes so their properties (application.name) load
+  // Binds the link groups (for their state) and the linked nodes (for
+  // media.class / application.name)
   PwObjectTracker {
-    objects: [].concat(...root.activeGroups.map(g => [g.source, g.target]))
+    objects: root.videoGroups.concat(...root.videoGroups.map(g => [g.source, g.target]))
   }
 
   MouseArea {
