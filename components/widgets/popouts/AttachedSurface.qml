@@ -35,6 +35,12 @@ Item {
   property int connectorGap: Appearance.borderRadius * 2
   property int animationDuration: Appearance.animNormal
 
+  // Breathing room between the box edge and its content: clears the
+  // stroke, plus a share of the corner radius so content keeps away from
+  // the curve as corners get rounder. Callers that size the box from
+  // their content add this on each side (see bar Popouts, tray submenus).
+  readonly property int contentInset: Widget.spacing + Appearance.borderWidth + Math.round(Appearance.borderRadius / 4)
+
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
 

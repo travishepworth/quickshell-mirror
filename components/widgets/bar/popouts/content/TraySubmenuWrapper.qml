@@ -56,9 +56,9 @@ Item {
       readonly property real attachX: outer.openToLeft ? attachRect.x + Appearance.borderWidth - implicitWidth : attachRect.x + attachRect.width - Appearance.borderWidth
 
       // Line our first menu item up with the hovered one: the fillet
-      // margin, then the loader margin, then TraySubmenuPopout's own
+      // margin, then the loader inset, then TraySubmenuPopout's own
       // background margin + half its 20px layout inset.
-      readonly property real firstItemOffset: (root.connectorGap - Appearance.borderWidth) + Widget.spacing + Widget.padding + 10
+      readonly property real firstItemOffset: (root.connectorGap - Appearance.borderWidth) + surface.contentInset + Widget.padding + 10
       // Keep both fillets on the straight part of the parent's side, clear
       // of its rounded corners (or its fillets into the bar)
       readonly property real minY: attachRect.y + Appearance.borderRadius
@@ -82,13 +82,13 @@ Item {
         edge: outer.openToLeft ? Bar.Right : Bar.Left
         active: root.occupied && !root.isClosing
         connectorGap: root.connectorGap
-        boxWidth: submenuPopup.contentWidth + Widget.spacing * 2
-        boxHeight: submenuPopup.contentHeight + Widget.spacing * 2
+        boxWidth: submenuPopup.contentWidth + contentInset * 2
+        boxHeight: submenuPopup.contentHeight + contentInset * 2
 
         Loader {
           id: loader
           anchors.fill: parent
-          anchors.margins: Widget.spacing
+          anchors.margins: surface.contentInset
           active: root.occupied
           asynchronous: false
 

@@ -144,9 +144,8 @@ PopoutWrapperBase {
       return anchorStart + (anchorLength - boxLength) * align - inset;
     }
 
-    // Size comes from the shared attached shape. The content box is a
-    // little shorter than the content along the bar (kept for parity
-    // with how bar popout contents were sized before the extraction).
+    // Size comes from the shared attached shape: the content box wraps
+    // the content plus the surface's inset on every side.
     implicitWidth: surface.implicitWidth
     implicitHeight: surface.implicitHeight
 
@@ -198,13 +197,13 @@ PopoutWrapperBase {
       edge: root.barConfig.location
       active: root.occupied && !root.isClosing
       connectorGap: root.connectorGap
-      boxWidth: root.barConfig.vertical ? mainPopup.contentWidth : mainPopup.contentWidth - root.connectorGap + Appearance.borderWidth * 4
-      boxHeight: root.barConfig.vertical ? mainPopup.contentHeight - root.connectorGap + Appearance.borderWidth * 4 : mainPopup.contentHeight
+      boxWidth: mainPopup.contentWidth + contentInset * 2
+      boxHeight: mainPopup.contentHeight + contentInset * 2
 
       Loader {
         id: loader
         anchors.fill: parent
-        anchors.margins: Widget.spacing
+        anchors.margins: surface.contentInset
 
         active: root.occupied
         asynchronous: false
