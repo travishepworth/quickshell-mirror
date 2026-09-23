@@ -1,48 +1,36 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 
 import qs.components.widgets.popouts
 import qs.components.widgets.menu
-import qs.config
-import qs.services
+import qs.config as Cfg
 
 Item {
   anchors.fill: parent
 
-  EdgePopup {
-    id: root
-    edge: EdgePopup.Edge.Right
-    panelId: "mainMenu"
-    position: 0.5
-    enableTrigger: true
-    triggerLength: Display.resolutionHeight
-    edgeMargin: Config.containerOffset + Appearance.borderWidth * 2
-    wantsKeyboardFocus: mainMenu.wantsKeyboardFocus
+  Variants {
+    model: Quickshell.screens
 
-    Component.onCompleted: {
-      if (panelId !== "") {
-        ShellManager.togglePanelLocation.connect(function (id) {
-          console.log("Received togglePanelLocation for id:", id, "Current panelId:", panelId);
-          if (id === panelId) {
-            root.toggleLocation();
-          }
-        });
-      }
-    }
+    delegate: EdgePopout {
+      id: root
+      required property ShellScreen modelData
 
-    MainMenu {
-      id: mainMenu
-      panelId: "mainMenu"
-    }
+      screen: modelData
+      available: Cfg.Menu.enablePanel
+      edge: Cfg.Bar.Right
+      position: 0.5
+      triggerLength: modelData.height
+      wantsKeyboardFocus: contentItem?.wantsKeyboardFocus ?? false
 
-    function toggleLocation() {
-      if (root.reserveSpace) {
-        root.edgeMargin = Config.containerOffset - (Appearance.borderWidth * 2) - 5;
-        mainMenu.customHeight = Display.resolutionHeight - Appearance.screenMargin * 2;
-      } else {
-        root.edgeMargin = Config.containerOffset + Appearance.borderWidth * 2 + 3;
-        mainMenu.customHeight = 0;
+      content: Component {
+        MainMenu {
+          panelId: "mainMenu"
+          // The attached surface draws the frame
+          borderColor: "transparent"
+          customHeight: root.maxBoxLength - Cfg.Widget.spacing * 2
+        }
       }
     }
   }

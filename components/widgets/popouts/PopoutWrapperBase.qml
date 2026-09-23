@@ -6,8 +6,9 @@ import qs.config
  * Shared state machine for any "popout wrapper": open/close/reopen
  * queueing, and centralized dismiss-on-hover-loss timing.
  *
- * Concrete wrappers (Popout.qml for bar popouts, TraySubmenuWrapper.qml
- * for submenus) instantiate this as their root type and add their own
+ * Concrete wrappers (bar/popouts/Popouts.qml for bar popouts,
+ * TraySubmenuWrapper.qml for submenus, EdgePopout.qml for screen-edge
+ * popouts) instantiate this as their root type and add their own
  * PopupWindow, positioning, and content Loader as children, binding
  * `currentItem` to their Loader's item.
  *
@@ -36,14 +37,21 @@ Item {
   // Content just exposes `hovered` (optionally folding in its own extra
   // "keep me alive" conditions, e.g. an active drag or an open submenu).
   // Timing and dismissal live here, once, for every popout type.
-  readonly property bool contentHovered: currentItem?.hovered ?? false
-  readonly property int dismissDelay: currentItem?.dismissDelay ?? 250
-  readonly property bool autoDismiss: currentItem?.autoDismiss ?? true
+  // `keepAlive` lets a wrapper add hover sources of its own (e.g. an edge
+  // trigger strip) without the content having to know about them.
+  // dismissDelay/autoDismiss default to the content's values but can be
+  // overridden by the wrapper.
+  property bool keepAlive: false
+  readonly property bool contentHovered: (currentItem?.hovered ?? false) || keepAlive
+  property int dismissDelay: currentItem?.dismissDelay ?? 250
+  property bool autoDismiss: currentItem?.autoDismiss ?? true
 
   onContentHoveredChanged: updateDismissTimer()
 
   function updateDismissTimer() {
-    if (!autoDismiss) {
+    // Nothing to dismiss while closed (content can stay loaded and hover
+    // sources can change without the popout being open)
+    if (!occupied || !autoDismiss) {
       dismissTimer.stop();
       return;
     }

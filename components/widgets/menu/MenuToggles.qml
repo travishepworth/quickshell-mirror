@@ -53,22 +53,11 @@ StyledContainer {
     StyledTextButton {
       Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
       Layout.preferredHeight: buttonSize
+      Layout.rightMargin: Widget.padding
       Layout.fillWidth: true
       backgroundColor: Theme.yellow
       textColor: Theme.background
       text: ""
-    }
-
-    // --- Toggle Pinned Panel ---
-    StyledTextButton {
-      Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-      Layout.preferredHeight: buttonSize
-      Layout.rightMargin: Widget.padding
-      Layout.fillWidth: true
-      backgroundColor: Theme.green
-      textColor: Theme.background
-      text: ""
-      onClicked: ShellManager.togglePinnedPanel("mainMenu")
     }
   }
 }

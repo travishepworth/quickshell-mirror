@@ -6,7 +6,7 @@ import qs.services
 import qs.config
 import qs.components.widgets.bar
 import qs.components.widgets.bar.popouts
-import qs.components.reusable
+import qs.components.widgets.popouts
 
 /**
  * Popout wrapper for bar widgets
@@ -80,20 +80,11 @@ PopoutWrapperBase {
     readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
     readonly property int isOnRightHalfOfScreen: (root.currentData?.anchorX ?? 0) > (root.screen.width / 2) ? true : false
 
-    // Total size including connector gap
-    implicitWidth: {
-      if (root.barConfig.vertical) {
-        return contentWidth + root.connectorGap;
-      }
-      return contentWidth + Appearance.borderRadius * 2 + Appearance.borderWidth * 2;
-    }
-
-    implicitHeight: {
-      if (root.barConfig.vertical) {
-        return contentHeight + Appearance.borderRadius * 2 + Appearance.borderWidth * 2;
-      }
-      return contentHeight + root.connectorGap;
-    }
+    // Size comes from the shared attached shape. The content box is a
+    // little shorter than the content along the bar (kept for parity
+    // with how bar popout contents were sized before the extraction).
+    implicitWidth: surface.implicitWidth
+    implicitHeight: surface.implicitHeight
 
     anchor {
       window: root.currentAnchor
@@ -138,162 +129,53 @@ PopoutWrapperBase {
       }
     }
 
-    SlideAnimation {
-      id: slideContainer
+    AttachedSurface {
+      id: surface
       anchors.fill: parent
 
+      edge: root.barConfig.location
       active: root.occupied && !root.isClosing
-      slideFromRight: root.barConfig.right
-      slideFromLeft: root.barConfig.left
-      slideFromTop: root.barConfig.top
-      slideFromBottom: root.barConfig.bottom
-      animationDuration: Appearance.animationDuration
+      connectorGap: root.connectorGap
+      boxWidth: root.barConfig.vertical ? mainPopup.contentWidth : mainPopup.contentWidth - root.connectorGap + Appearance.borderWidth * 4
+      boxHeight: root.barConfig.vertical ? mainPopup.contentHeight - root.connectorGap + Appearance.borderWidth * 4 : mainPopup.contentHeight
 
-      containerHeight: mainPopup.implicitHeight
-      containerWidth: mainPopup.implicitWidth
-      enableFade: false
+      Loader {
+        id: loader
+        anchors.fill: parent
+        anchors.margins: Widget.spacing
 
-      Rectangle {
-        id: contentContainer
-        color: Theme.background
-        radius: Appearance.borderRadius
-        border.color: Theme.foreground
-        border.width: Appearance.borderWidth
-        anchors.centerIn: parent
+        active: root.occupied
+        asynchronous: false
 
-        width: root.barConfig.vertical ? parent.width - root.connectorGap : parent.width - Appearance.borderRadius * 4 + Appearance.borderWidth * 2
-        height: root.barConfig.vertical ? parent.height - Appearance.borderRadius * 4 + Appearance.borderWidth * 2 : parent.height - root.connectorGap
-
-        Loader {
-          id: loader
-          anchors.fill: parent
-          anchors.margins: Widget.spacing
-
-          active: root.occupied
-          asynchronous: false
-
-          sourceComponent: {
-            switch (root.currentName) {
-            case "workspace-grid":
-              return workspaceGridComponent;
-            case "media-player":
-              return mediaPlayerComponent;
-            case "system-tray-menu":
-              return systemTrayComponent;
-            case "calendar":
-              return calendarComponent;
-            case "notifications":
-              return notificationsComponent;
-            default:
-              return null;
-            }
+        sourceComponent: {
+          switch (root.currentName) {
+          case "workspace-grid":
+            return workspaceGridComponent;
+          case "media-player":
+            return mediaPlayerComponent;
+          case "system-tray-menu":
+            return systemTrayComponent;
+          case "calendar":
+            return calendarComponent;
+          case "notifications":
+            return notificationsComponent;
+          default:
+            return null;
           }
+        }
 
-          onLoaded: {
-            if (item) {
-              item.wrapper = root;
-              if (root.currentData) {
-                for (let key in root.currentData) {
-                  if (item.hasOwnProperty(key)) {
-                    item[key] = root.currentData[key];
-                  }
+        onLoaded: {
+          if (item) {
+            item.wrapper = root;
+            if (root.currentData) {
+              for (let key in root.currentData) {
+                if (item.hasOwnProperty(key)) {
+                  item[key] = root.currentData[key];
                 }
               }
             }
-            root.updateDismissTimer();
           }
-        }
-      }
-
-      Rectangle {
-        id: connector
-        color: Theme.background
-
-        x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : Appearance.borderRadius * 2
-        y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : Appearance.borderRadius * 2
-
-        width: root.barConfig.vertical ? root.connectorGap : contentContainer.width - Appearance.borderWidth * 2
-        height: root.barConfig.vertical ? contentContainer.height - Appearance.borderWidth * 2 : root.connectorGap
-      }
-
-      Rectangle {
-        id: cornerHolder
-        color: "transparent"
-
-        x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : 0
-        y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : 0
-
-        width: connector.width
-        height: mainPopup.height
-      }
-
-      // Vertical bars (left/right): round the nub-to-box transition at
-      // the box's top and bottom edges.
-      Rectangle {
-        id: topCorner
-        visible: root.barConfig.vertical
-        anchors.top: cornerHolder.top
-        anchors.left: connector.left
-        anchors.right: connector.right
-        width: connector.width
-        height: connector.width
-        color: "transparent"
-        // color: "red"
-        clip: true
-        CornerPiece {
-          isLeft: root.barConfig.left
-          isTop: false
-        }
-      }
-
-      Rectangle {
-        id: bottomCorner
-        visible: root.barConfig.vertical
-        anchors.bottom: cornerHolder.bottom
-        anchors.left: connector.left
-        anchors.right: connector.right
-        width: connector.width
-        height: connector.width
-        color: "transparent"
-        clip: true
-        CornerPiece {
-          isLeft: root.barConfig.left
-          isTop: true
-        }
-      }
-
-      // Horizontal bars (top/bottom): round the nub-to-box transition at
-      // the box's left and right edges instead. The corner-piece squares
-      // are sized to the connector gap directly (not the nub's own width,
-      // which spans the full popout for a horizontal bar) so the curve
-      // isn't drawn far outside the visible window and clipped away.
-      Rectangle {
-        id: leftCorner
-        visible: !root.barConfig.vertical
-        x: 0
-        y: connector.y
-        width: root.connectorGap
-        height: connector.height
-        color: "transparent"
-        clip: true
-        CornerPiece {
-          isLeft: false
-          isTop: root.barConfig.top
-        }
-      }
-
-      Rectangle {
-        id: rightCorner
-        visible: !root.barConfig.vertical
-        x: parent.width - root.connectorGap
-        y: connector.y
-        width: root.connectorGap
-        height: connector.height
-        color: "transparent"
-        clip: true
-        CornerPiece {
-          isLeft: true
-          isTop: root.barConfig.top
+          root.updateDismissTimer();
         }
       }
     }

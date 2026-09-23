@@ -2,6 +2,15 @@ import QtQuick
 import QtQuick.Shapes
 import qs.config
 
+/**
+ * Concave "inverted corner" piece: fills the corner (isLeft/isTop) of
+ * its box with fillColor up to a quarter-circle, and strokes the two box
+ * edges leading away from that corner joined by the arc.
+ *
+ * The stroke is centred half a stroke width inside the box, so its full
+ * width is visible and lines up pixel-exactly with a Rectangle-drawn
+ * stroke along the same edges (e.g. BorderPanel's inner line).
+ */
 Item {
   id: root
   property int borderRadius: Appearance.borderRadius
@@ -14,79 +23,62 @@ Item {
 
   anchors.fill: parent
 
-  // --- FILL SHAPE ---
+  // Corner-local coordinates: (0, 0) is the filled corner, u runs along
+  // the horizontal edge, v along the vertical one.
+  readonly property real half: strokeWidth / 2
+  readonly property real arcRadius: Math.max(0, borderRadius - half)
+  // Mirroring once (left/right or top/bottom) flips the arc's sweep
+  readonly property int sweep: isTop === isLeft ? PathArc.Counterclockwise : PathArc.Clockwise
+
+  function px(u) {
+    return isLeft ? u : width - u;
+  }
+  function py(v) {
+    return isTop ? v : height - v;
+  }
+
   Shape {
     anchors.fill: parent
-    antialiasing: true
     preferredRendererType: Shape.CurveRenderer
 
+    // --- FILL ---
     ShapePath {
       fillColor: root.fillColor
       strokeColor: "transparent"
+      strokeWidth: 0
 
-      startX: root.isLeft ? 0 : parent.width
-      startY: root.isTop ? 0 : parent.height
+      startX: root.px(0)
+      startY: root.py(0)
 
-      PathLine {
-        x: root.isLeft ? root.borderRadius : parent.width - root.borderRadius
-        y: root.isTop ? 0 : parent.height
-      }
-
+      PathLine { x: root.px(root.half + root.arcRadius); y: root.py(0) }
+      PathLine { x: root.px(root.half + root.arcRadius); y: root.py(root.half) }
       PathArc {
-        x: root.isLeft ? 0 : parent.width
-        y: root.isTop ? root.borderRadius : parent.height - root.borderRadius
-        radiusX: root.borderRadius
-        radiusY: root.borderRadius
-        direction: root.isTop === root.isLeft ? PathArc.Counterclockwise : PathArc.Clockwise
+        x: root.px(root.half); y: root.py(root.half + root.arcRadius)
+        radiusX: root.arcRadius; radiusY: root.arcRadius
+        direction: root.sweep
       }
-
-      PathLine {
-        x: root.isLeft ? 0 : parent.width
-        y: root.isTop ? 0 : parent.height
-      }
+      PathLine { x: root.px(0); y: root.py(root.half + root.arcRadius) }
+      PathLine { x: root.px(0); y: root.py(0) }
     }
-  }
 
-  // --- STROKE SHAPE ---
-  Shape {
-    anchors.fill: parent
-    layer.enabled: true
-    layer.samples: 1
-    layer.smooth: true
-    antialiasing: true
-    preferredRendererType: Shape.GeometryRenderer
-
+    // --- STROKE ---
     ShapePath {
+      fillColor: "transparent"
       strokeColor: root.strokeColor
       strokeWidth: root.strokeWidth
-      fillColor: "transparent"
       capStyle: ShapePath.FlatCap
-      joinStyle: ShapePath.RoundJoin
+      joinStyle: ShapePath.MiterJoin
 
-      // Start at the outer edge of the box
-      startX: root.isLeft ? parent.width : 0
-      startY: root.isTop ? Appearance.borderWidth : parent.height
+      startX: root.px(root.width)
+      startY: root.py(root.half)
 
-      // First edge line leading to the curve
-      PathLine {
-        x: root.isLeft ? root.borderRadius : parent.width - root.borderRadius
-        y: root.isTop ? 0 : parent.height
-      }
-
-      // The corner curve
+      PathLine { x: root.px(root.half + root.arcRadius); y: root.py(root.half) }
       PathArc {
-        x: root.isLeft ? 0 : parent.width
-        y: root.isTop ? root.borderRadius : parent.height - root.borderRadius
-        radiusX: root.borderRadius
-        radiusY: root.borderRadius
-        direction: root.isTop === root.isLeft ? PathArc.Counterclockwise : PathArc.Clockwise
+        x: root.px(root.half); y: root.py(root.half + root.arcRadius)
+        radiusX: root.arcRadius; radiusY: root.arcRadius
+        direction: root.sweep
       }
-
-      // Second edge line extending to the other edge of the box
-      PathLine {
-        x: root.isLeft ? Appearance.borderWidth : parent.width
-        y: root.isTop ? parent.height : 0
-      }
+      PathLine { x: root.px(root.half); y: root.py(root.height) }
     }
   }
 }

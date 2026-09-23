@@ -42,14 +42,5 @@ StyledContainer {
       backgroundColor: Theme.base0D
       onClicked: Utils.launch("pavucontrol")
     }
-
-    StyledRectButton {
-      iconText: "󰍛"
-      iconColor: Theme.background
-      backgroundColor: Theme.base0E
-      onClicked: {
-        ShellManager.togglePinnedPanel("mainMenu");
-      }
-    }
   }
 }

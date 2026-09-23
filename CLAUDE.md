@@ -62,6 +62,10 @@ Also `pragma Singleton`, but these are typed config *readers*, not owners — th
 
 `modules/Bar.qml` renders one `BarPanel` per entry in `Bar.bars` (a `Variants`/model), so multi-monitor / multi-panel bars are data-driven from config, not hardcoded. Bar contents are built from `components/widgets/bar/{BarContainer,BarModule,WidgetGroup,BarPanel}.qml` composing individual modules from `components/widgets/bar/modules/*.qml` (Time, Battery, Network, Workspaces, Media, SystemTray, Notifications, etc.). Popout panels (calendar, media, tray submenu, workspace) live in `components/widgets/bar/popouts/` and follow a shared `PopoutWrapperBase`/`PopoutAnchor` pattern.
 
+### Popouts (bar + screen edge)
+
+Shared pieces live in `components/widgets/popouts/`: `PopoutWrapperBase` (open/close/queue state, hover-loss dismiss timer), `SlideAnimation`, and `AttachedSurface` (the content box + connector + `CornerPiece` fillets that make a popout look like it grows out of a bar or the screen border; `edge` is a `Bar.Location`). Bar popouts (`bar/popouts/Popouts.qml`) share one wrapper per bar. Screen-edge popouts (`EdgePopout.qml`, used by `modules/Menu.qml`, `OSD.qml`, `ThemeSelector.qml`) are one independent instance per screen (`Variants` over `Quickshell.screens`). Each is an Overlay-layer `PanelWindow` with Normal exclusion and a `-borderWidth` margin, so it lands on the inner stroke of whatever reserves that edge: the border (`workspaceContainer/`) or a bar.
+
 `components/reusable/BaseWidget.qml` is the common sizing/background wrapper most bar modules build on (`Widget.height`, `Widget.padding`, `Appearance.borderRadius`, vertical/horizontal orientation via `Bar.vertical`).
 
 ## Known housekeeping (from README TODO — informs likely refactor asks)

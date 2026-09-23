@@ -1,10 +1,10 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import qs.config
 import qs.services
-import qs.components.reusable
 import qs.components.widgets.popouts
 import qs.components.widgets.common
 
@@ -33,134 +33,84 @@ Item {
     { app: "master", showOsd: true, icon: "" }
   ]
 
-  property bool shouldShowOsd: false
   property real hideTimeout: 1000
 
-  Connections {
-    target: Audio
+  Variants {
+    model: Quickshell.screens
 
-    function onVolumeChanged() {
-      osdRoot.shouldShowOsd = true;
-      hideTimer.restart();
-    }
+    // One OSD per screen; volume changes only show it on the focused one.
+    // Hiding is the popout's own hover-aware dismiss timer.
+    delegate: EdgePopout {
+      id: root
+      required property ShellScreen modelData
 
-    function onMutedChanged() {
-      osdRoot.shouldShowOsd = true;
-      hideTimer.restart();
-    }
-  }
+      screen: modelData
+      edge: Bar.Bottom
+      position: 0.5
+      triggerEnabled: false
+      dismissDelay: osdRoot.hideTimeout
+      // The volume bars inside also report per-app changes, so they must
+      // exist while the OSD is closed
+      keepLoaded: true
 
-  function onVisibilityChanged() {
-    osdRoot.shouldShowOsd = true;
-    hideTimer.restart();
-  }
-
-  Timer {
-    id: hideTimer
-    interval: osdRoot.hideTimeout
-    repeat: false
-    onTriggered: osdRoot.shouldShowOsd = false
-  }
-
-  EdgePopup {
-    id: root
-    panelId: "volumeOSD"
-
-    edge: EdgePopup.Edge.Bottom
-    position: 0.5
-    active: false
-    // why are both of these necessary to prevent mouse?
-    enableTrigger: false
-    triggerOnHover: false
-    property bool shouldShowOsd: osdRoot.shouldShowOsd
-    triggerWidth: 5
-    closeOnMouseExit: false
-    closeOnClickOutside: true
-    focusable: false
-    aboveWindows: true
-    edgeMargin: Config.containerOffset + Appearance.borderWidth * 2 + 3
-
-    animationDuration: 200
-    easingType: Easing.OutQuad
-
-    onActiveChanged: {
-      if (active) {
-        osdRoot.shouldShowOsd = true;
-        hideTimer.restart();
+      // Open (or keep open) on the focused screen; restarts the countdown
+      function poke(force) {
+        if (root.isOpen)
+          root.updateDismissTimer();
+        else if (force && root.isFocusedScreen)
+          root.show();
       }
-    }
 
-    onShouldShowOsdChanged: {
-      if (shouldShowOsd) {
-        root.active = true;
-        hideTimer.restart();
-      } else {
-        root.active = false;
-        hideTimer.stop();
-      }
-    }
+      Connections {
+        target: Audio
 
-    StyledContainer {
-      backgroundColor: Theme.backgroundAlt
-      borderColor: Theme.accent
-      borderWidth: Appearance.borderWidth
-      borderRadius: Appearance.borderRadius
-
-      property bool hovered: false
-
-      implicitWidth: 350
-      implicitHeight: 220
-      MouseArea {
-        id: mouseArea
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: {
-          parent.hovered = true;
-          osdRoot.shouldShowOsd = true;
-          hideTimer.stop();
+        function onVolumeChanged() {
+          root.poke(true);
         }
-        onExited: {
-          parent.hovered = false;
-          hideTimer.restart();
+
+        function onMutedChanged() {
+          root.poke(true);
         }
       }
 
-      RowLayout {
-        anchors.fill: parent
-        anchors.margins: 15
-        spacing: 20
+      content: Component {
+        Item {
+          implicitWidth: 350 - Widget.spacing * 2
+          implicitHeight: 220 - Widget.spacing * 2
 
-        Repeater {
-          model: osdRoot.trackedApps
+          RowLayout {
+            anchors.fill: parent
+            anchors.margins: 15 - Widget.spacing
+            spacing: 20
 
-          delegate: PipewireVolumeBar {
-            id: volBar
-            required property var modelData
-            required property int index
+            Repeater {
+              model: osdRoot.trackedApps
 
-            readonly property bool isOtherSlot: modelData.app === "other"
-            readonly property bool isMasterSlot: modelData.app === "master"
+              delegate: PipewireVolumeBar {
+                id: volBar
+                required property var modelData
+                required property int index
 
-            orientation: Qt.Vertical
-            targetApplication: isMasterSlot ? "" : (isOtherSlot ? "master" : modelData.app)
-            excludedApps: isOtherSlot ? osdRoot.trackedApps.filter(a => a.app !== "other" && a.app !== "master").map(a => a.app) : []
-            useSystemVolume: isMasterSlot
-            iconSource: {
-              if (isMasterSlot) {
-                if (Audio.muted || Audio.volume === 0)
-                  return "";
-                if (Audio.volume > 0.4)
-                  return " ";
-                return " ";
+                readonly property bool isOtherSlot: modelData.app === "other"
+                readonly property bool isMasterSlot: modelData.app === "master"
+
+                orientation: Qt.Vertical
+                targetApplication: isMasterSlot ? "" : (isOtherSlot ? "master" : modelData.app)
+                excludedApps: isOtherSlot ? osdRoot.trackedApps.filter(a => a.app !== "other" && a.app !== "master").map(a => a.app) : []
+                useSystemVolume: isMasterSlot
+                iconSource: {
+                  if (isMasterSlot) {
+                    if (Audio.muted || Audio.volume === 0)
+                      return "";
+                    if (Audio.volume > 0.4)
+                      return " ";
+                    return " ";
+                  }
+                  return modelData.icon;
+                }
+
+                onVisibilityChanged: root.poke(modelData.showOsd)
               }
-              return modelData.icon;
-            }
-
-            onVisibilityChanged: {
-              if (modelData.showOsd) {
-                osdRoot.shouldShowOsd = true;
-              }
-              hideTimer.restart();
             }
           }
         }

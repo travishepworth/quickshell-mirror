@@ -1,7 +1,8 @@
-// EdgeTrigger.qml - Updated with containsMouse property
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
+
+import qs.config
 
 PanelWindow {
   id: root
@@ -14,14 +15,8 @@ PanelWindow {
   // Properties
   property alias containsMouse: mouseArea.containsMouse
 
-  // Edge configuration
-  enum Edge {
-    Left,
-    Right,
-    Top,
-    Bottom
-  }
-  property int edge: EdgeTrigger.Edge.Right
+  // Edge configuration (a Bar.Location value, shared with bars/popouts)
+  property int edge: Bar.Right
   property real position: 0.5  // 0-1 position along edge
   property real positionOffset: 0  // Pixel offset
 
@@ -36,31 +31,31 @@ PanelWindow {
 
   // Set anchors based on edge
   anchors {
-    left: edge === EdgeTrigger.Edge.Left
-    right: edge === EdgeTrigger.Edge.Right
-    top: edge === EdgeTrigger.Edge.Top
-    bottom: edge === EdgeTrigger.Edge.Bottom
+    left: edge === Bar.Left
+    right: edge === Bar.Right
+    top: edge === Bar.Top
+    bottom: edge === Bar.Bottom
   }
 
   // Size based on edge orientation
   implicitWidth: {
     switch (edge) {
-    case EdgeTrigger.Edge.Left:
-    case EdgeTrigger.Edge.Right:
+    case Bar.Left:
+    case Bar.Right:
       return triggerWidth;
-    case EdgeTrigger.Edge.Top:
-    case EdgeTrigger.Edge.Bottom:
+    case Bar.Top:
+    case Bar.Bottom:
       return triggerLength;
     }
   }
 
   implicitHeight: {
     switch (edge) {
-    case EdgeTrigger.Edge.Left:
-    case EdgeTrigger.Edge.Right:
+    case Bar.Left:
+    case Bar.Right:
       return triggerLength;
-    case EdgeTrigger.Edge.Top:
-    case EdgeTrigger.Edge.Bottom:
+    case Bar.Top:
+    case Bar.Bottom:
       return triggerWidth;
     }
   }
@@ -68,7 +63,7 @@ PanelWindow {
   // Position along the edge using margins
   margins {
     left: {
-      if (edge === EdgeTrigger.Edge.Top || edge === EdgeTrigger.Edge.Bottom) {
+      if (edge === Bar.Top || edge === Bar.Bottom) {
         let targetX = (screen.width * position) - (triggerLength / 2) + positionOffset;
         return Math.max(0, targetX);
       }
@@ -76,7 +71,7 @@ PanelWindow {
     }
 
     right: {
-      if (edge === EdgeTrigger.Edge.Top || edge === EdgeTrigger.Edge.Bottom) {
+      if (edge === Bar.Top || edge === Bar.Bottom) {
         let targetX = (screen.width * position) - (triggerLength / 2) + positionOffset;
         let rightMargin = screen.width - (targetX + triggerLength);
         return Math.max(0, rightMargin);
@@ -85,7 +80,7 @@ PanelWindow {
     }
 
     top: {
-      if (edge === EdgeTrigger.Edge.Left || edge === EdgeTrigger.Edge.Right) {
+      if (edge === Bar.Left || edge === Bar.Right) {
         let targetY = (screen.height * position) - (triggerLength / 2) + positionOffset;
         return Math.max(0, targetY);
       }
@@ -93,7 +88,7 @@ PanelWindow {
     }
 
     bottom: {
-      if (edge === EdgeTrigger.Edge.Left || edge === EdgeTrigger.Edge.Right) {
+      if (edge === Bar.Left || edge === Bar.Right) {
         let targetY = (screen.height * position) - (triggerLength / 2) + positionOffset;
         let bottomMargin = screen.height - (targetY + triggerLength);
         return Math.max(0, bottomMargin);
@@ -149,7 +144,6 @@ PanelWindow {
     interval: hoverDelay
     onTriggered: {
       if (triggerOnHover && mouseArea.containsMouse) {
-        console.log("Trigger timer fired");
         root.triggered();
       }
     }

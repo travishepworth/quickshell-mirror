@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import qs.config
 import qs.components.widgets.bar
+import qs.components.widgets.popouts
 import qs.components.reusable
 
 /**
