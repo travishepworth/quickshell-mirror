@@ -6,7 +6,6 @@ import Quickshell.Hyprland
 import Quickshell.Io
 
 import qs.components.reusable
-import qs.components.methods
 import qs.config
 import qs.services
 
@@ -26,10 +25,37 @@ PanelWindow {
   property string iconReboot: " "
   property string iconHibernate: " "
 
-  Component.onCompleted: {
-    ShellManager.openPowerMenu.connect(function () {
+  // [action, icon] in grid order
+  readonly property var actions: [["lock", iconLock], ["logout", iconLogout], ["poweroff", iconPoweroff], ["suspend", iconSuspend], ["reboot", iconReboot], ["hibernate", iconHibernate]]
+  // A destructive action waiting for its confirming second click
+  property string armed: ""
+
+  function run(action) {
+    if (ShellManager.destructiveActions.includes(action) && armed !== action) {
+      armed = action;
+      disarm.restart();
+      return;
+    }
+    armed = "";
+    shown = false;
+    ShellManager.sessionAction(action);
+  }
+
+  Timer {
+    id: disarm
+    interval: 3000
+    onTriggered: rootWindow.armed = ""
+  }
+
+  Connections {
+    target: ShellManager
+    function onOpenPowerMenu() {
       rootWindow.toggle();
-    });
+    }
+    // Locking from anywhere closes the menu, so it isn't still up on unlock
+    function onLockScreen() {
+      rootWindow.shown = false;
+    }
   }
 
   screen: rootWindow.screen
@@ -50,18 +76,19 @@ PanelWindow {
   function toggle() {
     shown = !shown;
   }
+  onShownChanged: armed = ""
 
   IpcHandler {
     target: "powermenu"
-    enabled: screen.name === General.primaryMonitor
     function toggle() {
       rootWindow.toggle();
     }
-    function show() {
+    // Not "show": `qs ipc call <target> show` is taken by the CLI
+    function open() {
       if (!rootWindow.shown)
         rootWindow.toggle();
     }
-    function hide() {
+    function close() {
       if (rootWindow.shown)
         rootWindow.toggle();
     }
@@ -107,18 +134,19 @@ PanelWindow {
       rowSpacing: gridSpacing
       columnSpacing: gridSpacing
 
-      Component {
-        id: iconButtonComponent
+      Repeater {
+        model: rootWindow.actions
+
         Rectangle {
           id: iconButton
-          property string icon: ""
-          property alias mouseArea: buttonMouseArea
-          signal clicked
+          required property var modelData
+          readonly property string action: modelData[0]
+          readonly property bool armed: rootWindow.armed === action
 
           implicitWidth: rootWindow.buttonSize
           implicitHeight: rootWindow.buttonSize
 
-          color: buttonMouseArea.containsMouse ? Theme.accent : Theme.backgroundHighlight
+          color: armed ? Theme.error : buttonMouseArea.containsMouse ? Theme.accent : Theme.backgroundHighlight
           border.color: Theme.border
           border.width: Appearance.borderWidth
           radius: Appearance.borderRadius
@@ -132,11 +160,20 @@ PanelWindow {
 
           StyledText {
             anchors.centerIn: parent
-            text: iconButton.icon
-            textColor: buttonMouseArea.containsMouse ? Theme.background : Theme.foreground
+            text: iconButton.modelData[1]
+            textColor: iconButton.armed || buttonMouseArea.containsMouse ? Theme.background : Theme.foreground
             textSize: rootWindow.iconSize
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
+          }
+
+          StyledText {
+            visible: iconButton.armed
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: Widget.padding * 2
+            text: I18n.tr("Confirm?")
+            textColor: Theme.background
           }
 
           MouseArea {
@@ -144,76 +181,8 @@ PanelWindow {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: iconButton.clicked()
+            onClicked: rootWindow.run(iconButton.action)
           }
-        }
-      }
-
-      // Lock button
-      Loader {
-        sourceComponent: iconButtonComponent
-        onLoaded: {
-          item.icon = iconLock;
-          item.clicked.connect(function () {
-            ShellManager.lockScreen();
-          });
-        }
-      }
-
-      // Logout button
-      Loader {
-        sourceComponent: iconButtonComponent
-        onLoaded: {
-          item.icon = iconLogout;
-          item.clicked.connect(function () {
-            Utils.launchWithArgs("hyprctl", "dispatch", "exit");
-          });
-        }
-      }
-
-      // Power Off button
-      Loader {
-        sourceComponent: iconButtonComponent
-        onLoaded: {
-          item.icon = iconPoweroff;
-          item.clicked.connect(function () {
-            Utils.launchWithArgs("systemctl", "poweroff");
-          });
-        }
-      }
-
-      // Suspend button
-      Loader {
-        sourceComponent: iconButtonComponent
-        onLoaded: {
-          item.icon = iconSuspend;
-          item.clicked.connect(function () {
-            Utils.launchWithArgs("systemctl", "suspend");
-            rootWindow.toggle();
-          });
-        }
-      }
-
-      // Reboot button
-      Loader {
-        sourceComponent: iconButtonComponent
-        onLoaded: {
-          item.icon = iconReboot;
-          item.clicked.connect(function () {
-            Utils.launchWithArgs("systemctl", "reboot");
-          });
-        }
-      }
-
-      // Hibernate button
-      Loader {
-        sourceComponent: iconButtonComponent
-        onLoaded: {
-          item.icon = iconHibernate;
-          item.clicked.connect(function () {
-            Utils.launchWithArgs("systemctl", "hibernate");
-            rootWindow.toggle();
-          });
         }
       }
     }

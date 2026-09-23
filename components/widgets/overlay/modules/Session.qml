@@ -1,8 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Hyprland
 import qs.config
 import qs.services
 import qs.components.reusable
@@ -15,39 +13,23 @@ OverlayCard {
   id: root
 
   readonly property var defs: ({
-      "lock": ["\u{F033E}", I18n.tr("Lock"), false],
-      "suspend": ["\u{F04B2}", I18n.tr("Suspend"), false],
-      "logout": ["\u{F0343}", I18n.tr("Log out"), true],
-      "reboot": ["\u{F0709}", I18n.tr("Reboot"), true],
-      "poweroff": ["\u{F0425}", I18n.tr("Power off"), true]
+      "lock": ["\u{F033E}", I18n.tr("Lock")],
+      "suspend": ["\u{F04B2}", I18n.tr("Suspend")],
+      "logout": ["\u{F0343}", I18n.tr("Log out")],
+      "reboot": ["\u{F0709}", I18n.tr("Reboot")],
+      "poweroff": ["\u{F0425}", I18n.tr("Power off")]
     })
   readonly property var actions: (root.properties.actions ?? ["lock", "suspend", "logout", "reboot", "poweroff"]).filter(a => a in root.defs)
   property string armed: ""
 
   function run(action) {
-    if (root.defs[action][2] && root.armed !== action) {
+    if (ShellManager.destructiveActions.includes(action) && root.armed !== action) {
       root.armed = action;
       disarm.restart();
       return;
     }
     root.armed = "";
-    switch (action) {
-    case "lock":
-      ShellManager.lockScreen();
-      break;
-    case "suspend":
-      Quickshell.execDetached(["systemctl", "suspend"]);
-      break;
-    case "logout":
-      Hyprland.dispatch("exit");
-      break;
-    case "reboot":
-      Quickshell.execDetached(["systemctl", "reboot"]);
-      break;
-    case "poweroff":
-      Quickshell.execDetached(["systemctl", "poweroff"]);
-      break;
-    }
+    ShellManager.sessionAction(action);
   }
 
   Timer {

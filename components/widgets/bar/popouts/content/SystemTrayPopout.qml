@@ -110,11 +110,6 @@ Item {
           itemHeight: root.itemHeight
           itemPadding: root.itemPadding
 
-          onItemClicked: function () {
-          // submenuWrapper.closePopout();
-          // root.wrapper.closePopout();
-          }
-
           onSubmenuRequested: function (itemDelegate) {
             // Everything in the popup window's coordinates: the submenu
             // attaches to the side of this popout's box, level with the item
@@ -127,23 +122,14 @@ Item {
             });
           }
 
-          Component.onCompleted: {
-            // Close any open submenu when hovering non-submenu items
-            if (!menuItem.hasChildren) {
-              const mouseArea = children[children.length - 1]; // Get the MouseArea
-              if (mouseArea && mouseArea.hasOwnProperty("entered")) {
-                mouseArea.entered.connect(function () {
-                  submenuWrapper.closePopout();
-                });
-              }
-            }
-          }
+          // Close any open submenu when hovering an item without one
+          onPlainItemHovered: submenuWrapper.closePopout()
         }
       }
 
       // Empty state
       Text {
-        visible: menuOpener.children.count === 0
+        visible: menuOpener.children.values.length === 0
         text: I18n.tr("No menu items")
         color: Theme.accent
         // font.family: Config.appearance.fontFamily

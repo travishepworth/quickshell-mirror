@@ -1,21 +1,21 @@
 // qs/components/reusable/StyledRectButton.qml
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell
 import qs.config
 import qs.components.reusable
 
 Rectangle {
   id: component
-  
+
   // -- Signals --
-  signal clicked()
-  
+  signal clicked
+
   // -- Public API --
   property string iconText: ""
   property string tooltipText: ""
-  
+
   // -- Configurable Appearance --
   property alias iconSize: iconLabel.textSize
   property alias iconColor: iconLabel.textColor
@@ -32,7 +32,7 @@ Rectangle {
   property bool badgeVisible: component.badgeText !== ""
   property color badgeBackgroundColor: Theme.error
   property color badgeTextColor: Theme.background
-  
+
   // -- Implementation --
   // UHH maybe having one button for layouts and not layouts is not the move
   Layout.fillHeight: true
@@ -41,26 +41,24 @@ Rectangle {
   // TODO: different bar extents break this
   implicitWidth: Widget.height
   implicitHeight: Widget.height
-  
-  color: mouseArea.pressed ? component.pressColor : 
-         (mouseArea.containsMouse ? component.hoverColor : component.backgroundColor)
-  border.color: mouseArea.pressed ? component.borderPressColor :
-                (mouseArea.containsMouse ? component.borderHoverColor : component.borderColor)
+
+  color: mouseArea.pressed ? component.pressColor : (mouseArea.containsMouse ? component.hoverColor : component.backgroundColor)
+  border.color: mouseArea.pressed ? component.borderPressColor : (mouseArea.containsMouse ? component.borderHoverColor : component.borderColor)
   border.width: component.borderWidth
   radius: component.borderRadius
-  
+
   Behavior on color {
     ColorAnimation {
       duration: Appearance.animNormal
     }
   }
-  
+
   Behavior on border.color {
     ColorAnimation {
       duration: Appearance.animNormal
     }
   }
-  
+
   StyledText {
     id: iconLabel
     anchors.centerIn: parent
@@ -68,7 +66,7 @@ Rectangle {
     textSize: Appearance.fontSize
     textColor: Theme.foreground
   }
-  
+
   MouseArea {
     id: mouseArea
     anchors.fill: parent
@@ -76,12 +74,13 @@ Rectangle {
     cursorShape: Qt.PointingHandCursor
     onClicked: component.clicked()
   }
-  
-  ToolTip {
-    id: tooltip
-    text: component.tooltipText
-    visible: false
-    delay: 500
+
+  LazyLoader {
+    active: mouseArea.containsMouse && component.tooltipText !== ""
+    StyledToolTip {
+      target: component
+      text: component.tooltipText
+    }
   }
 
   Rectangle {

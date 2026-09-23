@@ -20,7 +20,7 @@ QtObject {
   // --- Properties we fully control to be explicit, partially due to a bug with YT Music ---
   property real position: 0
   property real length: 0
-  property real progress: length > 0 ? (position / length) : 0
+  readonly property real progress: length > 0 ? (position / length) : 0
 
   // --- Everything else ---
   property string identity: activePlayer ? activePlayer.identity : ""
@@ -109,16 +109,14 @@ QtObject {
   }
 
   function updatePosition() {
-    if (hasActivePlayer && isPlaying) {
+    if (hasActivePlayer) {
       activePlayer.positionChanged();
       // Potential bug with youtube music AUR package and mpris
       // Simply requires a skip to sync positions
       if (activePlayer.position > length && length > 0) {
         position = activePlayer.position - length;
-        progress = length > 0 ? (position / length) : 0;
       } else {
         position = activePlayer.position;
-        progress = length > 0 ? (position / length) : 0;
       }
     }
   }
@@ -129,6 +127,15 @@ QtObject {
     function onTrackTitleChanged() {
       root.updateAllMetadata();
     }
+    // Some players report the length after the title
+    function onLengthChanged() {
+      root.length = root.activePlayer.length || 0;
+    }
+  }
+
+  onActivePlayerChanged: {
+    if (activePlayer)
+      updateAllMetadata();
   }
 
   function togglePlayPause() {
@@ -196,10 +203,9 @@ QtObject {
     running: root.isPlaying && root.hasActivePlayer
     interval: 500
     repeat: true
-    onTriggered: {
-      if (root.activePlayer)
-        root.activePlayer.positionChanged();
-    }
+    // Copies the position into `position` too, so every consumer sees it
+    // advance (not only ones that call updatePosition themselves)
+    onTriggered: root.updatePosition()
   }
 
   property Timer _startupPoller: Timer {

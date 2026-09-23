@@ -21,7 +21,7 @@ PopupWindow {
   property int leftOffset: 20
   property int targetY: 20
 
-  signal dismissed()
+  signal dismissed
 
   readonly property var visibleActions: (notification.actions ?? []).filter(a => a.identifier !== "default")
   readonly property var defaultAction: (notification.actions ?? []).find(a => a.identifier === "default")
@@ -91,13 +91,23 @@ PopupWindow {
     }
   }
 
-  NumberAnimation {
+  // A drag short of the threshold: slide back and undo the fade
+  ParallelAnimation {
     id: snapBack
-    target: card
-    property: "x"
-    to: 0
-    duration: Appearance.animFast
-    easing.type: Easing.OutCubic
+    NumberAnimation {
+      target: dragShift
+      property: "x"
+      to: 0
+      duration: Appearance.animFast
+      easing.type: Easing.OutCubic
+    }
+    NumberAnimation {
+      target: card
+      property: "opacity"
+      to: 1
+      duration: Appearance.animFast
+      easing.type: Easing.OutCubic
+    }
   }
 
   // expireTimeout === 0 is the freedesktop-spec signal for "never expire".
@@ -114,6 +124,10 @@ PopupWindow {
     id: card
     anchors.fill: parent
     opacity: 0
+    // Anchored, so the drag moves it with a transform rather than x
+    transform: Translate {
+      id: dragShift
+    }
 
     StyledContainer {
       id: content
@@ -132,16 +146,22 @@ PopupWindow {
         property real pressX: 0
         property real dragDelta: 0
 
+        // In scene coordinates: local ones move with the card being dragged
+        function sceneX(mouse) {
+          return dragArea.mapToItem(null, mouse.x, mouse.y).x;
+        }
+
         onPressed: mouse => {
-          pressX = mouse.x;
+          snapBack.stop();
+          pressX = sceneX(mouse);
           dragDelta = 0;
         }
 
         onPositionChanged: mouse => {
           if (!pressed)
             return;
-          dragDelta = mouse.x - pressX;
-          content.x = dragDelta * 0.5;
+          dragDelta = sceneX(mouse) - pressX;
+          dragShift.x = dragDelta * 0.5;
           card.opacity = 1 - Math.abs(dragDelta) / (popup.dragDismissThreshold * 2);
           if (Math.abs(dragDelta) > popup.dragDismissThreshold)
             popup.dismiss();

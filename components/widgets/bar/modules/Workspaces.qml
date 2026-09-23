@@ -25,8 +25,9 @@ Item {
 
   // Base ID for this monitor's 25-workspace range - calculate from monitor index
   readonly property int workspaceBase: {
-    if (!monitor) return 1;
-    
+    if (!monitor)
+      return 1;
+
     const monitors = Hyprland.monitors.values;
     for (let i = 0; i < monitors.length; i++) {
       if (monitors[i].id === monitor.id) {
@@ -38,8 +39,9 @@ Item {
 
   // Get workspaces for THIS monitor only
   readonly property var monitorWorkspaces: {
-    if (!monitor) return [];
-    
+    if (!monitor)
+      return [];
+
     const all = Hyprland.workspaces.values;
     const filtered = [];
     for (let i = 0; i < all.length; i++) {
@@ -53,11 +55,12 @@ Item {
 
   // Dynamic group calculation based on orientation
   readonly property int groupBase: {
-    if (!monitor || !monitor.activeWorkspace) return 1;
-    
+    if (!monitor || !monitor.activeWorkspace)
+      return 1;
+
     const id = monitor.activeWorkspace.id;
     const relativeId = id - workspaceBase + 1;
-    
+
     if (isVertical) {
       return ((relativeId - 1) % 5) + 1;
     } else {
@@ -74,32 +77,45 @@ Item {
   function wsById(id) {
     const arr = Hyprland.workspaces.values;
     for (let i = 0; i < arr.length; i++) {
-      if (arr[i].id === id) return arr[i];
+      if (arr[i].id === id)
+        return arr[i];
     }
     return null;
   }
 
   function formatIconVertical(relativeIndex) {
     const col = (relativeIndex - 1) % 5;
-    switch(col) {
-      case 0: return "";
-      case 1: return "";
-      case 2: return "";
-      case 3: return "";
-      case 4: return "";
-      default: return "";
+    switch (col) {
+    case 0:
+      return "";
+    case 1:
+      return "";
+    case 2:
+      return "";
+    case 3:
+      return "";
+    case 4:
+      return "";
+    default:
+      return "";
     }
   }
 
   function formatIconHorizontal(relativeIndex) {
     const row = Math.floor((relativeIndex - 1) / 5);
-    switch(row) {
-      case 0: return "";
-      case 1: return "";
-      case 2: return "";
-      case 3: return "";
-      case 4: return "";
-      default: return "";
+    switch (row) {
+    case 0:
+      return "";
+    case 1:
+      return "";
+    case 2:
+      return "";
+    case 3:
+      return "";
+    case 4:
+      return "";
+    default:
+      return "";
     }
   }
 
@@ -145,9 +161,10 @@ Item {
     popoutName: "workspace-grid"
     active: root.properties.showPopout
     extraData: ({
-      monitor: root.monitor,
-      workspaceBase: root.workspaceBase
-    })
+        monitor: root.monitor,
+        workspaceBase: root.workspaceBase,
+        activeId: root.monitor?.activeWorkspace?.id ?? root.workspaceBase
+      })
   }
 
   Component {
@@ -174,8 +191,16 @@ Item {
         color: root.iconColor
       }
 
-      Behavior on color { ColorAnimation { duration: Appearance.animFast } }
-      Behavior on opacity { NumberAnimation { duration: Appearance.animNormal } }
+      Behavior on color {
+        ColorAnimation {
+          duration: Appearance.animFast
+        }
+      }
+      Behavior on opacity {
+        NumberAnimation {
+          duration: Appearance.animNormal
+        }
+      }
 
       MouseArea {
         anchors.fill: parent

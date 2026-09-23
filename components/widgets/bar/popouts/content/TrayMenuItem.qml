@@ -15,8 +15,10 @@ Rectangle {
   required property var menuItem
   required property int itemHeight
   required property int itemPadding
-  required property var onItemClicked
-  required property var onSubmenuRequested
+  signal itemClicked
+  signal submenuRequested(Item itemDelegate)
+  // Pointer entered an item without a submenu (callers close open submenus)
+  signal plainItemHovered
   property int minItemWidth: 100
   property int maxItemWidth: 600
   property bool openToLeft
@@ -32,7 +34,7 @@ Rectangle {
   color: menuItemArea.containsMouse && menuItem.enabled && !menuItem.isSeparator ? Theme.backgroundHighlight : "transparent"
   radius: Appearance.borderRadius
   opacity: menuItem.enabled ? 1.0 : 0.5
-  
+
   // Main content row
   RowLayout {
     id: contentRow
@@ -42,7 +44,7 @@ Rectangle {
     spacing: 8
     visible: !menuItemDelegate.menuItem.isSeparator
     layoutDirection: menuItemDelegate.openToLeft ? Qt.RightToLeft : Qt.LeftToRight
-    
+
     // Checkbox/Radio indicator
     Rectangle {
       visible: menuItemDelegate.menuItem.buttonType !== QsMenuButtonType.None
@@ -54,7 +56,7 @@ Rectangle {
       border.color: Theme.foreground
       border.width: 1
       radius: menuItemDelegate.menuItem.buttonType === QsMenuButtonType.RadioButton ? 8 : 2
-      
+
       Rectangle {
         anchors.centerIn: parent
         width: parent.width - 6
@@ -64,7 +66,7 @@ Rectangle {
         visible: menuItemDelegate.menuItem.checkState === Qt.Checked
       }
     }
-    
+
     // Icon
     Image {
       visible: menuItemDelegate.menuItem.icon !== ""
@@ -78,7 +80,7 @@ Rectangle {
       fillMode: Image.PreserveAspectFit
       smooth: true
     }
-    
+
     // Label
     Text {
       text: menuItemDelegate.menuItem.text
@@ -90,7 +92,7 @@ Rectangle {
       clip: true
       horizontalAlignment: menuItemDelegate.openToLeft ? Text.AlignRight : Text.AlignLeft
     }
-    
+
     // Submenu indicator
     Text {
       visible: menuItemDelegate.menuItem.hasChildren
@@ -102,7 +104,7 @@ Rectangle {
       Layout.minimumWidth: implicitWidth
     }
   }
-  
+
   // Separator line
   Rectangle {
     anchors.centerIn: parent
@@ -112,7 +114,7 @@ Rectangle {
     opacity: 0.2
     visible: menuItemDelegate.menuItem.isSeparator
   }
-  
+
   // Hover timer for submenu opening
   Timer {
     id: submenuHoverTimer
@@ -120,34 +122,35 @@ Rectangle {
     repeat: false
     onTriggered: {
       if (menuItemDelegate.menuItem.hasChildren && menuItemArea.containsMouse) {
-        menuItemDelegate.onSubmenuRequested(menuItemDelegate);
+        menuItemDelegate.submenuRequested(menuItemDelegate);
       }
     }
   }
-  
+
   MouseArea {
     id: menuItemArea
     anchors.fill: parent
     hoverEnabled: true
     enabled: menuItemDelegate.menuItem.enabled && !menuItemDelegate.menuItem.isSeparator
-    
+
     onEntered: {
       if (menuItemDelegate.menuItem.hasChildren) {
         submenuHoverTimer.restart();
+      } else {
+        menuItemDelegate.plainItemHovered();
       }
     }
-    
+
     onExited: {
       submenuHoverTimer.stop();
     }
-    
+
     onClicked: {
       if (menuItemDelegate.menuItem.hasChildren) {
-        menuItemDelegate.onSubmenuRequested(menuItemDelegate);
+        menuItemDelegate.submenuRequested(menuItemDelegate);
       } else {
-        console.log("Triggering menu item:", menuItemDelegate.menuItem.text);
         menuItemDelegate.menuItem.triggered();
-        menuItemDelegate.onItemClicked();
+        menuItemDelegate.itemClicked();
       }
     }
   }

@@ -83,8 +83,21 @@ Scope {
 
     // If the notification is dismissed elsewhere (e.g. from the bell
     // popout) while its toast is still showing, animate the toast out too.
-    notification.closed.connect(() => toast.dismiss());
-    toast.dismissed.connect(() => removeToast(toast));
+    // Disconnected once the toast is gone, so a later close doesn't call
+    // into a destroyed toast.
+    const onClosed = () => {
+      if (activeToasts.includes(toast))
+        toast.dismiss();
+    };
+    notification.closed.connect(onClosed);
+    toast.dismissed.connect(() => {
+      try {
+        notification.closed.disconnect(onClosed);
+      } catch (e) {
+        // The notification itself is already gone
+      }
+      removeToast(toast);
+    });
   }
 
   function calculateTargetY(index) {

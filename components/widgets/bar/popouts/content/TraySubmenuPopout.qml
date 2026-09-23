@@ -73,25 +73,19 @@ Item {
           onItemClicked: function () {
             root.wrapper.requestDismiss();
           }
+          // A nested submenu drills down: it replaces this one in the same
+          // place (same anchor window and attach rect), since there is one
+          // submenu wrapper per tray popout
           onSubmenuRequested: function (itemDelegate) {
-            let globalPos = itemDelegate.mapToGlobal(0, 0);
-            console.log("Opening submenu for:", itemDelegate.menuItem.text, "at", globalPos);
-            root.wrapper.safeOpenPopout(root.wrapper.popupWindow, {
-              menuItem: itemDelegate.menuItem,
-              parentItemDelegate: itemDelegate,
-              anchorItem: itemDelegate,
-              anchorWindow: root.wrapper.popupWindow,
-              anchorX: globalPos.x,
-              anchorY: globalPos.y,
-              anchorWidth: itemDelegate.width,
-              anchorHeight: itemDelegate.height
-            });
+            root.wrapper.safeOpenPopout(root.wrapper.currentAnchor, Object.assign({}, root.wrapper.currentData, {
+              menuItem: itemDelegate.menuItem
+            }));
           }
         }
       }
       // Empty state
       Text {
-        visible: menuOpener.children.length === 0
+        visible: menuOpener.children.values.length === 0
         text: I18n.tr("No submenu items")
         color: Theme.accent
         opacity: 0.5

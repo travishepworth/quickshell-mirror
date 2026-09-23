@@ -292,7 +292,7 @@ QtObject {
       const resolvedSchema = _resolve(subSchema);
 
       if (resolvedSchema.properties?.type?.const !== undefined) {
-        if (value.type !== resolvedSchema.properties.type.const) {
+        if (value?.type !== resolvedSchema.properties.type.const) {
           continue;
         }
       }

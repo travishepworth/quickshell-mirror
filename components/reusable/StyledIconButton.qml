@@ -3,19 +3,20 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell
 import qs.config
 import qs.components.reusable
 
 ToolButton {
   id: component
-  
+
   // -- Signals --
   // null
-  
+
   // -- Public API --
   property string iconText: ""
   property string tooltipText: ""
-  
+
   // -- Configurable Appearance --
   property int iconSize: Appearance.fontSize
   property color iconColor: Theme.foreground
@@ -25,7 +26,7 @@ ToolButton {
   property color borderColor: "transparent"
   property int borderWidth: Appearance.borderWidth
   property real borderRadius: Appearance.borderRadius
-  
+
   // -- Implementation --
   Layout.fillHeight: true
   Layout.fillWidth: true
@@ -35,11 +36,21 @@ ToolButton {
   scale: component.pressed ? 0.92 : 1.0
 
   Behavior on scale {
-    NumberAnimation { duration: Appearance.animFast }
+    NumberAnimation {
+      duration: Appearance.animFast
+    }
   }
 
   HoverHandler {
     cursorShape: Qt.PointingHandCursor
+  }
+
+  LazyLoader {
+    active: component.hovered && component.tooltipText !== ""
+    StyledToolTip {
+      target: component
+      text: component.tooltipText
+    }
   }
 
   contentItem: Text {
