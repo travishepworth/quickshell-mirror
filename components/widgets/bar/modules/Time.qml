@@ -6,20 +6,24 @@ import QtQuick
 import qs.config
 import qs.components.widgets.bar.popouts
 
+// Clock with a date. `style` picks the formatting ("standard" or
+// "japanese"); a custom `timeFormat` / `dateFormat` (Qt format strings)
+// overrides the style's. On a vertical bar each is stacked into short lines.
 Item {
   id: root
-
-  // Orientation support
-  property int orientation: Config.orientation
-  property bool isVertical: barConfig.vertical
-  property bool showDate: true
-  property bool use24Hour: false
 
   property var barConfig
   property var popouts
   property var panel
   property var screen
   property var properties
+
+  readonly property bool isVertical: barConfig.vertical
+  readonly property bool japanese: properties.style === "japanese"
+  readonly property bool use24Hour: properties.use24Hour
+  readonly property bool showSeconds: properties.showSeconds
+  readonly property bool showDate: properties.showDate
+  readonly property color foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
   readonly property int priority: 5
 
@@ -28,47 +32,130 @@ Item {
 
   SystemClock {
     id: clock
-    precision: SystemClock.Seconds
+    precision: root.showSeconds || root.properties.timeFormat.includes("s") ? SystemClock.Seconds : SystemClock.Minutes
+  }
+
+  readonly property var _jpDays: ["日", "月", "火", "水", "木", "金", "土"]
+
+  function _jpMeridiem(date) {
+    return date.getHours() < 12 ? "午前" : "午後";
+  }
+
+  // One-line time and date, for a horizontal bar
+  readonly property string timeText: {
+    const date = clock.date;
+    if (properties.timeFormat)
+      return Qt.formatDateTime(date, properties.timeFormat);
+    if (japanese)
+      return (use24Hour ? "" : _jpMeridiem(date)) + Qt.formatDateTime(date, (use24Hour ? "H" : "h") + "時mm分" + (showSeconds ? "ss秒" : ""));
+    return Qt.formatDateTime(date, (use24Hour ? "HH:mm" : "hh:mm") + (showSeconds ? ":ss" : "") + (use24Hour ? "" : " ap"));
+  }
+  readonly property string dateText: Qt.formatDateTime(clock.date, properties.dateFormat || (japanese ? "yyyy年M月d日" : "MMM d, yyyy"))
+
+  // Stacked lines for a vertical bar: [{ text, scale, bold, opacity }]
+  readonly property var timeLines: {
+    const date = clock.date;
+    if (properties.timeFormat)
+      return _split(timeText);
+    if (japanese) {
+      const lines = [];
+      if (!use24Hour)
+        lines.push(_line(_jpMeridiem(date), 0.7, false, 0.9));
+      lines.push(_line(Qt.formatDateTime(date, use24Hour ? "H" : "h") + "\n時"));
+      lines.push(_line(Qt.formatDateTime(date, "mm") + "\n分"));
+      if (showSeconds)
+        lines.push(_line(Qt.formatDateTime(date, "ss") + "\n秒"));
+      return lines;
+    }
+    const lines = [_line(Qt.formatDateTime(date, use24Hour ? "HH" : "hh.ap").replace(/\.(am|pm)$/i, ""), 1.1, true), _line(Qt.formatDateTime(date, "mm"), 0.9, true)];
+    if (showSeconds)
+      lines.push(_line(Qt.formatDateTime(date, "ss"), 0.8, false, 0.8));
+    if (!use24Hour)
+      lines.push(_line(Qt.formatDateTime(date, "ap"), 0.7, false, 0.9));
+    return lines;
+  }
+  readonly property var dateLines: {
+    const date = clock.date;
+    if (properties.dateFormat)
+      return _split(dateText);
+    if (japanese)
+      return [_line(Qt.formatDateTime(date, "M") + "\n月"), _line(Qt.formatDateTime(date, "d") + "\n日"), _line(_jpDays[date.getDay()])];
+    return [_line(Qt.formatDateTime(date, "MMM"), 0.8), _line(Qt.formatDateTime(date, "dd"), 1.1, true), _line(Qt.formatDateTime(date, "ddd"), 0.7, false, 0.8)];
+  }
+
+  function _line(text, scale = 1, bold = false, opacity = 1) {
+    return {
+      "text": text,
+      "scale": scale,
+      "bold": bold,
+      "opacity": opacity
+    };
+  }
+
+  // A custom format's output, one word (or colon-separated field) per line
+  function _split(text) {
+    return text.split(/[\s:]+/).filter(part => part !== "").map(part => _line(part));
   }
 
   Rectangle {
     anchors.fill: parent
-    color: Theme.info
+    color: Theme.resolveColor(root.properties.backgroundColor)
     radius: Appearance.borderRadius
+  }
+
+  component ClockText: Text {
+    color: root.foregroundColor
+    font.family: Appearance.fontFamily
+    font.pixelSize: Appearance.fontSize
+  }
+
+  component LineStack: Column {
+    id: stack
+    required property var lines
+    spacing: root.japanese ? 2 : 0
+
+    Repeater {
+      model: stack.lines
+
+      delegate: ClockText {
+        required property var modelData
+        x: Math.round((stack.width - width) / 2)
+        horizontalAlignment: Text.AlignHCenter
+        lineHeight: 0.9
+        text: modelData.text
+        font.pixelSize: Appearance.fontSize * modelData.scale
+        font.bold: modelData.bold
+        opacity: modelData.opacity
+      }
+    }
   }
 
   Loader {
     id: layoutLoader
     anchors.centerIn: parent
-    sourceComponent: isVertical ? verticalComponent : horizontalComponent
+    sourceComponent: root.isVertical ? verticalComponent : horizontalComponent
 
     Component {
       id: horizontalComponent
       Row {
-        spacing: 8
+        spacing: Widget.spacing * 2
 
-        Text {
-          color: Theme.background
-          font.family: Appearance.fontFamily
-          font.pixelSize: Appearance.fontSize
-          text: Qt.formatDateTime(clock.date, "MMM d, yyyy")
+        ClockText {
+          text: root.dateText
           visible: root.showDate
         }
 
         Rectangle {
           width: 1
           height: Appearance.fontSize
-          color: Theme.background
+          color: root.foregroundColor
           opacity: 0.5
           visible: root.showDate
           anchors.verticalCenter: parent.verticalCenter
         }
 
-        Text {
-          color: Theme.background
-          font.family: Appearance.fontFamily
-          font.pixelSize: Appearance.fontSize
-          text: Qt.formatDateTime(clock.date, root.use24Hour ? "HH:mm:ss" : "hh:mm:ss ap")
+        ClockText {
+          text: root.timeText
         }
       }
     }
@@ -76,94 +163,26 @@ Item {
     Component {
       id: verticalComponent
       Column {
-        spacing: 2
+        spacing: Widget.spacing
 
-        // Time display - larger and more prominent
-        Column {
-          spacing: 0
+        LineStack {
+          lines: root.timeLines
           anchors.horizontalCenter: parent.horizontalCenter
-
-          Text {
-            color: Theme.background
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 1.1
-            font.bold: true
-            text: {
-              Qt.formatDateTime(clock.date, root.use24Hour ? "HH" : "hh.ap").replace(".am", "").replace(".pm", "")
-            }
-            anchors.horizontalCenter: parent.horizontalCenter
-          }
-
-          Text {
-            color: Theme.background
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 0.9
-            font.bold: true
-            text: Qt.formatDateTime(clock.date, "mm")
-            anchors.horizontalCenter: parent.horizontalCenter
-          }
-
-          Text {
-            color: Theme.background
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 0.8
-            text: Qt.formatDateTime(clock.date, "ss")
-            opacity: 0.8
-            anchors.horizontalCenter: parent.horizontalCenter
-          }
-
-          Text {
-            color: Theme.background
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 0.7
-            text: Qt.formatDateTime(clock.date, "ap")
-            visible: !root.use24Hour
-            opacity: 0.9
-            anchors.horizontalCenter: parent.horizontalCenter
-          }
         }
 
-        // Separator line
         Rectangle {
           width: parent.width * 0.6
           height: 1
-          color: Theme.background
+          color: root.foregroundColor
           opacity: 0.3
           visible: root.showDate
           anchors.horizontalCenter: parent.horizontalCenter
         }
 
-        // Date display - compact format
-        Column {
-          spacing: 0
+        LineStack {
+          lines: root.dateLines
           visible: root.showDate
           anchors.horizontalCenter: parent.horizontalCenter
-
-          Text {
-            color: Theme.background
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 0.8
-            text: Qt.formatDateTime(clock.date, "MMM")
-            anchors.horizontalCenter: parent.horizontalCenter
-          }
-
-          Text {
-            color: Theme.background
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 1.1
-            font.bold: true
-            text: Qt.formatDateTime(clock.date, "dd")
-            anchors.horizontalCenter: parent.horizontalCenter
-          }
-
-          Text {
-            color: Theme.background
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 0.7
-            text: Qt.formatDateTime(clock.date, "ddd")  // Day of week
-            opacity: 0.8
-            anchors.horizontalCenter: parent.horizontalCenter
-          }
         }
       }
     }
@@ -175,5 +194,6 @@ Item {
     panel: root.panel
     popoutName: "calendar"
     openDelay: 150
+    active: root.properties.showCalendar
   }
 }

@@ -116,14 +116,19 @@ QtObject {
   readonly property string paired: _themeData.paired ?? ""
   property bool isGenerated: false
 
+  // The 16 base colors offered by color pickers (`x-options: "colors"`)
+  readonly property var baseColorNames: ["base00", "base01", "base02", "base03", "base04", "base05", "base06", "base07", "base08", "base09", "base0A", "base0B", "base0C", "base0D", "base0E", "base0F"]
+
+  // Color from a config string: a base key ("base0C"), a semantic name
+  // ("info", or the older "Theme.info" form) or anything Qt parses as a
+  // color ("#ff5733"). Reading stringToColorMap here makes callers'
+  // bindings re-evaluate when the theme changes.
   function resolveColor(name) {
-    console.log("Resolving color for name: " + name)
-    const colorKey = name.includes('.') ? name.substring(name.lastIndexOf('.') + 1) : name;
-    const resolved = root.stringToColorMap[colorKey] ?? name ?? "#ff00ff"
-    // DO NOT REMOVE. THIS LOG IS REQUIRED FOR REACTIVITY
-    // TODO: Find a better way that doesn't encounter this issue
-    console.log("  -> resolved to: " + resolved)
-    return resolved;
+    const map = root.stringToColorMap;
+    if (!name)
+      return "transparent";
+    const key = name.includes('.') ? name.substring(name.lastIndexOf('.') + 1) : name;
+    return map[key] ?? name;
   }
 
   Component.onCompleted: {

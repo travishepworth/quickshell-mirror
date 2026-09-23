@@ -97,9 +97,12 @@ QtObject {
       bar.widgets = {};
     if (!bar.widgets[zone])
       bar.widgets[zone] = [];
-    bar.widgets[zone].push({
+    // Properties start at the widget schema's defaults
+    bar.widgets[zone].push(SchemaValidation.applyDefaults({
       "type": widgetType
-    });
+    }, {
+      "$ref": "#/definitions/BarWidget"
+    }, ConfigManager.configSchema));
     applyChanges();
   }
 

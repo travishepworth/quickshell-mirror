@@ -16,9 +16,10 @@ Item {
 
   property bool isVertical: barConfig.vertical
 
-  property color activeColor: Theme.accent
-  property color inactiveColor: Theme.foregroundAlt
-  property color emptyColor: Theme.backgroundAlt
+  readonly property color activeColor: Theme.resolveColor(properties.activeColor)
+  readonly property color inactiveColor: Theme.resolveColor(properties.occupiedColor)
+  readonly property color emptyColor: Theme.resolveColor(properties.emptyColor)
+  readonly property color iconColor: Theme.resolveColor(properties.iconColor)
 
   property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
 
@@ -142,6 +143,7 @@ Item {
     popouts: root.popouts
     panel: root.panel
     popoutName: "workspace-grid"
+    active: root.properties.showPopout
     extraData: ({
       monitor: root.monitor,
       workspaceBase: root.workspaceBase
@@ -168,8 +170,8 @@ Item {
         text: root.isVertical ? root.formatIconVertical(relativeIndex) : root.formatIconHorizontal(relativeIndex)
         font.family: Appearance.fontFamily
         font.pixelSize: Appearance.fontSize * 1.2
-        visible: isActive
-        color: Theme.background
+        visible: isActive && root.properties.showActiveIcon
+        color: root.iconColor
       }
 
       Behavior on color { ColorAnimation { duration: Appearance.animFast } }

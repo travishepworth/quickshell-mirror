@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import qs.config
 import qs.components.reusable
+import qs.components.methods
 
 ColumnLayout {
   id: root
@@ -13,6 +14,12 @@ ColumnLayout {
   required property var options
   required property string currentValue
   property string description: ""
+  // Options are color names (Theme.resolveColor): paint the box and each
+  // row in the color it names
+  property bool swatches: false
+
+  readonly property color _currentColor: root.swatches && root.currentValue ? Theme.resolveColor(root.currentValue) : Theme.backgroundAlt
+  readonly property color _currentTextColor: root.swatches && root.currentValue ? Utils.getContrastColor(root._currentColor) : Theme.foreground
   
   signal selectionChanged(string newValue)
   
@@ -28,6 +35,7 @@ ColumnLayout {
     id: comboContainer
     Layout.fillWidth: true
     Layout.preferredHeight: Widget.height
+    backgroundColor: root._currentColor
     borderColor: comboBox.popup.visible ? Theme.accent : Theme.border
     
     RowLayout {
@@ -38,13 +46,14 @@ ColumnLayout {
       
       StyledText {
         text: root.currentValue
+        textColor: root._currentTextColor
         Layout.fillWidth: true
         elide: Text.ElideRight
       }
       
       StyledText {
         text: "▾"
-        textColor: Theme.accent
+        textColor: root.swatches ? root._currentTextColor : Theme.accent
         textSize: Appearance.fontSize + 2
         Layout.preferredWidth: implicitWidth
       }
@@ -64,14 +73,17 @@ ColumnLayout {
         root.selectionChanged(root.options[index]);
       }
       
+      // Rows are inset from the popup's rounded border and rounded
+      // themselves, so the background shows all the way around
       popup: Popup {
-        y: comboContainer.height + 4
+        y: comboContainer.height + Widget.spacing
         width: comboContainer.width
-        padding: 0
+        padding: Widget.spacing
         
         background: StyledContainer {
-          backgroundColor: Theme.background
+          backgroundColor: Theme.backgroundAlt
           borderColor: Theme.border
+          borderRadius: Appearance.borderRadius
           
           layer.enabled: true
           layer.effect: DropShadow {
@@ -86,7 +98,8 @@ ColumnLayout {
         
         contentItem: ListView {
           clip: true
-          implicitHeight: contentHeight
+          implicitHeight: Math.min(contentHeight, Widget.height * 10)
+          spacing: root.swatches ? Widget.spacing / 2 : 0
           model: comboBox.popup.visible ? comboBox.delegateModel : null
           currentIndex: comboBox.highlightedIndex
           
@@ -95,18 +108,24 @@ ColumnLayout {
       }
       
       delegate: Rectangle {
+        id: optionDelegate
         required property int index
         required property string modelData
+        readonly property color swatchColor: root.swatches ? Theme.resolveColor(modelData) : "transparent"
         
-        width: comboBox.width
+        width: ListView.view.width
         height: Widget.height
-        color: delegateArea.containsMouse ? Theme.backgroundHighlight : "transparent"
+        radius: Appearance.borderRadius
+        color: root.swatches ? swatchColor : (delegateArea.containsMouse ? Theme.backgroundHighlight : "transparent")
+        border.width: root.swatches && (delegateArea.containsMouse || modelData === root.currentValue) ? Appearance.borderWidth * 2 : 0
+        border.color: Utils.getContrastColor(swatchColor)
         
         StyledText {
           anchors.fill: parent
           anchors.leftMargin: Widget.padding
           anchors.rightMargin: Widget.padding
-          text: parent.modelData
+          text: optionDelegate.modelData
+          textColor: root.swatches ? Utils.getContrastColor(optionDelegate.swatchColor) : Theme.foreground
           verticalAlignment: Text.AlignVCenter
           elide: Text.ElideRight
         }

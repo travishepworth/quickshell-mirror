@@ -34,7 +34,9 @@ QtObject {
    * Returns a deep copy of `value` with every missing key that has a schema
    * `default` filled in, recursing into objects and array items. Objects
    * with declared properties are created when missing, so nested defaults
-   * always resolve. oneOf schemas (bar widgets) are left untouched.
+   * always resolve. A oneOf whose options are told apart by a `type`
+   * const (bar widgets) uses the option matching the value's `type`; any
+   * other oneOf is left untouched.
    */
   function applyDefaults(value, schema, root = schema) {
     _ctx.root = root;
@@ -63,13 +65,27 @@ QtObject {
     return schema;
   }
 
+  // The oneOf option whose `type` const matches value.type, or null
+  function _discriminate(value, schema) {
+    if (!_isPlainObject(value))
+      return null;
+    for (const option of schema.oneOf) {
+      const resolved = _resolve(option);
+      if (resolved?.properties?.type?.const !== undefined && resolved.properties.type.const === value.type)
+        return resolved;
+    }
+    return null;
+  }
+
   function _isPlainObject(value) {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
 
   function _applyDefaults(value, schema) {
     schema = _resolve(schema);
-    if (!schema || schema.oneOf)
+    if (schema?.oneOf)
+      schema = _discriminate(value, schema);
+    if (!schema)
       return value;
 
     if (value === undefined && schema.default !== undefined)
@@ -97,7 +113,9 @@ QtObject {
 
   function _prune(value, schema, path, removed) {
     schema = _resolve(schema);
-    if (!schema || schema.oneOf || value === null || typeof value !== 'object')
+    if (schema?.oneOf)
+      schema = _discriminate(value, schema);
+    if (!schema || value === null || typeof value !== 'object')
       return;
 
     if (Array.isArray(value)) {

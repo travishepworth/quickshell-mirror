@@ -61,12 +61,15 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: Widget.spacing
     
+    // Keyed by count, not by the array: editing an item updates its
+    // delegate in place instead of rebuilding every row (which would take
+    // focus away from a text field on each keystroke)
     Repeater {
-      model: root.items
+      model: root.items.length
       
       delegate: StyledContainer {
         required property int index
-        required property var modelData
+        readonly property var modelData: root.items[index]
         
         Layout.fillWidth: true
         implicitHeight: itemContent.implicitHeight + (Widget.padding * 2)

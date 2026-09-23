@@ -8,6 +8,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 
 import qs.config
+import qs.services
 import qs.components.widgets.overlay
 import qs.components.widgets.overlay.views
 
@@ -67,6 +68,14 @@ PanelWindow {
     repeat: false
     onTriggered: {
       overlay.visible = false;
+    }
+  }
+
+  Connections {
+    target: ShellManager
+    enabled: overlay.isPrimaryScreen
+    function onToggleOverlay() {
+      overlay.toggle();
     }
   }
 

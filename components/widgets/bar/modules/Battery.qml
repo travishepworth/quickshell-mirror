@@ -19,13 +19,28 @@ IconTextWidget {
   property int percentage: 0
   property string timeRemaining: ""
   property string warningLevel: "none"
+  // "none" / "low" / "critical": the last level notified about, so each
+  // threshold notifies once per crossing
+  property string _notifiedLevel: "none"
+
+  readonly property string level: {
+    if (isCharging)
+      return "none";
+    if (warningLevel === "critical" || percentage <= properties.criticalThreshold)
+      return "critical";
+    if (warningLevel === "low" || percentage <= properties.lowThreshold)
+      return "low";
+    return "none";
+  }
 
   isVertical: barConfig.vertical
 
   icon: getBatteryIcon()
   text: `${percentage}%`
+  showText: properties.showPercentage
 
   backgroundColor: getBatteryColor()
+  foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
   iconScale: 1.1
   textScale: 0.9
@@ -68,12 +83,12 @@ IconTextWidget {
 
   function getBatteryColor() {
     if (isCharging)
-      return Theme.success;
-    if (warningLevel === "critical" || percentage <= 10)
-      return Theme.error;
-    if (warningLevel === "low" || percentage <= 20)
-      return Theme.info;
-    return Theme.accentAlt;
+      return Theme.resolveColor(properties.chargingColor);
+    if (level === "critical")
+      return Theme.resolveColor(properties.criticalColor);
+    if (level === "low")
+      return Theme.resolveColor(properties.lowColor);
+    return Theme.resolveColor(properties.backgroundColor);
   }
 
   function getBatteryStatus() {
@@ -158,12 +173,14 @@ IconTextWidget {
     }
   }
 
-  // Low battery notifications
-  onPercentageChanged: {
-    if (percentage <= 10 && !isCharging) {
-      Notify.send("Critical Battery", `Battery critically low: ${percentage}%`);
-    } else if (percentage <= 20 && !isCharging && percentage > 10) {
-      Notify.send("Low Battery", `Battery low: ${percentage}%`);
+  // Low battery notifications, once each time a threshold is crossed
+  onLevelChanged: {
+    if (properties.notify && level !== _notifiedLevel) {
+      if (level === "critical")
+        Notify.send("Critical Battery", `Battery critically low: ${percentage}%`);
+      else if (level === "low" && _notifiedLevel !== "critical")
+        Notify.send("Low Battery", `Battery low: ${percentage}%`);
     }
+    _notifiedLevel = level;
   }
 }

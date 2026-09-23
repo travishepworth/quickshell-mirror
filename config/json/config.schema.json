@@ -1,14 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatBackends\").",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatBackends\", \"colors\" for the 16 base theme colors); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 2,
+      "default": 3,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -429,141 +429,238 @@
         { "$ref": "#/definitions/MediaWidget" },
         { "$ref": "#/definitions/WorkspacesWidget" },
         { "$ref": "#/definitions/TimeWidget" },
-        { "$ref": "#/definitions/TimeJapaneseWidget" },
         { "$ref": "#/definitions/TailscaleWidget" },
         { "$ref": "#/definitions/NetworkWidget" },
         { "$ref": "#/definitions/SystemTrayWidget" },
         { "$ref": "#/definitions/NotificationsWidget" },
-        { "$ref": "#/definitions/LogoWidget" },
+        { "$ref": "#/definitions/ButtonWidget" },
         { "$ref": "#/definitions/BatteryWidget" }
       ]
     },
     "WindowWidget": {
       "type": "object",
       "required": ["type"],
+      "additionalProperties": false,
       "properties": {
         "type": { "const": "Window", "description": "Window Title" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" }
-      },
-      "additionalProperties": false
-    },
-    "MediaWidget": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": { "const": "Media", "description": "Media Player" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" }
-      },
-      "additionalProperties": false
-    },
-    "WorkspacesWidget": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": { "const": "Workspaces", "description": "Workspace Switcher" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" }
-      },
-      "additionalProperties": false
-    },
-    "TimeWidget": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": { "const": "Time", "description": "Clock" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" }
-      },
-      "additionalProperties": false
-    },
-    "TimeJapaneseWidget": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": { "const": "TimeJapanese", "description": "Japanese Clock" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" }
-      },
-      "additionalProperties": false
-    },
-    "TailscaleWidget": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": { "const": "Tailscale", "description": "Tailscale Status" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" }
-      },
-      "additionalProperties": false
-    },
-    "NetworkWidget": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": { "const": "Network", "description": "Network Status" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" }
-      },
-      "additionalProperties": false
-    },
-    "SystemTrayWidget": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": { "const": "SystemTray", "description": "System Tray" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" }
-      },
-      "additionalProperties": false
-    },
-    "NotificationsWidget": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": { "const": "Notifications", "description": "Notification Center" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" }
-      },
-      "additionalProperties": false
-    },
-    "BatteryWidget": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": { "const": "Battery", "description": "Battery Status" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" }
-      },
-      "additionalProperties": false
-    },
-    "LogoWidget": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": { "const": "Logo", "description": "Custom Logo" },
         "visible": { "type": "boolean" },
         "layout": { "$ref": "#/definitions/WidgetLayout" },
         "properties": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
-            "icon": {
-              "type": "string",
-              "description": "Icon glyph or text",
-              "default": "󰣇"
-            },
-            "backgroundColor": {
-              "type": "string",
-              "description": "Background color (Theme.* or hex)",
-              "default": "Theme.info",
-              "examples": ["Theme.info", "Theme.primary", "#FF5733"]
-            }
-          },
-          "additionalProperties": false
+            "icon": { "type": "string", "title": "Icon", "default": "", "description": "Glyph shown before the title. Empty shows none." },
+            "emptyText": { "type": "string", "title": "Empty text", "default": "—", "description": "Shown when no window is focused." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
         }
-      },
-      "additionalProperties": false
+      }
+    },
+    "MediaWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Media", "description": "Media Player" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showArtist": { "type": "boolean", "title": "Show artist", "default": true },
+            "artistLength": { "type": "integer", "title": "Artist length", "default": 10, "minimum": 0, "maximum": 100, "description": "Longest artist name shown before it is shortened (characters)." },
+            "idleText": { "type": "string", "title": "Idle text", "default": "No player", "description": "Shown when nothing is playing." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the media controls when hovered." },
+            "playingColor": { "type": "string", "title": "Playing background", "x-options": "colors", "default": "base0B" },
+            "pausedColor": { "type": "string", "title": "Paused background", "x-options": "colors", "default": "base02" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "WorkspacesWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Workspaces", "description": "Workspace Switcher" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "description": "Show an arrow on the active workspace." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the workspace grid when hovered." },
+            "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
+            "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
+            "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
+            "iconColor": { "type": "string", "title": "Icon color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "TimeWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Time", "description": "Clock" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "style": { "type": "string", "title": "Style", "default": "standard", "description": "Japanese uses 年月日 / 時分秒 formatting.", "enum": ["standard", "japanese"] },
+            "use24Hour": { "type": "boolean", "title": "24-hour", "default": false },
+            "showSeconds": { "type": "boolean", "title": "Seconds", "default": true },
+            "showDate": { "type": "boolean", "title": "Date", "default": true },
+            "timeFormat": { "type": "string", "title": "Time format", "default": "", "description": "Custom Qt time format (e.g. HH:mm). Empty uses the style's format." },
+            "dateFormat": { "type": "string", "title": "Date format", "default": "", "description": "Custom Qt date format (e.g. ddd d MMM). Empty uses the style's format." },
+            "showCalendar": { "type": "boolean", "title": "Calendar popout", "default": true, "description": "Open the calendar when hovered." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "TailscaleWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Tailscale", "description": "Tailscale Status" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showLabel": { "type": "boolean", "title": "Show label", "default": true },
+            "label": { "type": "string", "title": "Label", "default": "", "description": "Text shown while connected. Empty shows the tailnet name." },
+            "interval": { "type": "integer", "title": "Poll interval (ms)", "default": 2000, "minimum": 250, "maximum": 60000 },
+            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base0A" },
+            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "base02" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "NetworkWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Network", "description": "Network Status" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showName": { "type": "boolean", "title": "Show device", "default": false, "description": "Show the connected device name next to the icon." },
+            "interval": { "type": "integer", "title": "Poll interval (ms)", "default": 2000, "minimum": 250, "maximum": 60000 },
+            "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base09" },
+            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "base08" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "SystemTrayWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "SystemTray", "description": "System Tray" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "iconSize": { "type": "integer", "title": "Icon size", "default": 18, "minimum": 8, "maximum": 64, "description": "Size of tray icons (px)." },
+            "showPassive": { "type": "boolean", "title": "Show passive", "default": true, "description": "Also show items that report themselves as passive (idle)." }
+          }
+        }
+      }
+    },
+    "NotificationsWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Notifications", "description": "Notification Center" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showCount": { "type": "boolean", "title": "Show count", "default": true, "description": "Badge with the number of notifications." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the notification list when hovered." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" },
+            "dndColor": { "type": "string", "title": "Do-not-disturb icon", "x-options": "colors", "default": "base04" },
+            "badgeColor": { "type": "string", "title": "Badge", "x-options": "colors", "default": "base08" }
+          }
+        }
+      }
+    },
+    "ButtonWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Button", "description": "Button / Command" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "icon": { "type": "string", "title": "Icon", "default": "󰣇", "description": "Glyph or text shown on the button." },
+            "label": { "type": "string", "title": "Label", "default": "", "description": "Text next to the icon. Replaced by the label command's output when that is set." },
+            "tooltip": { "type": "string", "title": "Tooltip", "default": "", "description": "Shown when hovering the button." },
+            "action": { "type": "string", "title": "Click action", "default": "powerMenu", "description": "What a left click does.", "enum": ["powerMenu", "appLauncher", "overlay", "workspaceOverlay", "lock", "command", "none"] },
+            "command": { "type": "string", "title": "Command", "default": "", "description": "Shell command run on left click.", "x-showIf": { "action": "command" } },
+            "rightCommand": { "type": "string", "title": "Right-click command", "default": "", "description": "Shell command run on right click. Empty does nothing." },
+            "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click. Empty does nothing." },
+            "labelCommand": { "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
+            "labelInterval": { "type": "integer", "title": "Label interval (ms)", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "BatteryWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Battery", "description": "Battery Status" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showPercentage": { "type": "boolean", "title": "Show percentage", "default": true },
+            "lowThreshold": { "type": "integer", "title": "Low (%)", "default": 20, "minimum": 0, "maximum": 100, "description": "At or below this, the widget uses the low color." },
+            "criticalThreshold": { "type": "integer", "title": "Critical (%)", "default": 10, "minimum": 0, "maximum": 100, "description": "At or below this, the widget uses the critical color." },
+            "notify": { "type": "boolean", "title": "Notifications", "default": true, "description": "Send a notification when the battery becomes low or critical." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "chargingColor": { "type": "string", "title": "Charging background", "x-options": "colors", "default": "base0B" },
+            "lowColor": { "type": "string", "title": "Low background", "x-options": "colors", "default": "base0C" },
+            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
     }
   }
 }

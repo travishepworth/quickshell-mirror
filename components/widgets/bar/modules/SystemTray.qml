@@ -1,4 +1,3 @@
-// SystemTray.qml - Fixed icon rendering
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
@@ -16,13 +15,13 @@ Item {
   property var properties
 
   property bool isVertical: barConfig.vertical
-  property int iconSize: 18
+  readonly property int iconSize: properties.iconSize
   property int leftPadding: 8
   property int rightPadding: 8
   property int topPadding: 4
   property int bottomPadding: 4
   property int spacing: 6
-  property bool showPassive: true
+  readonly property bool showPassive: properties.showPassive
   property color backgroundColor: Theme.backgroundAlt
   property int backgroundRadius: Appearance.borderRadius
   property color backgroundBorderColor: "transparent"

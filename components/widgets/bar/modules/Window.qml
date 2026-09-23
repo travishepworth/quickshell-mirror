@@ -20,7 +20,8 @@ IconTextWidget {
   readonly property int minimumSize: 80
 
   isVertical: barConfig.vertical
-  icon: ""
-  text: (ToplevelManager.activeToplevel && ToplevelManager.activeToplevel.title) ? ToplevelManager.activeToplevel.title : "—"
-  backgroundColor: Theme.accentAlt
+  icon: properties.icon
+  text: ToplevelManager.activeToplevel?.title || properties.emptyText
+  backgroundColor: Theme.resolveColor(properties.backgroundColor)
+  foregroundColor: Theme.resolveColor(properties.foregroundColor)
 }

@@ -36,13 +36,16 @@ Item {
     icon: MprisController.isPlaying ? "♪" : "⏸"
     text: root.formatTrack()
 
-    backgroundColor: MprisController.isPlaying ? Theme.green : Theme.bg2
+    backgroundColor: Theme.resolveColor(MprisController.isPlaying ? root.properties.playingColor : root.properties.pausedColor)
+    foregroundColor: Theme.resolveColor(root.properties.foregroundColor)
   }
 
   function formatTrack() {
     if (!MprisController.activePlayer)
-      return "No player";
-    const artist = Utils.truncate(MprisController.trackArtist, 10, "");
+      return root.properties.idleText;
+    const artist = Utils.truncate(MprisController.trackArtist, root.properties.artistLength, "");
+    if (!root.properties.showArtist || !artist)
+      return MprisController.trackTitle;
     return "󰠃 " + artist + " - " + MprisController.trackTitle;
   }
 
@@ -51,6 +54,7 @@ Item {
     popouts: root.popouts
     panel: root.panel
     popoutName: "media-player"
+    active: root.properties.showPopout
     openDelay: 150
   }
 }

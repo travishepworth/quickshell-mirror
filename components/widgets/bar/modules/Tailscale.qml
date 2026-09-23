@@ -21,17 +21,18 @@ IconTextWidget {
   isVertical: barConfig.vertical
 
   icon: isConnected ? "󰳌" : "󰌙"
-  // text: isConnected ? tailnetName : ""
-  text: isConnected ? "k8s" : ""
+  text: isConnected ? (properties.label || tailnetName) : ""
+  showText: properties.showLabel
 
-  backgroundColor: isConnected ? Theme.warning : Theme.backgroundHighlight
+  backgroundColor: Theme.resolveColor(isConnected ? properties.connectedColor : properties.disconnectedColor)
+  foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
   iconScale: 1.1
   textScale: 0.9
 
   PollingProcess {
     id: statusChecker
-    interval: 250
+    interval: root.properties.interval
     command: ["sh", "-c", "tailscale status &>/dev/null"]
     treatExitCodeAsStatus: true
 

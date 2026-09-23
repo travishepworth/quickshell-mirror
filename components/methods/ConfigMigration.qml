@@ -12,7 +12,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 2
+  readonly property int currentVersion: 3
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -28,6 +28,8 @@ QtObject {
 
     if (version < 2)
       result = _v1ToV2(result, secrets, changes);
+    if (version < 3)
+      result = _v2ToV3(result, changes);
 
     return {
       config: result,
@@ -158,6 +160,83 @@ QtObject {
         _set(out, "ThemeIntegrations." + key, ti[key]);
 
     changes.push("Dropped unused keys (workspaceCount, singleMonitor, resolution, monitors, containerWidth, Menu card/pinning settings, bar padding, unimplemented theme integrations)");
+    return out;
+  }
+
+  // Semantic color names → the base16 slot they default to (Theme.qml's
+  // fallbacks), for widget colors saved before colors were base keys only
+  readonly property var _semanticToBase: ({
+      "background": "base00",
+      "backgroundAlt": "base01",
+      "backgroundHighlight": "base02",
+      "foreground": "base05",
+      "foregroundAlt": "base04",
+      "foregroundHighlight": "base06",
+      "foregroundInactive": "base03",
+      "border": "base03",
+      "borderFocus": "base0D",
+      "accent": "base0D",
+      "accentAlt": "base0E",
+      "success": "base0B",
+      "warning": "base0A",
+      "error": "base08",
+      "info": "base0C",
+      "red": "base08",
+      "green": "base0B",
+      "yellow": "base0A",
+      "blue": "base0D",
+      "magenta": "base0E",
+      "cyan": "base0C",
+      "orange": "base09",
+      "grey": "base03",
+      "bg0": "base00",
+      "bg1": "base01",
+      "bg2": "base02"
+    })
+
+  // "Theme.info" / "info" → "base0C"; base keys and hex pass through
+  function _baseColor(value) {
+    if (typeof value !== "string")
+      return value;
+    const key = value.includes(".") ? value.substring(value.lastIndexOf(".") + 1) : value;
+    return root._semanticToBase[key] ?? key;
+  }
+
+  function _v2ToV3(old, changes) {
+    const out = old;
+    out.version = 3;
+    for (const bar of out.Bars ?? []) {
+      for (const zone in bar.widgets ?? {}) {
+        bar.widgets[zone] = (bar.widgets[zone] ?? []).map(widget => {
+          if (widget.type === "TimeJapanese") {
+            changes.push(`Bars.${bar.id}.${zone}: TimeJapanese → Time (style: japanese)`);
+            return Object.assign({}, widget, {
+              "type": "Time",
+              "properties": {
+                "style": "japanese",
+                "use24Hour": true
+              }
+            });
+          }
+          if (widget.type === "Logo") {
+            const props = widget.properties ?? {};
+            const button = {
+              "action": "powerMenu"
+            };
+            if (props.icon !== undefined)
+              button.icon = props.icon;
+            if (props.backgroundColor !== undefined)
+              button.backgroundColor = _baseColor(props.backgroundColor);
+            changes.push(`Bars.${bar.id}.${zone}: Logo → Button (action: powerMenu)`);
+            return Object.assign({}, widget, {
+              "type": "Button",
+              "properties": button
+            });
+          }
+          return widget;
+        });
+      }
+    }
     return out;
   }
 }

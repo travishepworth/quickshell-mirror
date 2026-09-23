@@ -7,4 +7,7 @@ QtObject {
 
   signal lockScreen()
   signal openPowerMenu()
+  signal toggleAppLauncher()
+  signal toggleOverlay()
+  signal toggleWorkspaceOverlay()
 }

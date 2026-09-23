@@ -26,6 +26,15 @@ Scope {
   // Shared visibility state
   property bool overlayVisible: false
   
+  Connections {
+    target: ShellManager
+    function onToggleWorkspaceOverlay() {
+      root.overlayVisible = !root.overlayVisible;
+      if (root.overlayVisible)
+        HyprlandData.updateAll();
+    }
+  }
+
   IpcHandler {
     target: "workspaceOverlay"
     

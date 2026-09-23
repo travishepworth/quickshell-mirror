@@ -18,6 +18,7 @@ BaseWidget {
   property bool showText: true
   property bool showIcon: true
   property real spacing: 6
+  property color foregroundColor: Theme.background
 
   readonly property bool _hasIcon: showIcon && icon !== ""
   readonly property string displayText: showText ? (text || "—") : ""
@@ -45,7 +46,7 @@ BaseWidget {
       visible: root._hasIcon
       x: root.isVertical ? Math.round((run.width - width) / 2) : 0
       y: root.isVertical ? 0 : Math.round((run.height - height) / 2)
-      color: Theme.background
+      color: root.foregroundColor
       text: root.icon
       font.family: Appearance.fontFamily
       font.pixelSize: Appearance.fontSize * root.iconScale
@@ -66,7 +67,7 @@ BaseWidget {
         anchors.centerIn: parent
         width: root.isVertical ? textSlot.height : textSlot.width
         rotation: root.isVertical ? -90 : 0
-        color: Theme.background
+        color: root.foregroundColor
         text: root.displayText
         elide: Text.ElideRight
         font.family: Appearance.fontFamily

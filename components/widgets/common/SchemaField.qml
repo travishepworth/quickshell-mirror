@@ -1,12 +1,16 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import qs.config
+import qs.services
 import qs.components.reusable
 import qs.components.widgets.common
 
-// One row of a SchemaForm: picks the control for the row's schema type.
+// One row of a schema-driven form: picks the control for the row's schema
+// type. `form` provides valueAt(path) and an edited(path, value) signal
+// (SchemaForm, or the bar editor's WidgetItemDelegate).
 Loader {
   id: root
 
@@ -17,6 +21,20 @@ Loader {
   readonly property var current: form.valueAt(row.path)
   readonly property string label: row.title
   readonly property string description: fieldSchema.description ?? ""
+  readonly property bool isColor: fieldSchema["x-options"] === "colors"
+  readonly property var options: {
+    if (fieldSchema.enum)
+      return fieldSchema.enum;
+    switch (fieldSchema["x-options"]) {
+    case "screens":
+      return ["", ...Quickshell.screens.map(screen => screen.name)];
+    case "chatBackends":
+      return Object.keys(ConfigManager.config.Chat.backends);
+    case "colors":
+      return Theme.baseColorNames;
+    }
+    return null;
+  }
 
   Layout.fillWidth: true
 
@@ -34,7 +52,7 @@ Loader {
     case "integer":
       return spinField;
     default:
-      return form.options(fieldSchema) ? comboField : textField;
+      return root.options ? comboField : textField;
     }
   }
 
@@ -75,7 +93,8 @@ Loader {
     SchemaComboBox {
       label: root.label
       description: root.description
-      options: root.form.options(root.fieldSchema)
+      options: root.options
+      swatches: root.isColor
       currentValue: root.current ?? ""
       onSelectionChanged: value => root.commit(value)
     }

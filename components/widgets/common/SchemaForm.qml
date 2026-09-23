@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 
 import qs.config
 import qs.components.widgets.common
@@ -11,7 +10,7 @@ import qs.components.widgets.common
  * section becomes a collapsible SchemaSection; nested objects become
  * labelled groups; booleans, integers and strings become switches, spin
  * boxes (with the schema's minimum/maximum), combo boxes (enum or
- * `x-options`) and text fields. Labels and help text come from `title` and
+ * `x-options`; color fields get swatches) and text fields. Labels and help text come from `title` and
  * `description`. Keys marked `x-settings: false` are skipped (edited
  * elsewhere, e.g. bars in the bar editor, or owned by the theme selector).
  *
@@ -61,19 +60,6 @@ ColumnLayout {
     for (const key of path)
       value = value?.[key];
     return value;
-  }
-
-  // Choices for a string field, or null for free text
-  function options(fieldSchema) {
-    if (fieldSchema.enum)
-      return fieldSchema.enum;
-    switch (fieldSchema["x-options"]) {
-    case "screens":
-      return ["", ...Quickshell.screens.map(screen => screen.name)];
-    case "chatBackends":
-      return Object.keys(root.config?.Chat?.backends ?? {});
-    }
-    return null;
   }
 
   Repeater {

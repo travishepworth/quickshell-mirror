@@ -25,11 +25,12 @@ Item {
     anchors.fill: parent
 
     iconText: Notifs.dnd ? "󰂛" : "󰂚"
-    iconColor: Notifs.dnd ? Theme.foregroundAlt : Theme.background
+    iconColor: Theme.resolveColor(Notifs.dnd ? root.properties.dndColor : root.properties.foregroundColor)
     borderHoverColor: Theme.accent
-    backgroundColor: Theme.accentAlt
+    backgroundColor: Theme.resolveColor(root.properties.backgroundColor)
 
-    badgeVisible: Notifs.count > 0
+    badgeVisible: root.properties.showCount && Notifs.count > 0
+    badgeBackgroundColor: Theme.resolveColor(root.properties.badgeColor)
     badgeText: Notifs.count > 99 ? "99+" : String(Notifs.count)
   }
 
@@ -38,6 +39,7 @@ Item {
     popouts: root.popouts
     panel: root.panel
     popoutName: "notifications"
+    active: root.properties.showPopout
     openDelay: 150
   }
 }

@@ -69,17 +69,31 @@ Item {
   width: isVertical ? Widget.height : mainSize
   height: isVertical ? mainSize : Widget.height
 
+  // Created with its inputs already set, so the module's own bindings
+  // never see them undefined; bound afterwards so later changes (e.g. edits
+  // in the bar editor's preview) reach it
+  function _load() {
+    contentLoader.setSource(component.componentPath, {
+      "barConfig": component.barConfig,
+      "popouts": component.popouts,
+      "panel": component.panel,
+      "screen": component.screen,
+      "properties": component.properties
+    });
+  }
+  onComponentPathChanged: _load()
+  Component.onCompleted: _load()
+
   Loader {
     id: contentLoader
     anchors.fill: parent
-    source: component.componentPath
     onLoaded: {
       if (item) {
-        item.barConfig = component.barConfig;
-        item.popouts = component.popouts;
-        item.panel = component.panel;
-        item.screen = component.screen;
-        item.properties = component.properties;
+        item.barConfig = Qt.binding(() => component.barConfig);
+        item.popouts = Qt.binding(() => component.popouts);
+        item.panel = Qt.binding(() => component.panel);
+        item.screen = Qt.binding(() => component.screen);
+        item.properties = Qt.binding(() => component.properties);
       }
     }
   }

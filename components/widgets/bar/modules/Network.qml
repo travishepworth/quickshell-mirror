@@ -14,13 +14,15 @@ IconTextWidget {
 
   property string iface: ""
   property string kind: ""
+  readonly property bool connected: kind !== ""
 
   isVertical: barConfig.vertical
 
-  // Configure the widget
-  backgroundColor: Theme.base09
+  backgroundColor: Theme.resolveColor(connected ? properties.backgroundColor : properties.disconnectedColor)
+  foregroundColor: Theme.resolveColor(properties.foregroundColor)
   icon: getIcon()
   text: iface
+  showText: properties.showName && iface !== ""
 
   function getIcon() {
     switch (kind) {
@@ -34,12 +36,12 @@ IconTextWidget {
   }
 
   PollingProcess {
-    interval: 2000
+    interval: root.properties.interval
     command: ["sh", "-c", "nmcli -t -f DEVICE,TYPE,STATE device | awk -F: '$3==\"connected\"{print $1\":\"$2; exit}'"]
 
     onDataReceived: data => {
       const parts = data.split(":");
-      // root.iface = parts[0] || "";
+      root.iface = parts[0] || "";
       root.kind = parts[1] || "";
     }
   }
