@@ -33,7 +33,11 @@ QtObject {
   function store(entries) {
     const merged = Object.assign({}, root._secrets, entries);
     root._secrets = merged;
-    _writer.command = ["sh", "-c", "umask 077 && mkdir -p \"$(dirname \"$1\")\" && printf '%s' \"$2\" > \"$1\"", "sh", root.secretsPath, JSON.stringify(merged, null, 2)];
+    // Contents go through stdin: argv is readable by any local user
+    // (/proc/<pid>/cmdline). chmod also fixes an existing file's mode.
+    _writer._pending = JSON.stringify(merged, null, 2);
+    _writer.command = ["sh", "-c", "umask 077 && mkdir -p \"$(dirname \"$1\")\" && cat > \"$1\" && chmod 600 \"$1\"", "sh", root.secretsPath];
+    _writer.stdinEnabled = true;
     _writer.running = true;
   }
 
@@ -50,6 +54,13 @@ QtObject {
   }
 
   property Process _writer: Process {
+    property string _pending: ""
+
+    onStarted: {
+      write(_pending);
+      _pending = "";
+      stdinEnabled = false; // closes stdin, so cat sees EOF
+    }
     onExited: (code, status) => {
       if (code !== 0)
         console.error("[Secrets] Failed to write", root.secretsPath);

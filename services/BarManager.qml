@@ -137,8 +137,8 @@ QtObject {
   function saveChanges() {
     const merged = JSON.parse(JSON.stringify(ConfigManager.config));
     merged.Bars = JSON.parse(JSON.stringify(root.localConfig));
-    ConfigManager.applyConfig(merged);
-    ConfigManager.saveConfig();
+    if (!ConfigManager.commit(merged))
+      return;
     root._savedConfig = JSON.parse(JSON.stringify(root.localConfig));
     root.isDirty = false;
   }

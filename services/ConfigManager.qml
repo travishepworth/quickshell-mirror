@@ -15,7 +15,13 @@ QtObject {
   readonly property var theme: _theme
   readonly property var configSchema: _configSchema
   readonly property string configDir: "../config/user/"
-  readonly property string configFile: "config.json" // TODO: load all config files from dir (if necessary)
+  readonly property string configFile: "config.json"
+
+  // True while config.json on disk is unusable (invalid, or present but
+  // unreadable). The shell keeps running on the last good config (or schema
+  // defaults at startup) and refuses to save, so the file can't be
+  // overwritten before it is fixed. Restoring a saved config clears it.
+  readonly property bool savesBlocked: _savesBlocked
 
   /**
      * @brief Requests a change to the current theme.
@@ -24,19 +30,13 @@ QtObject {
      * @param themeName The full name of the theme (e.g., "catppuccin-mocha" or "generated/pywal-1").
      */
   function setTheme(themeName) {
-    if (_config.Appearance) {
-      if (_config.Appearance.theme === themeName) {
-        console.log("[ConfigManager] Theme '" + themeName + "' is already set. No change needed.");
-        return;
-      }
-      console.log("[ConfigManager] Setting theme to '" + themeName + "'");
-      _config.Appearance.theme = themeName;
-      console.log("[ConfigManager] New theme: ", Appearance.theme);
-      console.log("[ConfigManager] Saving configuration and triggering reload...");
-      saveConfig();
-    } else {
-      console.error("[ConfigManager] Cannot set theme, _config.Appearance is not defined.");
+    if (_config.Appearance.theme === themeName) {
+      console.log("[ConfigManager] Theme '" + themeName + "' is already set. No change needed.");
+      return;
     }
+    console.log("[ConfigManager] Setting theme to '" + themeName + "'");
+    _config.Appearance.theme = themeName;
+    saveConfig();
   }
 
   /**
@@ -54,22 +54,45 @@ QtObject {
 
   /**
      * @brief Saves the current configuration state to config.json and triggers a reload.
+     * @return true if it was written.
      */
   function saveConfig() {
-    console.log("[ConfigManager] Writing current configuration to config.json...");
+    if (_savesBlocked) {
+      console.warn("[ConfigManager] config.json is unusable; not saving until it is fixed (or a saved config is restored).");
+      return false;
+    }
     try {
-      var configString = JSON.stringify(configManager._config, null, 2);
       if (!_validateConfig(configManager._config)) {
         console.error("[ConfigManager] Failed to validate config against schema. Aborting save.");
-        return;
+        return false;
       }
-      _configFileView.setText(configString);
-      console.log("[ConfigManager] Save successful.");
+      _write(configManager._config);
+      console.log("[ConfigManager] Saved config.json.");
       forceReload();
-      themeIntegrations();
+      return true;
     } catch (e) {
       console.error("[ConfigManager] An error occurred while saving the configuration:", e);
+      return false;
     }
+  }
+
+  /**
+   * @brief Replaces the running config with `object` and saves it, running
+   * it through the load pipeline (prune/defaults/validate) first.
+   * @return true if it was valid and written; on false nothing changed.
+   */
+  function commit(object) {
+    if (_savesBlocked) {
+      console.warn("[ConfigManager] config.json is unusable; not saving until it is fixed (or a saved config is restored).");
+      return false;
+    }
+    const prepared = _prepareConfig(object);
+    if (!prepared) {
+      console.error("[ConfigManager] Rejected config: it does not validate against the schema.");
+      return false;
+    }
+    configManager._config = prepared.config;
+    return saveConfig();
   }
 
   /**
@@ -77,15 +100,14 @@ QtObject {
    */
   function applyConfig(object) {
     _loadObjectToConfig(object);
-    console.log("[ConfigManager] Applied configuration object to memory.");
   }
 
   /**
-   * @brief Applies the currrent theme to enabled integrated tools
+   * @brief Applies a theme to enabled integrated tools
    */
-  function themeIntegrations() {
+  function themeIntegrations(themeName = Appearance.theme) {
     var scriptPath = Config.scriptsPath;
-    var themePath = Config.themePath + Appearance.theme + ".json";
+    var themePath = Config.themePath + themeName + ".json";
     const integrations = [
       {
         enabled: ThemeIntegrations.kitty,
@@ -115,7 +137,8 @@ QtObject {
   /**
    * @brief Replaces the whole config with a parsed config object (e.g. a
    * saved configuration), running it through the same migrate/prune/
-   * defaults/validate pipeline as config.json, then saves it.
+   * defaults/validate pipeline as config.json, then saves it. This is an
+   * explicit replacement, so it also lifts savesBlocked.
    * @return true if the config was valid and saved.
    */
   function restoreConfig(object) {
@@ -124,28 +147,27 @@ QtObject {
       console.error("[ConfigManager] Restored config is invalid, keeping the current one.");
       return false;
     }
+    configManager._savesBlocked = false;
     configManager._config = prepared.config;
-    saveConfig();
-    return true;
+    return saveConfig();
   }
 
   /**
      * @brief Manually triggers the file checker, simulating a file-system change.
      */
   function forceReload() {
-    console.log("⟳ Manual reload triggered");
     _fileHashes = {};
     _checkForChanges();
   }
 
   /**
-     * @brief Resets the configuration to default values by reloading from disk.
-     * This does not modify the config file on disk, but reloads the in-memory
-     * configuration from the existing config.json file.
+     * @brief Discards in-memory edits by reloading config.json from disk.
+     * Keeps the current config if the file is unusable.
      */
   function hardResetConfig() {
-    console.log("[ConfigManager] Performing hard reset of configuration to defaults.");
-    configManager._config = _loadConfig();
+    const result = _readConfig();
+    if (result.status === "ok")
+      configManager._config = result.config;
   }
 
   // --- Private Implementation ---
@@ -158,8 +180,11 @@ QtObject {
   // partially-filled config: every key has its schema default from the
   // very first evaluation.
   property var _configSchema: _loadSchema()
-  property var _config: _loadConfig(_loadSchema())
+  property var _config: _initialConfig(_loadSchema())
   property var _theme: ({})
+  property bool _savesBlocked: false
+  // Whether the running config came from config.json (vs schema defaults)
+  property bool _haveFileConfig: false
 
   property string _configSchemaPath: "../config/json/config.schema.json"
   property string _configPath: configManager.configDir + configManager.configFile
@@ -174,11 +199,35 @@ QtObject {
     }
   }
 
-  property int _pollInterval: 1000
+  // Change notification for the config and active theme files. The slow
+  // poll is only a safety net in case a watch is lost (e.g. to an editor's
+  // atomic rename).
+  property FileView _configWatch: FileView {
+    path: Qt.resolvedUrl(configManager._configPath)
+    watchChanges: true
+    printErrors: false
+    onFileChanged: {
+      reload();
+      configManager._checkForChanges();
+    }
+  }
+
+  property FileView _themeWatch: FileView {
+    path: Qt.resolvedUrl("../config/themes/" + configManager._config.Appearance.theme + ".json")
+    watchChanges: true
+    printErrors: false
+    onFileChanged: {
+      reload();
+      configManager._checkForChanges();
+    }
+  }
+
   property var _fileHashes: ({})
+  // "name:hash" of the theme the integrations were last run for
+  property string _integratedTheme: ""
 
   property Timer _pollTimer: Timer {
-    interval: configManager._pollInterval
+    interval: 5000
     running: true
     repeat: true
     onTriggered: configManager._checkForChanges()
@@ -207,7 +256,7 @@ QtObject {
       try {
         return JSON.parse(content);
       } catch (e) {
-        console.error("Failed to parse config_schema.json:", e);
+        console.error("[ConfigManager] Failed to parse config.schema.json:", e);
       }
     }
     return {};
@@ -225,42 +274,58 @@ QtObject {
 
   /**
    * Load pipeline: parse → migrate old layouts → drop unknown keys → fill
-   * schema defaults → validate. A migrated config is written back once
-   * (and any API keys found in it go to the secrets file instead). A
-   * missing or unusable file falls back to pure schema defaults.
+   * schema defaults → validate.
+   * @return { status, content, config, migrated }; status is "ok",
+   *   "empty" (missing, unreadable or mid-write) or "invalid".
    */
-  function _loadConfig(schema = _configSchema) {
-    console.log("[ConfigManager] Loading configuration from", _configPath);
-    const defaults = SchemaValidation.applyDefaults({}, schema);
-    var content = _getFileContent(configManager.configDir + configManager.configFile);
-    if (!content) {
-      console.warn("[ConfigManager] No config.json found, writing defaults.");
-      Qt.callLater(() => _write(defaults));
-      return defaults;
-    }
-
-    // Remember what was loaded, so the first poll doesn't load it again
-    if (_fileHashes)
-      _fileHashes.config = _hashString(content);
+  function _readConfig(schema = _configSchema) {
+    const content = _getFileContent(configDir + configFile);
+    if (!content)
+      return {
+        status: "empty",
+        content: ""
+      };
 
     let parsed;
     try {
       parsed = JSON.parse(content);
     } catch (e) {
-      console.error("[ConfigManager] Failed to parse config.json, using defaults:", e);
-      return defaults;
+      console.error("[ConfigManager] Failed to parse config.json:", e);
+      return {
+        status: "invalid",
+        content: content
+      };
     }
 
     const prepared = _prepareConfig(parsed, schema);
-    if (!prepared) {
-      console.error("[ConfigManager] config.json is invalid, using defaults until it is fixed.");
-      return defaults;
-    }
+    if (!prepared)
+      return {
+        status: "invalid",
+        content: content
+      };
+    return {
+      status: "ok",
+      content: content,
+      config: prepared.config,
+      migrated: prepared.migrated
+    };
+  }
 
-    if (prepared.migrated)
-      Qt.callLater(() => _write(prepared.config));
+  // The config for the very first evaluation. Anything but a good file
+  // gives schema defaults; the first _checkForChanges() then decides
+  // whether that means first run (write defaults) or blocking saves.
+  function _initialConfig(schema) {
+    console.log("[ConfigManager] Loading configuration from", configDir + configFile);
+    const result = _readConfig(schema);
+    if (result.status !== "ok")
+      return SchemaValidation.applyDefaults({}, schema);
+    // Remember what was loaded, so the first check doesn't load it again
+    if (_fileHashes)
+      _fileHashes.config = _hashString(result.content);
+    if (result.migrated)
+      Qt.callLater(() => _write(result.config));
     console.log("[ConfigManager] Configuration loaded and validated successfully.");
-    return prepared.config;
+    return result.config;
   }
 
   // Migrate → prune unknown keys → fill defaults → validate a parsed config.
@@ -302,6 +367,68 @@ QtObject {
     }
   }
 
+  function _blockSaves(reason) {
+    if (_savesBlocked)
+      return;
+    _savesBlocked = true;
+    console.error("[ConfigManager] config.json is " + reason + "; keeping the current config and blocking saves until it is fixed.");
+  }
+
+  // An empty read is either a missing file (first run: write defaults) or a
+  // file caught mid-write / unreadable. Only a real "missing" writes.
+  property Process _existsCheck: Process {
+    command: ["test", "-e", decodeURIComponent(Qt.resolvedUrl(configManager._configPath).toString().replace("file://", ""))]
+    onExited: exitCode => {
+      if (exitCode !== 0) {
+        console.log("[ConfigManager] No config.json found, writing defaults.");
+        configManager._savesBlocked = false;
+        configManager._write(SchemaValidation.applyDefaults({}, configManager._configSchema));
+      } else if (!configManager._haveFileConfig) {
+        // Never loaded a good file: running on defaults, so don't save them over it
+        configManager._blockSaves("empty or unreadable");
+      }
+    }
+  }
+
+  function _checkConfigFile() {
+    const content = _getFileContent(_configPath);
+    if (!content) {
+      // Keep whatever is running; _existsCheck decides whether this is a
+      // first run (write defaults) or a file we must not overwrite
+      if (!_haveFileConfig && !_existsCheck.running)
+        _existsCheck.running = true;
+      return false;
+    }
+    const hash = _hashString(content);
+    if (_fileHashes.config === hash) {
+      // Same content as the last good load (e.g. a broken edit reverted)
+      _haveFileConfig = true;
+      _savesBlocked = false;
+      delete _fileHashes.invalid;
+      return false;
+    }
+    // Already reported this exact broken content
+    if (_fileHashes.invalid === hash)
+      return false;
+
+    const result = _readConfig();
+    if (result.status !== "ok") {
+      _fileHashes.invalid = hash;
+      _blockSaves("invalid");
+      return false;
+    }
+    if (_fileHashes.config !== undefined)
+      console.log("[ConfigManager] Config file changed, reloading...");
+    _fileHashes.config = hash;
+    delete _fileHashes.invalid;
+    _haveFileConfig = true;
+    _savesBlocked = false;
+    configManager._config = result.config;
+    if (result.migrated)
+      Qt.callLater(() => _write(result.config));
+    return true;
+  }
+
   function _loadTheme(themeName) {
     var path = "../config/themes/" + themeName + ".json";
     var content = _getFileContent(path);
@@ -314,10 +441,10 @@ QtObject {
         }
         return content;
       } catch (e) {
-        console.error("Failed to load theme:", themeName, e);
+        console.error("[ConfigManager] Failed to load theme:", themeName, e);
       }
     }
-    console.error("[ThemeManager] Theme not found, Falling back to default theme.");
+    console.error("[ConfigManager] Theme not found, Falling back to default theme.");
     return {
       name: "Default (fallback)",
       variant: "dark",
@@ -327,36 +454,29 @@ QtObject {
   }
 
   function _checkForChanges() {
-    var hasConfigChanged = false;
-    var hasThemeChanged = false;
-    var currentThemeName = configManager._config.Appearance ? configManager._config.Appearance.theme : "default";
+    const currentThemeName = configManager._config.Appearance.theme;
+    const hasConfigChanged = _checkConfigFile();
 
-    var configContent = _getFileContent(configManager.configDir + configManager.configFile);
-    if (configContent !== null) {
-      var configHash = _hashString(configContent);
-      if (_fileHashes.config !== configHash) {
-        if (_fileHashes.config !== undefined)
-          console.log("✓ Config file changed, reloading...");
-        _fileHashes.config = configHash;
-        configManager._config = _loadConfig();
-        hasConfigChanged = true;
-      }
-    }
-
-    var newThemeName = configManager._config.Appearance ? configManager._config.Appearance.theme : "default";
-    var themeContent = _getFileContent("../config/themes/" + newThemeName + ".json");
-    if (themeContent !== null) {
-      var themeHash = _hashString(themeContent);
-      var themeKey = "theme_" + newThemeName;
+    const newThemeName = configManager._config.Appearance.theme;
+    const themeContent = _getFileContent("../config/themes/" + newThemeName + ".json");
+    if (themeContent) {
+      const themeHash = _hashString(themeContent);
+      const themeKey = "theme_" + newThemeName;
 
       // Reload theme if its content changed OR if the config itself changed (which might mean the theme *name* changed)
       if (_fileHashes[themeKey] !== themeHash || hasConfigChanged) {
         if (_fileHashes[themeKey] !== undefined && !hasConfigChanged)
-          console.log("✓ Theme file '" + newThemeName + "' changed, reloading...");
+          console.log("[ConfigManager] Theme file '" + newThemeName + "' changed, reloading...");
         _fileHashes[themeKey] = themeHash;
-        configManager._theme = _loadTheme(newThemeName); // Update internal property
-        hasThemeChanged = true;
+        configManager._theme = _loadTheme(newThemeName);
       }
+
+      // Re-theme integrated tools only when the theme itself changed (not
+      // on every save), and not for the theme already active at startup
+      const integrated = newThemeName + ":" + themeHash;
+      if (_integratedTheme !== "" && _integratedTheme !== integrated)
+        themeIntegrations(newThemeName);
+      _integratedTheme = integrated;
     }
 
     // Clear old theme hashes if theme name changed in config
@@ -370,29 +490,6 @@ QtObject {
   }
 
   // --- Process Launchers for Integrated Tools ---
-  // universal component proessess
-  property Component processComponent: Component {
-    Process {
-      id: genericProcess
-      running: false
-
-      stdout: StdioCollector {
-        id: genericStdout
-        onStreamFinished: {
-          genericProcess.running = false;
-        }
-      }
-
-      stderr: StdioCollector {
-        id: genericStderr
-        onStreamFinished: {
-          console.log("Process error:", text);
-          genericProcess.running = false;
-        }
-      }
-    }
-  }
-  // TODO: common process component
   property Process _k9sProcess: Process {
     id: k9sProcess
     stderr: StdioCollector {

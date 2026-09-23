@@ -261,8 +261,8 @@ QtObject {
       return;
     const merged = JSON.parse(JSON.stringify(ConfigManager.config));
     merged.Overlay.views = JSON.parse(JSON.stringify(root.localViews));
-    ConfigManager.applyConfig(merged);
-    ConfigManager.saveConfig();
+    if (!ConfigManager.commit(merged))
+      return;
     root._savedViews = JSON.parse(JSON.stringify(root.localViews));
     root.isDirty = false;
   }

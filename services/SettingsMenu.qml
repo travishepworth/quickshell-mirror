@@ -52,9 +52,10 @@ QtObject {
     ConfigManager.applyConfig(localConfig);
   }
 
+  // Stays dirty if the save is rejected (invalid, or saves are blocked)
   function saveChanges() {
-    ConfigManager.applyConfig(localConfig);
-    ConfigManager.saveConfig();
+    if (!ConfigManager.commit(localConfig))
+      return;
     _savedConfig = JSON.parse(JSON.stringify(localConfig));
     isDirty = false;
   }
