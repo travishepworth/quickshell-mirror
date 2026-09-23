@@ -3,23 +3,14 @@ pragma ComponentBehavior: Bound
 import qs.config
 import qs.components.reusable
 
-IconTextWidget {
+BarIconWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   property string iface: ""
   property string kind: ""
   readonly property bool connected: kind !== ""
 
-  isVertical: barConfig.vertical
-
   backgroundColor: Theme.resolveColor(connected ? properties.backgroundColor : properties.disconnectedColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
   icon: getIcon()
   text: iface
   showText: properties.showName && iface !== ""

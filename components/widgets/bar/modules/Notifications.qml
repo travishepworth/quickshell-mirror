@@ -38,7 +38,7 @@ Item {
     id: anchor
     popouts: root.popouts
     panel: root.panel
-    popoutName: "notifications"
+    popoutName: "Notifications"
     active: root.properties.showPopout
     openDelay: 150
   }

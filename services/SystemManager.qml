@@ -60,27 +60,16 @@ QtObject {
   readonly property bool hasGpu: _gpuBusyPath !== "" || _hasNvidia
 
   function acquire(owner, request) {
-    const entry = {
+    _registry.acquire(owner, {
       "interval": request?.interval ?? 2000,
       "metrics": request?.metrics ?? [],
       "diskPaths": request?.diskPaths ?? [],
       "history": request?.history ?? false
-    };
-    // Re-registering the same request is a no-op, so a consumer that
-    // re-registers often can't churn every binding derived from _consumers
-    const existing = root._consumers.find(c => c.owner === owner);
-    if (existing && JSON.stringify(existing.request) === JSON.stringify(entry))
-      return;
-    const consumers = root._consumers.filter(c => c.owner !== owner);
-    consumers.push(Object.assign({
-      "owner": owner,
-      "request": entry
-    }, entry));
-    root._consumers = consumers;
+    });
   }
 
   function release(owner) {
-    root._consumers = root._consumers.filter(c => c.owner !== owner);
+    _registry.release(owner);
   }
 
   function wants(metric) {
@@ -99,14 +88,15 @@ QtObject {
   }
 
   // -- Private --
-  property var _consumers: []
+  property ConsumerRegistry _registry: ConsumerRegistry {}
+  readonly property var _requests: _registry.requests
 
-  readonly property bool _active: _consumers.length > 0
+  readonly property bool _active: _registry.active
   // (the QML JS engine has no Array.flatMap)
-  readonly property var _metrics: [...new Set([].concat(..._consumers.map(c => c.metrics)))]
-  readonly property var _diskPaths: [...new Set([].concat(..._consumers.map(c => c.diskPaths)))]
-  readonly property bool _history: _consumers.some(c => c.history)
-  readonly property int _interval: _consumers.length > 0 ? Math.max(500, Math.min(..._consumers.map(c => c.interval))) : 2000
+  readonly property var _metrics: [...new Set([].concat(..._requests.map(r => r.metrics)))]
+  readonly property var _diskPaths: [...new Set([].concat(..._requests.map(r => r.diskPaths)))]
+  readonly property bool _history: _requests.some(r => r.history)
+  readonly property int _interval: _requests.length > 0 ? Math.max(500, Math.min(..._requests.map(r => r.interval))) : 2000
 
   // Found by _discover; empty when this machine has no such sensor
   property string _cpuTempPath: ""

@@ -10,8 +10,9 @@ import qs.components.reusable
 import qs.components.widgets.common
 
 // One row of a schema-driven form: picks the control for the row's schema
-// type (or a list editor for an array of objects). `form` provides valueAt(path) and an edited(path, value) signal
-// (SchemaForm, or the bar editor's WidgetItemDelegate).
+// type (or a list editor for an array of objects), hidden while its
+// `x-showIf` doesn't hold. `form` provides valueAt(path) and an
+// edited(path, value) signal (SchemaForm or SchemaPropertiesForm).
 Loader {
   id: root
 
@@ -47,6 +48,25 @@ Loader {
       }, {});
     return fieldSchema["x-enumLabels"] ?? {};
   }
+
+  // `x-showIf: { sibling: value | [values] | { not: value } }`, checked
+  // against sibling keys of this row's path, in any form
+  readonly property bool shown: {
+    const condition = fieldSchema["x-showIf"];
+    if (!condition)
+      return true;
+    const parent = row.path.slice(0, -1);
+    return Object.keys(condition).every(key => {
+      const want = condition[key];
+      const value = form.valueAt(parent.concat(key));
+      if (Array.isArray(want))
+        return want.includes(value);
+      if (want !== null && typeof want === "object")
+        return value !== want.not;
+      return value === want;
+    });
+  }
+  visible: shown
 
   Layout.fillWidth: true
 

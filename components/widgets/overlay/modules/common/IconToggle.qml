@@ -3,21 +3,23 @@ import QtQuick.Layouts
 import qs.config
 import qs.components.reusable
 
-// A toggle tile: icon over a label, filled with the accent while active
+// A toggle (or action) tile: icon over a label, filled with activeColor
+// while active
 Rectangle {
   id: root
 
   property string icon: ""
   property string label: ""
   property bool active: false
+  property color activeColor: Theme.accent
   // Hide the label (compact tiles)
   property bool showLabel: true
 
   signal clicked
 
   radius: Appearance.borderRadius
-  color: root.active ? Theme.accent : area.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
-  border.color: root.active ? Theme.accent : Theme.border
+  color: root.active ? root.activeColor : area.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
+  border.color: root.active ? root.activeColor : Theme.border
   border.width: Appearance.borderWidth
 
   Behavior on color {

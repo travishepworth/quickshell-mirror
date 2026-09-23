@@ -12,10 +12,7 @@ StyledContainer {
 
   required property var notification
 
-  signal dismissed()
-
-  readonly property var visibleActions: (notification.actions ?? []).filter(a => a.identifier !== "default")
-  readonly property var defaultAction: (notification.actions ?? []).find(a => a.identifier === "default")
+  signal dismissed
 
   Layout.fillWidth: true
   implicitHeight: layout.implicitHeight + Widget.padding * 2
@@ -34,40 +31,8 @@ StyledContainer {
       Layout.fillWidth: true
       spacing: Widget.spacing
 
-      MouseArea {
-        Layout.fillWidth: true
-        implicitHeight: textColumn.implicitHeight
-        cursorShape: root.defaultAction ? Qt.PointingHandCursor : Qt.ArrowCursor
-        onClicked: {
-          if (root.defaultAction)
-            root.defaultAction.invoke();
-        }
-
-        ColumnLayout {
-          id: textColumn
-          width: parent.width
-          spacing: 2
-
-          StyledText {
-            Layout.fillWidth: true
-            text: root.notification.summary || ""
-            textSize: Appearance.fontSize
-            font.bold: true
-            elide: Text.ElideRight
-            maximumLineCount: 1
-          }
-
-          StyledText {
-            visible: (root.notification.body ?? "") !== ""
-            Layout.fillWidth: true
-            text: root.notification.body ?? ""
-            textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 1
-            wrapMode: Text.Wrap
-            maximumLineCount: 4
-            elide: Text.ElideRight
-          }
-        }
+      NotificationText {
+        notification: root.notification
       }
 
       StyledText {
@@ -95,30 +60,8 @@ StyledContainer {
       }
     }
 
-    Flickable {
-      Layout.fillWidth: true
-      visible: root.visibleActions.length > 0
-      implicitHeight: actionRow.implicitHeight
-      contentWidth: actionRow.implicitWidth
-      interactive: contentWidth > width
-      flickableDirection: Flickable.HorizontalFlick
-      clip: true
-
-      RowLayout {
-        id: actionRow
-        spacing: Widget.spacing
-
-        Repeater {
-          model: root.visibleActions
-
-          StyledTextButton {
-            required property var modelData
-            text: modelData.text
-            textPadding: 6
-            onClicked: modelData.invoke()
-          }
-        }
-      }
+    NotificationActions {
+      notification: root.notification
     }
   }
 }

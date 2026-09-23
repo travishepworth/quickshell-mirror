@@ -11,14 +11,8 @@ import qs.components.widgets.bar.popouts
 // `checkupdates` (pacman-contrib, which uses a temporary sync db, so it never
 // touches the real one), plus AUR packages via paru/yay when enabled. Left click opens a terminal to
 // upgrade, right click checks again now; hovering lists the packages.
-IconTextWidget {
+BarIconWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   // [{ name, from, to }], checked by the shared PackageUpdates service
   readonly property var repoPackages: PackageUpdates.repoPackages
@@ -28,8 +22,6 @@ IconTextWidget {
   readonly property bool hidden: properties.hideWhenEmpty && count === 0
   readonly property string upgradeCommand: properties.upgradeCommand || (properties.includeAur ? `${properties.aurHelper} -Syu` : "sudo pacman -Syu")
 
-  isVertical: barConfig.vertical
-
   icon: "\u{F03D4}"
   text: String(count)
   showIcon: !hidden
@@ -37,7 +29,6 @@ IconTextWidget {
   padding: hidden ? 0 : Widget.padding
 
   backgroundColor: Theme.resolveColor(count >= properties.manyThreshold ? properties.manyColor : properties.backgroundColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
 
   // Re-registering replaces the old request
@@ -75,7 +66,7 @@ IconTextWidget {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
-    popoutName: "updates"
+    popoutName: "Updates"
     active: root.properties.showPopout && !root.hidden
     extraData: ({
         "repoPackages": root.repoPackages,

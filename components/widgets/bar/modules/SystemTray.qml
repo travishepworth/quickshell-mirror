@@ -103,14 +103,14 @@ Item {
         id: anchor
         popouts: tray.popouts
         panel: tray.panel
-        popoutName: "system-tray-menu"
+        popoutName: "SystemTray"
         openDelay: 150
         active: !!(delegateRoot.ti && delegateRoot.ti.hasMenu)
         extraData: ({
-          trayItem: delegateRoot.ti,
-          barConfig: tray.barConfig,
-          isVertical: tray.isVertical
-        })
+            trayItem: delegateRoot.ti,
+            barConfig: tray.barConfig,
+            isVertical: tray.isVertical
+          })
       }
     }
   }

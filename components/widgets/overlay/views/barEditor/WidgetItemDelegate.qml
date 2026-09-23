@@ -8,7 +8,7 @@ import qs.components.widgets.common
 
 // itemDelegate for each zone's SchemaObjectArray in LayoutConfig.qml: the
 // widget's properties form, generated from its schema like the settings
-// menu (and acting as the `form` for its SchemaField rows).
+// menu.
 // itemData/itemIndex are assigned imperatively by SchemaObjectArray's Loader
 // after construction (via Qt.binding), so they must NOT be `required`.
 ColumnLayout {
@@ -24,36 +24,7 @@ ColumnLayout {
   readonly property var typeInfo: Bar.availableWidgetTypes.find(t => t.type === root.widgetType) || null
   readonly property var propertiesSchema: root.typeInfo?.propertiesSchema ?? ({})
 
-  // Depends on the type only, so edits update the rows in place
-  readonly property var rows: Object.keys(root.propertiesSchema).map(key => ({
-        "kind": "field",
-        "title": root.propertiesSchema[key].title ?? key,
-        "path": [key],
-        "schema": root.propertiesSchema[key]
-      }))
-
-  signal edited(var path, var value)
-  onEdited: (path, value) => BarManager.updateWidgetProperty(root.zone, root.itemIndex, path[0], value)
-
-  function valueAt(path) {
-    return root.itemData?.properties?.[path[0]] ?? root.propertiesSchema[path[0]]?.default;
-  }
-
-  // `x-showIf: { sibling: value | [values] | { not: value } }`
-  function isShown(fieldSchema) {
-    const condition = fieldSchema["x-showIf"];
-    if (!condition)
-      return true;
-    return Object.keys(condition).every(key => {
-      const want = condition[key];
-      const value = root.valueAt([key]);
-      if (Array.isArray(want))
-        return want.includes(value);
-      if (want !== null && typeof want === "object")
-        return value !== want.not;
-      return value === want;
-    });
-  }
+  readonly property int optionCount: propertiesForm.rows.length
 
   Layout.fillWidth: true
   spacing: Widget.spacing
@@ -74,7 +45,7 @@ ColumnLayout {
       StyledText {
         text: "▶"
         textColor: Theme.accent
-        visible: root.rows.length > 0
+        visible: root.optionCount > 0
         rotation: root.expanded ? 90 : 0
 
         Behavior on rotation {
@@ -92,7 +63,7 @@ ColumnLayout {
       }
 
       StyledText {
-        text: root.rows.length > 0 ? I18n.tr("{0} options", root.rows.length) : I18n.tr("No options")
+        text: root.optionCount > 0 ? I18n.tr("{0} options", root.optionCount) : I18n.tr("No options")
         opacity: 0.6
         textSize: Appearance.fontSize - 2
       }
@@ -100,7 +71,7 @@ ColumnLayout {
 
     MouseArea {
       anchors.fill: parent
-      enabled: root.rows.length > 0
+      enabled: root.optionCount > 0
       cursorShape: Qt.PointingHandCursor
       onClicked: root.expanded = !root.expanded
     }
@@ -129,15 +100,12 @@ ColumnLayout {
       anchors.topMargin: Widget.spacing
       spacing: Widget.spacing
 
-      Repeater {
-        model: root.rows
-
-        delegate: SchemaField {
-          required property var modelData
-          row: modelData
-          form: root
-          visible: root.isShown(modelData.schema)
-        }
+      SchemaPropertiesForm {
+        id: propertiesForm
+        Layout.fillWidth: true
+        propertiesSchema: root.propertiesSchema
+        values: root.itemData?.properties ?? ({})
+        onEdited: (path, value) => BarManager.updateWidgetProperty(root.zone, root.itemIndex, path[0], value)
       }
 
       // Bottom breathing room, part of what the body grows to

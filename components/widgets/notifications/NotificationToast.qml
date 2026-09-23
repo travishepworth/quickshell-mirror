@@ -23,9 +23,6 @@ PopupWindow {
 
   signal dismissed
 
-  readonly property var visibleActions: (notification.actions ?? []).filter(a => a.identifier !== "default")
-  readonly property var defaultAction: (notification.actions ?? []).find(a => a.identifier === "default")
-
   implicitWidth: toastWidth
   implicitHeight: Math.min(mainColumn.implicitHeight + Widget.padding * 2, toastMaxHeight)
 
@@ -200,42 +197,11 @@ PopupWindow {
                 elide: Text.ElideRight
               }
 
-              MouseArea {
-                Layout.fillWidth: true
-                implicitHeight: textCol.implicitHeight
-                cursorShape: popup.defaultAction ? Qt.PointingHandCursor : Qt.ArrowCursor
-                onClicked: {
-                  if (popup.defaultAction) {
-                    popup.defaultAction.invoke();
-                    popup.dismiss();
-                  }
-                }
-
-                ColumnLayout {
-                  id: textCol
-                  width: parent.width
-                  spacing: 2
-
-                  StyledText {
-                    Layout.fillWidth: true
-                    text: popup.notification.summary || ""
-                    font.bold: true
-                    elide: Text.ElideRight
-                    maximumLineCount: 2
-                    wrapMode: Text.Wrap
-                  }
-
-                  StyledText {
-                    visible: (popup.notification.body ?? "") !== ""
-                    Layout.fillWidth: true
-                    text: popup.notification.body ?? ""
-                    textColor: Theme.foregroundAlt
-                    textSize: Appearance.fontSize - 1
-                    wrapMode: Text.Wrap
-                    maximumLineCount: 3
-                    elide: Text.ElideRight
-                  }
-                }
+              NotificationText {
+                notification: popup.notification
+                summaryLines: 2
+                bodyLines: 3
+                onActivated: popup.dismiss()
               }
             }
 
@@ -256,33 +222,9 @@ PopupWindow {
             }
           }
 
-          Flickable {
-            Layout.fillWidth: true
-            visible: popup.visibleActions.length > 0
-            implicitHeight: actionRow.implicitHeight
-            contentWidth: actionRow.implicitWidth
-            interactive: contentWidth > width
-            flickableDirection: Flickable.HorizontalFlick
-            clip: true
-
-            RowLayout {
-              id: actionRow
-              spacing: Widget.spacing
-
-              Repeater {
-                model: popup.visibleActions
-
-                StyledTextButton {
-                  required property var modelData
-                  text: modelData.text
-                  textPadding: 6
-                  onClicked: {
-                    modelData.invoke();
-                    popup.dismiss();
-                  }
-                }
-              }
-            }
+          NotificationActions {
+            notification: popup.notification
+            onInvoked: popup.dismiss()
           }
         }
       }

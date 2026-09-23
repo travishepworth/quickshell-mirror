@@ -7,25 +7,14 @@ import qs.components.widgets.common
 import qs.components.widgets.bar.popouts
 
 // Current conditions (see WeatherSource). Hovering opens a 5-day forecast.
-IconTextWidget {
+BarIconWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   readonly property var current: source.current
   readonly property var condition: source.condition
 
-  isVertical: barConfig.vertical
-
   icon: condition?.icon ?? "\u{F0590}"
   text: current ? `${Math.round(current.temperature_2m)}°` + (properties.showCondition ? ` ${condition.label}` : "") : "…"
-
-  backgroundColor: Theme.resolveColor(properties.backgroundColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
   WeatherSource {
     id: source
@@ -39,7 +28,7 @@ IconTextWidget {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
-    popoutName: "weather"
+    popoutName: "Weather"
     active: root.properties.showPopout && source.weather !== null
     extraData: ({
         "weather": source.weather,

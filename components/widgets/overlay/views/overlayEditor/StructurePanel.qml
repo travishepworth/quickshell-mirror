@@ -112,19 +112,19 @@ Item {
               textSize: Appearance.fontSize - 2
               opacity: 0.6
             }
-            EditorButton {
+            SquareIconButton {
               iconText: "▴"
               tooltipText: I18n.tr("Move page up")
               enabled: pageRow.index > 0
               onClicked: OverlayManager.moveView(pageRow.index, -1)
             }
-            EditorButton {
+            SquareIconButton {
               iconText: "▾"
               tooltipText: I18n.tr("Move page down")
               enabled: pageRow.index < OverlayManager.localViews.length - 1
               onClicked: OverlayManager.moveView(pageRow.index, 1)
             }
-            EditorButton {
+            SquareIconButton {
               iconText: "×"
               tooltipText: I18n.tr("Remove page")
               hoverColor: Theme.error
@@ -215,19 +215,19 @@ Item {
             text: I18n.tr("Column {0}", column.index + 1)
             font.bold: true
           }
-          EditorButton {
+          SquareIconButton {
             iconText: "‹"
             tooltipText: I18n.tr("Move column left")
             enabled: column.index > 0
             onClicked: OverlayManager.moveColumn(column.index, -1)
           }
-          EditorButton {
+          SquareIconButton {
             iconText: "›"
             tooltipText: I18n.tr("Move column right")
             enabled: column.index < root.view.columns.length - 1
             onClicked: OverlayManager.moveColumn(column.index, 1)
           }
-          EditorButton {
+          SquareIconButton {
             iconText: "×"
             tooltipText: I18n.tr("Remove column")
             hoverColor: Theme.error
@@ -254,19 +254,19 @@ Item {
                 return cellRow.modelData.layout + " · " + (modules.length > 0 ? modules.join(", ") : I18n.tr("empty"));
               }
             }
-            EditorButton {
+            SquareIconButton {
               iconText: "▴"
               tooltipText: I18n.tr("Move cell up")
               enabled: cellRow.index > 0
               onClicked: OverlayManager.moveCell(column.index, cellRow.index, -1)
             }
-            EditorButton {
+            SquareIconButton {
               iconText: "▾"
               tooltipText: I18n.tr("Move cell down")
               enabled: cellRow.index < column.modelData.cells.length - 1
               onClicked: OverlayManager.moveCell(column.index, cellRow.index, 1)
             }
-            EditorButton {
+            SquareIconButton {
               iconText: "×"
               tooltipText: I18n.tr("Remove cell")
               hoverColor: Theme.error

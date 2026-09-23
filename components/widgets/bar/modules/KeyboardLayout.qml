@@ -10,14 +10,8 @@ import qs.components.reusable
 // Active xkb layout of the main keyboard. Read from `hyprctl devices` once,
 // then again whenever Hyprland reports a layout switch (no polling). Left
 // click cycles to the next layout, right click to the previous one.
-IconTextWidget {
+BarIconWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   property var layouts: []
   property int layoutIndex: 0
@@ -25,16 +19,12 @@ IconTextWidget {
 
   readonly property bool hidden: properties.hideSingle && layouts.length <= 1
 
-  isVertical: barConfig.vertical
-
   icon: "\u{F030C}"
   text: properties.format === "full" ? keymapName : (layouts[layoutIndex] ?? "").toUpperCase()
   showIcon: !hidden
   showText: !hidden
   padding: hidden ? 0 : Widget.padding
 
-  backgroundColor: Theme.resolveColor(properties.backgroundColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
 
   function refresh() {

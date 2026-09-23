@@ -39,29 +39,10 @@ def check_available_backends():
     return available
 
 
-SEMANTIC_MAP_DARK = {
-    "background": "base00", "backgroundAlt": "base01", "backgroundHighlight": "base02",
-    "foreground": "base05", "foregroundAlt": "base04", "foregroundHighlight": "base06",
-    "foregroundInactive": "base03", "border": "base03", "borderFocus": "base0D",
-    "accent": "base0D", "accentAlt": "base0E", "success": "base0B",
-    "warning": "base0A", "error": "base08", "info": "base0C",
-    "red": "base08", "green": "base0B", "yellow": "base0A", "blue": "base0D",
-    "magenta": "base0E", "cyan": "base0C", "white": "base05",
-    "bg0": "base00", "bg1": "base01", "bg2": "base02", "bg3": "base03",
-    "fg3": "base04", "fg2": "base05", "fg1": "base06"
-}
-
-SEMANTIC_MAP_LIGHT = {
-    "background": "base06", "backgroundAlt": "base05", "backgroundHighlight": "base04",
-    "foreground": "base01", "foregroundAlt": "base02", "foregroundHighlight": "base00",
-    "foregroundInactive": "base03", "border": "base04", "borderFocus": "base0D",
-    "accent": "base0D", "accentAlt": "base0E", "success": "base0B",
-    "warning": "base0A", "error": "base08", "info": "base0C",
-    "red": "base08", "green": "base0B", "yellow": "base0A", "blue": "base0D",
-    "magenta": "base0E", "cyan": "base0C", "white": "base01",
-    "bg0": "base06", "bg1": "base05", "bg2": "base04", "bg3": "base03",
-    "fg3": "base02", "fg2": "base01", "fg1": "base00"
-}
+# Semantic -> base16 maps, shared with the shell (config/json/theme-defaults.json)
+_DEFAULTS = json.loads((Path(__file__).resolve().parent.parent / "config" / "json" / "theme-defaults.json").read_text())
+SEMANTIC_MAP_DARK = _DEFAULTS["semantic"]["dark"]
+SEMANTIC_MAP_LIGHT = _DEFAULTS["semantic"]["light"]
 
 
 def generate_theme_pair(wallpaper_path, output_dir, backend):

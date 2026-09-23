@@ -13,7 +13,7 @@ import qs.config
  *     id: anchor
  *     popouts: root.popouts
  *     panel: root.panel
- *     popoutName: "workspace-grid"
+ *     popoutName: "Workspace"
  *     extraData: ({ monitor: root.monitor, workspaceBase: root.workspaceBase })
  *   }
  *

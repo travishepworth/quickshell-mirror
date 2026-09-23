@@ -12,7 +12,6 @@ Item {
   id: root
 
   required property var wrapper
-  property string currentName: "workspace-grid"
 
   property var monitor: wrapper.currentData?.monitor
   property int workspaceBase: wrapper.currentData?.workspaceBase ?? 1

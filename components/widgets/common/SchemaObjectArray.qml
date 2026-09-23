@@ -76,6 +76,7 @@ ColumnLayout {
       model: root.items.length
 
       delegate: StyledContainer {
+        id: entry
         required property int index
         readonly property var modelData: root.items[index]
 
@@ -93,7 +94,7 @@ ColumnLayout {
             spacing: 4
 
             StyledText {
-              text: "#" + (parent.parent.parent.index + 1)
+              text: "#" + (entry.index + 1)
               textColor: Theme.accent
               textSize: Appearance.fontSize - 1
               font.bold: true
@@ -102,8 +103,8 @@ ColumnLayout {
             Loader {
               sourceComponent: root.itemHeaderExtra
               onLoaded: {
-                item.itemData = Qt.binding(() => parent.parent.parent.modelData);
-                item.itemIndex = Qt.binding(() => parent.parent.parent.index);
+                item.itemData = Qt.binding(() => entry.modelData);
+                item.itemIndex = Qt.binding(() => entry.index);
               }
             }
 
@@ -111,47 +112,38 @@ ColumnLayout {
               Layout.fillWidth: true
             }
 
-            StyledRectButton {
-              visible: parent.parent.parent.index > 0
-              Layout.preferredWidth: 24
-              Layout.preferredHeight: 24
-              Layout.fillWidth: false
-              Layout.fillHeight: false
+            SquareIconButton {
+              visible: entry.index > 0
+              size: 24
               iconText: "▲"
               iconSize: 10
               hoverColor: Theme.accent
 
               onClicked: {
-                root.itemMoved(parent.parent.parent.index, parent.parent.parent.index - 1);
+                root.itemMoved(entry.index, entry.index - 1);
               }
             }
 
-            StyledRectButton {
-              visible: parent.parent.parent.index < root.items.length - 1
-              Layout.preferredWidth: 24
-              Layout.preferredHeight: 24
-              Layout.fillWidth: false
-              Layout.fillHeight: false
+            SquareIconButton {
+              visible: entry.index < root.items.length - 1
+              size: 24
               iconText: "▼"
               iconSize: 10
               hoverColor: Theme.accent
 
               onClicked: {
-                root.itemMoved(parent.parent.parent.index, parent.parent.parent.index + 1);
+                root.itemMoved(entry.index, entry.index + 1);
               }
             }
 
-            StyledRectButton {
-              Layout.preferredWidth: 24
-              Layout.preferredHeight: 24
-              Layout.fillWidth: false
-              Layout.fillHeight: false
+            SquareIconButton {
+              size: 24
               iconText: "×"
               iconSize: 18
               hoverColor: Theme.error
 
               onClicked: {
-                root.itemRemoved(parent.parent.parent.index);
+                root.itemRemoved(entry.index);
               }
             }
           }
@@ -167,8 +159,8 @@ ColumnLayout {
             Layout.fillWidth: true
             sourceComponent: root.itemDelegate
             onLoaded: {
-              item.itemData = Qt.binding(() => parent.parent.modelData);
-              item.itemIndex = Qt.binding(() => parent.parent.index);
+              item.itemData = Qt.binding(() => entry.modelData);
+              item.itemIndex = Qt.binding(() => entry.index);
             }
           }
         }

@@ -5,20 +5,17 @@ import Quickshell
 
 import qs.services
 import qs.config
+import qs.components.methods
 import qs.components.reusable
 
-Item {
+PopoutContent {
   id: root
-
-  required property var wrapper
-  property string currentName: "calendar"
 
   // Month currently on display. Day component is ignored/normalized to 1st.
   property var viewDate: new Date()
 
-  property bool hovered: hoverHandler.hovered
-
-  readonly property int margins: 20
+  margins: 20
+  spacing: root.sectionSpacing
   readonly property int cellSize: 30
   readonly property int cellSpacing: 4
   readonly property int headerHeight: 26
@@ -31,64 +28,19 @@ Item {
 
   implicitWidth: gridWidth + margins * 2
   implicitHeight: margins * 2 + headerHeight + sectionSpacing + weekdayHeight + 4 + gridHeight + sectionSpacing + footerHeight
-  width: implicitWidth
-  height: implicitHeight
 
   SystemClock {
     id: todayClock
     precision: SystemClock.Hours
   }
 
-  // Sunday first, narrow names in the shell's language
-  readonly property var weekdayLabels: [0, 1, 2, 3, 4, 5, 6].map(day => I18n.locale.dayName(day, Locale.NarrowFormat))
+  // Weeks start on the language's first day; narrow names in that language
+  readonly property int firstDay: I18n.locale.firstDayOfWeek % 7
+  readonly property var weekdayLabels: [0, 1, 2, 3, 4, 5, 6].map(i => I18n.locale.dayName((root.firstDay + i) % 7, Locale.NarrowFormat))
 
-  // 42-cell (6x7) grid covering the viewed month plus the leading/trailing
-  // days needed to fill whole weeks.
-  readonly property var gridDays: {
-    const year = viewDate.getFullYear();
-    const month = viewDate.getMonth();
-    const firstWeekday = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-    let days = [];
-    for (let i = 0; i < 42; i++) {
-      const offset = i - firstWeekday + 1;
-      let day, monthDelta, inMonth;
-      if (offset < 1) {
-        day = daysInPrevMonth + offset;
-        monthDelta = -1;
-        inMonth = false;
-      } else if (offset > daysInMonth) {
-        day = offset - daysInMonth;
-        monthDelta = 1;
-        inMonth = false;
-      } else {
-        day = offset;
-        monthDelta = 0;
-        inMonth = true;
-      }
-
-      let cellMonth = month + monthDelta;
-      let cellYear = year;
-      if (cellMonth < 0) {
-        cellMonth = 11;
-        cellYear -= 1;
-      } else if (cellMonth > 11) {
-        cellMonth = 0;
-        cellYear += 1;
-      }
-
-      days.push({
-        day: day,
-        month: cellMonth,
-        year: cellYear,
-        inMonth: inMonth,
-        isToday: cellYear === todayClock.date.getFullYear() && cellMonth === todayClock.date.getMonth() && day === todayClock.date.getDate()
-      });
-    }
-    return days;
-  }
+  // A string, so the grid is only rebuilt when the day changes
+  readonly property string today: todayClock.date.toDateString()
+  readonly property var gridDays: Utils.monthGrid(viewDate.getFullYear(), viewDate.getMonth(), root.firstDay, root.today)
 
   function shiftMonth(delta) {
     viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + delta, 1);
@@ -98,160 +50,140 @@ Item {
     viewDate = new Date(todayClock.date.getFullYear(), todayClock.date.getMonth(), 1);
   }
 
-  StyledContainer {
-    id: content
-    anchors.fill: parent
+  // --- Header: month navigation ---
+  RowLayout {
+    Layout.fillWidth: true
+    Layout.preferredHeight: root.headerHeight
+    spacing: 8
 
-    backgroundColor: Theme.background
-    borderColor: Theme.backgroundAlt
-    borderWidth: 0
-    borderRadius: Appearance.borderRadius + 2
+    StyledIconButton {
+      Layout.preferredWidth: root.headerHeight
+      Layout.preferredHeight: root.headerHeight
 
-    HoverHandler {
-      id: hoverHandler
+      iconText: "‹"
+      iconSize: root.headerHeight * 0.5
+      borderRadius: root.headerHeight / 2
+      iconColor: Theme.foregroundAlt
+      backgroundColor: Theme.backgroundAlt
+      hoverColor: Theme.accentAlt
+      pressColor: Theme.accentAlt
+
+      onClicked: root.shiftMonth(-1)
     }
 
-    ColumnLayout {
-      anchors.fill: parent
-      anchors.margins: root.margins
-      spacing: root.sectionSpacing
+    StyledText {
+      Layout.fillWidth: true
+      horizontalAlignment: Text.AlignHCenter
+      text: I18n.formatDate(root.viewDate, I18n.dateFormat("monthYear"))
+      textColor: Theme.accent
+      textSize: Appearance.fontSize * 1.05
+      font.bold: true
+    }
 
-      // --- Header: month navigation ---
-      RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: root.headerHeight
-        spacing: 8
+    StyledIconButton {
+      Layout.preferredWidth: root.headerHeight
+      Layout.preferredHeight: root.headerHeight
 
-        StyledIconButton {
-          Layout.preferredWidth: root.headerHeight
-          Layout.preferredHeight: root.headerHeight
+      iconText: "›"
+      iconSize: root.headerHeight * 0.5
+      borderRadius: root.headerHeight / 2
+      iconColor: Theme.foregroundAlt
+      backgroundColor: Theme.backgroundAlt
+      hoverColor: Theme.accentAlt
+      pressColor: Theme.accentAlt
 
-          iconText: "‹"
-          iconSize: root.headerHeight * 0.5
-          borderRadius: root.headerHeight / 2
-          iconColor: Theme.foregroundAlt
-          backgroundColor: Theme.backgroundAlt
-          hoverColor: Theme.accentAlt
-          pressColor: Theme.accentAlt
+      onClicked: root.shiftMonth(1)
+    }
+  }
 
-          onClicked: root.shiftMonth(-1)
+  // --- Weekday labels ---
+  RowLayout {
+    Layout.fillWidth: true
+    Layout.preferredHeight: root.weekdayHeight
+    spacing: root.cellSpacing
+
+    Repeater {
+      model: root.weekdayLabels
+
+      StyledText {
+        required property string modelData
+
+        Layout.preferredWidth: root.cellSize
+        horizontalAlignment: Text.AlignHCenter
+        text: modelData
+        textColor: Theme.foregroundAlt
+        textSize: Appearance.fontSize * 0.85
+        opacity: 0.7
+      }
+    }
+  }
+
+  // --- Day grid ---
+  GridLayout {
+    Layout.preferredWidth: root.gridWidth
+    Layout.preferredHeight: root.gridHeight
+    columns: 7
+    rows: 6
+    columnSpacing: root.cellSpacing
+    rowSpacing: root.cellSpacing
+
+    Repeater {
+      model: root.gridDays
+
+      Rectangle {
+        id: dayCell
+        required property var modelData
+
+        Layout.preferredWidth: root.cellSize
+        Layout.preferredHeight: root.cellSize
+        radius: root.cellSize / 2
+
+        color: modelData.isToday ? Theme.accent : (dayMouseArea.containsMouse && modelData.inMonth ? Theme.backgroundHighlight : "transparent")
+
+        Behavior on color {
+          ColorAnimation {
+            duration: Appearance.animFast
+          }
         }
 
         StyledText {
-          Layout.fillWidth: true
-          horizontalAlignment: Text.AlignHCenter
-          text: I18n.formatDate(root.viewDate, I18n.dateFormat("monthYear"))
-          textColor: Theme.accent
-          textSize: Appearance.fontSize * 1.05
-          font.bold: true
+          anchors.centerIn: parent
+          text: dayCell.modelData.day
+          textSize: Appearance.fontSize * 0.9
+          textColor: dayCell.modelData.isToday ? Theme.background : (dayCell.modelData.inMonth ? Theme.foreground : Theme.foregroundInactive)
+          opacity: dayCell.modelData.inMonth ? 1.0 : 0.5
         }
 
-        StyledIconButton {
-          Layout.preferredWidth: root.headerHeight
-          Layout.preferredHeight: root.headerHeight
-
-          iconText: "›"
-          iconSize: root.headerHeight * 0.5
-          borderRadius: root.headerHeight / 2
-          iconColor: Theme.foregroundAlt
-          backgroundColor: Theme.backgroundAlt
-          hoverColor: Theme.accentAlt
-          pressColor: Theme.accentAlt
-
-          onClicked: root.shiftMonth(1)
+        MouseArea {
+          id: dayMouseArea
+          anchors.fill: parent
+          hoverEnabled: true
+          acceptedButtons: Qt.NoButton
         }
       }
+    }
+  }
 
-      // --- Weekday labels ---
-      RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: root.weekdayHeight
-        spacing: root.cellSpacing
+  // --- Footer: today shortcut ---
+  RowLayout {
+    Layout.fillWidth: true
+    Layout.preferredHeight: root.footerHeight
+    spacing: 8
 
-        Repeater {
-          model: root.weekdayLabels
+    StyledText {
+      Layout.fillWidth: true
+      text: I18n.formatDate(todayClock.date, I18n.dateFormat("fullDate"))
+      textColor: Theme.foregroundAlt
+      textSize: Appearance.fontSize * 0.8
+      opacity: 0.8
+      elide: Text.ElideRight
+    }
 
-          StyledText {
-            required property string modelData
-
-            Layout.preferredWidth: root.cellSize
-            horizontalAlignment: Text.AlignHCenter
-            text: modelData
-            textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize * 0.85
-            opacity: 0.7
-          }
-        }
-      }
-
-      // --- Day grid ---
-      GridLayout {
-        Layout.preferredWidth: root.gridWidth
-        Layout.preferredHeight: root.gridHeight
-        columns: 7
-        rows: 6
-        columnSpacing: root.cellSpacing
-        rowSpacing: root.cellSpacing
-
-        Repeater {
-          model: root.gridDays
-
-          Rectangle {
-            id: dayCell
-            required property var modelData
-
-            Layout.preferredWidth: root.cellSize
-            Layout.preferredHeight: root.cellSize
-            radius: root.cellSize / 2
-
-            color: modelData.isToday ? Theme.accent : (dayMouseArea.containsMouse && modelData.inMonth ? Theme.backgroundHighlight : "transparent")
-
-            Behavior on color {
-              ColorAnimation {
-                duration: Appearance.animFast
-              }
-            }
-
-            StyledText {
-              anchors.centerIn: parent
-              text: dayCell.modelData.day
-              textSize: Appearance.fontSize * 0.9
-              textColor: dayCell.modelData.isToday ? Theme.background : (dayCell.modelData.inMonth ? Theme.foreground : Theme.foregroundInactive)
-              opacity: dayCell.modelData.inMonth ? 1.0 : 0.5
-            }
-
-            MouseArea {
-              id: dayMouseArea
-              anchors.fill: parent
-              hoverEnabled: true
-              acceptedButtons: Qt.NoButton
-            }
-          }
-        }
-      }
-
-      // --- Footer: today shortcut ---
-      RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: root.footerHeight
-        spacing: 8
-
-        StyledText {
-          Layout.fillWidth: true
-          text: I18n.formatDate(todayClock.date, I18n.dateFormat("fullDate"))
-          textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize * 0.8
-          opacity: 0.8
-          elide: Text.ElideRight
-        }
-
-        StyledTextButton {
-          Layout.preferredHeight: root.footerHeight
-          text: I18n.tr("Today")
-          textPadding: 6
-          onClicked: root.goToToday()
-        }
-      }
+    StyledTextButton {
+      Layout.preferredHeight: root.footerHeight
+      text: I18n.tr("Today")
+      textPadding: 6
+      onClicked: root.goToToday()
     }
   }
 }

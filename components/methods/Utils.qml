@@ -180,57 +180,51 @@ QtObject {
     return chunks;
   }
 
-  function getDefaultColors() {
-    return {
-      "base00": "#0c0c0c",
-      "base01": "#1c1c1c",
-      "base02": "#2c2c2c",
-      "base03": "#444444",
-      "base04": "#a0a0a0",
-      "base05": "#cccccc",
-      "base06": "#e0e0e0",
-      "base07": "#f0f0f0",
-      "base08": "#cc0000",
-      "base09": "#d75f00",
-      "base0A": "#bba600",
-      "base0B": "#00a800",
-      "base0C": "#00a8a8",
-      "base0D": "#0066cc",
-      "base0E": "#a800a8",
-      "base0F": "#a85f00"
-    };
+  // The 6 weeks (42 days) shown for a month, starting on `firstDay` (0 =
+  // Sunday, as Date.getDay()): [{ day, month, year, inMonth, isToday }].
+  // `today` is a date string (Date.toDateString()), so callers can bind
+  // it to something that only changes once a day.
+  function monthGrid(year, month, firstDay, today) {
+    const first = new Date(year, month, 1);
+    const start = new Date(year, month, 1 - ((first.getDay() - firstDay + 7) % 7));
+    const days = [];
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      days.push({
+        "day": d.getDate(),
+        "month": d.getMonth(),
+        "year": d.getFullYear(),
+        "inMonth": d.getMonth() === month,
+        "isToday": d.toDateString() === today
+      });
+    }
+    return days;
   }
 
-  function getDefaultSemanticColors() {
-    return {
-      "background": "base00",
-      "backgroundAlt": "base01",
-      "backgroundHighlight": "base02",
-      "foreground": "base05",
-      "foregroundAlt": "base04",
-      "foregroundHighlight": "base06",
-      "foregroundInactive": "base03",
-      "border": "base02",
-      "borderFocus": "base0D",
-      "accent": "base0E",
-      "accentAlt": "base0C",
-      "success": "base0B",
-      "warning": "base0A",
-      "error": "base08",
-      "info": "base0C",
-      "red": "base08",
-      "green": "base0B",
-      "yellow": "base0A",
-      "blue": "base0D",
-      "magenta": "base0E",
-      "cyan": "base0C",
-      "white": "base05",
-      "bg0": "base00",
-      "bg1": "base01",
-      "bg2": "base02",
-      "fg3": "base03",
-      "fg2": "base04",
-      "fg1": "base05"
-    };
+  // config/json/theme-defaults.json: the fallback palette and the
+  // semantic -> base16 maps, shared with scripts/generate_theme.py
+  readonly property var themeDefaults: {
+    const content = getFileContent("file://" + Quickshell.shellDir + "/config/json/theme-defaults.json");
+    try {
+      return JSON.parse(content);
+    } catch (e) {
+      console.error("[Utils] Could not read theme-defaults.json:", e);
+      return {
+        "colors": {},
+        "semantic": {
+          "dark": {},
+          "light": {}
+        }
+      };
+    }
+  }
+
+  function getDefaultColors() {
+    return themeDefaults.colors;
+  }
+
+  // variant: "dark" | "light"
+  function getDefaultSemanticColors(variant = "dark") {
+    return themeDefaults.semantic[variant] ?? themeDefaults.semantic.dark;
   }
 }

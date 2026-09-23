@@ -12,9 +12,12 @@ import qs.services
 QtObject {
   id: root
 
-  property var localViews: []
-  property var _savedViews: []
-  property bool isDirty: false
+  property ConfigDraft _draft: ConfigDraft {
+    id: draft
+    path: ["Overlay", "views"]
+  }
+  readonly property alias localViews: draft.local
+  readonly property alias isDirty: draft.isDirty
   property int selectedViewIndex: 0
   // { column, cell, slot } of the slot being edited, or null
   property var selectedSlot: null
@@ -50,26 +53,14 @@ QtObject {
   }
 
   function loadConfig() {
-    localViews = JSON.parse(JSON.stringify(ConfigManager.config.Overlay.views));
-    _savedViews = JSON.parse(JSON.stringify(ConfigManager.config.Overlay.views));
+    draft.load();
     selectedViewIndex = Math.max(0, Math.min(selectedViewIndex, localViews.length - 1));
     selectedSlot = null;
-    isDirty = false;
   }
 
-  function markDirty() {
-    root.isDirty = JSON.stringify(root.localViews) !== JSON.stringify(root._savedViews);
-  }
-
-  // Call after mutating localViews in place. The re-clone is deferred for
-  // the same binding-loop reason as BarManager.applyChanges.
+  // Call after mutating localViews in place
   function applyChanges() {
-    markDirty();
-    Qt.callLater(root._refreshLocalViews);
-  }
-
-  function _refreshLocalViews() {
-    root.localViews = JSON.parse(JSON.stringify(root.localViews));
+    draft.changed();
   }
 
   function _defaults(value, definition) {
@@ -255,16 +246,11 @@ QtObject {
 
   // --- Save / reset ---
 
-  // Merges onto the LATEST real config, as BarManager.saveChanges does
+  // Merged onto the latest real config; stays dirty if rejected
   function saveChanges() {
     if (root.problems.length > 0)
       return;
-    const merged = JSON.parse(JSON.stringify(ConfigManager.config));
-    merged.Overlay.views = JSON.parse(JSON.stringify(root.localViews));
-    if (!ConfigManager.commit(merged))
-      return;
-    root._savedViews = JSON.parse(JSON.stringify(root.localViews));
-    root.isDirty = false;
+    draft.save();
   }
 
   function resetChanges() {

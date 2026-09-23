@@ -88,7 +88,7 @@ OverlayCard {
                 onSelectionChanged: value => OverlayManager.setCellLayout(column.index, cellBox.index, value)
               }
 
-              EditorButton {
+              SquareIconButton {
                 iconText: "×"
                 tooltipText: I18n.tr("Remove cell")
                 hoverColor: Theme.error

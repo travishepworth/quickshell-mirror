@@ -26,8 +26,18 @@ SKIP = []
 
 # "..." with escapes, as the first argument of I18n.tr(
 TR_CALL = re.compile(r'I18n\.tr\(\s*"((?:[^"\\]|\\.)*)"')
-# Property assignments that are UI text, for --untranslated
-UI_PROP = re.compile(r'\b(text|title|label|placeholderText|tooltipText|description|subtitle):\s*("(?:[^"\\]|\\.)*"|`[^`]*`)')
+# Property assignments that are UI text, for --untranslated: the whole
+# value expression, so literals in ternaries and concatenations are seen
+UI_PROP = re.compile(r'\b(text|title|label|placeholderText|tooltipText|description|subtitle|status):\s*(.+)$')
+# Object-literal UI fields ("label": "Text", name: "Text" in option lists)
+UI_FIELD = re.compile(r'"?(label|title|text|description|tooltip)"?\s*:\s*"((?:[^"\\]|\\.)*)"')
+STRING = re.compile(r'"((?:[^"\\]|\\.)*)"|`([^`]*)`')
+# tr() whose first argument isn't a string literal
+DYNAMIC_TR = re.compile(r'I18n\.tr\(\s*(?!["\)])')
+# tr() calls (literal first argument), stripped before looking for literals
+TR_LITERAL = re.compile(r'I18n\.tr\(\s*"(?:[^"\\]|\\.)*"')
+# A literal compared against, or used as a key, isn't shown
+COMPARED = re.compile(r'(===|!==|==|!=|case)\s*$')
 
 
 def qml_files():
@@ -70,16 +80,48 @@ def collect_keys():
     return keys
 
 
+def is_words(literal):
+    """Words, not glyphs, format strings, ids, paths or colors."""
+    literal = re.sub(r"\$\{[^}]*\}", "", literal)
+    if literal.startswith(("#", "qrc:", "file:", "/", "image://")) or "." in literal.split(" ")[0] and " " not in literal:
+        return False
+    return bool(re.search(r"[A-Za-z]{2,}", literal))
+
+
+def shown_literals(expr):
+    """String literals in a value expression that would reach the screen."""
+    expr = TR_LITERAL.sub("I18n.tr(_", expr)
+    for m in STRING.finditer(expr):
+        literal = m.group(1) if m.group(1) is not None else m.group(2)
+        before, after = expr[:m.start()], expr[m.end():]
+        if COMPARED.search(before) or re.match(r"\s*(===|!==|==|!=|\]|:)", after) or before.rstrip().endswith("["):
+            continue
+        if m.group(2) is not None:
+            # a template: its text parts, around the ${...} expressions
+            literal = re.sub(r"\$\{[^}]*\}", " ", literal)
+        if is_words(literal):
+            yield literal
+
+
 def untranslated():
     for f, rel in qml_files():
-        for line_no, line in enumerate(f.read_text().splitlines(), 1):
-            if "I18n.tr(" in line or line.strip().startswith("//"):
+        lines = f.read_text().splitlines()
+        for line_no, line in enumerate(lines, 1):
+            code = line.split("//")[0] if "://" not in line else line
+            if not code.strip() or "console." in code:
                 continue
-            for m in UI_PROP.finditer(line):
-                literal = m.group(2)[1:-1]
-                # Words, not glyphs/format strings/ids
-                if re.search(r"[A-Za-z]{2,}", re.sub(r"\$\{[^}]*\}", "", literal)):
-                    yield f"{rel}:{line_no}: {m.group(1)}: {m.group(2)}"
+            m = UI_PROP.search(code)
+            if m:
+                for literal in shown_literals(m.group(2)):
+                    yield f"{rel}:{line_no}: {m.group(1)}: {literal!r}"
+            for field in UI_FIELD.finditer(code):
+                if not (m and field.start() >= m.start(2)) and is_words(field.group(2)):
+                    yield f"{rel}:{line_no}: {field.group(1)}: {field.group(2)!r}"
+            if DYNAMIC_TR.search(code):
+                # Keys chosen at runtime must be declared in a nearby comment
+                context = "\n".join(lines[max(0, line_no - 6):line_no])
+                if not re.search(r'//.*I18n\.tr\("', context):
+                    yield f"{rel}:{line_no}: dynamic tr() without declared keys: {code.strip()[:90]}"
 
 
 def main():

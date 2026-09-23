@@ -7,14 +7,8 @@ import qs.services as Services
 import qs.config
 import qs.components.reusable
 
-IconTextWidget {
+BarIconWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   // From UPower's display device (services/Battery.qml)
   readonly property bool isCharging: Services.Battery.isCharging
@@ -35,14 +29,11 @@ IconTextWidget {
     return "none";
   }
 
-  isVertical: barConfig.vertical
-
   icon: getBatteryIcon()
   text: `${percentage}%`
   showText: properties.showPercentage
 
   backgroundColor: getBatteryColor()
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
   iconScale: 1.1
   textScale: 0.9

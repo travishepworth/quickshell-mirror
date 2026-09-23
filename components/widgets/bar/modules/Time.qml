@@ -196,7 +196,7 @@ Item {
     id: anchor
     popouts: root.popouts
     panel: root.panel
-    popoutName: "calendar"
+    popoutName: "Calendar"
     openDelay: 150
     active: root.properties.showCalendar
   }

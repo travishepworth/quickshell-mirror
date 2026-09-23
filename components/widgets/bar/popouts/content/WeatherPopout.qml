@@ -7,11 +7,8 @@ import qs.components.reusable
 
 // Current conditions and a 5-day forecast. Filled from the Weather widget's
 // PopoutAnchor payload (the Open-Meteo response plus its WMO code lookup).
-Item {
+PopoutContent {
   id: root
-
-  required property var wrapper
-  property bool hovered: hoverHandler.hovered
 
   property var weather: null
   property string placeName: ""
@@ -32,94 +29,74 @@ Item {
         }));
   }
 
-  readonly property int margins: 20
+  margins: 20
+  spacing: Widget.padding
 
-  implicitWidth: Math.max(300, column.implicitWidth + margins * 2)
-  implicitHeight: column.implicitHeight + margins * 2
-  width: implicitWidth
-  height: implicitHeight
+  implicitWidth: Math.max(300, body.implicitWidth + margins * 2)
 
-  StyledContainer {
-    anchors.fill: parent
-    backgroundColor: Theme.background
-    borderWidth: 0
-    borderRadius: Appearance.borderRadius + 2
+  StyledText {
+    visible: root.placeName !== ""
+    text: root.placeName
+    font.bold: true
+    textColor: Theme.accent
+  }
 
-    HoverHandler {
-      id: hoverHandler
+  RowLayout {
+    spacing: Widget.padding * 1.5
+
+    StyledText {
+      text: root.condition?.icon ?? ""
+      textSize: Appearance.fontSize * 3
     }
 
     ColumnLayout {
-      id: column
-      anchors.fill: parent
-      anchors.margins: root.margins
-      spacing: Widget.padding
+      spacing: 2
 
       StyledText {
-        visible: root.placeName !== ""
-        text: root.placeName
+        text: root.current ? `${Math.round(root.current.temperature_2m)}${root.unitSymbol}  ${root.condition.label}` : ""
+        textSize: Appearance.fontSize * 1.3
         font.bold: true
-        textColor: Theme.accent
       }
+      StyledText {
+        text: root.current ? I18n.tr("Feels like {0}°  ·  {1}% humidity  ·  {2} {3}", Math.round(root.current.apparent_temperature), root.current.relative_humidity_2m, Math.round(root.current.wind_speed_10m), root.weather.current_units?.wind_speed_10m ?? "km/h") : ""
+        textColor: Theme.foregroundAlt
+        textSize: Appearance.fontSize - 2
+      }
+    }
+  }
 
-      RowLayout {
-        spacing: Widget.padding * 1.5
+  StyledSeparator {
+    Layout.fillWidth: true
+  }
+
+  RowLayout {
+    Layout.fillWidth: true
+    spacing: Widget.padding
+
+    Repeater {
+      model: root.days
+
+      ColumnLayout {
+        id: day
+        required property var modelData
+        Layout.fillWidth: true
+        spacing: 2
 
         StyledText {
-          text: root.condition?.icon ?? ""
-          textSize: Appearance.fontSize * 3
+          Layout.alignment: Qt.AlignHCenter
+          text: day.modelData.label
+          textColor: Theme.foregroundAlt
+          textSize: Appearance.fontSize - 2
         }
-
-        ColumnLayout {
-          spacing: 2
-
-          StyledText {
-            text: root.current ? `${Math.round(root.current.temperature_2m)}${root.unitSymbol}  ${root.condition.label}` : ""
-            textSize: Appearance.fontSize * 1.3
-            font.bold: true
-          }
-          StyledText {
-            text: root.current ? I18n.tr("Feels like {0}°  ·  {1}% humidity  ·  {2} {3}", Math.round(root.current.apparent_temperature), root.current.relative_humidity_2m, Math.round(root.current.wind_speed_10m), root.weather.current_units?.wind_speed_10m ?? "km/h") : ""
-            textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 2
-          }
+        StyledText {
+          Layout.alignment: Qt.AlignHCenter
+          text: day.modelData.icon
+          textSize: Appearance.fontSize * 1.5
         }
-      }
-
-      StyledSeparator {
-        Layout.fillWidth: true
-      }
-
-      RowLayout {
-        Layout.fillWidth: true
-        spacing: Widget.padding
-
-        Repeater {
-          model: root.days
-
-          ColumnLayout {
-            id: day
-            required property var modelData
-            Layout.fillWidth: true
-            spacing: 2
-
-            StyledText {
-              Layout.alignment: Qt.AlignHCenter
-              text: day.modelData.label
-              textColor: Theme.foregroundAlt
-              textSize: Appearance.fontSize - 2
-            }
-            StyledText {
-              Layout.alignment: Qt.AlignHCenter
-              text: day.modelData.icon
-              textSize: Appearance.fontSize * 1.5
-            }
-            StyledText {
-              Layout.alignment: Qt.AlignHCenter
-              text: `${day.modelData.max}° / ${day.modelData.min}°`
-              textSize: Appearance.fontSize - 2
-            }
-          }
+        StyledText {
+          Layout.alignment: Qt.AlignHCenter
+          text: `${day.modelData.max}° / ${day.modelData.min}°`
+          textSize: Appearance.fontSize - 2
         }
       }
     }

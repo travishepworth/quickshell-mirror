@@ -5,6 +5,7 @@ import Quickshell
 import qs.services
 import qs.config
 import qs.components.widgets.bar
+// Imported (though loaded by URL) so qs scans the content types
 import qs.components.widgets.bar.popouts.content
 import qs.components.widgets.popouts
 
@@ -30,6 +31,21 @@ PopoutWrapperBase {
   // PopoutAnchor.qml) rather than as a separate argument, so this file
   // never needs to override openPopout/safeOpenPopout from the base.
   readonly property string currentName: currentData?.name ?? ""
+  // Which side the tray's submenus open to
+  readonly property bool openToLeft: root.barConfig.right || mainPopup.isOnRightHalfOfScreen
+
+  // content/<name>Popout.qml, loaded by URL like bar and overlay modules:
+  // a new popout is just a file there plus a PopoutAnchor naming it
+  function _loadContent() {
+    if (loader.active && root.currentName !== "")
+      loader.setSource(Qt.resolvedUrl("content/" + root.currentName + "Popout.qml"), {
+        "wrapper": root
+      });
+    else if (!loader.active)
+      // Cleared, so reactivating doesn't first rebuild the previous popout
+      loader.source = "";
+  }
+  onCurrentNameChanged: _loadContent()
 
   currentItem: loader.item ?? null
 
@@ -89,27 +105,6 @@ PopoutWrapperBase {
     }
   }
 
-  // Optional helper for updating an already-open popout's content/data
-  // in place, without a close/reopen animation. Kept as (name, data) for
-  // API compatibility with any existing callers — internally folds name
-  // into the data blob the same way PopoutAnchor does.
-  function changeContent(name, data) {
-    if (isClosing)
-      return;
-    const merged = data ? Object.assign({}, data) : {};
-    merged.name = name;
-    currentData = merged;
-
-    if (loader.item) {
-      for (let key in merged) {
-        if (loader.item.hasOwnProperty(key)) {
-          loader.item[key] = merged[key];
-        }
-      }
-    }
-    updateDismissTimer();
-  }
-
   PopupWindow {
     id: mainPopup
     visible: root.occupied && loader.status === Loader.Ready
@@ -118,7 +113,7 @@ PopoutWrapperBase {
     // Content dimensions
     readonly property int contentWidth: root.currentItem?.implicitWidth ?? 200
     readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
-    readonly property int isOnRightHalfOfScreen: root.anchorRect.x > (root.screen.width / 2) ? true : false
+    readonly property bool isOnRightHalfOfScreen: root.anchorRect.x > (root.screen.width / 2)
 
     // Along-bar clamp range, in bar-window coordinates. The perpendicular
     // screen borders may sit inside the bar window (bar mapped first) or
@@ -208,34 +203,10 @@ PopoutWrapperBase {
         active: root.occupied
         asynchronous: false
 
-        sourceComponent: {
-          switch (root.currentName) {
-          case "workspace-grid":
-            return workspaceGridComponent;
-          case "media-player":
-            return mediaPlayerComponent;
-          case "system-tray-menu":
-            return systemTrayComponent;
-          case "calendar":
-            return calendarComponent;
-          case "notifications":
-            return notificationsComponent;
-          case "updates":
-            return updatesComponent;
-          case "weather":
-            return weatherComponent;
-          case "audio-mixer":
-            return audioMixerComponent;
-          case "bluetooth":
-            return bluetoothComponent;
-          default:
-            return null;
-          }
-        }
+        onActiveChanged: root._loadContent()
 
         onLoaded: {
           if (item) {
-            item.wrapper = root;
             if (root.currentData) {
               for (let key in root.currentData) {
                 if (item.hasOwnProperty(key)) {
@@ -247,70 +218,6 @@ PopoutWrapperBase {
           root.updateDismissTimer();
         }
       }
-    }
-  }
-
-  Component {
-    id: workspaceGridComponent
-    WorkspacePopout {
-      wrapper: root
-    }
-  }
-
-  Component {
-    id: systemTrayComponent
-    SystemTrayPopout {
-      wrapper: root
-      openToLeft: barConfig.right ? true : mainPopup.isOnRightHalfOfScreen === 1
-    }
-  }
-
-  Component {
-    id: mediaPlayerComponent
-    MediaPopout {
-      wrapper: root
-    }
-  }
-
-  Component {
-    id: calendarComponent
-    CalendarPopout {
-      wrapper: root
-    }
-  }
-
-  Component {
-    id: notificationsComponent
-    NotificationsPopout {
-      wrapper: root
-    }
-  }
-
-  Component {
-    id: updatesComponent
-    UpdatesPopout {
-      wrapper: root
-    }
-  }
-
-  Component {
-    id: weatherComponent
-    WeatherPopout {
-      wrapper: root
-    }
-  }
-
-  Component {
-    id: audioMixerComponent
-    AudioMixerPopout {
-      wrapper: root
-    }
-  }
-
-  Component {
-    id: bluetoothComponent
-    BluetoothPopout {
-      wrapper: root
     }
   }
 }

@@ -5,6 +5,7 @@ import qs.config
 import qs.services
 import qs.components.reusable
 import qs.components.widgets.overlay
+import qs.components.widgets.overlay.modules.common
 
 // Lock, suspend, log out, reboot and power off. The last three ask for a
 // second click to confirm.
@@ -48,42 +49,16 @@ OverlayCard {
     Repeater {
       model: root.actions
 
-      Rectangle {
-        id: button
+      IconToggle {
         required property string modelData
-        readonly property bool armed: root.armed === button.modelData
         Layout.fillWidth: true
         Layout.fillHeight: true
-        radius: Appearance.borderRadius
-        color: button.armed ? Theme.error : buttonArea.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
-        border.color: Theme.border
-        border.width: Appearance.borderWidth
-
-        ColumnLayout {
-          anchors.centerIn: parent
-          spacing: 2
-          StyledText {
-            Layout.alignment: Qt.AlignHCenter
-            text: root.defs[button.modelData][0]
-            textColor: button.armed ? Theme.background : Theme.foreground
-            textSize: Math.max(Appearance.fontSize, Math.min(button.width, button.height) * 0.3)
-          }
-          StyledText {
-            visible: !root.compact && button.height > Appearance.fontSize * 4
-            Layout.alignment: Qt.AlignHCenter
-            text: button.armed ? I18n.tr("Confirm?") : root.defs[button.modelData][1]
-            textColor: button.armed ? Theme.background : Theme.foreground
-            textSize: Appearance.fontSize - 2
-          }
-        }
-
-        MouseArea {
-          id: buttonArea
-          anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: root.run(button.modelData)
-        }
+        icon: root.defs[modelData][0]
+        label: active ? I18n.tr("Confirm?") : root.defs[modelData][1]
+        showLabel: !root.compact && height > Appearance.fontSize * 4
+        active: root.armed === modelData
+        activeColor: Theme.error
+        onClicked: root.run(modelData)
       }
     }
   }

@@ -10,24 +10,15 @@ import qs.components.reusable
 // An icon (and optional label) that runs a built-in shell action or a
 // shell command. Right and middle click can run their own commands, and
 // the label can come from a command re-run on an interval.
-IconTextWidget {
+BarIconWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   property string commandLabel: ""
   property bool _tooltipShown: false
 
-  isVertical: barConfig.vertical
   icon: properties.icon
   text: properties.labelCommand ? commandLabel : properties.label
   showText: text !== ""
-  backgroundColor: Theme.resolveColor(properties.backgroundColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
 
   function runAction() {

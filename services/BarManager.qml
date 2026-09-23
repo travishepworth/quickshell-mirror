@@ -12,47 +12,23 @@ import qs.services
 QtObject {
   id: root
 
-  property var localConfig: []
-  property var _savedConfig: []
-  property bool isDirty: false
+  property ConfigDraft _draft: ConfigDraft {
+    id: draft
+    path: ["Bars"]
+  }
+  readonly property alias localConfig: draft.local
+  readonly property alias isDirty: draft.isDirty
   property int selectedBarIndex: 0
 
-  Component.onCompleted: {
-    loadConfig();
-  }
-
   function loadConfig() {
-    localConfig = JSON.parse(JSON.stringify(ConfigManager.config.Bars));
-    _savedConfig = JSON.parse(JSON.stringify(ConfigManager.config.Bars));
+    draft.load();
     selectedBarIndex = 0;
-    isDirty = false;
-  }
-
-  function checkDirty() {
-    return JSON.stringify(localConfig) !== JSON.stringify(_savedConfig);
-  }
-
-  function markDirty() {
-    root.isDirty = checkDirty();
   }
 
   // Call after mutating localConfig in place. Sandbox-only: never touches
   // ConfigManager or disk.
   function applyChanges() {
-    markDirty();
-    // Re-clone (next tick) purely to force QML's var-property change
-    // notification, since in-place mutation doesn't fire onLocalConfigChanged
-    // (same reason ConfigManager._loadObjectToConfig deep-clones). Deferred
-    // via Qt.callLater so this doesn't reassign localConfig synchronously
-    // inside the same call stack as the edit that triggered it - otherwise
-    // any control whose own currentConfigValue depends on localConfig (e.g.
-    // BarFieldsForm's fields) re-enters its own binding and QML reports a
-    // binding loop.
-    Qt.callLater(root._refreshLocalConfig);
-  }
-
-  function _refreshLocalConfig() {
-    root.localConfig = JSON.parse(JSON.stringify(root.localConfig));
+    draft.changed();
   }
 
   function selectedBar() {
@@ -130,17 +106,9 @@ QtObject {
     applyChanges();
   }
 
-  // Merge the sandboxed Bar array onto the LATEST real config (avoids
-  // clobbering unrelated settings edited elsewhere meanwhile), then apply
-  // and persist atomically - there's no meaningful "apply without saving"
-  // step for this sandboxed flow.
+  // Merged onto the latest real config; stays dirty if rejected
   function saveChanges() {
-    const merged = JSON.parse(JSON.stringify(ConfigManager.config));
-    merged.Bars = JSON.parse(JSON.stringify(root.localConfig));
-    if (!ConfigManager.commit(merged))
-      return;
-    root._savedConfig = JSON.parse(JSON.stringify(root.localConfig));
-    root.isDirty = false;
+    draft.save();
   }
 
   // Discard sandbox edits, reload fresh from the current real config.

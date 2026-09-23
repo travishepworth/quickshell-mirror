@@ -11,21 +11,13 @@ import qs.components.widgets.bar.popouts
 // device's name and battery. Click toggles power, middle click runs a
 // command; hovering opens the Bluetooth menu. (Reads BluetoothManager
 // only: inside this file `Bluetooth` would mean this component.)
-IconTextWidget {
+BarIconWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   readonly property var connected: BluetoothManager.connectedDevices
   readonly property var firstDevice: connected[0] ?? null
 
   readonly property bool hidden: properties.hideWhenOff && !BluetoothManager.enabled
-
-  isVertical: barConfig.vertical
 
   icon: !BluetoothManager.enabled ? "\u{F00B2}" : connected.length > 0 ? "\u{F00B1}" : "\u{F00AF}"
   text: {
@@ -41,7 +33,6 @@ IconTextWidget {
   padding: hidden ? 0 : Widget.padding
 
   backgroundColor: Theme.resolveColor(!BluetoothManager.enabled ? properties.disabledColor : connected.length > 0 ? properties.connectedColor : properties.backgroundColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
 
   MouseArea {
@@ -63,7 +54,7 @@ IconTextWidget {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
-    popoutName: "bluetooth"
+    popoutName: "Bluetooth"
     active: root.properties.showPopout && !root.hidden && BluetoothManager.available
   }
 }

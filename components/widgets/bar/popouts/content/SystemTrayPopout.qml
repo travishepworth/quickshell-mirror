@@ -24,7 +24,7 @@ Item {
   readonly property int itemPadding: Widget.padding
   readonly property int minWidth: 350
 
-  property bool openToLeft: false
+  readonly property bool openToLeft: root.wrapper?.openToLeft ?? false
 
   readonly property bool hovered: hoverHandler.hovered || root.submenuOpen
 

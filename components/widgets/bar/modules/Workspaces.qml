@@ -158,7 +158,7 @@ Item {
     id: anchor
     popouts: root.popouts
     panel: root.panel
-    popoutName: "workspace-grid"
+    popoutName: "Workspace"
     active: root.properties.showPopout
     extraData: ({
         monitor: root.monitor,

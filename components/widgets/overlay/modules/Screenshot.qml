@@ -7,6 +7,7 @@ import qs.config
 import qs.services
 import qs.components.reusable
 import qs.components.widgets.overlay
+import qs.components.widgets.overlay.modules.common
 
 // Screenshots with grim + slurp: region, active window or whole screen,
 // saved to `directory` and copied to the clipboard. The overlay closes
@@ -88,39 +89,16 @@ OverlayCard {
     Repeater {
       model: root.modes
 
-      Rectangle {
-        id: button
+      IconToggle {
         required property var modelData
         Layout.fillWidth: true
         Layout.fillHeight: true
-        radius: Appearance.borderRadius
-        color: button.modelData[0] === "record" && root.recording ? Theme.error : buttonArea.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
-        border.color: Theme.border
-        border.width: Appearance.borderWidth
-
-        ColumnLayout {
-          anchors.centerIn: parent
-          spacing: 2
-          StyledText {
-            Layout.alignment: Qt.AlignHCenter
-            text: button.modelData[1]
-            textSize: Math.max(Appearance.fontSize, Math.min(button.width, button.height) * 0.3)
-          }
-          StyledText {
-            visible: !root.compact && button.height > Appearance.fontSize * 4
-            Layout.alignment: Qt.AlignHCenter
-            text: button.modelData[2]
-            textSize: Appearance.fontSize - 2
-          }
-        }
-
-        MouseArea {
-          id: buttonArea
-          anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: root.capture(button.modelData[0])
-        }
+        icon: modelData[1]
+        label: modelData[2]
+        showLabel: !root.compact && height > Appearance.fontSize * 4
+        active: modelData[0] === "record" && root.recording
+        activeColor: Theme.error
+        onClicked: root.capture(modelData[0])
       }
     }
   }

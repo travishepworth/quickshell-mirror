@@ -7,23 +7,16 @@ import qs.config
 import qs.components.reusable
 import qs.components.widgets.notifications
 
-Item {
+PopoutContent {
   id: root
 
-  required property var wrapper
-  // Inside an overlay module: no background of its own, and lists fill
-  // the height it is given instead of their popout cap
-  property bool embedded: false
-  property bool hovered: hoverHandler.hovered
-
-  readonly property int margins: 20
+  margins: 20
+  clip: true
   readonly property int headerHeight: 28
   readonly property int listHeight: 380
 
   implicitWidth: 400
   implicitHeight: margins * 2 + headerHeight + Widget.spacing + listHeight
-  width: implicitWidth
-  height: implicitHeight
 
   // Rebuilt whenever the tracked-notifications model changes; grouped by
   // appName, newest group first.
@@ -64,95 +57,74 @@ Item {
 
   Component.onCompleted: rebuildGroups()
 
-  StyledContainer {
-    id: content
-    anchors.fill: parent
+  RowLayout {
+    Layout.fillWidth: true
+    Layout.preferredHeight: root.headerHeight
+    spacing: Widget.spacing
 
-    backgroundColor: root.embedded ? "transparent" : Theme.background
-    borderColor: Theme.backgroundAlt
-    borderWidth: 0
-    borderRadius: Appearance.borderRadius + 2
-    clip: true
-
-    HoverHandler {
-      id: hoverHandler
+    StyledText {
+      text: I18n.tr("Notifications") + (Notifs.count > 0 ? ` (${Notifs.count})` : "")
+      textSize: Appearance.fontSize * 1.05
+      font.bold: true
+      textColor: Theme.accent
     }
 
+    Item {
+      Layout.fillWidth: true
+    }
+
+    StyledText {
+      text: I18n.tr("DND")
+      textColor: Theme.foregroundAlt
+      textSize: Appearance.fontSize - 1
+    }
+
+    StyledSwitch {
+      checked: Notifs.dnd
+      onToggled: Notifs.dnd = checked
+    }
+
+    StyledTextButton {
+      text: I18n.tr("Clear All")
+      textPadding: 6
+      enabled: Notifs.count > 0
+      opacity: enabled ? 1.0 : 0.5
+      onClicked: Notifs.clearAll()
+    }
+  }
+
+  StyledSeparator {
+    Layout.fillWidth: true
+  }
+
+  StyledScrollView {
+    id: scrollView
+    Layout.fillWidth: true
+    Layout.fillHeight: true
+    showScrollBar: true
+    contentPadding: 0
+
     ColumnLayout {
-      anchors.fill: parent
-      anchors.margins: root.margins
+      width: scrollView.availableWidth
       spacing: Widget.spacing
 
-      RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: root.headerHeight
-        spacing: Widget.spacing
+      Repeater {
+        model: root.groupedNotifications
 
-        StyledText {
-          text: I18n.tr("Notifications") + (Notifs.count > 0 ? ` (${Notifs.count})` : "")
-          textSize: Appearance.fontSize * 1.05
-          font.bold: true
-          textColor: Theme.accent
-        }
-
-        Item {
-          Layout.fillWidth: true
-        }
-
-        StyledText {
-          text: I18n.tr("DND")
-          textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 1
-        }
-
-        StyledSwitch {
-          checked: Notifs.dnd
-          onToggled: Notifs.dnd = checked
-        }
-
-        StyledTextButton {
-          text: I18n.tr("Clear All")
-          textPadding: 6
-          enabled: Notifs.count > 0
-          opacity: enabled ? 1.0 : 0.5
-          onClicked: Notifs.clearAll()
+        NotificationGroupDelegate {
+          required property var modelData
+          groupData: modelData
         }
       }
 
-      StyledSeparator {
+      StyledText {
+        visible: root.groupedNotifications.length === 0
         Layout.fillWidth: true
-      }
-
-      StyledScrollView {
-        id: scrollView
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        showScrollBar: true
-        contentPadding: 0
-
-        ColumnLayout {
-          width: scrollView.availableWidth
-          spacing: Widget.spacing
-
-          Repeater {
-            model: root.groupedNotifications
-
-            NotificationGroupDelegate {
-              required property var modelData
-              groupData: modelData
-            }
-          }
-
-          StyledText {
-            visible: root.groupedNotifications.length === 0
-            Layout.fillWidth: true
-            Layout.topMargin: Widget.padding * 2
-            horizontalAlignment: Text.AlignHCenter
-            text: I18n.tr("No notifications")
-            textColor: Theme.foregroundAlt
-            opacity: 0.6
-          }
-        }
+        Layout.topMargin: Widget.padding * 2
+        horizontalAlignment: Text.AlignHCenter
+        text: I18n.tr("No notifications")
+        textColor: Theme.foregroundAlt
+        opacity: 0.6
       }
     }
   }

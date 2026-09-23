@@ -12,14 +12,8 @@ import qs.components.reusable
 //   mic:    Audio.micCaptures (an app recording from a microphone)
 //   screen: a video source from xdg-desktop-portal linked to a stream
 //   camera: any other video source linked to a stream
-IconTextWidget {
+BarIconWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   readonly property var ignoredApps: (properties.ignoreApps || "").split(",").map(a => a.trim().toLowerCase()).filter(a => a !== "")
 
@@ -56,15 +50,12 @@ IconTextWidget {
   readonly property var glyphs: [...(micUsers.length ? ["\u{F036C}"] : []), ...(screenUsers.length ? ["\u{F0379}"] : []), ...(cameraUsers.length ? ["\u{F0100}"] : [])]
   readonly property bool hidden: glyphs.length === 0
 
-  isVertical: barConfig.vertical
-
   icon: glyphs.join(isVertical ? "\n" : " ")
   showIcon: !hidden
   showText: false
   padding: hidden ? 0 : Widget.padding
 
   backgroundColor: Theme.resolveColor(properties.activeColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
   // Binds the link groups (for their state) and the linked nodes (for
   // media.class / application.name)

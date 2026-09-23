@@ -54,7 +54,7 @@ Item {
     id: anchor
     popouts: root.popouts
     panel: root.panel
-    popoutName: "media-player"
+    popoutName: "Media"
     active: root.properties.showPopout
     openDelay: 150
     alignToSection: true

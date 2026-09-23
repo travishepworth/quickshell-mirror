@@ -9,23 +9,14 @@ import qs.components.reusable
 // Caffeine toggle: while on, the compositor (and hypridle) won't treat the
 // session as idle. State is shared through IdleInhibit, so every bar's
 // widget and the IPC target stay in sync.
-IconTextWidget {
+BarIconWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
-
-  isVertical: barConfig.vertical
 
   icon: IdleInhibit.enabled ? "\u{F0176}" : "\u{F0FAA}"
   text: I18n.tr(IdleInhibit.enabled ? "Awake" : "Idle")
   showText: properties.showLabel
 
   backgroundColor: Theme.resolveColor(IdleInhibit.enabled ? properties.activeColor : properties.inactiveColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
 
   IdleInhibitor {

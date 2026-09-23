@@ -6,26 +6,17 @@ import qs.services
 import qs.config
 import qs.components.reusable
 
-IconTextWidget {
+BarIconWidget {
   id: root
 
   property bool isConnected: false
   property string tailnetName: ""
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
-
-  isVertical: barConfig.vertical
 
   icon: isConnected ? "󰳌" : "󰌙"
   text: isConnected ? (properties.label || tailnetName) : ""
   showText: properties.showLabel
 
   backgroundColor: Theme.resolveColor(isConnected ? properties.connectedColor : properties.disconnectedColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
   iconScale: 1.1
   textScale: 0.9

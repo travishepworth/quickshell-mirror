@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import qs.config
+import qs.components.methods
 import qs.components.reusable
 import qs.components.widgets.overlay
 
@@ -15,28 +16,18 @@ OverlayCard {
   readonly property bool showCalendar: !root.compact && root.shape !== "horizontal" && root.rows >= 2
   readonly property date now: clock.date
   property int monthOffset: 0
-  readonly property date shownMonth: new Date(root.now.getFullYear(), root.now.getMonth() + root.monthOffset, 1)
+  // Plain numbers and a date string: they only notify when the month or
+  // day actually changes, not on every clock tick
+  readonly property int shownYear: new Date(root.now.getFullYear(), root.now.getMonth() + root.monthOffset, 1).getFullYear()
+  readonly property int shownMonthIndex: new Date(root.now.getFullYear(), root.now.getMonth() + root.monthOffset, 1).getMonth()
+  readonly property date shownMonth: new Date(root.shownYear, root.shownMonthIndex, 1)
+  readonly property string today: root.now.toDateString()
   readonly property int firstDay: I18n.locale.firstDayOfWeek % 7
   // The language's time format (e.g. 午後 3:05 in Japanese), seconds added after the minutes
   readonly property string timeFormat: I18n.dateFormat(root.properties.use24h ?? true ? "time24" : "time12").replace("mm", root.properties.showSeconds ? "mm:ss" : "mm")
 
-  // 6 weeks of days for the shown month: { day, inMonth, today }
-  readonly property var days: {
-    const first = root.shownMonth;
-    const start = new Date(first);
-    start.setDate(1 - ((first.getDay() - root.firstDay + 7) % 7));
-    const out = [];
-    for (let i = 0; i < 42; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      out.push({
-        "day": d.getDate(),
-        "inMonth": d.getMonth() === first.getMonth(),
-        "today": d.toDateString() === root.now.toDateString()
-      });
-    }
-    return out;
-  }
+  // 6 weeks of days for the shown month
+  readonly property var days: Utils.monthGrid(root.shownYear, root.shownMonthIndex, root.firstDay, root.today)
 
   SystemClock {
     id: clock
@@ -140,12 +131,12 @@ OverlayCard {
               width: Math.min(parent.width, parent.height) * 0.9
               height: width
               radius: width / 2
-              color: cell.modelData.today ? Theme.accent : "transparent"
+              color: cell.modelData.isToday ? Theme.accent : "transparent"
             }
             StyledText {
               anchors.centerIn: parent
               text: cell.modelData.day
-              textColor: cell.modelData.today ? Theme.background : Theme.foreground
+              textColor: cell.modelData.isToday ? Theme.background : Theme.foreground
               opacity: cell.modelData.inMonth ? 1 : 0.3
               textSize: Appearance.fontSize - 1
             }

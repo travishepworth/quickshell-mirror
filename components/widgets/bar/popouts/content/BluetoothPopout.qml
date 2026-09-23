@@ -10,14 +10,8 @@ import qs.components.reusable
 // Bluetooth menu for the Bluetooth widget: power switch, a Devices tab for
 // paired devices (connect / disconnect / forget) and a Discover tab that
 // scans while it's open and pairs + connects on click.
-Item {
+PopoutContent {
   id: root
-
-  required property var wrapper
-  // Inside an overlay module: no background of its own, and lists fill
-  // the height it is given instead of their popout cap
-  property bool embedded: false
-  property bool hovered: hoverHandler.hovered
 
   property int currentTab: 0
   // Only stop a scan this popout started
@@ -25,13 +19,10 @@ Item {
 
   readonly property var shownDevices: currentTab === 0 ? BluetoothManager.pairedDevices : BluetoothManager.discoveredDevices
 
-  readonly property int margins: 16
+  margins: 16
   readonly property int maxListHeight: 360
 
   implicitWidth: 360
-  implicitHeight: column.implicitHeight + margins * 2
-  width: implicitWidth
-  height: implicitHeight
 
   function updateScan() {
     const want = currentTab === 1 && BluetoothManager.enabled;
@@ -147,121 +138,103 @@ Item {
     }
   }
 
-  StyledContainer {
-    anchors.fill: parent
-    backgroundColor: root.embedded ? "transparent" : Theme.background
-    borderWidth: 0
-    borderRadius: Appearance.borderRadius + 2
+  RowLayout {
+    Layout.fillWidth: true
+    spacing: Widget.spacing
 
-    HoverHandler {
-      id: hoverHandler
+    StyledText {
+      Layout.fillWidth: true
+      text: BluetoothManager.adapter?.name ? I18n.tr("Bluetooth · {0}", BluetoothManager.adapter.name) : I18n.tr("Bluetooth")
+      elide: Text.ElideRight
+      font.bold: true
+      textColor: Theme.accent
     }
 
+    StyledText {
+      visible: BluetoothManager.discovering
+      text: I18n.tr("Scanning…")
+      textSize: Appearance.fontSize - 2
+      textColor: Theme.foregroundAlt
+    }
+
+    StyledSwitch {
+      enabled: BluetoothManager.available && !BluetoothManager.blocked
+      checked: BluetoothManager.enabled
+      onToggled: BluetoothManager.setEnabled(checked)
+    }
+  }
+
+  StyledText {
+    Layout.fillWidth: true
+    Layout.topMargin: Widget.padding
+    Layout.bottomMargin: Widget.padding
+    visible: !BluetoothManager.enabled
+    horizontalAlignment: Text.AlignHCenter
+    wrapMode: Text.WordWrap
+    text: I18n.tr(!BluetoothManager.available ? "No Bluetooth adapter found" : BluetoothManager.blocked ? "Bluetooth is blocked (rfkill)" : "Bluetooth is off")
+    textColor: Theme.foregroundAlt
+  }
+
+  StyledSeparator {
+    visible: BluetoothManager.enabled
+    Layout.fillWidth: true
+    separatorColor: Theme.backgroundHighlight
+  }
+
+  RowLayout {
+    visible: BluetoothManager.enabled
+    Layout.fillWidth: true
+    Layout.preferredHeight: 32
+    spacing: Widget.spacing
+
+    Repeater {
+      model: [I18n.tr("Devices ({0})", BluetoothManager.pairedDevices.length), I18n.tr("Discover")]
+
+      StyledTabButton {
+        required property int index
+        required property string modelData
+        text: modelData
+        checked: root.currentTab === index
+        onClicked: root.currentTab = index
+      }
+    }
+  }
+
+  StyledScrollView {
+    id: scroll
+    visible: BluetoothManager.enabled
+    Layout.fillWidth: true
+    Layout.preferredHeight: root.embedded ? -1 : Math.min(root.maxListHeight, list.implicitHeight)
+    Layout.fillHeight: root.embedded
+    contentPadding: 0
+    showScrollBar: root.embedded || list.implicitHeight > root.maxListHeight
+
     ColumnLayout {
-      id: column
-      anchors.fill: parent
-      anchors.margins: root.margins
-      spacing: Widget.spacing
+      id: list
+      width: scroll.availableWidth
+      spacing: 2
 
-      RowLayout {
-        Layout.fillWidth: true
-        spacing: Widget.spacing
+      NumberAnimation on opacity {
+        id: fadeIn
+        from: 0
+        to: 1
+        duration: Appearance.animNormal
+      }
 
-        StyledText {
-          Layout.fillWidth: true
-          text: BluetoothManager.adapter?.name ? I18n.tr("Bluetooth · {0}", BluetoothManager.adapter.name) : I18n.tr("Bluetooth")
-          elide: Text.ElideRight
-          font.bold: true
-          textColor: Theme.accent
-        }
+      Repeater {
+        model: root.shownDevices
 
-        StyledText {
-          visible: BluetoothManager.discovering
-          text: I18n.tr("Scanning…")
-          textSize: Appearance.fontSize - 2
-          textColor: Theme.foregroundAlt
-        }
-
-        StyledSwitch {
-          enabled: BluetoothManager.available && !BluetoothManager.blocked
-          checked: BluetoothManager.enabled
-          onToggled: BluetoothManager.setEnabled(checked)
-        }
+        DeviceRow {}
       }
 
       StyledText {
         Layout.fillWidth: true
         Layout.topMargin: Widget.padding
         Layout.bottomMargin: Widget.padding
-        visible: !BluetoothManager.enabled
+        visible: root.shownDevices.length === 0
         horizontalAlignment: Text.AlignHCenter
-        wrapMode: Text.WordWrap
-        text: I18n.tr(!BluetoothManager.available ? "No Bluetooth adapter found" : BluetoothManager.blocked ? "Bluetooth is blocked (rfkill)" : "Bluetooth is off")
+        text: I18n.tr(root.currentTab === 0 ? "No paired devices" : "Looking for devices…")
         textColor: Theme.foregroundAlt
-      }
-
-      StyledSeparator {
-        visible: BluetoothManager.enabled
-        Layout.fillWidth: true
-        separatorColor: Theme.backgroundHighlight
-      }
-
-      RowLayout {
-        visible: BluetoothManager.enabled
-        Layout.fillWidth: true
-        Layout.preferredHeight: 32
-        spacing: Widget.spacing
-
-        Repeater {
-          model: [I18n.tr("Devices ({0})", BluetoothManager.pairedDevices.length), I18n.tr("Discover")]
-
-          StyledTabButton {
-            required property int index
-            required property string modelData
-            text: modelData
-            checked: root.currentTab === index
-            onClicked: root.currentTab = index
-          }
-        }
-      }
-
-      StyledScrollView {
-        id: scroll
-        visible: BluetoothManager.enabled
-        Layout.fillWidth: true
-        Layout.preferredHeight: root.embedded ? -1 : Math.min(root.maxListHeight, list.implicitHeight)
-        Layout.fillHeight: root.embedded
-        contentPadding: 0
-        showScrollBar: root.embedded || list.implicitHeight > root.maxListHeight
-
-        ColumnLayout {
-          id: list
-          width: scroll.availableWidth
-          spacing: 2
-
-          NumberAnimation on opacity {
-            id: fadeIn
-            from: 0
-            to: 1
-            duration: Appearance.animNormal
-          }
-
-          Repeater {
-            model: root.shownDevices
-
-            DeviceRow {}
-          }
-
-          StyledText {
-            Layout.fillWidth: true
-            Layout.topMargin: Widget.padding
-            Layout.bottomMargin: Widget.padding
-            visible: root.shownDevices.length === 0
-            horizontalAlignment: Text.AlignHCenter
-            text: I18n.tr(root.currentTab === 0 ? "No paired devices" : "Looking for devices…")
-            textColor: Theme.foregroundAlt
-          }
-        }
       }
     }
   }

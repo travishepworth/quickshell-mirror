@@ -17,17 +17,14 @@ QtObject {
   readonly property bool checking: _repo.running || _aur.running
 
   function acquire(owner, request) {
-    const consumers = _consumers.filter(c => c.owner !== owner);
-    consumers.push({
-      "owner": owner,
+    _registry.acquire(owner, {
       "interval": (request?.intervalMinutes ?? 30) * 60000,
       "aurHelper": request?.aurHelper ?? ""
     });
-    _consumers = consumers;
   }
 
   function release(owner) {
-    _consumers = _consumers.filter(c => c.owner !== owner);
+    _registry.release(owner);
   }
 
   function refresh() {
@@ -41,7 +38,8 @@ QtObject {
     } else if (_aur.running) {
       _aurPending = true;
     } else {
-      _aur.command = ["sh", "-c", `command -v ${_aurHelper} >/dev/null || exit 127; ${_aurHelper} -Qua`];
+      // The helper goes in as an argument, never into the script text
+      _aur.command = ["sh", "-c", 'command -v "$1" >/dev/null || exit 127; "$1" -Qua', "sh", _aurHelper];
       _aur.running = true;
     }
   }
@@ -55,13 +53,14 @@ QtObject {
   }
 
   // -- Private --
-  property var _consumers: []
+  property ConsumerRegistry _registry: ConsumerRegistry {}
+  readonly property var _requests: _registry.requests
   property bool _repoPending: false
   property bool _aurPending: false
 
-  readonly property bool _active: _consumers.length > 0
-  readonly property int _interval: _active ? Math.min(..._consumers.map(c => c.interval)) : 1800000
-  readonly property string _aurHelper: _consumers.find(c => c.aurHelper !== "")?.aurHelper ?? ""
+  readonly property bool _active: _registry.active
+  readonly property int _interval: _active ? Math.min(..._requests.map(r => r.interval)) : 1800000
+  readonly property string _aurHelper: _requests.find(r => r.aurHelper !== "")?.aurHelper ?? ""
 
   // Check straight away when the first widget appears or the AUR setting
   // changes; the Timer coalesces a burst of registrations into one check

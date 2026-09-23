@@ -11,19 +11,11 @@ import qs.components.widgets.bar.popouts
 // webcam); the background shows when an app is recording from the mic.
 // Scroll changes the volume, click mutes, middle click runs a command;
 // hovering opens the mixer on its input side.
-IconTextWidget {
+BarIconWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   readonly property real maxVolume: properties.maxVolume / 100
   readonly property bool hidden: properties.hideWhenIdle && !Audio.micInUse && !Audio.sourceMuted
-
-  isVertical: barConfig.vertical
 
   icon: Audio.inputIcon(Audio.deviceKind(Audio.defaultSource), Audio.sourceMuted)
   text: `${Math.round(Audio.sourceVolume * 100)}%`
@@ -32,7 +24,6 @@ IconTextWidget {
   padding: hidden ? 0 : Widget.padding
 
   backgroundColor: Theme.resolveColor(Audio.sourceMuted ? properties.mutedColor : Audio.micInUse ? properties.activeColor : properties.backgroundColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
 
   MouseArea {
@@ -58,7 +49,7 @@ IconTextWidget {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
-    popoutName: "audio-mixer"
+    popoutName: "AudioMixer"
     active: root.properties.showPopout && !root.hidden
     extraData: ({
         "mode": "input",

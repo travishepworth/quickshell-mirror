@@ -24,7 +24,6 @@ Item {
       opacity: 0.6
     }
 
-    // Acts as the `form` for its SchemaField rows (valueAt + edited)
     ColumnLayout {
       id: form
       visible: form.sel !== null
@@ -51,36 +50,6 @@ Item {
       // A string, so property edits don't rebuild the rows
       readonly property string moduleType: form.module?.type ?? ""
       readonly property var propertiesSchema: OverlayConfig.availableModuleTypes.find(t => t.type === form.moduleType)?.propertiesSchema ?? ({})
-      readonly property var rows: Object.keys(form.propertiesSchema).map(key => ({
-            "kind": "field",
-            "title": form.propertiesSchema[key].title ?? key,
-            "path": [key],
-            "schema": form.propertiesSchema[key]
-          }))
-
-      signal edited(var path, var value)
-      onEdited: (path, value) => OverlayManager.updateModuleProperty(form.sel.column, form.sel.cell, form.sel.slot, path[0], value)
-
-      function valueAt(path) {
-        return form.module?.properties?.[path[0]] ?? form.propertiesSchema[path[0]]?.default;
-      }
-
-      // `x-showIf: { sibling: value | [values] | { not: value } }`
-      function isShown(fieldSchema) {
-        const condition = fieldSchema["x-showIf"];
-        if (!condition)
-          return true;
-        return Object.keys(condition).every(key => {
-          const want = condition[key];
-          const value = form.valueAt([key]);
-          if (Array.isArray(want))
-            return want.includes(value);
-          if (want !== null && typeof want === "object")
-            return value !== want.not;
-          return value === want;
-        });
-      }
-
       StyledText {
         text: form.sel ? I18n.tr("Column {0} · cell {1} · {2} ({3})", form.sel.column + 1, form.sel.cell + 1, I18n.tr(form.sel.slot), I18n.tr(form.shape)) : ""
         opacity: 0.6
@@ -109,15 +78,12 @@ Item {
         textColor: Theme.error
       }
 
-      Repeater {
-        model: form.rows
-
-        delegate: SchemaField {
-          required property var modelData
-          row: modelData
-          form: form
-          visible: form.isShown(modelData.schema)
-        }
+      SchemaPropertiesForm {
+        Layout.fillWidth: true
+        spacing: Widget.spacing * 2
+        propertiesSchema: form.propertiesSchema
+        values: form.module?.properties ?? ({})
+        onEdited: (path, value) => OverlayManager.updateModuleProperty(form.sel.column, form.sel.cell, form.sel.slot, path[0], value)
       }
     }
   }
