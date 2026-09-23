@@ -65,23 +65,23 @@ OverlayCard {
     Dial {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      level: Audio.volume
-      muted: Audio.muted
-      icon: Audio.muted ? "\u{F0581}" : "\u{F057E}"
+      level: AudioManager.volume
+      muted: AudioManager.muted
+      icon: AudioManager.muted ? "\u{F0581}" : "\u{F057E}"
       label: I18n.tr("Output")
-      onToggled: Audio.toggleMute()
-      onStepped: delta => Audio.setVolume(Math.max(0, Math.min(1, Audio.volume + delta)))
+      onToggled: AudioManager.toggleMute()
+      onStepped: delta => AudioManager.setVolume(Math.max(0, Math.min(1, AudioManager.volume + delta)))
     }
     Dial {
       visible: !root.compact
       Layout.fillWidth: true
       Layout.fillHeight: true
-      level: Audio.sourceVolume
-      muted: Audio.sourceMuted
-      icon: Audio.sourceMuted ? "\u{F036D}" : "\u{F036C}"
+      level: AudioManager.sourceVolume
+      muted: AudioManager.sourceMuted
+      icon: AudioManager.sourceMuted ? "\u{F036D}" : "\u{F036C}"
       label: I18n.tr("Mic")
-      onToggled: Audio.toggleSourceMute()
-      onStepped: delta => Audio.setSourceVolume(Math.max(0, Math.min(1, Audio.sourceVolume + delta)), 1)
+      onToggled: AudioManager.toggleSourceMute()
+      onStepped: delta => AudioManager.setSourceVolume(Math.max(0, Math.min(1, AudioManager.sourceVolume + delta)), 1)
     }
   }
 }

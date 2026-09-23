@@ -23,24 +23,25 @@ QtObject {
   property var selectedSlot: null
 
   // Why the sandbox can't be saved as is (empty = savable)
+  // Shapes are shown translated: I18n.tr("square") I18n.tr("horizontal") I18n.tr("vertical")
   readonly property var problems: {
     const out = [];
     root.localViews.forEach((view, v) => {
       if (view.type !== "Custom")
         return;
-      const name = view.name || `View ${v + 1}`;
+      const name = view.name || I18n.tr("View {0}", v + 1);
       if (!view.columns || view.columns.length === 0)
-        out.push(`${name} has no columns`);
+        out.push(I18n.tr("{0} has no columns", name));
       else
         view.columns.forEach((column, c) => {
           if (!column.cells || column.cells.length === 0)
-            out.push(`${name}: column ${c + 1} has no cells`);
+            out.push(I18n.tr("{0}: column {1} has no cells", name, c + 1));
           (column.cells ?? []).forEach(cell => {
             const slots = OverlayConfig.layouts[cell.layout]?.slots ?? {};
             Object.keys(cell.slots ?? {}).forEach(slot => {
               const type = cell.slots[slot]?.type;
               if (type && slots[slot] && !OverlayConfig.fits(type, slots[slot]))
-                out.push(`${name}: ${type} doesn't fit a ${OverlayConfig.slotShape(slots[slot])} slot`);
+                out.push(I18n.tr("{0}: {1} doesn't fit a {2} slot", name, type, I18n.tr(OverlayConfig.slotShape(slots[slot]))));
             });
           });
         });

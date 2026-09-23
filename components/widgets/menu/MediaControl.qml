@@ -65,7 +65,7 @@ StyledContainer {
     id: mediaControlLoader
     anchors.fill: parent
     anchors.margins: root.widgetPadding
-    active: root.visible && MprisController.hasActivePlayer
+    active: root.visible && MediaManager.hasActivePlayer
 
     sourceComponent: RowLayout {
       id: mainLayout
@@ -85,7 +85,7 @@ StyledContainer {
           fillMode: Image.PreserveAspectCrop
           // The downloaded copy (see MprisController): the remote URL can
           // fail to load, and artVersion changes whenever a new file lands
-          source: MprisController.artDownloaded && MprisController.artVersion >= 0 ? "file://" + MprisController.artFilePath : ""
+          source: MediaManager.artDownloaded && MediaManager.artVersion >= 0 ? "file://" + MediaManager.artFilePath : ""
           smooth: true
           asynchronous: true
           cache: true
@@ -103,7 +103,7 @@ StyledContainer {
 
         StyledText {
           Layout.fillWidth: true
-          text: MprisController.trackTitle
+          text: MediaManager.trackTitle
           textSize: root.titleFontSize
           textColor: root.titleColor
           elide: Text.ElideRight
@@ -111,7 +111,7 @@ StyledContainer {
 
         StyledText {
           Layout.fillWidth: true
-          text: MprisController.trackArtist
+          text: MediaManager.trackArtist
           textSize: root.artistFontSize
           textColor: root.artistColor
           elide: Text.ElideRight
@@ -123,14 +123,14 @@ StyledContainer {
 
           StyledText {
             id: positionDisplay
-            text: MprisController.formatTime(MprisController.position)
+            text: MediaManager.formatTime(MediaManager.position)
             textSize: root.timeFontSize
             textColor: root.timeColor
           }
 
           StyledIconButton {
             iconText: "󰒮"
-            onClicked: MprisController.previous()
+            onClicked: MediaManager.previous()
             iconColor: root.buttonIconColor
             backgroundColor: root.buttonBackgroundColor
             Layout.fillWidth: false
@@ -147,22 +147,22 @@ StyledContainer {
             Layout.leftMargin: root.spacerWidth
             Layout.rightMargin: root.spacerWidth
 
-            enabled: root.showProgressBar && MprisController.hasActivePlayer && MprisController.length > 0
-            visible: root.showProgressBar && MprisController.hasActivePlayer && MprisController.length > 0
+            enabled: root.showProgressBar && MediaManager.hasActivePlayer && MediaManager.length > 0
+            visible: root.showProgressBar && MediaManager.hasActivePlayer && MediaManager.length > 0
 
             handleColor: Theme.backgroundAlt
 
             property bool userInteracting: false
-            property string currentTrackTitle: MprisController.trackTitle || ""
+            property string currentTrackTitle: MediaManager.trackTitle || ""
 
-            value: userInteracting ? value : MprisController.progress
+            value: userInteracting ? value : MediaManager.progress
 
             onMoved: newValue => {
               userInteracting = true;
             }
 
             onReleased: newValue => {
-              MprisController.setPositionByRatio(newValue);
+              MediaManager.setPositionByRatio(newValue);
               resetTimer.restart();
             }
 
@@ -175,30 +175,30 @@ StyledContainer {
 
             Timer {
               interval: 1000
-              running: MprisController.isPlaying && MprisController.hasActivePlayer
+              running: MediaManager.isPlaying && MediaManager.hasActivePlayer
               repeat: true
               onTriggered: {
-                MprisController.updatePosition();
+                MediaManager.updatePosition();
               }
             }
 
             onCurrentTrackTitleChanged: {
               userInteracting = false;
-              MprisController.updatePosition();
+              MediaManager.updatePosition();
             }
 
             Connections {
-              target: MprisController
+              target: MediaManager
 
               function onPositionChanged() {
                 if (!progressSlider.userInteracting) {
-                  progressSlider.value = MprisController.progress;
+                  progressSlider.value = MediaManager.progress;
                 }
               }
 
               function onMetadataUpdated() {
-                if (!progressSlider.userInteracting && MprisController.position < 1000) {
-                  progressSlider.value = MprisController.progress;
+                if (!progressSlider.userInteracting && MediaManager.position < 1000) {
+                  progressSlider.value = MediaManager.progress;
                 }
               }
             }
@@ -206,7 +206,7 @@ StyledContainer {
 
           StyledIconButton {
             iconText: "󰒭"
-            onClicked: MprisController.next()
+            onClicked: MediaManager.next()
             iconColor: root.buttonIconColor
             backgroundColor: root.buttonBackgroundColor
             Layout.fillWidth: false
@@ -216,7 +216,7 @@ StyledContainer {
           }
 
           StyledText {
-            text: MprisController.formatTime(MprisController.length)
+            text: MediaManager.formatTime(MediaManager.length)
             textSize: root.timeFontSize
             textColor: root.timeColor
           }
@@ -233,11 +233,11 @@ StyledContainer {
           anchors.centerIn: parent
           anchors.leftMargin: root.controlButtonsLeftMargin
           anchors.rightMargin: root.controlButtonsRightMargin
-          iconText: MprisController.isPlaying ? "󰏤" : "󰐊"
+          iconText: MediaManager.isPlaying ? "󰏤" : "󰐊"
           iconSize: root.playIconFontSize
-          onClicked: MprisController.togglePlayPause()
-          iconColor: MprisController.isPlaying ? root.playIconColor : root.pauseIconColor
-          backgroundColor: MprisController.isPlaying ? root.playBackgroundColor : root.pauseBackgroundColor
+          onClicked: MediaManager.togglePlayPause()
+          iconColor: MediaManager.isPlaying ? root.playIconColor : root.pauseIconColor
+          backgroundColor: MediaManager.isPlaying ? root.playBackgroundColor : root.pauseBackgroundColor
           width: root.playButtonSize
           height: root.playButtonSize
         }

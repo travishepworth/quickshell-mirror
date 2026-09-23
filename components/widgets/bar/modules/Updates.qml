@@ -15,8 +15,8 @@ BarIconWidget {
   id: root
 
   // [{ name, from, to }], checked by the shared PackageUpdates service
-  readonly property var repoPackages: PackageUpdates.repoPackages
-  readonly property var aurPackages: properties.includeAur ? PackageUpdates.aurPackages : []
+  readonly property var repoPackages: UpdatesManager.repoPackages
+  readonly property var aurPackages: properties.includeAur ? UpdatesManager.aurPackages : []
   readonly property int count: repoPackages.length + aurPackages.length
 
   readonly property bool hidden: properties.hideWhenEmpty && count === 0
@@ -33,20 +33,20 @@ BarIconWidget {
 
   // Re-registering replaces the old request
   function register() {
-    PackageUpdates.acquire(root, {
+    UpdatesManager.acquire(root, {
       "intervalMinutes": properties.intervalMinutes,
       "aurHelper": properties.includeAur ? properties.aurHelper : ""
     });
   }
   onPropertiesChanged: register()
   Component.onCompleted: register()
-  Component.onDestruction: PackageUpdates.release(root)
+  Component.onDestruction: UpdatesManager.release(root)
 
   // Runs until the terminal closes, then re-checks
   Process {
     id: upgrader
     command: [root.properties.terminal, "-e", "bash", "-c", `${root.upgradeCommand}; echo; read -n 1 -s -r -p "Press any key to close"`]
-    onExited: PackageUpdates.refresh()
+    onExited: UpdatesManager.refresh()
   }
 
   MouseArea {
@@ -57,7 +57,7 @@ BarIconWidget {
     acceptedButtons: Qt.LeftButton | Qt.RightButton
     onClicked: mouse => {
       if (mouse.button === Qt.RightButton)
-        PackageUpdates.refresh();
+        UpdatesManager.refresh();
       else if (!upgrader.running)
         upgrader.running = true;
     }

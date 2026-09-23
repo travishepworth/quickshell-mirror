@@ -15,15 +15,15 @@ BarIconWidget {
   id: root
 
   readonly property real maxVolume: properties.maxVolume / 100
-  readonly property bool hidden: properties.hideWhenIdle && !Audio.micInUse && !Audio.sourceMuted
+  readonly property bool hidden: properties.hideWhenIdle && !AudioManager.micInUse && !AudioManager.sourceMuted
 
-  icon: Audio.inputIcon(Audio.deviceKind(Audio.defaultSource), Audio.sourceMuted)
-  text: `${Math.round(Audio.sourceVolume * 100)}%`
+  icon: AudioManager.inputIcon(AudioManager.deviceKind(AudioManager.defaultSource), AudioManager.sourceMuted)
+  text: `${Math.round(AudioManager.sourceVolume * 100)}%`
   showIcon: !hidden
   showText: properties.showPercentage && !hidden
   padding: hidden ? 0 : Widget.padding
 
-  backgroundColor: Theme.resolveColor(Audio.sourceMuted ? properties.mutedColor : Audio.micInUse ? properties.activeColor : properties.backgroundColor)
+  backgroundColor: Theme.resolveColor(AudioManager.sourceMuted ? properties.mutedColor : AudioManager.micInUse ? properties.activeColor : properties.backgroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
 
   MouseArea {
@@ -37,12 +37,12 @@ BarIconWidget {
         if (root.properties.middleCommand)
           Quickshell.execDetached(["sh", "-c", root.properties.middleCommand]);
       } else {
-        Audio.toggleSourceMute();
+        AudioManager.toggleSourceMute();
       }
     }
     onWheel: wheel => {
       const step = root.properties.scrollStep / 100;
-      Audio.stepNodeVolume(Audio.defaultSource, wheel.angleDelta.y > 0 ? step : -step, root.maxVolume);
+      AudioManager.stepNodeVolume(AudioManager.defaultSource, wheel.angleDelta.y > 0 ? step : -step, root.maxVolume);
     }
   }
 

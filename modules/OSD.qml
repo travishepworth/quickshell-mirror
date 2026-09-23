@@ -55,7 +55,7 @@ Item {
       }
 
       Connections {
-        target: Audio
+        target: AudioManager
 
         function onVolumeChanged() {
           root.poke(true);
@@ -102,9 +102,9 @@ Item {
                 useSystemVolume: isMasterSlot
                 iconSource: {
                   if (isMasterSlot) {
-                    if (Audio.muted || Audio.volume === 0)
+                    if (AudioManager.muted || AudioManager.volume === 0)
                       return "";
-                    if (Audio.volume > 0.4)
+                    if (AudioManager.volume > 0.4)
                       return " ";
                     return " ";
                   }

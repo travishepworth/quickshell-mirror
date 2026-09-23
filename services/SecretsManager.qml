@@ -48,7 +48,7 @@ QtObject {
     try {
       return JSON.parse(content);
     } catch (e) {
-      console.error("[Secrets] Could not parse", secretsPath, e);
+      console.error("[SecretsManager] Could not parse", secretsPath, e);
       return {};
     }
   }
@@ -63,9 +63,9 @@ QtObject {
     }
     onExited: (code, status) => {
       if (code !== 0)
-        console.error("[Secrets] Failed to write", root.secretsPath);
+        console.error("[SecretsManager] Failed to write", root.secretsPath);
       else
-        console.log("[Secrets] Saved", root.secretsPath);
+        console.log("[SecretsManager] Saved", root.secretsPath);
     }
   }
 }

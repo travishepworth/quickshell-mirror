@@ -23,11 +23,11 @@ OverlayCard {
       Layout.margins: root.pad / 2
       spacing: Widget.spacing / 2
       Repeater {
-        model: [["output", "\u{F057E}", "Output"], ["input", "\u{F036C}", "Input"]]
+        model: [["output", "\u{F057E}", I18n.tr("Output")], ["input", "\u{F036C}", I18n.tr("Input")]]
         StyledTabButton {
           required property var modelData
           Layout.fillWidth: true
-          text: `${modelData[1]}  ${I18n.tr(modelData[2])}`
+          text: modelData[1] + "  " + modelData[2]
           checked: root.mode === modelData[0]
           onClicked: root.mode = modelData[0]
         }

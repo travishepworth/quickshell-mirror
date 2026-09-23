@@ -6,7 +6,7 @@ import qs.config
 import qs.components.widgets.notifications
 
 // Stacks incoming notifications as toasts near the top-left of the screen
-// (offset past the bar), driven by Notifs.showPopup. Dismissing a toast
+// (offset past the bar), driven by NotificationManager.showPopup. Dismissing a toast
 // only hides it — the notification stays tracked and remains visible/
 // actionable from the bell popout.
 Scope {
@@ -57,8 +57,8 @@ Scope {
   }
 
   Component.onCompleted: {
-    if (typeof Notifs !== "undefined") {
-      Notifs.showPopup.connect(createToast);
+    if (typeof NotificationManager !== "undefined") {
+      NotificationManager.showPopup.connect(createToast);
     }
   }
 

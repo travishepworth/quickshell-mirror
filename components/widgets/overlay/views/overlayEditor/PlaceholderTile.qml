@@ -6,6 +6,7 @@ import qs.components.methods
 import qs.components.reusable
 import qs.components.widgets.overlay
 
+// i18n: keys from callers and the schema (titles, descriptions, type labels)
 // Stand-in for a module in the editor preview: its name (plus a hint for
 // modules whose look depends on their properties), clickable to edit the
 // slot. Positioned by PreviewCell.
@@ -63,7 +64,7 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         elide: Text.ElideRight
         visible: text !== ""
-        text: root.fits ? root.detail : "doesn't fit"
+        text: root.fits ? root.detail : I18n.tr("doesn't fit")
         textColor: root.ink
         textSize: Appearance.fontSize - 4
         opacity: 0.7

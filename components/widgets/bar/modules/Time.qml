@@ -36,10 +36,9 @@ Item {
     precision: root.showSeconds || root.properties.timeFormat.includes("s") ? SystemClock.Seconds : SystemClock.Minutes
   }
 
-  readonly property var _jpDays: ["日", "月", "火", "水", "木", "金", "土"]
-
-  function _jpMeridiem(date) {
-    return date.getHours() < 12 ? "午前" : "午後";
+  // AM/PM in the shell's language (午前/午後 in Japanese)
+  function _meridiem(date) {
+    return date.getHours() < 12 ? I18n.locale.amText : I18n.locale.pmText;
   }
 
   // One-line time and date, for a horizontal bar
@@ -47,9 +46,7 @@ Item {
     const date = clock.date;
     if (properties.timeFormat)
       return I18n.formatDate(date, properties.timeFormat);
-    if (japanese)
-      return (use24Hour ? "" : _jpMeridiem(date)) + I18n.formatDate(date, (use24Hour ? "H" : "h") + "時mm分" + (showSeconds ? "ss秒" : ""));
-    return I18n.formatDate(date, (use24Hour ? "HH:mm" : "hh:mm") + (showSeconds ? ":ss" : "") + (use24Hour ? "" : " ap"));
+    return I18n.formatDate(date, I18n.dateFormat((use24Hour ? "clock24" : "clock12") + (showSeconds ? "s" : "")));
   }
   readonly property string dateText: I18n.formatDate(clock.date, properties.dateFormat || I18n.dateFormat("mediumDate"))
 
@@ -61,11 +58,12 @@ Item {
     if (japanese) {
       const lines = [];
       if (!use24Hour)
-        lines.push(_line(_jpMeridiem(date), 0.7, false, 0.9));
-      lines.push(_line(I18n.formatDate(date, use24Hour ? "H" : "h") + "\n時"));
-      lines.push(_line(I18n.formatDate(date, "mm") + "\n分"));
+        lines.push(_line(_meridiem(date), 0.7, false, 0.9));
+      // Number over its unit; the units are dictionary entries
+      lines.push(_line(I18n.formatDate(date, use24Hour ? "H" : "h") + "\n" + I18n.tr("hour")));
+      lines.push(_line(I18n.formatDate(date, "mm") + "\n" + I18n.tr("minute")));
       if (showSeconds)
-        lines.push(_line(I18n.formatDate(date, "ss") + "\n秒"));
+        lines.push(_line(I18n.formatDate(date, "ss") + "\n" + I18n.tr("second")));
       return lines;
     }
     const lines = [_line(I18n.formatDate(date, use24Hour ? "HH" : "hh.ap").replace(/\.(am|pm)$/i, ""), 1.1, true), _line(I18n.formatDate(date, "mm"), 0.9, true)];
@@ -80,7 +78,7 @@ Item {
     if (properties.dateFormat)
       return _split(dateText);
     if (japanese)
-      return [_line(I18n.formatDate(date, "M") + "\n月"), _line(I18n.formatDate(date, "d") + "\n日"), _line(_jpDays[date.getDay()])];
+      return [_line(I18n.formatDate(date, "M") + "\n" + I18n.tr("month")), _line(I18n.formatDate(date, "d") + "\n" + I18n.tr("day")), _line(I18n.locale.dayName(date.getDay(), Locale.NarrowFormat))];
     return [_line(I18n.formatDate(date, "MMM"), 0.8), _line(I18n.formatDate(date, "dd"), 1.1, true), _line(I18n.formatDate(date, "ddd"), 0.7, false, 0.8)];
   }
 

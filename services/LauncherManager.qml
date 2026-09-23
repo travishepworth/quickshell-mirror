@@ -22,9 +22,8 @@ QtObject {
 
   property var _stateHandler: StateManager.createStateHandler("launcher")
 
-
   // --- Public Signals ---
-  signal appsFiltered()
+  signal appsFiltered
 
   // --- Public Methods ---
 
@@ -46,11 +45,10 @@ QtObject {
 
     // Filter apps matching search criteria
     let filtered = allApps.filter(app => {
-      if (app.noDisplay) return false;
+      if (app.noDisplay)
+        return false;
 
-      return app.name.toLowerCase().includes(filterText) ||
-             app.genericName.toLowerCase().includes(filterText) ||
-             app.keywords.some(k => k.toLowerCase().includes(filterText));
+      return app.name.toLowerCase().includes(filterText) || app.genericName.toLowerCase().includes(filterText) || app.keywords.some(k => k.toLowerCase().includes(filterText));
     });
 
     // Sort by recency first, then alphabetically
@@ -77,7 +75,8 @@ QtObject {
    * @returns {boolean} True if the launch was successful, false otherwise.
    */
   function launchApp(appEntry) {
-    if (!appEntry) return false;
+    if (!appEntry)
+      return false;
 
     try {
       // Record launch time

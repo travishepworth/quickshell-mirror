@@ -66,7 +66,12 @@ QtObject {
       "monthYear": "MMMM yyyy",
       "fullDate": "dddd, MMMM d, yyyy",
       "time24": "HH:mm",
-      "time12": "h:mm AP"
+      "time12": "h:mm AP",
+      // The bar clock (s: with seconds)
+      "clock24": "HH:mm",
+      "clock24s": "HH:mm:ss",
+      "clock12": "hh:mm ap",
+      "clock12s": "hh:mm:ss ap"
     })
   readonly property string _dir: Quickshell.shellPath("config/i18n")
   property var _strings: ({})

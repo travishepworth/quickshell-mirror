@@ -1,4 +1,4 @@
-// services/Chat.qml
+// services/ChatManager.qml
 pragma Singleton
 import QtQuick
 import qs.config
@@ -123,14 +123,14 @@ QtObject {
   // --- API Implementations ---
 
   function _sendToGemini() {
-    console.log("[ChatConfig] Sending to Gemini with history...");
+    console.log("[ChatManager] Sending to Gemini with history...");
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig)
       return _handleError("Gemini", "Backend config not found.");
 
-    const apiKey = Secrets.apiKey("gemini");
+    const apiKey = SecretsManager.apiKey("gemini");
     if (!apiKey)
-      return _handleError("Gemini", "No API key: set GEMINI_API_KEY or add \"gemini\" to " + Secrets.secretsPath);
+      return _handleError("Gemini", "No API key: set GEMINI_API_KEY or add \"gemini\" to " + SecretsManager.secretsPath);
 
     const url = "https://generativelanguage.googleapis.com/v1beta/models/" + currentModel + ":generateContent";
     // Key in a header, not the URL, so it never lands in URL logs
@@ -148,14 +148,14 @@ QtObject {
   }
 
   function _sendToOpenAI() {
-    console.log("[ChatConfig] Sending to OpenAI with history...");
+    console.log("[ChatManager] Sending to OpenAI with history...");
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig)
       return _handleError("OpenAI", "Backend config not found.");
 
-    const apiKey = Secrets.apiKey("openai");
+    const apiKey = SecretsManager.apiKey("openai");
     if (!apiKey)
-      return _handleError("OpenAI", "No API key: set OPENAI_API_KEY or add \"openai\" to " + Secrets.secretsPath);
+      return _handleError("OpenAI", "No API key: set OPENAI_API_KEY or add \"openai\" to " + SecretsManager.secretsPath);
 
     const url = "https://api.openai.com/v1/chat/completions";
     const headers = {
@@ -173,14 +173,14 @@ QtObject {
   }
 
   function _sendToAnthropic() {
-    console.log("[ChatConfig] Sending to Anthropic with history...");
+    console.log("[ChatManager] Sending to Anthropic with history...");
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig)
       return _handleError("Anthropic", "Backend config not found.");
 
-    const apiKey = Secrets.apiKey("anthropic");
+    const apiKey = SecretsManager.apiKey("anthropic");
     if (!apiKey)
-      return _handleError("Anthropic", "No API key: set ANTHROPIC_API_KEY or add \"anthropic\" to " + Secrets.secretsPath);
+      return _handleError("Anthropic", "No API key: set ANTHROPIC_API_KEY or add \"anthropic\" to " + SecretsManager.secretsPath);
 
     const url = "https://api.anthropic.com/v1/messages";
     const headers = {
@@ -308,7 +308,7 @@ QtObject {
     } else {
       currentModel = "";
     }
-    console.log("[ChatConfig] Backend changed to", currentBackend, "with model", currentModel);
+    console.log("[ChatManager] Backend changed to", currentBackend, "with model", currentModel);
   }
 
   function updateCommandState(currentText) {

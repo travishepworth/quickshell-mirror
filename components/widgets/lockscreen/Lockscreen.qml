@@ -19,7 +19,7 @@ PanelWindow {
   readonly property real aspectRatio: screen.width / screen.height
   property int containerWidth: aspectRatio > 2.0 ? Math.min(screen.width * 0.5, 400) : Math.min(screen.width * 0.6, 400)
   property bool isLocked: false
-  property bool showMediaControl: MprisController.isPlaying
+  property bool showMediaControl: MediaManager.isPlaying
   property real slideOffset: isLocked ? 0 : -height
 
   Component.onCompleted: {
@@ -265,8 +265,8 @@ PanelWindow {
 
               MediaControl {
                 id: mediaControl
-                implicitHeight: MprisController.isPlaying ? 100 : 0
-                visible: MprisController.isPlaying ? true : false
+                implicitHeight: MediaManager.isPlaying ? 100 : 0
+                visible: MediaManager.isPlaying ? true : false
                 anchors.fill: parent
                 backgroundColor: parent.color
                 showProgressBar: false

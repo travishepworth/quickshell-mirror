@@ -19,17 +19,8 @@ Item {
   property alias iconSource: bar.iconSource
 
   readonly property bool nodeFound: !useSystemVolume && _targetNode !== null && _targetNode.ready && _targetNode.audio
-  readonly property string nodeName: {
-    if (useSystemVolume) {
-      return "Master";
-    }
-    if (!nodeFound) {
-      return "Not Found";
-    }
-    return _targetNode.properties["application.process.binary"] || _targetNode.properties["application.name"] || _targetNode.nickname || _targetNode.description || "Unknown Stream";
-  }
-  property real volume: useSystemVolume ? Audio.volume : (nodeFound ? _targetNode.audio.volume : 0.0)
-  property bool isMuted: useSystemVolume ? Audio.muted : (!nodeFound || _targetNode.audio.muted)
+  property real volume: useSystemVolume ? AudioManager.volume : (nodeFound ? _targetNode.audio.volume : 0.0)
+  property bool isMuted: useSystemVolume ? AudioManager.muted : (!nodeFound || _targetNode.audio.muted)
 
   // -- Configurable Appearance --
   // null
@@ -89,7 +80,7 @@ Item {
   function setVolume(newVolume) {
     const clamped = Math.max(0.0, Math.min(1.0, newVolume));
     if (useSystemVolume) {
-      Audio.volume = clamped;
+      AudioManager.volume = clamped;
       return;
     }
     if (nodeFound) {
@@ -99,7 +90,7 @@ Item {
 
   function toggleMute() {
     if (useSystemVolume) {
-      Audio.muted = !Audio.muted;
+      AudioManager.muted = !AudioManager.muted;
       return;
     }
     if (nodeFound) {

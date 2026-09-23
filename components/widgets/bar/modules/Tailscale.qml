@@ -54,7 +54,7 @@ BarIconWidget {
   MouseArea {
     anchors.fill: parent
     onClicked: {
-      Notifs.sendNotification("axiom", "Tailscale", root.isConnected ? I18n.tr("Connected to: {0}", root.tailnetName) : I18n.tr("Disconnected"));
+      NotificationManager.sendNotification("axiom", "Tailscale", root.isConnected ? I18n.tr("Connected to: {0}", root.tailnetName) : I18n.tr("Disconnected"));
     }
   }
 }

@@ -12,19 +12,19 @@ PanelCard {
   id: root
 
   // Local state management
-  property var localConfig: SettingsMenu.localConfig
+  property var localConfig: SettingsManager.localConfig
 
   title: I18n.tr("Settings")
-  dirty: SettingsMenu.isDirty
-  onSave: SettingsMenu.saveChanges()
-  onReset: SettingsMenu.resetChanges()
+  dirty: SettingsManager.isDirty
+  onSave: SettingsManager.saveChanges()
+  onReset: SettingsManager.resetChanges()
 
   Component.onCompleted: {
-    SettingsMenu.loadConfig();
+    SettingsManager.loadConfig();
   }
 
   onDirtyChanged: {
-    console.log("SettingsMenu dirty changed to", dirty);
+    console.log("SettingsManager dirty changed to", dirty);
   }
 
   Item {
@@ -36,7 +36,7 @@ PanelCard {
     Layout.fillWidth: true
     schema: ConfigManager.configSchema
     config: root.localConfig
-    onEdited: (path, value) => SettingsMenu.setValue(path, value)
+    onEdited: (path, value) => SettingsManager.setValue(path, value)
   }
 
   SavedConfigsSection {

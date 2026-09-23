@@ -21,9 +21,9 @@ PopoutContent {
   property int currentTab: 0
 
   readonly property bool isInput: mode === "input"
-  readonly property var defaultDevice: isInput ? Audio.defaultSource : Audio.defaultSink
-  readonly property var apps: isInput ? Audio.recordingApps : Audio.playbackApps
-  readonly property var devices: isInput ? Audio.sources : Audio.sinks
+  readonly property var defaultDevice: isInput ? AudioManager.defaultSource : AudioManager.defaultSink
+  readonly property var apps: isInput ? AudioManager.recordingApps : AudioManager.playbackApps
+  readonly property var devices: isInput ? AudioManager.sources : AudioManager.sinks
   readonly property string mutedGlyph: isInput ? "\u{F036D}" : "\u{F0581}"
   readonly property string unmutedGlyph: isInput ? "\u{F036C}" : "\u{F057E}"
 
@@ -36,8 +36,8 @@ PopoutContent {
     return node?.description || node?.nickname || node?.name || I18n.tr("No device");
   }
   function deviceIcon(node, muted, level) {
-    const kind = Audio.deviceKind(node);
-    return isInput ? Audio.inputIcon(kind, muted) : Audio.outputIcon(kind, muted, level);
+    const kind = AudioManager.deviceKind(node);
+    return isInput ? AudioManager.inputIcon(kind, muted) : AudioManager.outputIcon(kind, muted, level);
   }
 
   onCurrentTabChanged: fadeIn.restart()
@@ -58,8 +58,8 @@ PopoutContent {
     maxVolume: root.maxVolume
     mutedGlyph: root.mutedGlyph
     unmutedGlyph: root.unmutedGlyph
-    onVolumeMoved: value => Audio.setNodeVolume(node, value, root.maxVolume)
-    onMuteToggled: Audio.toggleNodeMute(node)
+    onVolumeMoved: value => AudioManager.setNodeVolume(node, value, root.maxVolume)
+    onMuteToggled: AudioManager.toggleNodeMute(node)
   }
 
   StyledSeparator {
@@ -122,7 +122,7 @@ PopoutContent {
           maxVolume: root.maxVolume
           mutedGlyph: root.mutedGlyph
           unmutedGlyph: root.unmutedGlyph
-          onVolumeMoved: value => appRow.modelData.nodes.forEach(n => Audio.setNodeVolume(n, value, root.maxVolume))
+          onVolumeMoved: value => appRow.modelData.nodes.forEach(n => AudioManager.setNodeVolume(n, value, root.maxVolume))
           onMuteToggled: {
             const mute = !appRow.muted;
             appRow.modelData.nodes.forEach(n => {
@@ -159,9 +159,9 @@ PopoutContent {
           unmutedGlyph: root.unmutedGlyph
           selected: modelData === root.defaultDevice
           selectable: true
-          onClicked: Audio.setDefault(deviceRow.modelData)
-          onVolumeMoved: value => Audio.setNodeVolume(deviceRow.modelData, value, root.maxVolume)
-          onMuteToggled: Audio.toggleNodeMute(deviceRow.modelData)
+          onClicked: AudioManager.setDefault(deviceRow.modelData)
+          onVolumeMoved: value => AudioManager.setNodeVolume(deviceRow.modelData, value, root.maxVolume)
+          onMuteToggled: AudioManager.toggleNodeMute(deviceRow.modelData)
         }
       }
 

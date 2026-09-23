@@ -25,7 +25,7 @@ RowLayout {
   // 2. When the component is created, capture the current backend name
   Component.onCompleted: {
     if (!isUser && !isConfig) {
-      messageBackend = Chat.currentBackend
+      messageBackend = ChatManager.currentBackend
     }
   }
 

@@ -28,7 +28,7 @@ SKIP = []
 TR_CALL = re.compile(r'I18n\.tr\(\s*"((?:[^"\\]|\\.)*)"')
 # Property assignments that are UI text, for --untranslated: the whole
 # value expression, so literals in ternaries and concatenations are seen
-UI_PROP = re.compile(r'\b(text|title|label|placeholderText|tooltipText|description|subtitle|status):\s*(.+)$')
+UI_PROP = re.compile(r'\b(text|title|label|placeholderText|tooltipText|description|subtitle):\s*(.+)$')
 # Object-literal UI fields ("label": "Text", name: "Text" in option lists)
 UI_FIELD = re.compile(r'"?(label|title|text|description|tooltip)"?\s*:\s*"((?:[^"\\]|\\.)*)"')
 STRING = re.compile(r'"((?:[^"\\]|\\.)*)"|`([^`]*)`')
@@ -66,12 +66,51 @@ def schema_strings(node, out):
             schema_strings(value, out)
 
 
+def tr_first_args(line):
+    """The first argument of each I18n.tr( call on a line, as source text."""
+    for m in re.finditer(r"I18n\.tr\(", line):
+        depth, i, start = 0, m.end(), m.end()
+        while i < len(line):
+            c = line[i]
+            if c == '"':
+                i = line.index('"', i + 1) if '"' in line[i + 1:] else len(line)
+                while i < len(line) and line[i - 1] == "\\":
+                    i = line.index('"', i + 1)
+            elif c in "([{":
+                depth += 1
+            elif c in ")]}":
+                if depth == 0:
+                    break
+                depth -= 1
+            elif c == "," and depth == 0:
+                break
+            i += 1
+        yield line[start:i]
+
+
+def branch_literals(arg):
+    """String literals in a tr() argument, minus those in ternary conditions."""
+    literals = []
+
+    def mask(m):
+        literals.append(m.group(1))
+        return f"\x00{len(literals) - 1}\x00"
+
+    masked = re.sub(r'"((?:[^"\\]|\\.)*)"', mask, arg)
+    kept = re.sub(r"[^?:]*\?", "", masked)
+    return [literals[int(i)] for i in re.findall(r"\x00(\d+)\x00", kept)]
+
+
 def collect_keys():
     keys = {}
     for f, rel in qml_files():
         for line_no, line in enumerate(f.read_text().splitlines(), 1):
             for m in TR_CALL.finditer(line):
                 keys.setdefault(unescape(m.group(1)), f"{rel}:{line_no}")
+            # Both branches of I18n.tr(cond ? "A" : "B"), not the condition
+            for arg in tr_first_args(line):
+                for literal in branch_literals(arg):
+                    keys.setdefault(unescape(literal), f"{rel}:{line_no}")
     schema = set()
     schema_strings(json.loads(SCHEMA.read_text())["properties"], schema)
     schema_strings(json.loads(SCHEMA.read_text())["definitions"], schema)
@@ -85,16 +124,26 @@ def is_words(literal):
     literal = re.sub(r"\$\{[^}]*\}", "", literal)
     if literal.startswith(("#", "qrc:", "file:", "/", "image://")) or "." in literal.split(" ")[0] and " " not in literal:
         return False
+    if re.fullmatch(r"[A-Z0-9]{2,4}|[a-z]+/[a-z]+", literal.strip()):
+        return False  # acronyms (CPU) and units (km/h)
     return bool(re.search(r"[A-Za-z]{2,}", literal))
 
 
 def shown_literals(expr):
     """String literals in a value expression that would reach the screen."""
+    for arg in tr_first_args(expr):
+        expr = expr.replace(arg, re.sub(r'"(?:[^"\\]|\\.)*"', "_", arg), 1)
     expr = TR_LITERAL.sub("I18n.tr(_", expr)
+    # Date formats: I18n.formatDate(date, "ddd"), I18n.dateFormat("longDate")
+    expr = re.sub(r'(I18n\.(?:formatDate|dateFormat)\([^;]*)', lambda m: re.sub(r'"(?:[^"\\]|\\.)*"', "_", m.group(1)), expr)
     for m in STRING.finditer(expr):
         literal = m.group(1) if m.group(1) is not None else m.group(2)
         before, after = expr[:m.start()], expr[m.end():]
         if COMPARED.search(before) or re.match(r"\s*(===|!==|==|!=|\]|:)", after) or before.rstrip().endswith("["):
+            continue
+        # Arguments to a call (formatDate formats, startsWith, ...), except
+        # a concatenation's first operand
+        if re.search(r"[\w\]\)]\.?\w*\(\s*$", before) and not before.rstrip().endswith("I18n.tr("):
             continue
         if m.group(2) is not None:
             # a template: its text parts, around the ${...} expressions
@@ -105,7 +154,9 @@ def shown_literals(expr):
 
 def untranslated():
     for f, rel in qml_files():
-        lines = f.read_text().splitlines()
+        text = f.read_text()
+        lines = text.splitlines()
+        declared = bool(re.search(r'//.*(I18n\.tr\("|i18n: keys from)', text))
         for line_no, line in enumerate(lines, 1):
             code = line.split("//")[0] if "://" not in line else line
             if not code.strip() or "console." in code:
@@ -117,10 +168,16 @@ def untranslated():
             for field in UI_FIELD.finditer(code):
                 if not (m and field.start() >= m.start(2)) and is_words(field.group(2)):
                     yield f"{rel}:{line_no}: {field.group(1)}: {field.group(2)!r}"
-            if DYNAMIC_TR.search(code):
-                # Keys chosen at runtime must be declared in a nearby comment
-                context = "\n".join(lines[max(0, line_no - 6):line_no])
-                if not re.search(r'//.*I18n\.tr\("', context):
+            for arg in tr_first_args(code):
+                rest = re.sub(r'"(?:[^"\\]|\\.)*"', "", arg)
+                # A condition choosing between literals is fine
+                rest = re.sub(r"[^?:]*\?", "", rest)
+                if not re.search(r"[A-Za-z_]", re.sub(r"[?:()\s]", "", rest)):
+                    continue
+                # Keys chosen at runtime: declared in a comment in the file
+                # (// I18n.tr("key") ...), or the file says its keys come
+                # from callers/the schema (// i18n: keys from callers)
+                if not declared:
                     yield f"{rel}:{line_no}: dynamic tr() without declared keys: {code.strip()[:90]}"
 
 

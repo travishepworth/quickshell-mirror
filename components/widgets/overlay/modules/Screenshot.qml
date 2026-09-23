@@ -63,7 +63,7 @@ OverlayCard {
       onStreamFinished: {
         const file = text.trim();
         if (file)
-          Notifs.sendNotification(I18n.tr("Screenshot"), I18n.tr("Screenshot saved"), I18n.tr("{0} (copied to clipboard)", file), {});
+          NotificationManager.sendNotification(I18n.tr("Screenshot"), I18n.tr("Screenshot saved"), I18n.tr("{0} (copied to clipboard)", file), {});
       }
     }
   }

@@ -28,7 +28,7 @@ RowLayout {
     placeholderText: I18n.tr("Type a message or use / for commands...")
     onAccepted: control.submit()
     onTextChanged: {
-      Chat.updateCommandState(text);
+      ChatManager.updateCommandState(text);
     }
     Component.onCompleted: {
       control.wantsKeyboardFocus = true;
@@ -43,7 +43,7 @@ RowLayout {
     Layout.preferredWidth: control.desiredButtonHeight
     Layout.alignment: Qt.AlignBottom
 
-    enabled: !Chat.waitingForResponse && textEntry.text.trim().length > 0
+    enabled: !ChatManager.waitingForResponse && textEntry.text.trim().length > 0
     opacity: enabled ? 1.0 : 0.5
     onClicked: control.submit()
 
@@ -62,7 +62,7 @@ RowLayout {
   function submit() {
     if (!submitButton.enabled)
       return;
-    Chat.sendMessage(textEntry.text);
+    ChatManager.sendMessage(textEntry.text);
     textEntry.text = "";
     textEntry.input.forceActiveFocus();
   }

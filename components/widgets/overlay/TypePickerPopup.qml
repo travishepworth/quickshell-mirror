@@ -6,6 +6,7 @@ import QtQuick.Effects
 import qs.config
 import qs.components.reusable
 
+// i18n: keys from callers and the schema (titles, descriptions, type labels)
 // Shared "pick a type to add" popup (bar widgets, overlay views, ...).
 // `types` is a list of { type, label }; the caller tracks what it opened
 // this for.

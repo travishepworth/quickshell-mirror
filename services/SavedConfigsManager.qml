@@ -40,10 +40,10 @@ QtObject {
   function save(name) {
     const fileName = sanitize(name);
     if (fileName === "") {
-      root.status = "Enter a name to save as";
+      root.status = I18n.tr("Enter a name to save as");
       return;
     }
-    _run(["sh", "-c", "mkdir -p \"$(dirname \"$1\")\" && printf '%s\\n' \"$2\" > \"$1\"", "sh", savedDir + fileName + ".json", JSON.stringify(ConfigManager.config, null, 2)], "Saved \"" + fileName + "\"", "Failed to save \"" + fileName + "\"");
+    _run(["sh", "-c", "mkdir -p \"$(dirname \"$1\")\" && printf '%s\\n' \"$2\" > \"$1\"", "sh", savedDir + fileName + ".json", JSON.stringify(ConfigManager.config, null, 2)], I18n.tr("Saved \"{0}\"", fileName), I18n.tr("Failed to save \"{0}\"", fileName));
   }
 
   function restore(name) {
@@ -51,34 +51,34 @@ QtObject {
     const content = Utils.getFileContent("file://" + path);
     // JSON.parse(null) is null, which would restore pure defaults
     if (!content) {
-      console.error("[SavedConfigs] Could not read", path);
-      root.status = "\"" + name + "\" could not be read";
+      console.error("[SavedConfigsManager] Could not read", path);
+      root.status = I18n.tr("\"{0}\" could not be read", name);
       return;
     }
     let parsed;
     try {
       parsed = JSON.parse(content);
     } catch (e) {
-      console.error("[SavedConfigs] Could not parse", path, e);
-      root.status = "\"" + name + "\" is not valid JSON";
+      console.error("[SavedConfigsManager] Could not parse", path, e);
+      root.status = I18n.tr("\"{0}\" is not valid JSON", name);
       return;
     }
     if (!ConfigManager.restoreConfig(parsed)) {
-      root.status = "\"" + name + "\" is not a valid config";
+      root.status = I18n.tr("\"{0}\" is not a valid config", name);
       return;
     }
-    SettingsMenu.loadConfig();
-    root.status = "Restored \"" + name + "\"";
-    console.log("[SavedConfigs] Restored", path);
+    SettingsManager.loadConfig();
+    root.status = I18n.tr("Restored \"{0}\"", name);
+    console.log("[SavedConfigsManager] Restored", path);
   }
 
   function remove(name) {
-    _run(["rm", "-f", "--", savedDir + name + ".json"], "Deleted \"" + name + "\"", "Failed to delete \"" + name + "\"");
+    _run(["rm", "-f", "--", savedDir + name + ".json"], I18n.tr("Deleted \"{0}\"", name), I18n.tr("Failed to delete \"{0}\"", name));
   }
 
   function _run(command, okText, failText) {
     if (_process.running) {
-      root.status = "Busy, try again";
+      root.status = I18n.tr("Busy, try again");
       return;
     }
     _process.okText = okText;
@@ -93,12 +93,12 @@ QtObject {
     stderr: StdioCollector {
       onStreamFinished: {
         if (text.trim() !== "")
-          console.error("[SavedConfigs]", text.trim());
+          console.error("[SavedConfigsManager]", text.trim());
       }
     }
     onExited: code => {
       root.status = code === 0 ? okText : failText;
-      console.log("[SavedConfigs]", root.status);
+      console.log("[SavedConfigsManager]", root.status);
     }
   }
 

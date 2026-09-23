@@ -14,7 +14,7 @@ OverlayCard {
   id: root
 
   readonly property int count: root.properties.count ?? 10
-  readonly property int activeId: HyprlandData.activeWorkspace?.id ?? -1
+  readonly property int activeId: HyprlandManager.activeWorkspace?.id ?? -1
   // A string, so the tiles are only rebuilt when the set of workspaces
   // shown changes, not on every window event
   readonly property string _idsKey: {
@@ -22,7 +22,7 @@ OverlayCard {
     for (let i = 1; i <= root.count; i++)
       ids.push(i);
     if (root.properties.showEmpty === false)
-      return ids.filter(id => HyprlandData.windowList.some(w => w.workspace?.id === id) || id === root.activeId).join(",");
+      return ids.filter(id => HyprlandManager.windowList.some(w => w.workspace?.id === id) || id === root.activeId).join(",");
     return ids.join(",");
   }
   readonly property var ids: root._idsKey === "" ? [] : root._idsKey.split(",").map(Number)
@@ -43,7 +43,7 @@ OverlayCard {
         id: tile
         required property int modelData
         readonly property bool active: tile.modelData === root.activeId
-        readonly property var windows: HyprlandData.windowList.filter(w => w.workspace?.id === tile.modelData)
+        readonly property var windows: HyprlandManager.windowList.filter(w => w.workspace?.id === tile.modelData)
 
         Layout.fillWidth: true
         Layout.fillHeight: true

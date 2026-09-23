@@ -2,19 +2,17 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.services
-// Aliased: this file's own type is also called Battery
-import qs.services as Services
 import qs.config
 import qs.components.reusable
 
 BarIconWidget {
   id: root
 
-  // From UPower's display device (services/Battery.qml)
-  readonly property bool isCharging: Services.Battery.isCharging
-  readonly property bool isDischarging: Services.Battery.isDischarging
-  readonly property int percentage: Services.Battery.percentage
-  readonly property string timeRemaining: isCharging ? Services.Battery.timeToFull : Services.Battery.timeRemaining
+  // From UPower's display device (services/BatteryManager.qml)
+  readonly property bool isCharging: BatteryManager.isCharging
+  readonly property bool isDischarging: BatteryManager.isDischarging
+  readonly property int percentage: BatteryManager.percentage
+  readonly property string timeRemaining: isCharging ? BatteryManager.timeToFull : BatteryManager.timeRemaining
   // "none" / "low" / "critical": the last level notified about, so each
   // threshold notifies once per crossing
   property string _notifiedLevel: "none"
@@ -86,7 +84,7 @@ BarIconWidget {
 
   function getBatteryStatus() {
     let status = I18n.tr(isCharging ? "Charging" : "Discharging");
-    let details = `${status}: ${percentage}%`;
+    let details = I18n.tr("{0}: {1}%", status, percentage);
     if (timeRemaining) {
       details += " " + (isCharging ? I18n.tr("({0} to full)", timeRemaining) : I18n.tr("({0} remaining)", timeRemaining));
     }
@@ -120,7 +118,7 @@ BarIconWidget {
   MouseArea {
     anchors.fill: parent
     onClicked: {
-      Notifs.sendNotification("axiom", I18n.tr("Battery Status"), root.getBatteryStatus());
+      NotificationManager.sendNotification("axiom", I18n.tr("Battery Status"), root.getBatteryStatus());
     }
   }
 
@@ -128,9 +126,9 @@ BarIconWidget {
   onLevelChanged: {
     if (properties.notify && level !== _notifiedLevel) {
       if (level === "critical")
-        Notifs.sendNotification("axiom", I18n.tr("Critical Battery"), I18n.tr("Battery critically low: {0}%", percentage));
+        NotificationManager.sendNotification("axiom", I18n.tr("Critical Battery"), I18n.tr("Battery critically low: {0}%", percentage));
       else if (level === "low" && _notifiedLevel !== "critical")
-        Notifs.sendNotification("axiom", I18n.tr("Low Battery"), I18n.tr("Battery low: {0}%", percentage));
+        NotificationManager.sendNotification("axiom", I18n.tr("Low Battery"), I18n.tr("Battery low: {0}%", percentage));
     }
     _notifiedLevel = level;
   }

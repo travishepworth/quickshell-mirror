@@ -37,7 +37,7 @@ StyledContainer {
 
       StyledText {
         Layout.alignment: Qt.AlignTop
-        text: Utils.formatRelativeTime(Notifs.receivedAtFor(root.notification))
+        text: Utils.formatRelativeTime(NotificationManager.receivedAtFor(root.notification))
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize - 2
         opacity: 0.7

@@ -337,7 +337,7 @@ QtObject {
       migration.changes.forEach(change => console.log("  - " + change));
     }
     if (Object.keys(migration.secrets).length > 0)
-      Secrets.store(migration.secrets);
+      SecretsManager.store(migration.secrets);
 
     const config = migration.config;
     const removed = SchemaValidation.pruneUnknown(config, schema);

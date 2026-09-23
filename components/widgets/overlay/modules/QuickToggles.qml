@@ -36,13 +36,13 @@ OverlayCard {
       "caffeine": {
         "icon": "\u{F0176}",
         "label": I18n.tr("Caffeine"),
-        "active": IdleInhibit.enabled,
+        "active": IdleInhibitManager.enabled,
         "available": true
       },
       "dnd": {
-        "icon": Notifs.dnd ? "\u{F009B}" : "\u{F009A}",
+        "icon": NotificationManager.dnd ? "\u{F009B}" : "\u{F009A}",
         "label": I18n.tr("Do not disturb"),
-        "active": Notifs.dnd,
+        "active": NotificationManager.dnd,
         "available": true
       },
       "darkMode": {
@@ -81,10 +81,10 @@ OverlayCard {
       BluetoothManager.toggleEnabled();
       break;
     case "caffeine":
-      IdleInhibit.toggle();
+      IdleInhibitManager.toggle();
       break;
     case "dnd":
-      Notifs.dnd = !Notifs.dnd;
+      NotificationManager.dnd = !NotificationManager.dnd;
       break;
     case "darkMode":
       ThemeManager.toggleDarkMode();

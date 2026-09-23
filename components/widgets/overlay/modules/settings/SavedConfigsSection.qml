@@ -13,7 +13,7 @@ import qs.components.widgets.common
 SchemaSection {
   id: root
   title: I18n.tr("Saved Configurations")
-  description: I18n.tr("Snapshots of the entire configuration, stored in ") + SavedConfigs.savedDir + ". Restoring replaces the current configuration."
+  description: I18n.tr("Snapshots of the entire configuration, stored in {0}. Restoring replaces the current configuration.", SavedConfigsManager.savedDir)
   expanded: false
 
   // Row awaiting a confirming click: { name, action }
@@ -33,28 +33,28 @@ SchemaSection {
 
     StyledTextButton {
       Layout.preferredHeight: Widget.height
-      text: I18n.tr(SavedConfigs.exists(nameEntry.text) ? "Overwrite" : "Save")
+      text: I18n.tr(SavedConfigsManager.exists(nameEntry.text) ? "Overwrite" : "Save")
       onClicked: root.save()
     }
   }
 
   StyledText {
-    visible: SavedConfigs.status !== ""
-    text: SavedConfigs.status
+    visible: SavedConfigsManager.status !== ""
+    text: SavedConfigsManager.status
     opacity: 0.7
     textSize: Appearance.fontSize - 1
     Layout.fillWidth: true
   }
 
   StyledText {
-    visible: SavedConfigs.model.count === 0
+    visible: SavedConfigsManager.model.count === 0
     text: I18n.tr("No saved configurations yet.")
     opacity: 0.5
     Layout.fillWidth: true
   }
 
   Repeater {
-    model: SavedConfigs.model
+    model: SavedConfigsManager.model
 
     delegate: StyledContainer {
       id: row
@@ -93,13 +93,13 @@ SchemaSection {
 
         StyledTextButton {
           Layout.preferredHeight: Widget.height
-          text: row.pendingAction === "restore" ? "Confirm" : "Restore"
+          text: I18n.tr(row.pendingAction === "restore" ? "Confirm" : "Restore")
           onClicked: root.confirm(row.fileBaseName, "restore")
         }
 
         StyledTextButton {
           Layout.preferredHeight: Widget.height
-          text: row.pendingAction === "delete" ? "Confirm" : "Delete"
+          text: I18n.tr(row.pendingAction === "delete" ? "Confirm" : "Delete")
           hoverColor: Theme.error
           onClicked: root.confirm(row.fileBaseName, "delete")
         }
@@ -108,7 +108,7 @@ SchemaSection {
   }
 
   function save() {
-    SavedConfigs.save(nameEntry.text);
+    SavedConfigsManager.save(nameEntry.text);
     nameEntry.text = "";
     root.pending = null;
   }
@@ -124,8 +124,8 @@ SchemaSection {
     }
     root.pending = null;
     if (action === "restore")
-      SavedConfigs.restore(name);
+      SavedConfigsManager.restore(name);
     else
-      SavedConfigs.remove(name);
+      SavedConfigsManager.remove(name);
   }
 }

@@ -34,7 +34,7 @@ OverlayCard {
       icon: "\u{F0A30}"
       title: I18n.tr("Processes")
       StyledText {
-        text: root.sortBy === "cpu" ? "by CPU" : "by memory"
+        text: I18n.tr(root.sortBy === "cpu" ? "by CPU" : "by memory")
         textSize: Appearance.fontSize - 2
         opacity: 0.6
       }

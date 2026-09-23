@@ -9,7 +9,7 @@ import qs.components.reusable
 
 // Mic / screen share / camera indicators, derived from active Pipewire
 // links (no polling). Hidden entirely while nothing is capturing.
-//   mic:    Audio.micCaptures (an app recording from a microphone)
+//   mic:    AudioManager.micCaptures (an app recording from a microphone)
 //   screen: a video source from xdg-desktop-portal linked to a stream
 //   camera: any other video source linked to a stream
 BarIconWidget {
@@ -23,7 +23,7 @@ BarIconWidget {
   readonly property var activeGroups: videoGroups.filter(g => g.state === PwLinkState.Active)
 
   function appName(node) {
-    return node.properties?.["application.name"] || node.nickname || node.name || "Unknown";
+    return node.properties?.["application.name"] || node.nickname || node.name || I18n.tr("Unknown");
   }
   function ignored(node) {
     const names = [node.name, node.properties?.["application.name"], node.properties?.["application.process.binary"]];
@@ -43,7 +43,7 @@ BarIconWidget {
     return [...new Set(names)];
   }
 
-  readonly property var micUsers: properties.showMic ? [...new Set(Audio.micCaptures.filter(n => !ignored(n)).map(n => appName(n)))] : []
+  readonly property var micUsers: properties.showMic ? [...new Set(AudioManager.micCaptures.filter(n => !ignored(n)).map(n => appName(n)))] : []
   readonly property var screenUsers: properties.showScreen ? users(s => s.type === PwNodeType.VideoSource && isPortal(s), t => isVideoStream(t)) : []
   readonly property var cameraUsers: properties.showCamera ? users(s => s.type === PwNodeType.VideoSource && !isPortal(s), t => isVideoStream(t)) : []
 

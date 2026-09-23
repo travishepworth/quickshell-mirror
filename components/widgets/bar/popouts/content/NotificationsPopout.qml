@@ -25,7 +25,7 @@ PopoutContent {
   function rebuildGroups() {
     const byApp = {};
     const order = [];
-    for (const notif of Notifs.notifications.values) {
+    for (const notif of NotificationManager.notifications.values) {
       if (!notif)
         continue;
       const key = notif.appName || "";
@@ -39,7 +39,7 @@ PopoutContent {
         order.push(key);
       }
       byApp[key].notifications.push(notif);
-      const t = Notifs.receivedAtFor(notif);
+      const t = NotificationManager.receivedAtFor(notif);
       if (t > byApp[key].newestTime)
         byApp[key].newestTime = t;
     }
@@ -49,7 +49,7 @@ PopoutContent {
   }
 
   Connections {
-    target: Notifs.notifications
+    target: NotificationManager.notifications
     function onValuesChanged() {
       root.rebuildGroups();
     }
@@ -63,7 +63,7 @@ PopoutContent {
     spacing: Widget.spacing
 
     StyledText {
-      text: I18n.tr("Notifications") + (Notifs.count > 0 ? ` (${Notifs.count})` : "")
+      text: NotificationManager.count > 0 ? I18n.tr("Notifications ({0})", NotificationManager.count) : I18n.tr("Notifications")
       textSize: Appearance.fontSize * 1.05
       font.bold: true
       textColor: Theme.accent
@@ -80,16 +80,16 @@ PopoutContent {
     }
 
     StyledSwitch {
-      checked: Notifs.dnd
-      onToggled: Notifs.dnd = checked
+      checked: NotificationManager.dnd
+      onToggled: NotificationManager.dnd = checked
     }
 
     StyledTextButton {
       text: I18n.tr("Clear All")
       textPadding: 6
-      enabled: Notifs.count > 0
+      enabled: NotificationManager.count > 0
       opacity: enabled ? 1.0 : 0.5
-      onClicked: Notifs.clearAll()
+      onClicked: NotificationManager.clearAll()
     }
   }
 

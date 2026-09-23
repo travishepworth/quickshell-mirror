@@ -9,6 +9,7 @@ import qs.components.methods
 import qs.components.reusable
 import qs.components.widgets.common
 
+// i18n: keys from callers and the schema (titles, descriptions, type labels)
 // One row of a schema-driven form: picks the control for the row's schema
 // type (or a list editor for an array of objects), hidden while its
 // `x-showIf` doesn't hold. `form` provides valueAt(path) and an

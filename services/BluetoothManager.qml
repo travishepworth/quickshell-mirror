@@ -2,6 +2,8 @@ pragma Singleton
 import QtQuick
 import Quickshell.Bluetooth
 
+import qs.config
+
 // Bluetooth state and actions over the default adapter (BlueZ via
 // Quickshell.Bluetooth). Named BluetoothManager so it doesn't shadow
 // Quickshell's `Bluetooth` singleton, or the `Bluetooth` bar widget.
@@ -65,16 +67,16 @@ QtObject {
     if (!device)
       return "";
     if (device.pairing)
-      return "Pairing…";
+      return I18n.tr("Pairing…");
     switch (device.state) {
     case BluetoothDeviceState.Connecting:
-      return "Connecting…";
+      return I18n.tr("Connecting…");
     case BluetoothDeviceState.Disconnecting:
-      return "Disconnecting…";
+      return I18n.tr("Disconnecting…");
     case BluetoothDeviceState.Connected:
-      return device.batteryAvailable ? `Connected · ${Math.round(device.battery * 100)}%` : "Connected";
+      return device.batteryAvailable ? I18n.tr("Connected · {0}%", Math.round(device.battery * 100)) : I18n.tr("Connected");
     }
-    return device.paired || device.bonded ? "Paired" : "Not paired";
+    return I18n.tr(device.paired || device.bonded ? "Paired" : "Not paired");
   }
 
   // Glyph for a device's freedesktop icon name (BlueZ "icon" property)

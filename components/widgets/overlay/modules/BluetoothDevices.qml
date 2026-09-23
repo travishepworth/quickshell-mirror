@@ -14,7 +14,7 @@ OverlayCard {
   StatFigure {
     visible: root.compact
     anchors.centerIn: parent
-    value: BluetoothManager.enabled ? String(BluetoothManager.connectedDevices.length) : "off"
+    value: BluetoothManager.enabled ? String(BluetoothManager.connectedDevices.length) : I18n.tr("off")
     label: I18n.tr("connected")
     valueColor: BluetoothManager.connectedDevices.length > 0 ? Theme.accent : Theme.foreground
   }

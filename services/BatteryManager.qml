@@ -28,9 +28,9 @@ QtObject {
     const minutes = Math.floor((seconds % 3600) / 60);
 
     if (hours > 0) {
-      return `${hours}h ${minutes}m`;
+      return I18n.tr("{0}h {1}m", hours, minutes);
     } else {
-      return `${minutes}m`;
+      return I18n.tr("{0}m", minutes);
     }
   }
 
@@ -78,17 +78,5 @@ QtObject {
     if (isLow)
       return Theme.warning;
     return Theme.backgroundHighlight;
-  }
-
-  function getBatteryStatus() {
-    if (isCharging) {
-      return `Charging: ${percentage}%${timeToFull ? ` (${timeToFull} to full)` : ''}`;
-    } else if (isDischarging) {
-      return `Discharging: ${percentage}%${timeRemaining ? ` (${timeRemaining} remaining)` : ''}`;
-    } else if (isFull) {
-      return `Battery Full: ${percentage}%`;
-    } else {
-      return `Battery: ${percentage}%`;
-    }
   }
 }

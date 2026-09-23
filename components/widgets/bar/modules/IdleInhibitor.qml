@@ -12,22 +12,22 @@ import qs.components.reusable
 BarIconWidget {
   id: root
 
-  icon: IdleInhibit.enabled ? "\u{F0176}" : "\u{F0FAA}"
-  text: I18n.tr(IdleInhibit.enabled ? "Awake" : "Idle")
+  icon: IdleInhibitManager.enabled ? "\u{F0176}" : "\u{F0FAA}"
+  text: I18n.tr(IdleInhibitManager.enabled ? "Awake" : "Idle")
   showText: properties.showLabel
 
-  backgroundColor: Theme.resolveColor(IdleInhibit.enabled ? properties.activeColor : properties.inactiveColor)
+  backgroundColor: Theme.resolveColor(IdleInhibitManager.enabled ? properties.activeColor : properties.inactiveColor)
   opacity: mouseArea.pressed ? 0.8 : 1
 
   IdleInhibitor {
     window: root.panel
-    enabled: IdleInhibit.enabled
+    enabled: IdleInhibitManager.enabled
   }
 
   MouseArea {
     id: mouseArea
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: IdleInhibit.toggle()
+    onClicked: IdleInhibitManager.toggle()
   }
 }

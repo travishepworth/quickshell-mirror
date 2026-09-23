@@ -6,6 +6,7 @@ import qs.services
 import qs.components.reusable
 import qs.components.widgets.common
 
+// i18n: keys from callers and the schema (titles, descriptions, type labels)
 // itemDelegate for each zone's SchemaObjectArray in LayoutConfig.qml: the
 // widget's properties form, generated from its schema like the settings
 // menu.

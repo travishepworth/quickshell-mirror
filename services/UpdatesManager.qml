@@ -94,7 +94,7 @@ QtObject {
       if (exitCode === 0 || exitCode === 2)
         root.repoPackages = root.parse(repoOut.text);
       else
-        console.warn(`[PackageUpdates] checkupdates failed (${exitCode}): ${repoErr.text.trim()}`);
+        console.warn(`[UpdatesManager] checkupdates failed (${exitCode}): ${repoErr.text.trim()}`);
       if (root._repoPending) {
         root._repoPending = false;
         running = true;
@@ -109,7 +109,7 @@ QtObject {
     // -Qua exits 1 when nothing is outdated
     onExited: exitCode => {
       if (exitCode === 127) {
-        console.warn(`[PackageUpdates] AUR helper '${root._aurHelper}' is not installed`);
+        console.warn(`[UpdatesManager] AUR helper '${root._aurHelper}' is not installed`);
         root.aurPackages = [];
       } else {
         root.aurPackages = root.parse(aurOut.text);

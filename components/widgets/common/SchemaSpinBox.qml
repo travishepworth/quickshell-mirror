@@ -6,6 +6,7 @@ import QtQuick.Controls
 import qs.config
 import qs.components.reusable
 
+// i18n: keys from callers and the schema (titles, descriptions, type labels)
 ColumnLayout {
   id: root
   required property int currentConfigValue

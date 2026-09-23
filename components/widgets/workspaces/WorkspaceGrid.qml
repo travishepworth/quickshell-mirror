@@ -92,7 +92,7 @@ Rectangle {
     z: 1000
 
     Repeater {
-      model: HyprlandData.windowList
+      model: HyprlandManager.windowList
 
       delegate: DraggableWindow {
         required property var modelData
@@ -122,7 +122,7 @@ Rectangle {
         onWindowDropped: targetWorkspace => {
           if (modelData?.workspace?.id && targetWorkspace !== modelData.workspace.id) {
             WindowUtils.moveWindowToWorkspace(modelData.address, targetWorkspace);
-            HyprlandData.updateAll();
+            HyprlandManager.updateAll();
           }
         }
 
@@ -135,7 +135,7 @@ Rectangle {
         onWindowClosed: {
           if (modelData?.address) {
             WindowUtils.closeWindow(modelData.address);
-            HyprlandData.updateAll();
+            HyprlandManager.updateAll();
           }
         }
 

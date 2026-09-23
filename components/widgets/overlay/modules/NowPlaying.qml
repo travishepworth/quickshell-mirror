@@ -13,8 +13,8 @@ import qs.components.widgets.overlay
 OverlayCard {
   id: root
 
-  readonly property bool hasPlayer: MprisController.hasActivePlayer
-  readonly property string artSource: MprisController.artDownloaded && MprisController.artVersion >= 0 ? "file://" + MprisController.artFilePath : ""
+  readonly property bool hasPlayer: MediaManager.hasActivePlayer
+  readonly property string artSource: MediaManager.artDownloaded && MediaManager.artVersion >= 0 ? "file://" + MediaManager.artFilePath : ""
   readonly property bool wide: root.shape === "horizontal"
 
   component MediaButton: Rectangle {
@@ -114,8 +114,8 @@ OverlayCard {
       anchors.centerIn: parent
       primary: true
       size: Math.min(parent.width, parent.height) * 0.4
-      icon: MprisController.isPlaying ? "\u{F03E4}" : "\u{F040A}"
-      onClicked: MprisController.togglePlayPause()
+      icon: MediaManager.isPlaying ? "\u{F03E4}" : "\u{F040A}"
+      onClicked: MediaManager.togglePlayPause()
     }
   }
 
@@ -144,16 +144,16 @@ OverlayCard {
       StyledText {
         Layout.fillWidth: true
         elide: Text.ElideRight
-        text: MprisController.identity + (MprisController.players.length > 1 ? "  \u{F0450}" : "")
+        text: MediaManager.identity + (MediaManager.players.length > 1 ? "  \u{F0450}" : "")
         textSize: Appearance.fontSize - 2
         opacity: 0.6
         MouseArea {
           anchors.fill: parent
-          enabled: MprisController.players.length > 1
+          enabled: MediaManager.players.length > 1
           cursorShape: Qt.PointingHandCursor
           onClicked: {
-            const players = MprisController.players;
-            MprisController.selectPlayer(players[(players.indexOf(MprisController.activePlayer) + 1) % players.length]);
+            const players = MediaManager.players;
+            MediaManager.selectPlayer(players[(players.indexOf(MediaManager.activePlayer) + 1) % players.length]);
           }
         }
       }
@@ -165,14 +165,14 @@ OverlayCard {
       StyledText {
         Layout.fillWidth: true
         elide: Text.ElideRight
-        text: MprisController.trackTitle || I18n.tr("Unknown track")
+        text: MediaManager.trackTitle || I18n.tr("Unknown track")
         textSize: Appearance.fontSize + 4
         font.bold: true
       }
       StyledText {
         Layout.fillWidth: true
         elide: Text.ElideRight
-        text: MprisController.trackArtist
+        text: MediaManager.trackArtist
         opacity: 0.8
       }
 
@@ -187,7 +187,7 @@ OverlayCard {
           radius: 2
           color: Qt.rgba(1, 1, 1, 0.15)
           Rectangle {
-            width: parent.width * Math.min(1, Math.max(0, MprisController.progress))
+            width: parent.width * Math.min(1, Math.max(0, MediaManager.progress))
             height: parent.height
             radius: 2
             color: Theme.accent
@@ -195,15 +195,15 @@ OverlayCard {
         }
         MouseArea {
           anchors.fill: parent
-          enabled: MprisController.canSeek
+          enabled: MediaManager.canSeek
           cursorShape: Qt.PointingHandCursor
-          onClicked: mouse => MprisController.setPositionByRatio(mouse.x / width)
+          onClicked: mouse => MediaManager.setPositionByRatio(mouse.x / width)
         }
       }
       RowLayout {
         Layout.fillWidth: true
         StyledText {
-          text: MprisController.formatTime(MprisController.position)
+          text: MediaManager.formatTime(MediaManager.position)
           textSize: Appearance.fontSize - 3
           opacity: 0.6
         }
@@ -211,7 +211,7 @@ OverlayCard {
           Layout.fillWidth: true
         }
         StyledText {
-          text: MprisController.formatTime(MprisController.length)
+          text: MediaManager.formatTime(MediaManager.length)
           textSize: Appearance.fontSize - 3
           opacity: 0.6
         }
@@ -222,21 +222,21 @@ OverlayCard {
         spacing: Widget.spacing
         MediaButton {
           icon: "\u{F04AE}"
-          enabled: MprisController.canGoPrevious
+          enabled: MediaManager.canGoPrevious
           opacity: enabled ? 1 : 0.4
-          onClicked: MprisController.previous()
+          onClicked: MediaManager.previous()
         }
         MediaButton {
           primary: true
           size: Widget.height * 1.4
-          icon: MprisController.isPlaying ? "\u{F03E4}" : "\u{F040A}"
-          onClicked: MprisController.togglePlayPause()
+          icon: MediaManager.isPlaying ? "\u{F03E4}" : "\u{F040A}"
+          onClicked: MediaManager.togglePlayPause()
         }
         MediaButton {
           icon: "\u{F04AD}"
-          enabled: MprisController.canGoNext
+          enabled: MediaManager.canGoNext
           opacity: enabled ? 1 : 0.4
-          onClicked: MprisController.next()
+          onClicked: MediaManager.next()
         }
       }
     }

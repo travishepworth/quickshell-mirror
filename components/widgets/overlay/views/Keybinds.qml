@@ -7,7 +7,7 @@ BaseView {
   id: view
 
   KeybindDisplay {
-    keybinds: HyprConfigManager.keybindings
+    keybinds: KeybindManager.keybindings
     screen: view.screen
   }
 }

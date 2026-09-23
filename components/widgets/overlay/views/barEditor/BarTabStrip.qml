@@ -16,7 +16,7 @@ RowLayout {
       required property int index
       required property var modelData
 
-      text: modelData.id || ("Bar " + (index + 1))
+      text: modelData.id || I18n.tr("Bar {0}", index + 1)
       checked: BarManager.selectedBarIndex === index
       onClicked: BarManager.selectedBarIndex = index
     }

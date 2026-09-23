@@ -34,20 +34,20 @@ Item {
 
     isVertical: root.isVertical
 
-    icon: MprisController.isPlaying ? "♪" : "⏸"
+    icon: MediaManager.isPlaying ? "♪" : "⏸"
     text: root.formatTrack()
 
-    backgroundColor: Theme.resolveColor(MprisController.isPlaying ? root.properties.playingColor : root.properties.pausedColor)
+    backgroundColor: Theme.resolveColor(MediaManager.isPlaying ? root.properties.playingColor : root.properties.pausedColor)
     foregroundColor: Theme.resolveColor(root.properties.foregroundColor)
   }
 
   function formatTrack() {
-    if (!MprisController.activePlayer)
+    if (!MediaManager.activePlayer)
       return root.properties.idleText;
-    const artist = Utils.truncate(MprisController.trackArtist, root.properties.artistLength, "");
+    const artist = Utils.truncate(MediaManager.trackArtist, root.properties.artistLength, "");
     if (!root.properties.showArtist || !artist)
-      return MprisController.trackTitle;
-    return "󰠃 " + artist + " - " + MprisController.trackTitle;
+      return MediaManager.trackTitle;
+    return "󰠃 " + artist + " - " + MediaManager.trackTitle;
   }
 
   PopoutAnchor {

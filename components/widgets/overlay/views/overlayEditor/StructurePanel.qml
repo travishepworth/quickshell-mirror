@@ -6,6 +6,7 @@ import qs.services
 import qs.components.reusable
 import qs.components.widgets.overlay
 
+// i18n: keys from callers and the schema (titles, descriptions, type labels)
 // The overlay's pages, and the selected Custom page's columns and cells.
 // Sized by OverlayEditor.
 Item {

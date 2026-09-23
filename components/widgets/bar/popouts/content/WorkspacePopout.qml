@@ -77,7 +77,7 @@ Item {
           Layout.preferredWidth: Widget.height
           Layout.preferredHeight: Widget.height
 
-          property var windowData: HyprlandData.biggestWindowForWorkspace(wsId)
+          property var windowData: HyprlandManager.biggestWindowForWorkspace(wsId)
           property var iconPath: IconResolver.resolveWindowIcon(windowData?.class, windowData?.title)
 
           radius: Appearance.borderRadius

@@ -15,11 +15,11 @@ BarIconWidget {
 
   readonly property real maxVolume: properties.maxVolume / 100
 
-  icon: Audio.outputIcon(Audio.deviceKind(Audio.defaultSink), Audio.muted, Audio.volume)
-  text: `${Math.round(Audio.volume * 100)}%`
+  icon: AudioManager.outputIcon(AudioManager.deviceKind(AudioManager.defaultSink), AudioManager.muted, AudioManager.volume)
+  text: `${Math.round(AudioManager.volume * 100)}%`
   showText: properties.showPercentage
 
-  backgroundColor: Theme.resolveColor(Audio.muted ? properties.mutedColor : properties.backgroundColor)
+  backgroundColor: Theme.resolveColor(AudioManager.muted ? properties.mutedColor : properties.backgroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
 
   MouseArea {
@@ -32,12 +32,12 @@ BarIconWidget {
         if (root.properties.middleCommand)
           Quickshell.execDetached(["sh", "-c", root.properties.middleCommand]);
       } else {
-        Audio.toggleMute();
+        AudioManager.toggleMute();
       }
     }
     onWheel: wheel => {
       const step = root.properties.scrollStep / 100;
-      Audio.stepNodeVolume(Audio.defaultSink, wheel.angleDelta.y > 0 ? step : -step, root.maxVolume);
+      AudioManager.stepNodeVolume(AudioManager.defaultSink, wheel.angleDelta.y > 0 ? step : -step, root.maxVolume);
     }
   }
 

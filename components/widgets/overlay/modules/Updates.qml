@@ -14,22 +14,22 @@ import qs.components.widgets.bar.popouts.content
 OverlayCard {
   id: root
 
-  readonly property int total: PackageUpdates.repoPackages.length + PackageUpdates.aurPackages.length
+  readonly property int total: UpdatesManager.repoPackages.length + UpdatesManager.aurPackages.length
 
   function register() {
-    PackageUpdates.acquire(root, {
+    UpdatesManager.acquire(root, {
       "intervalMinutes": root.properties.intervalMinutes ?? 60,
       "aurHelper": root.properties.includeAur ? (root.properties.aurHelper ?? "paru") : ""
     });
   }
   onPropertiesChanged: register()
   Component.onCompleted: register()
-  Component.onDestruction: PackageUpdates.release(root)
+  Component.onDestruction: UpdatesManager.release(root)
 
   StatFigure {
     visible: root.compact
     anchors.centerIn: parent
-    value: PackageUpdates.checking && root.total === 0 ? "…" : String(root.total)
+    value: UpdatesManager.checking && root.total === 0 ? "…" : String(root.total)
     label: I18n.tr("updates")
     valueColor: root.total > 0 ? Theme.accent : Theme.foreground
   }
@@ -45,7 +45,7 @@ OverlayCard {
       icon: "\u{F06B0}"
       title: root.total > 0 ? I18n.tr("{0} updates", root.total) : I18n.tr("Up to date")
       StyledText {
-        visible: PackageUpdates.checking
+        visible: UpdatesManager.checking
         text: I18n.tr("checking…")
         textSize: Appearance.fontSize - 2
         opacity: 0.6
@@ -57,8 +57,8 @@ OverlayCard {
       Layout.fillHeight: true
       wrapper: null
       embedded: true
-      repoPackages: PackageUpdates.repoPackages
-      aurPackages: PackageUpdates.aurPackages
+      repoPackages: UpdatesManager.repoPackages
+      aurPackages: UpdatesManager.aurPackages
       // Rows of roughly one text line each
       maxRows: Math.max(3, Math.floor(height / (Appearance.fontSize * 2)) - 4)
     }

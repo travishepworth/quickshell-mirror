@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 import qs.services
 
-// Reader for the Chat section. API keys are not config: see Secrets.
+// Reader for the Chat section. API keys are not config: see SecretsManager.
 QtObject {
   readonly property var _c: ConfigManager.config.Chat
 

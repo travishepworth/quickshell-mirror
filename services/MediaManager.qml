@@ -77,29 +77,29 @@ QtObject {
   // --- Public ---
   function logCurrentSongProperties() {
     if (!hasActivePlayer) {
-      console.log("[MprisController] No active MPRIS player.");
+      console.log("[MediaManager] No active MPRIS player.");
       return;
     }
-    console.log("[MprisController] Active MPRIS Player Properties:");
-    console.log("[MprisController]   Identity:", identity);
-    console.log("[MprisController]   Playback State:", playbackState === MprisPlaybackState.Playing ? "Playing" : (playbackState === MprisPlaybackState.Paused ? "Paused" : "Stopped"));
-    console.log("[MprisController]   Track Title:", trackTitle);
-    console.log("[MprisController]   Track Artist:", trackArtist);
-    console.log("[MprisController]   Position (ms):", position);
-    console.log("[MprisController]   Length (ms):", length);
-    console.log("[MprisController]   Progress:", (progress * 100).toFixed(2) + "%");
-    console.log("[MprisController]   Art URL:", artUrl);
-    console.log("[MprisController]   Can Play:", canPlay);
-    console.log("[MprisController]   Can Pause:", canPause);
-    console.log("[MprisController]   Can Toggle Playing:", canTogglePlaying);
-    console.log("[MprisController]   Can Go Next:", canGoNext);
-    console.log("[MprisController]   Can Go Previous:", canGoPrevious);
-    console.log("[MprisController]   Can Seek:", canSeek);
+    console.log("[MediaManager] Active MPRIS Player Properties:");
+    console.log("[MediaManager]   Identity:", identity);
+    console.log("[MediaManager]   Playback State:", playbackState === MprisPlaybackState.Playing ? "Playing" : (playbackState === MprisPlaybackState.Paused ? "Paused" : "Stopped"));
+    console.log("[MediaManager]   Track Title:", trackTitle);
+    console.log("[MediaManager]   Track Artist:", trackArtist);
+    console.log("[MediaManager]   Position (ms):", position);
+    console.log("[MediaManager]   Length (ms):", length);
+    console.log("[MediaManager]   Progress:", (progress * 100).toFixed(2) + "%");
+    console.log("[MediaManager]   Art URL:", artUrl);
+    console.log("[MediaManager]   Can Play:", canPlay);
+    console.log("[MediaManager]   Can Pause:", canPause);
+    console.log("[MediaManager]   Can Toggle Playing:", canTogglePlaying);
+    console.log("[MediaManager]   Can Go Next:", canGoNext);
+    console.log("[MediaManager]   Can Go Previous:", canGoPrevious);
+    console.log("[MediaManager]   Can Seek:", canSeek);
   }
 
   function updateAllMetadata() {
     if (!hasActivePlayer) {
-      console.log("[MprisController] No active MPRIS player to update metadata from.");
+      console.log("[MediaManager] No active MPRIS player to update metadata from.");
       return;
     }
     length = activePlayer.length || 0;
@@ -188,12 +188,12 @@ QtObject {
         return;
       }
       if (exitCode === 0) {
-        console.log("[MprisController] Album art ready:", root.artFilePath);
+        console.log("[MediaManager] Album art ready:", root.artFilePath);
         root.artDownloaded = true;
         root.artVersion++;
         root.artReady();
       } else {
-        console.warn("[MprisController] Failed to download album art from:", url, "Exit code:", exitCode);
+        console.warn("[MediaManager] Failed to download album art from:", url, "Exit code:", exitCode);
         root.artDownloaded = false;
       }
     }
@@ -219,13 +219,13 @@ QtObject {
     onTriggered: {
       attempts++;
       if (Mpris.players && Mpris.players.values.length > 0) {
-        console.log("[MprisController] MPRIS players detected after", attempts, "attempts.");
+        console.log("[MediaManager] MPRIS players detected after", attempts, "attempts.");
         _updateActivePlayer();
         updateAllMetadata();
         running = false;
       } else if (attempts >= maxAttempts) {
         // Not a problem: onPlayersChanged picks up players that start later
-        console.log("[MprisController] No MPRIS players yet after", attempts, "attempts.");
+        console.log("[MediaManager] No MPRIS players yet after", attempts, "attempts.");
         running = false;
       }
     }
@@ -237,7 +237,7 @@ QtObject {
 
   function _pickActivePlayer() {
     const playersArray = Mpris.players.values;
-    console.log("[MprisController] Picking active MPRIS player from", playersArray.length, "available players.");
+    console.log("[MediaManager] Picking active MPRIS player from", playersArray.length, "available players.");
     if (!playersArray || playersArray.length === 0)
       return null;
 

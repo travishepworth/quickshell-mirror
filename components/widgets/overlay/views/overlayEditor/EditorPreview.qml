@@ -47,7 +47,7 @@ OverlayCard {
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     visible: !root.isCustom
-    text: root.view ? "A fixed page: nothing to lay out." : "No pages yet: add one with + page"
+    text: I18n.tr(root.view ? "A fixed page: nothing to lay out." : "No pages yet: add one with + page")
     opacity: 0.6
   }
 

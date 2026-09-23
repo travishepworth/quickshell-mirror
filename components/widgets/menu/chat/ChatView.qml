@@ -19,7 +19,7 @@ StyledContainer {
   
   readonly property var backendNames: Object.keys(ChatConfig.backends)
   readonly property var tabs: backendNames.map(name => ({ "name": name.charAt(0).toUpperCase() + name.slice(1) }))
-  property int currentTab: backendNames.indexOf(Chat.currentBackend)
+  property int currentTab: backendNames.indexOf(ChatManager.currentBackend)
   readonly property real tabBarHeight: 40
   readonly property int contentPadding: Widget.padding
 
@@ -37,7 +37,7 @@ StyledContainer {
       activeColor: Theme.accentAlt
       tabs: chatView.tabs
       onTabClicked: index => {
-        Chat.currentBackend = chatView.backendNames[index];
+        ChatManager.currentBackend = chatView.backendNames[index];
       }
     }
     
@@ -56,7 +56,7 @@ StyledContainer {
         id: listView
         anchors.fill: parent
         
-        model: Chat.chatModel
+        model: ChatManager.chatModel
         delegate: ChatMessage {
           role: model.role
           content: model.content

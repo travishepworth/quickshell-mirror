@@ -13,8 +13,8 @@ PopoutContent {
   property bool isSeeking: false
   property real dragRatio: 0
 
-  readonly property real displayProgress: isSeeking ? dragRatio : MprisController.progress
-  readonly property real displayPosition: isSeeking ? dragRatio * MprisController.length : MprisController.position
+  readonly property real displayProgress: isSeeking ? dragRatio : MediaManager.progress
+  readonly property real displayPosition: isSeeking ? dragRatio * MediaManager.length : MediaManager.position
 
   hovered: pointerInside || root.isSeeking
 
@@ -52,14 +52,14 @@ PopoutContent {
         cache: false
         // artVersion is bumped whenever a fresh file lands at
         // artFilePath, so referencing it here forces a reload.
-        source: (MprisController.artDownloaded && MprisController.artVersion >= 0) ? ("file://" + MprisController.artFilePath) : ""
+        source: (MediaManager.artDownloaded && MediaManager.artVersion >= 0) ? ("file://" + MediaManager.artFilePath) : ""
         visible: status === Image.Ready
       }
 
       StyledText {
         anchors.centerIn: parent
         visible: artImage.status !== Image.Ready
-        text: MprisController.isPlaying ? "♪" : "⏸"
+        text: MediaManager.isPlaying ? "♪" : "⏸"
         textSize: 22
         textColor: Theme.foregroundAlt
       }
@@ -73,7 +73,7 @@ PopoutContent {
 
       StyledText {
         Layout.fillWidth: true
-        text: MprisController.trackTitle || I18n.tr("No track playing")
+        text: MediaManager.trackTitle || I18n.tr("No track playing")
         textColor: Theme.accent
         textSize: Appearance.fontSize * 1.05
         font.bold: true
@@ -83,7 +83,7 @@ PopoutContent {
 
       StyledText {
         Layout.fillWidth: true
-        text: MprisController.trackArtist || " "
+        text: MediaManager.trackArtist || " "
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize * 0.9
         elide: Text.ElideRight
@@ -94,7 +94,7 @@ PopoutContent {
         Layout.fillWidth: true
         // MprisController doesn't surface the album itself, but the
         // underlying Mpris player object does.
-        text: (MprisController.activePlayer?.trackAlbum ?? "") || " "
+        text: (MediaManager.activePlayer?.trackAlbum ?? "") || " "
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize * 0.8
         opacity: 0.7
@@ -179,7 +179,7 @@ PopoutContent {
         StyledText {
           id: seekTooltipText
           anchors.centerIn: parent
-          text: MprisController.formatTime(root.displayPosition)
+          text: MediaManager.formatTime(root.displayPosition)
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize * 0.8
         }
@@ -188,7 +188,7 @@ PopoutContent {
       MouseArea {
         id: seekMouseArea
         anchors.fill: parent
-        enabled: MprisController.canSeek
+        enabled: MediaManager.canSeek
         cursorShape: Qt.PointingHandCursor
 
         function ratioFromX(mx) {
@@ -208,7 +208,7 @@ PopoutContent {
         onReleased: mouse => {
           if (root.isSeeking) {
             root.dragRatio = ratioFromX(mouse.x);
-            MprisController.setPositionByRatio(root.dragRatio);
+            MediaManager.setPositionByRatio(root.dragRatio);
           }
           root.isSeeking = false;
         }
@@ -224,7 +224,7 @@ PopoutContent {
       Layout.preferredHeight: root.timeRowHeight
 
       StyledText {
-        text: MprisController.formatTime(root.displayPosition)
+        text: MediaManager.formatTime(root.displayPosition)
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize * 0.8
       }
@@ -234,7 +234,7 @@ PopoutContent {
       }
 
       StyledText {
-        text: MprisController.formatTime(MprisController.length)
+        text: MediaManager.formatTime(MediaManager.length)
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize * 0.8
       }
@@ -264,8 +264,8 @@ PopoutContent {
       hoverColor: Theme.accentAlt
       pressColor: Theme.accentAlt
 
-      enabled: MprisController.canGoPrevious
-      onClicked: MprisController.previous()
+      enabled: MediaManager.canGoPrevious
+      onClicked: MediaManager.previous()
     }
 
     StyledIconButton {
@@ -276,7 +276,7 @@ PopoutContent {
       Layout.preferredWidth: size
       Layout.preferredHeight: size
 
-      iconText: MprisController.isPlaying ? "⏸" : "▶"
+      iconText: MediaManager.isPlaying ? "⏸" : "▶"
       iconSize: size * 0.42
       borderRadius: size / 2
       iconColor: Theme.background
@@ -284,8 +284,8 @@ PopoutContent {
       hoverColor: Theme.accent
       pressColor: Theme.accent
 
-      enabled: MprisController.canTogglePlaying
-      onClicked: MprisController.togglePlayPause()
+      enabled: MediaManager.canTogglePlaying
+      onClicked: MediaManager.togglePlayPause()
     }
 
     StyledIconButton {
@@ -304,8 +304,8 @@ PopoutContent {
       hoverColor: Theme.accentAlt
       pressColor: Theme.accentAlt
 
-      enabled: MprisController.canGoNext
-      onClicked: MprisController.next()
+      enabled: MediaManager.canGoNext
+      onClicked: MediaManager.next()
     }
   }
 }

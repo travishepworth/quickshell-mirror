@@ -31,7 +31,7 @@ Scope {
     function onToggleWorkspaceOverlay() {
       root.overlayVisible = !root.overlayVisible;
       if (root.overlayVisible)
-        HyprlandData.updateAll();
+        HyprlandManager.updateAll();
     }
   }
 
@@ -42,14 +42,14 @@ Scope {
       console.log("Toggling workspace overlay");
       root.overlayVisible = !root.overlayVisible;
       if (root.overlayVisible) {
-        HyprlandData.updateAll();
+        HyprlandManager.updateAll();
       }
       console.log("Overlay visible:", root.overlayVisible);
     }
     
     function show(): void {
       root.overlayVisible = true;
-      HyprlandData.updateAll();
+      HyprlandManager.updateAll();
     }
     
     function hide(): void {

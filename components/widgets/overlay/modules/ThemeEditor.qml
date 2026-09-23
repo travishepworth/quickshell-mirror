@@ -11,12 +11,12 @@ import qs.components.widgets.overlay
 PanelCard {
   id: root
 
-  property var localConfig: SettingsMenu.localConfig
+  property var localConfig: SettingsManager.localConfig
 
   title: I18n.tr("Theme")
-  dirty: SettingsMenu.isDirty
-  onSave: SettingsMenu.saveChanges()
-  onReset: SettingsMenu.resetChanges()
+  dirty: SettingsManager.isDirty
+  onSave: SettingsManager.saveChanges()
+  onReset: SettingsManager.resetChanges()
 
   Item {
     Layout.preferredHeight: Widget.spacing
@@ -32,8 +32,8 @@ PanelCard {
   //     if (!root.localConfig.Appearance)
   //       root.localConfig.Appearance = {};
   //     root.localConfig.Appearance.enableGeneratedTheme = value;
-  //     SettingsMenu.markDirty();
-  //     SettingsMenu.applyChanges();
+  //     SettingsManager.markDirty();
+  //     SettingsManager.applyChanges();
   //   }
   // }
 

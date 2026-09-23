@@ -13,7 +13,7 @@ import qs.components.widgets.menu
 import qs.components.widgets.menu.chat
 
 // Assuming these components exist:
-// import "path/to/SettingsMenu.qml" as SettingsMenu
+// import "path/to/SettingsManager.qml" as SettingsMenu
 // import "path/to/ChatView.qml" as ChatView
 
 StyledContainer {

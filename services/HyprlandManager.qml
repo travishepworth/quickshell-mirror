@@ -70,7 +70,7 @@ Singleton {
     try {
       return JSON.parse(text);
     } catch (e) {
-      console.warn("[HyprlandData] Could not parse hyprctl " + what + ":", e);
+      console.warn("[HyprlandManager] Could not parse hyprctl " + what + ":", e);
       return undefined;
     }
   }

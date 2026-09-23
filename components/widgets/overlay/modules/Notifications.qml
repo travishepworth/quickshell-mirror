@@ -15,9 +15,9 @@ OverlayCard {
   StatFigure {
     visible: root.compact
     anchors.centerIn: parent
-    value: String(Notifs.count)
-    label: Notifs.dnd ? "muted" : "notifications"
-    valueColor: Notifs.count > 0 ? Theme.accent : Theme.foreground
+    value: String(NotificationManager.count)
+    label: I18n.tr(NotificationManager.dnd ? "muted" : "notifications")
+    valueColor: NotificationManager.count > 0 ? Theme.accent : Theme.foreground
   }
 
   NotificationsPopout {

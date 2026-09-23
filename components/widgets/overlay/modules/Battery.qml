@@ -14,7 +14,7 @@ OverlayCard {
 
   ColumnLayout {
     anchors.centerIn: parent
-    visible: !Battery.isAvailable
+    visible: !BatteryManager.isAvailable
     spacing: Widget.spacing / 2
     StyledText {
       Layout.alignment: Qt.AlignHCenter
@@ -31,7 +31,7 @@ OverlayCard {
   }
 
   ColumnLayout {
-    visible: Battery.isAvailable
+    visible: BatteryManager.isAvailable
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: Widget.spacing
@@ -44,21 +44,21 @@ OverlayCard {
         anchors.centerIn: parent
         width: side
         height: side
-        percentage: Math.round(Battery.percentage)
-        iconText: Battery.getBatteryIcon()
+        percentage: Math.round(BatteryManager.percentage)
+        iconText: BatteryManager.getBatteryIcon()
         iconColor: Theme.foreground
-        fillColor: Battery.isCritical ? Theme.error : Battery.isLow ? Theme.warning : Theme.success
+        fillColor: BatteryManager.isCritical ? Theme.error : BatteryManager.isLow ? Theme.warning : Theme.success
       }
     }
     StyledText {
       Layout.alignment: Qt.AlignHCenter
-      text: `${Math.round(Battery.percentage)}%`
+      text: `${Math.round(BatteryManager.percentage)}%`
       font.bold: true
     }
     StyledText {
       visible: !root.compact
       Layout.alignment: Qt.AlignHCenter
-      text: Battery.isCharging ? I18n.tr("Charging · {0} to full", Battery.timeToFull) : Battery.isFull ? I18n.tr("Fully charged") : I18n.tr("{0} left", Battery.timeRemaining)
+      text: BatteryManager.isCharging ? I18n.tr("Charging · {0} to full", BatteryManager.timeToFull) : BatteryManager.isFull ? I18n.tr("Fully charged") : I18n.tr("{0} left", BatteryManager.timeRemaining)
       textSize: Appearance.fontSize - 2
       opacity: 0.7
     }
