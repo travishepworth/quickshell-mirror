@@ -12,30 +12,24 @@ Item {
   id: osdRoot
   anchors.fill: parent
 
-  // Left-to-right order of bar slots. Each entry is the argument set for
-  // one bar:
+  // Bar slots, in order, from OSD.apps in the config. Each entry is the
+  // argument set for one bar:
   //   app:     app-name substring to match, or the sentinels below
   //   showOsd: whether a change on this slot should force the OSD open
   //            (it always restarts the auto-hide timer regardless)
   //   icon:    icon glyph shown on the bar (master's is volume-dependent,
-  //            see iconSource binding below - its entry here is unused
-  //            but kept for consistency/documentation)
+  //            see iconSource binding below - its entry is unused)
   // Sentinels:
   //   "other"  - catches whatever isn't one of the other named apps
-  //              (was previously called "master")
   //   "master" - the actual system/output volume
-  //              (was previously the hardcoded trailing bar)
-  readonly property var trackedApps: [
-    { app: "Zen", showOsd: true, icon: " " },
-    { app: "vesktop", showOsd: true, icon: " " },
-    { app: "other", showOsd: true, icon: " " },
-    { app: "spotify", showOsd: true, icon: " " },
-    { app: "master", showOsd: true, icon: "" }
-  ]
-
+  readonly property var trackedApps: OSDConfig.apps
+  // Length of each bar along its axis; the OSD grows with the app count
+  // in the other direction
+  readonly property int barLength: 190
+  readonly property int barSpacing: 20
 
   Variants {
-    model: Quickshell.screens
+    model: OSDConfig.enabled ? Quickshell.screens : []
 
     // One OSD per screen; volume changes only show it on the focused one.
     // Hiding is the popout's own hover-aware dismiss timer.
@@ -44,10 +38,10 @@ Item {
       required property ShellScreen modelData
 
       screen: modelData
-      edge: Bar.Bottom
-      position: 0.5
+      edge: OSDConfig.edge
+      position: OSDConfig.position
       triggerEnabled: false
-      dismissDelay: PopoutConfig.osdTimeout
+      dismissDelay: OSDConfig.timeout
       // The volume bars inside also report per-app changes, so they must
       // exist while the OSD is closed
       keepLoaded: true
@@ -74,13 +68,20 @@ Item {
 
       content: Component {
         Item {
-          implicitWidth: 350 - Widget.spacing * 2
-          implicitHeight: 220 - Widget.spacing * 2
+          id: box
+          readonly property int margin: 15 - Widget.spacing
 
-          RowLayout {
+          implicitWidth: grid.implicitWidth + margin * 2
+          implicitHeight: grid.implicitHeight + margin * 2
+
+          GridLayout {
+            id: grid
             anchors.fill: parent
-            anchors.margins: 15 - Widget.spacing
-            spacing: 20
+            anchors.margins: box.margin
+            // Vertical bars side by side, horizontal bars as rows
+            flow: OSDConfig.vertical ? GridLayout.LeftToRight : GridLayout.TopToBottom
+            columnSpacing: osdRoot.barSpacing
+            rowSpacing: osdRoot.barSpacing
 
             Repeater {
               model: osdRoot.trackedApps
@@ -93,7 +94,9 @@ Item {
                 readonly property bool isOtherSlot: modelData.app === "other"
                 readonly property bool isMasterSlot: modelData.app === "master"
 
-                orientation: Qt.Vertical
+                orientation: OSDConfig.vertical ? Qt.Vertical : Qt.Horizontal
+                Layout.preferredWidth: OSDConfig.vertical ? volBar.implicitWidth : osdRoot.barLength
+                Layout.preferredHeight: OSDConfig.vertical ? osdRoot.barLength : volBar.implicitHeight
                 targetApplication: isMasterSlot ? "" : (isOtherSlot ? "master" : modelData.app)
                 excludedApps: isOtherSlot ? osdRoot.trackedApps.filter(a => a.app !== "other" && a.app !== "master").map(a => a.app) : []
                 useSystemVolume: isMasterSlot

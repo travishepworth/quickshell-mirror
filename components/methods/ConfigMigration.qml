@@ -12,7 +12,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 3
+  readonly property int currentVersion: 4
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -30,6 +30,8 @@ QtObject {
       result = _v1ToV2(result, secrets, changes);
     if (version < 3)
       result = _v2ToV3(result, changes);
+    if (version < 4)
+      result = _v3ToV4(result, changes);
 
     return {
       config: result,
@@ -236,6 +238,17 @@ QtObject {
           return widget;
         });
       }
+    }
+    return out;
+  }
+
+  function _v3ToV4(old, changes) {
+    const out = old;
+    out.version = 4;
+    const timeout = _take(out.Popouts, "osdTimeout");
+    if (timeout !== undefined) {
+      _set(out, "OSD.timeout", timeout);
+      changes.push("Popouts.osdTimeout → OSD.timeout");
     }
     return out;
   }

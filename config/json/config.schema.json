@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 3,
+      "default": 4,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -202,14 +202,6 @@
           "maximum": 50,
           "description": "Thickness of the hover strip at the screen edge that opens edge popouts."
         },
-        "osdTimeout": {
-          "type": "integer",
-          "title": "OSD timeout (ms)",
-          "default": 1000,
-          "minimum": 250,
-          "maximum": 10000,
-          "description": "How long the volume OSD stays open after the last change."
-        },
         "workspaceIcons": {
           "type": "boolean",
           "title": "Workspace popout icons",
@@ -266,6 +258,72 @@
             "properties": {
               "defaultModel": { "type": "string" },
               "models": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+
+    "OSD": {
+      "type": "object",
+      "title": "OSD",
+      "description": "Volume on-screen display, shown when a volume changes.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "default": true,
+          "description": "Show the OSD when a tracked volume changes."
+        },
+        "edge": {
+          "type": "string",
+          "title": "Screen edge",
+          "default": "Bottom",
+          "enum": ["Top", "Bottom", "Left", "Right"],
+          "description": "Screen edge the OSD slides out of."
+        },
+        "position": {
+          "type": "integer",
+          "title": "Position along edge (%)",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Where along the edge it opens: 0 is the start (left/top), 100 the end."
+        },
+        "orientation": {
+          "type": "string",
+          "title": "Bar orientation",
+          "default": "Vertical",
+          "enum": ["Vertical", "Horizontal"],
+          "description": "Vertical bars sit side by side; horizontal bars stack as rows."
+        },
+        "timeout": {
+          "type": "integer",
+          "title": "Timeout (ms)",
+          "default": 1000,
+          "minimum": 250,
+          "maximum": 10000,
+          "description": "How long the OSD stays open after the last change."
+        },
+        "apps": {
+          "type": "array",
+          "title": "Applications",
+          "description": "One volume bar per entry, in order. App is matched as a substring of the stream's binary/name. Two special values: \"other\" is the first stream not matched by another entry, \"master\" is the system output volume (its icon follows the volume level).",
+          "default": [
+            { "app": "Zen", "icon": "\uf269 ", "showOsd": true },
+            { "app": "vesktop", "icon": "\uf1ff ", "showOsd": true },
+            { "app": "other", "icon": "\uf11b ", "showOsd": true },
+            { "app": "spotify", "icon": "\uec1b ", "showOsd": true },
+            { "app": "master", "icon": "", "showOsd": true }
+          ],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "app": { "type": "string", "title": "App", "default": "", "description": "Stream name to match, or \"other\" / \"master\"." },
+              "icon": { "type": "string", "title": "Icon", "default": "", "description": "Glyph shown on the bar." },
+              "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
             }
           }
         }

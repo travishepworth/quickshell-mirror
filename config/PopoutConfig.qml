@@ -11,6 +11,5 @@ QtObject {
   readonly property int openDelay: _c.openDelay
   readonly property int dismissDelay: _c.dismissDelay
   readonly property int edgeTriggerSize: _c.edgeTriggerSize
-  readonly property int osdTimeout: _c.osdTimeout
   readonly property bool workspaceIcons: _c.workspaceIcons
 }

@@ -10,9 +10,11 @@ import qs.components.widgets.common
  * section becomes a collapsible SchemaSection; nested objects become
  * labelled groups; booleans, integers and strings become switches, spin
  * boxes (with the schema's minimum/maximum), combo boxes (enum or
- * `x-options`; color fields get swatches) and text fields. Labels and help text come from `title` and
- * `description`. Keys marked `x-settings: false` are skipped (edited
- * elsewhere, e.g. bars in the bar editor, or owned by the theme selector).
+ * `x-options`; color fields get swatches) and text fields; arrays of
+ * objects become an add/remove/reorder list of those fields. Labels and
+ * help text come from `title` and `description`. Keys marked
+ * `x-settings: false` are skipped (edited elsewhere, e.g. bars in the bar
+ * editor, or owned by the theme selector).
  *
  * Adding a setting to the schema is all it takes for it to appear here.
  */
@@ -35,6 +37,7 @@ ColumnLayout {
   // Flattens an object schema into form rows:
   //   { kind: "group", title, path }   for a nested object
   //   { kind: "field", title, path, schema } for an editable value
+  //   { kind: "array", title, path, schema } for an array of objects
   function rows(objectSchema, path) {
     const result = [];
     for (const key in objectSchema.properties ?? {}) {
@@ -45,11 +48,27 @@ ColumnLayout {
       if (prop.type === "object" && prop.properties) {
         const children = rows(prop, propPath);
         if (children.length > 0) {
-          result.push({ kind: "group", title: prop.title ?? key, path: propPath });
+          result.push({
+            kind: "group",
+            title: prop.title ?? key,
+            path: propPath
+          });
           result.push(...children);
         }
+      } else if (prop.type === "array" && prop.items?.properties) {
+        result.push({
+          kind: "array",
+          title: prop.title ?? key,
+          path: propPath,
+          schema: prop
+        });
       } else if (["boolean", "integer", "string"].includes(prop.type)) {
-        result.push({ kind: "field", title: prop.title ?? key, path: propPath, schema: prop });
+        result.push({
+          kind: "field",
+          title: prop.title ?? key,
+          path: propPath,
+          schema: prop
+        });
       }
     }
     return result;
