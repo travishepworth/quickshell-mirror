@@ -1,0 +1,68 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import Quickshell
+
+import qs.services
+import qs.config
+import qs.components.reusable
+import qs.components.widgets.bar.popouts
+
+// Default input. The icon follows mute and the device type (headset,
+// webcam); the background shows when an app is recording from the mic.
+// Scroll changes the volume, click mutes, middle click runs a command;
+// hovering opens the mixer on its input side.
+IconTextWidget {
+  id: root
+
+  property var barConfig
+  property var popouts
+  property var panel
+  property var screen
+  property var properties
+
+  readonly property real maxVolume: properties.maxVolume / 100
+  readonly property bool hidden: properties.hideWhenIdle && !Audio.micInUse && !Audio.sourceMuted
+
+  isVertical: barConfig.vertical
+
+  icon: Audio.inputIcon(Audio.deviceKind(Audio.defaultSource), Audio.sourceMuted)
+  text: `${Math.round(Audio.sourceVolume * 100)}%`
+  showIcon: !hidden
+  showText: properties.showPercentage && !hidden
+  padding: hidden ? 0 : Widget.padding
+
+  backgroundColor: Theme.resolveColor(Audio.sourceMuted ? properties.mutedColor : Audio.micInUse ? properties.activeColor : properties.backgroundColor)
+  foregroundColor: Theme.resolveColor(properties.foregroundColor)
+  opacity: mouseArea.pressed ? 0.8 : 1
+
+  MouseArea {
+    id: mouseArea
+    anchors.fill: parent
+    enabled: !root.hidden
+    cursorShape: Qt.PointingHandCursor
+    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+    onClicked: mouse => {
+      if (mouse.button === Qt.MiddleButton) {
+        if (root.properties.middleCommand)
+          Quickshell.execDetached(["sh", "-c", root.properties.middleCommand]);
+      } else {
+        Audio.toggleSourceMute();
+      }
+    }
+    onWheel: wheel => {
+      const step = root.properties.scrollStep / 100;
+      Audio.stepNodeVolume(Audio.defaultSource, wheel.angleDelta.y > 0 ? step : -step, root.maxVolume);
+    }
+  }
+
+  PopoutAnchor {
+    popouts: root.popouts
+    panel: root.panel
+    popoutName: "audio-mixer"
+    active: root.properties.showPopout && !root.hidden
+    extraData: ({
+        "mode": "input",
+        "maxVolume": root.maxVolume
+      })
+  }
+}

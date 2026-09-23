@@ -41,8 +41,11 @@ Item {
   // trigger strip) without the content having to know about them.
   // dismissDelay/autoDismiss default to the content's values but can be
   // overridden by the wrapper.
+  // The widget that opened the popout (`anchorItem` in the payload) counts
+  // too, so the popout stays up while the pointer is still on it.
   property bool keepAlive: false
-  readonly property bool contentHovered: (currentItem?.hovered ?? false) || keepAlive
+  readonly property bool anchorHovered: currentData?.anchorItem?.hovered ?? false
+  readonly property bool contentHovered: (currentItem?.hovered ?? false) || anchorHovered || keepAlive
   property int dismissDelay: currentItem?.dismissDelay ?? PopoutConfig.dismissDelay
   property bool autoDismiss: currentItem?.autoDismiss ?? true
 
@@ -83,12 +86,15 @@ Item {
   function openPopout(anchor, data) {
     if (isClosing)
       return;
+    // Drop any stale countdown from whatever was here before. This must
+    // come first: setting `occupied` loads the content synchronously, and
+    // stopping afterwards cancelled the countdown its onLoaded started,
+    // leaving a popout the pointer never entered open forever.
+    dismissTimer.stop();
     currentAnchor = anchor;
     currentData = data;
     occupied = true;
-    // Fresh content is about to load and starts unhovered — don't let a
-    // stale countdown from whatever was here before bleed into it.
-    dismissTimer.stop();
+    updateDismissTimer();
   }
 
   function safeOpenPopout(anchor, data) {

@@ -5,7 +5,7 @@ import Quickshell
 import qs.services
 import qs.config
 import qs.components.widgets.bar
-import qs.components.widgets.bar.popouts
+import qs.components.widgets.bar.popouts.content
 import qs.components.widgets.popouts
 
 /**
@@ -134,6 +134,16 @@ PopoutWrapperBase {
     readonly property real minAlong: borderInset + Appearance.screenMargin
     readonly property real maxAlong: panelLength - borderInset - Appearance.screenMargin
 
+    // Where the popup starts along the bar so its content box sits at
+    // `align` against the anchor: 0 lines the box's start edge up with the
+    // anchor's, 1 its end edge, 0.5 centers it. The fillets hang outside
+    // the box, hence the inset.
+    function alignedStart(anchorStart, anchorLength, popupLength, boxLength) {
+      const align = root.currentData?.align ?? 0.5;
+      const inset = (popupLength - boxLength) / 2;
+      return anchorStart + (anchorLength - boxLength) * align - inset;
+    }
+
     // Size comes from the shared attached shape. The content box is a
     // little shorter than the content along the bar (kept for parity
     // with how bar popout contents were sized before the extraction).
@@ -155,9 +165,7 @@ PopoutWrapperBase {
             // relative to the anchor (tray icons are narrower than modules)
             return -mainPopup.implicitWidth;
           } else {
-            let anchorCenter = root.anchorRect.x + root.anchorRect.width / 2;
-            let popoutCenter = mainPopup.implicitWidth / 2;
-            let targetX = anchorCenter - popoutCenter;
+            const targetX = mainPopup.alignedStart(root.anchorRect.x, root.anchorRect.width, mainPopup.implicitWidth, surface.boxRect.width);
 
             return Math.max(mainPopup.minAlong, Math.min(targetX, mainPopup.maxAlong - mainPopup.implicitWidth));
           }
@@ -172,9 +180,7 @@ PopoutWrapperBase {
           } else if (root.barConfig.bottom) {
             return -mainPopup.implicitHeight;
           } else {
-            let anchorCenter = root.anchorRect.y + root.anchorRect.height / 2;
-            let popoutCenter = mainPopup.implicitHeight / 2;
-            let targetY = anchorCenter - popoutCenter;
+            const targetY = mainPopup.alignedStart(root.anchorRect.y, root.anchorRect.height, mainPopup.implicitHeight, surface.boxRect.height);
 
             return Math.max(mainPopup.minAlong, Math.min(targetY, mainPopup.maxAlong - mainPopup.implicitHeight));
           }
@@ -219,6 +225,10 @@ PopoutWrapperBase {
             return updatesComponent;
           case "weather":
             return weatherComponent;
+          case "audio-mixer":
+            return audioMixerComponent;
+          case "bluetooth":
+            return bluetoothComponent;
           default:
             return null;
           }
@@ -287,6 +297,20 @@ PopoutWrapperBase {
   Component {
     id: weatherComponent
     WeatherPopout {
+      wrapper: root
+    }
+  }
+
+  Component {
+    id: audioMixerComponent
+    AudioMixerPopout {
+      wrapper: root
+    }
+  }
+
+  Component {
+    id: bluetoothComponent
+    BluetoothPopout {
       wrapper: root
     }
   }

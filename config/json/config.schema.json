@@ -375,6 +375,12 @@
           "maximum": 50,
           "description": "Gap between widgets (px)."
         },
+        "lockCenter": {
+          "type": "boolean",
+          "title": "Lock center",
+          "default": false,
+          "description": "Keep the center section dead center on the bar. The other sections shrink or hide widgets on their own side instead of pushing it."
+        },
         "reserveSpace": {
           "type": "boolean",
           "title": "Reserve space",
@@ -441,7 +447,10 @@
         { "$ref": "#/definitions/PrivacyWidget" },
         { "$ref": "#/definitions/UpdatesWidget" },
         { "$ref": "#/definitions/WeatherWidget" },
-        { "$ref": "#/definitions/SeparatorWidget" }
+        { "$ref": "#/definitions/SeparatorWidget" },
+        { "$ref": "#/definitions/VolumeWidget" },
+        { "$ref": "#/definitions/MicrophoneWidget" },
+        { "$ref": "#/definitions/BluetoothWidget" }
       ]
     },
     "WindowWidget": {
@@ -828,6 +837,81 @@
             "thickness": { "type": "integer", "title": "Thickness", "default": 2, "minimum": 1, "maximum": 10, "description": "Line width (px); dots are twice this across.", "x-showIf": { "style": { "not": "space" } } },
             "length": { "type": "integer", "title": "Line length (%)", "default": 60, "minimum": 10, "maximum": 100, "description": "Share of the widget height the line spans.", "x-showIf": { "style": "line" } },
             "color": { "type": "string", "title": "Color", "x-options": "colors", "default": "base03", "x-showIf": { "style": { "not": "space" } } }
+          }
+        }
+      }
+    },
+    "VolumeWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Volume", "description": "Volume" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showPercentage": { "type": "boolean", "title": "Show percentage", "default": false },
+            "scrollStep": { "type": "integer", "title": "Scroll step (%)", "default": 5, "minimum": 1, "maximum": 25, "description": "Volume change per scroll notch." },
+            "maxVolume": { "type": "integer", "title": "Maximum volume (%)", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the output mixer when hovered." },
+            "middleCommand": { "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "base03" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "MicrophoneWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Microphone", "description": "Microphone" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showPercentage": { "type": "boolean", "title": "Show percentage", "default": false },
+            "scrollStep": { "type": "integer", "title": "Scroll step (%)", "default": 5, "minimum": 1, "maximum": 25, "description": "Volume change per scroll notch." },
+            "maxVolume": { "type": "integer", "title": "Maximum volume (%)", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the input mixer when hovered." },
+            "middleCommand": { "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
+            "activeColor": { "type": "string", "title": "In-use background", "x-options": "colors", "default": "base08", "description": "Used while an app is recording from the microphone." },
+            "hideWhenIdle": { "type": "boolean", "title": "Hide when idle", "default": false, "description": "Only show the widget while the microphone is in use or muted." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "base03" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "BluetoothWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Bluetooth", "description": "Bluetooth" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showDevice": { "type": "boolean", "title": "Show device", "default": true, "description": "Show the connected device name (or count) next to the icon." },
+            "showBattery": { "type": "boolean", "title": "Show battery", "default": true, "description": "Append the connected device's battery level, when it reports one.", "x-showIf": { "showDevice": true } },
+            "hideWhenOff": { "type": "boolean", "title": "Hide when off", "default": false },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Bluetooth menu when hovered." },
+            "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. blueman-manager). Empty does nothing." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base0C" },
+            "disabledColor": { "type": "string", "title": "Off background", "x-options": "colors", "default": "base03" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
       }

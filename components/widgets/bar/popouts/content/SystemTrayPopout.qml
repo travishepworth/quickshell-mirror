@@ -6,7 +6,6 @@ import Quickshell
 import Quickshell.Services.SystemTray
 
 import qs.config
-import qs.components.widgets.bar.popouts
 
 // TODO: Use styled components to make this way cleaner
 Item {
@@ -122,6 +121,7 @@ Item {
             const windowPos = itemDelegate.mapToItem(null, 0, 0);
             submenuWrapper.safeOpenPopout(root.wrapper.popupWindow, {
               menuItem: itemDelegate.menuItem,
+              anchorItem: itemDelegate,
               anchorY: windowPos.y,
               attachRect: root.wrapper.boxRect
             });

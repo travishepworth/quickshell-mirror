@@ -30,6 +30,9 @@ Item {
   required property var properties
   required property string componentPath
   property var layoutOverrides: ({})
+  // Where this module's section is anchored along the bar (0 start, 1 end,
+  // 0.5 center): the edge that stays put as the module resizes
+  property real sectionAlign: 0.5
 
   property alias contentItem: contentLoader.item
   readonly property bool isVertical: barConfig.vertical

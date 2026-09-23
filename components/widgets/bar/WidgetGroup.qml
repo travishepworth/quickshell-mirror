@@ -23,6 +23,8 @@ Item {
   property int spacing: root.barConfig.spacing
   // Room the bar's section layout gives this group along the main axis
   property real maxExtent: Infinity
+  // Which way the group grows within its slot (0 start, 1 end, 0.5 center)
+  property real align: 0.5
   // Model indices the bar has hidden to make everything fit
   property var hiddenIndices: []
 
@@ -127,6 +129,7 @@ Item {
       properties: module.modelData.properties || {}
       layoutOverrides: module.modelData.layout || {}
       componentPath: module.modelData.component
+      sectionAlign: root.align
       popouts: root.popouts
       panel: root.panel
       screen: root.screen

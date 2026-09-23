@@ -3,13 +3,28 @@ pragma Singleton
 import QtQuick
 import Quickshell.Services.Pipewire
 
+// Pipewire audio state: the default output (sink) and input (source), every
+// device and app stream, and helpers to control them. All audio nodes are
+// tracked, which is what makes their `.audio` and `.properties` available.
 QtObject {
   id: root
 
+  // -- Nodes --
+  readonly property var sinks: Pipewire.nodes.values.filter(n => n.type === PwNodeType.AudioSink)
+  readonly property var sources: Pipewire.nodes.values.filter(n => n.type === PwNodeType.AudioSource)
+  readonly property var _playbackStreams: Pipewire.nodes.values.filter(n => n.type === PwNodeType.AudioOutStream)
+  readonly property var _recordingStreams: Pipewire.nodes.values.filter(n => n.type === PwNodeType.AudioInStream)
+
   property PwObjectTracker tracker: PwObjectTracker {
-    objects: [Pipewire.defaultAudioSink]
+    objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource].concat(root.sinks, root.sources, root._playbackStreams, root._recordingStreams)
   }
 
+  // App streams grouped per application (an app often opens several):
+  // [{ key, name, icon, subtitle, nodes }]
+  readonly property var playbackApps: groupByApp(_playbackStreams)
+  readonly property var recordingApps: groupByApp(_recordingStreams)
+
+  // -- Default output --
   readonly property var defaultSink: Pipewire.defaultAudioSink
 
   readonly property real volume: Pipewire.defaultAudioSink?.audio?.volume ?? 0
@@ -39,5 +54,144 @@ QtObject {
     if (defaultSink?.audio) {
       defaultSink.audio.volume = Math.max(0.0, Math.min(1.0, value));
     }
+  }
+
+  // -- Default input --
+  readonly property var defaultSource: Pipewire.defaultAudioSource
+
+  readonly property real sourceVolume: Pipewire.defaultAudioSource?.audio?.volume ?? 0
+  readonly property bool sourceMuted: Pipewire.defaultAudioSource?.audio?.muted ?? false
+
+  function toggleSourceMute() {
+    toggleNodeMute(defaultSource);
+  }
+
+  function setSourceVolume(value, max = 1.0) {
+    setNodeVolume(defaultSource, value, max);
+  }
+
+  // -- Any node --
+  function setNodeVolume(node, value, max = 1.0) {
+    if (node?.audio)
+      node.audio.volume = Math.max(0.0, Math.min(max, value));
+  }
+
+  function stepNodeVolume(node, delta, max = 1.0) {
+    if (node?.audio)
+      setNodeVolume(node, node.audio.volume + delta, max);
+  }
+
+  function toggleNodeMute(node) {
+    if (node?.audio)
+      node.audio.muted = !node.audio.muted;
+  }
+
+  function setDefault(node) {
+    if (!node)
+      return;
+    if (node.type === PwNodeType.AudioSource)
+      Pipewire.preferredDefaultAudioSource = node;
+    else
+      Pipewire.preferredDefaultAudioSink = node;
+  }
+
+  function groupByApp(streams) {
+    const groups = [];
+    const byKey = {};
+    for (const node of streams) {
+      if (!node?.audio)
+        continue;
+      const props = node.properties || {};
+      const name = props["application.name"] || props["application.process.binary"] || node.nickname || node.name || "Unknown";
+      const key = name.toLowerCase();
+      if (!byKey[key]) {
+        byKey[key] = {
+          "key": key,
+          "name": name,
+          "icon": props["application.icon-name"] || props["application.process.binary"] || "",
+          "subtitle": props["media.name"] || "",
+          "nodes": []
+        };
+        groups.push(byKey[key]);
+      }
+      byKey[key].nodes.push(node);
+    }
+    return groups;
+  }
+
+  // -- Device kind / icons --
+
+  // headphones | headset | bluetooth | hdmi | webcam | speaker. Pipewire
+  // doesn't expose the active port here, so headphones plugged into an
+  // analog card's jack still read as speaker.
+  function deviceKind(node) {
+    if (!node)
+      return "speaker";
+    const props = node.properties || {};
+    const formFactor = props["device.form-factor"] || "";
+    const text = `${node.name || ""} ${node.description || ""}`.toLowerCase();
+    if (formFactor === "headphone" || text.includes("headphone"))
+      return "headphones";
+    if (formFactor === "headset" || formFactor === "hands-free" || text.includes("headset"))
+      return "headset";
+    if (formFactor === "webcam")
+      return "webcam";
+    if (props["device.bus"] === "bluetooth" || text.startsWith("bluez"))
+      return "bluetooth";
+    if (formFactor === "tv" || formFactor === "monitor" || text.includes("hdmi") || text.includes("displayport"))
+      return "hdmi";
+    return "speaker";
+  }
+
+  // Output glyph for a device kind, reflecting mute and level
+  function outputIcon(kind, muted, level) {
+    switch (kind) {
+    case "headphones":
+    case "headset":
+      return muted ? "\u{F07CE}" : (kind === "headset" ? "\u{F02CE}" : "\u{F02CB}");
+    case "bluetooth":
+      return muted ? "\u{F0581}" : "\u{F00B0}";
+    case "hdmi":
+      return muted ? "\u{F0581}" : "\u{F0379}";
+    }
+    if (muted || level <= 0)
+      return "\u{F0581}";
+    if (level < 0.34)
+      return "\u{F057F}";
+    if (level < 0.67)
+      return "\u{F0580}";
+    return "\u{F057E}";
+  }
+
+  // Input glyph for a device kind, reflecting mute
+  function inputIcon(kind, muted) {
+    if (muted)
+      return "\u{F036D}";
+    switch (kind) {
+    case "headset":
+      return "\u{F02CE}";
+    case "webcam":
+      return "\u{F0100}";
+    }
+    return "\u{F036C}";
+  }
+
+  // -- Microphone use --
+
+  // App input streams actively recording from a microphone. Recording a
+  // sink monitor (visualisers, peak meters) doesn't count.
+  readonly property var micCaptures: {
+    const targets = [];
+    for (const g of Pipewire.linkGroups.values) {
+      if (g && g.state === PwLinkState.Active && g.source?.type === PwNodeType.AudioSource && g.target?.type === PwNodeType.AudioInStream && !targets.includes(g.target))
+        targets.push(g.target);
+    }
+    return targets;
+  }
+  readonly property var micUsers: [...new Set(micCaptures.map(n => appName(n)))]
+  readonly property bool micInUse: micCaptures.length > 0
+
+  function appName(node) {
+    return node?.properties?.["application.name"] || node?.nickname || node?.name || "Unknown";
   }
 }

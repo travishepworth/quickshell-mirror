@@ -166,9 +166,17 @@ IconTextWidget {
 
   onLocationKeyChanged: {
     place = null;
-    Qt.callLater(refresh);
+    refreshSoon.restart();
   }
-  onUnitSymbolChanged: Qt.callLater(refresh)
+  onUnitSymbolChanged: refreshSoon.restart()
+
+  // Coalesces setting changes into one refresh. A Timer rather than
+  // Qt.callLater, so it dies with this instance on a config reload.
+  Timer {
+    id: refreshSoon
+    interval: 250
+    onTriggered: root.refresh()
+  }
 
   Timer {
     interval: root.properties.intervalMinutes * 60000

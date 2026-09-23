@@ -91,14 +91,6 @@ PopoutWrapperBase {
   currentItem: loader.item ?? null
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
 
-  // Start the countdown once open. Deferred because openPopout() stops the
-  // timer after setting occupied, and kept-loaded content never fires
-  // Loader.onLoaded to start it.
-  onOccupiedChanged: {
-    if (occupied)
-      Qt.callLater(root.updateDismissTimer);
-  }
-
   function show() {
     if (!available)
       return;

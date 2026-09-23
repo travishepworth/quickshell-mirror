@@ -19,10 +19,11 @@ Item {
 
   property bool isVertical: barConfig.vertical
 
-  // Always the same size, so the widget (and the popout hanging off it)
-  // doesn't move when the track changes; the label elides to fit
-  readonly property string sizePolicy: "fixed"
-  readonly property int preferredSize: 320
+  // Sized to the track, shrinking (the label elides) down to just the icon
+  // when the bar is crowded. The popout pins to the widget's edge on its
+  // section's side, so a resize doesn't move it. `layout.size` caps it.
+  readonly property string sizePolicy: "elastic"
+  readonly property real minimumSize: iconText._iconLength + iconText.padding * 2
 
   implicitWidth: iconText.implicitWidth
   implicitHeight: iconText.implicitHeight
@@ -56,5 +57,6 @@ Item {
     popoutName: "media-player"
     active: root.properties.showPopout
     openDelay: 150
+    alignToSection: true
   }
 }

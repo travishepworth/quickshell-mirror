@@ -13,6 +13,8 @@ ColumnLayout {
   property int maxItems: 99
   property var itemDelegate: null
   property var itemHeaderExtra: null
+  // Optional component shown in the header, between the label and "+"
+  property var headerExtra: null
   
   signal itemAdded()
   signal itemRemoved(int index)
@@ -30,6 +32,12 @@ ColumnLayout {
       textSize: Appearance.fontSize + 1
       font.bold: true
       Layout.fillWidth: true
+    }
+
+    Loader {
+      active: root.headerExtra !== null
+      sourceComponent: root.headerExtra
+      Layout.alignment: Qt.AlignVCenter
     }
     
     StyledRectButton {

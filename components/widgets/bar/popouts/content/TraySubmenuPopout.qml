@@ -78,6 +78,7 @@ Item {
             root.wrapper.safeOpenPopout(root.wrapper.popupWindow, {
               menuItem: itemDelegate.menuItem,
               parentItemDelegate: itemDelegate,
+              anchorItem: itemDelegate,
               anchorWindow: root.wrapper.popupWindow,
               anchorX: globalPos.x,
               anchorY: globalPos.y,

@@ -3,13 +3,13 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.Pipewire
 
+import qs.services
 import qs.config
 import qs.components.reusable
 
 // Mic / screen share / camera indicators, derived from active Pipewire
 // links (no polling). Hidden entirely while nothing is capturing.
-//   mic:    a microphone (audio source) linked into an app's input stream;
-//           recording a sink monitor (visualisers, peak meters) doesn't count
+//   mic:    Audio.micCaptures (an app recording from a microphone)
 //   screen: a video source from xdg-desktop-portal linked to a stream
 //   camera: any other video source linked to a stream
 IconTextWidget {
@@ -41,7 +41,7 @@ IconTextWidget {
     return [...new Set(names)];
   }
 
-  readonly property var micUsers: properties.showMic ? users(s => s.type === PwNodeType.AudioSource, t => t.type === PwNodeType.AudioInStream) : []
+  readonly property var micUsers: properties.showMic ? [...new Set(Audio.micCaptures.filter(n => !ignored(n)).map(n => appName(n)))] : []
   readonly property var screenUsers: properties.showScreen ? users(s => s.type === PwNodeType.VideoSource && isPortal(s), t => t.isStream) : []
   readonly property var cameraUsers: properties.showCamera ? users(s => s.type === PwNodeType.VideoSource && !isPortal(s), t => t.isStream) : []
 

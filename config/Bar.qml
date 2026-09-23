@@ -23,6 +23,7 @@ QtObject {
       "monitor": barConfig.monitor,
       "extent": barConfig.extent,
       "spacing": barConfig.spacing,
+      "lockCenter": barConfig.lockCenter,
       "location": loc,
       "reserveSpace": barConfig.reserveSpace,
       "widgets": barConfig.widgets,

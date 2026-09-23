@@ -18,7 +18,8 @@ A [Quickshell](https://quickshell.org) desktop shell config (QML) for Hyprland, 
 
 ## Formatting
 
-- `.qmlformat.ini` pins `qmlformat` settings: spaces not tabs, 2-space indent, no max column width. Run `qmlformat` on changed `.qml` files before committing if available.
+- `.qmlformat.ini` pins `qmlformat` settings: spaces not tabs, 2-space indent, no max column width. Run `/usr/lib/qt6/bin/qmlformat -i` on changed `.qml` files before committing. The `qmlformat` on PATH is Qt5's, which can't parse `pragma ComponentBehavior` and fails silently (exit 1, no output).
+- The QML JS engine has no `Array.prototype.flatMap`; use `[].concat(...arr.map(...))`.
 
 ## Architecture
 
@@ -51,6 +52,8 @@ Every file is `pragma Singleton QtObject` — one global instance per name, impo
 - **ThemeManager** — theme discovery (`allThemes`/`defaultThemes`/`generatedThemes` ListModels via `FolderListModel`), theme generation from a wallpaper (spawns `scripts/generate_theme.py` per backend: wal, colorz, colorthief, haishoku), and dark/light pairing logic. Delegates actual persistence to `ConfigManager.setTheme`.
 - **ShellManager** — cross-cutting UI signals (dark mode, lock screen, power menu) that modules connect to rather than calling each other directly.
 - **SystemManager** — CPU/memory/temp/GPU/disk stats. Reference-counted: consumers call `acquire(owner, {interval, metrics, diskPaths})` / `release(owner)`, and it polls only the union of requested metrics (sysfs/procfs `FileView` reads, no processes on the hot path), stopping entirely with no consumers.
+- **PackageUpdates** — pending pacman/AUR updates shared by every Updates widget (same acquire/release pattern). Only one `checkupdates` may run at a time: concurrent runs share its temp db and fail.
+- **BluetoothManager** — adapter power, scanning, sorted device lists and connect/pair/forget over `Quickshell.Bluetooth`. Not named `Bluetooth`, which would shadow Quickshell's singleton (and the `Bluetooth` bar widget file).
 - **IdleInhibit** — shared caffeine state + `idleInhibit` IPC target; the Wayland inhibitor itself lives in `bar/modules/IdleInhibitor.qml` (it needs a window).
 - Other domain services (Audio, Battery, MprisController, Notifs, HyprlandData, HyprConfigManager, StateManager, BarManager, LauncherManager, SettingsMenu, Authentication, Chat) follow the same singleton pattern — one owns polling/IPC/process-spawning for its domain and exposes readonly properties + signals.
 
@@ -66,7 +69,7 @@ Also `pragma Singleton`, but these are typed config *readers*, not owners — on
 
 ### Bar / widget composition pattern
 
-`modules/Bar.qml` renders one `BarPanel` per entry in `Bar.bars` (a `Variants`/model), so multi-monitor / multi-panel bars are data-driven from config, not hardcoded. Each module's options live under its `<Type>Widget.properties.properties` definition in the schema. `SchemaValidation` picks the `BarWidget` oneOf option by `type`, so widget properties get their defaults filled like the rest of the config and modules read `properties.<key>` directly. The bar editor (`overlay/modules/barEditor/WidgetItemDelegate.qml`) renders them with the same `SchemaField` rows as the settings menu. Bar contents are built from `components/widgets/bar/{BarContainer,BarModule,WidgetGroup,BarPanel}.qml` composing individual modules from `components/widgets/bar/modules/*.qml` (Time, Battery, Network, Workspaces, Media, SystemTray, Notifications, etc.). Popout panels (calendar, media, tray submenu, workspace) live in `components/widgets/bar/popouts/` and follow a shared `PopoutWrapperBase`/`PopoutAnchor` pattern.
+`modules/Bar.qml` renders one `BarPanel` per entry in `Bar.bars` (a `Variants`/model), so multi-monitor / multi-panel bars are data-driven from config, not hardcoded. Each module's options live under its `<Type>Widget.properties.properties` definition in the schema. `SchemaValidation` picks the `BarWidget` oneOf option by `type`, so widget properties get their defaults filled like the rest of the config and modules read `properties.<key>` directly. The bar editor (`overlay/modules/barEditor/WidgetItemDelegate.qml`) renders them with the same `SchemaField` rows as the settings menu. Bar contents are built from `components/widgets/bar/{BarContainer,BarModule,WidgetGroup,BarPanel}.qml` composing individual modules from `components/widgets/bar/modules/*.qml` (Time, Battery, Network, Workspaces, Media, SystemTray, Notifications, etc.). Bar popouts follow a shared `PopoutWrapperBase`/`PopoutAnchor` pattern: `components/widgets/bar/popouts/` holds only the plumbing (`Popouts.qml`, the per-bar wrapper that maps a popout name to its content, and `PopoutAnchor.qml`, which modules drop in to open one), and every popout's content (plus helpers only content uses, e.g. `AudioRow`, `TrayMenuItem`, `TraySubmenuWrapper`) lives in `bar/popouts/content/`. A new popout = a file in `content/` + a case and Component in `Popouts.qml`.
 
 ### Popouts (bar + screen edge)
 

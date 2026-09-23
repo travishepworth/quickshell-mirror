@@ -20,7 +20,9 @@ Rectangle {
   property int minItemWidth: 100
   property int maxItemWidth: 600
   property bool openToLeft
-  
+  // Keeps a submenu opened from this item up while the pointer is on it
+  readonly property bool hovered: menuItemArea.containsMouse
+
   Layout.fillWidth: true
   Layout.preferredWidth: contentRow.implicitWidth + (itemPadding * 2)
   Layout.minimumWidth: minItemWidth
