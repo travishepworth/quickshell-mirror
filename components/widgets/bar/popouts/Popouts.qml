@@ -151,7 +151,9 @@ PopoutWrapperBase {
           if (root.barConfig.left) {
             return root.barConfig.extent;
           } else if (root.barConfig.right) {
-            return root.anchorRect.x - mainPopup.implicitWidth - Widget.padding + Appearance.borderWidth;
+            // Mirror of the left case: end at the bar's inner edge, not
+            // relative to the anchor (tray icons are narrower than modules)
+            return -mainPopup.implicitWidth;
           } else {
             let anchorCenter = root.anchorRect.x + root.anchorRect.width / 2;
             let popoutCenter = mainPopup.implicitWidth / 2;
@@ -168,7 +170,7 @@ PopoutWrapperBase {
           if (root.barConfig.top) {
             return root.barConfig.extent;
           } else if (root.barConfig.bottom) {
-            return root.anchorRect.y - mainPopup.implicitHeight - Widget.padding + Appearance.borderWidth;
+            return -mainPopup.implicitHeight;
           } else {
             let anchorCenter = root.anchorRect.y + root.anchorRect.height / 2;
             let popoutCenter = mainPopup.implicitHeight / 2;

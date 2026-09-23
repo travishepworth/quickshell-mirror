@@ -14,10 +14,13 @@ Scope {
   property color foregroundColor: Theme.foreground
 
   Variants {
-    model: Bar.bars
+    // Keyed on the stable bar id so a config reload rebinds the existing
+    // PanelWindow instead of recreating it. Recreating appends the layer
+    // surface after the borders, which then claim the edge exclusive zone first.
+    model: Bar.bars.map(b => b.id)
     delegate: BarPanel {
-      required property var modelData
-      barConfig: modelData
+      required property string modelData
+      barConfig: Bar.bars.find(b => b.id === modelData) ?? barConfig
     }
   }
 }

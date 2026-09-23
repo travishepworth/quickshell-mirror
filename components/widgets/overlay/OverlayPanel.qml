@@ -30,11 +30,14 @@ PanelWindow {
     bottom: true
   }
 
+  // Normal exclusion with no zone of its own places the window inside the
+  // border's and bars' reserved area, wherever the bars are; the
+  // -borderWidth margin lines it up with their inner stroke (as EdgePopout)
   margins {
-    left: Bar.extent
-    right: Appearance.screenMargin - Appearance.borderWidth
-    top: Appearance.screenMargin - Appearance.borderWidth
-    bottom: Appearance.screenMargin - Appearance.borderWidth
+    left: -Appearance.borderWidth
+    right: -Appearance.borderWidth
+    top: -Appearance.borderWidth
+    bottom: -Appearance.borderWidth
   }
 
   color: "transparent"
@@ -42,7 +45,8 @@ PanelWindow {
   visible: false
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
   WlrLayershell.layer: WlrLayer.Overlay
-  WlrLayershell.exclusiveZone: -1
+  exclusionMode: ExclusionMode.Normal
+  exclusiveZone: 0
 
   function open() {
     visible = true;
