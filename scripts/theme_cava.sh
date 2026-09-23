@@ -116,17 +116,6 @@ if [ ! -f "$TEMPLATE_FILE" ]; then
     exit 1
 fi
 
-# Set gradient colors based on variant
-if [[ "$THEME_VARIANT" == "dark" ]]; then
-    export GRADIENT_COUNT=8
-    export GRADIENT_7=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base08')")
-    export GRADIENT_8="$ACCENT_SECONDARY"
-else
-    export GRADIENT_COUNT=6
-    export GRADIENT_7=""
-    export GRADIENT_8=""
-fi
-
 # Export base16 colors (formatted for Cava)
 export BASE00=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base00')")
 export BASE01=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base01')")
@@ -149,13 +138,24 @@ export BASE0F=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0F')")
 export FOREGROUND=$(format_color "$(resolve_color "foreground")")
 export BACKGROUND=$(format_color "$(resolve_color "background")")
 export ACCENT=$(format_color "$(resolve_color "accent")")
-export ACCENT_SECONDARY=$(format_color "$(resolve_color "accentSecondary")")
+export ACCENT_SECONDARY=$(format_color "$(resolve_color "accentAlt")")
 
 # Default fallbacks if semantic colors are missing
 : "${FOREGROUND:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base05')")}"
 : "${BACKGROUND:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base00')")}"
 : "${ACCENT:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0D')")}"
 : "${ACCENT_SECONDARY:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0E')")}"
+
+# Set gradient colors based on variant
+if [[ "$THEME_VARIANT" == "dark" ]]; then
+    export GRADIENT_COUNT=8
+    export GRADIENT_7=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base08')")
+    export GRADIENT_8="$ACCENT_SECONDARY"
+else
+    export GRADIENT_COUNT=6
+    export GRADIENT_7=""
+    export GRADIENT_8=""
+fi
 
 echo "📝 Generating Cava config from template..."
 envsubst < "$TEMPLATE_FILE" > "$OUTPUT_FILE"

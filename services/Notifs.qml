@@ -39,15 +39,10 @@ Singleton {
     }
   }
 
-  function sendNotification(appName, summary, body, options) {
-    options = options || {};
-    const notif = server.createNotification(appName, summary, body, options);
-    notif.tracked = true; // Automatically track this notification
-    root.receivedAtFor(notif);
-    if (!root.dnd || notif.urgency === NotificationUrgency.Critical) {
-      root.showPopup(notif);
-    }
-    return notif;
+  // NotificationServer can't create notifications itself, so send one over
+  // DBus; it comes back through our own server like any other (DND applies).
+  function sendNotification(appName, summary, body) {
+    Quickshell.execDetached(["notify-send", "-a", appName, summary, body]);
   }
 
   // MARK: - Received-time tracking
@@ -120,7 +115,7 @@ Singleton {
       // You can connect to the closed signal if you need to know when a
       // notification is dismissed by the client or times out.
       notification.closed.connect(reason => {
-          delete root._receivedAt[notification.id];
+        delete root._receivedAt[notification.id];
       });
     }
   }

@@ -49,6 +49,12 @@ QtObject {
   function restore(name) {
     const path = savedDir + name + ".json";
     const content = Utils.getFileContent("file://" + path);
+    // JSON.parse(null) is null, which would restore pure defaults
+    if (!content) {
+      console.error("[SavedConfigs] Could not read", path);
+      root.status = "\"" + name + "\" could not be read";
+      return;
+    }
     let parsed;
     try {
       parsed = JSON.parse(content);

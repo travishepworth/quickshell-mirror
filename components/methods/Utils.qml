@@ -1,6 +1,6 @@
 pragma Singleton
 import QtQuick
-import Quickshell.Io
+import Quickshell
 
 import qs.config
 
@@ -54,14 +54,10 @@ QtObject {
     return null;
   }
 
-  // Launch an external application
+  // Launch an external application. Detached, so launches never queue
+  // behind (or get dropped by) one that is still running.
   function launch(command) {
-    if (typeof command === "string") {
-      launchProcess.command = [command];
-    } else {
-      launchProcess.command = command;
-    }
-    launchProcess.running = true;
+    Quickshell.execDetached(typeof command === "string" ? [command] : command);
   }
 
   function executeWallpaperScript(wallpaperUrl) {
@@ -75,9 +71,8 @@ QtObject {
   }
 
   // Launch with arguments
-  function launchWithArgs(program, args) {
-    launchProcess.command = [program].concat(args);
-    launchProcess.running = true;
+  function launchWithArgs(program, ...args) {
+    Quickshell.execDetached([program].concat(args));
   }
 
   // Format time duration (for timer widgets)
@@ -139,19 +134,6 @@ QtObject {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 
-  // Debounce function creator
-  function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }
-
   // Parse color and adjust alpha
   function setAlpha(color, alpha) {
     const c = Qt.color(color);
@@ -175,53 +157,6 @@ QtObject {
   // Get contrasting text color for background
   function getContrastColor(backgroundColor) {
     return isColorDark(backgroundColor) ? "#FFFFFF" : "#000000";
-  }
-
-  // Process launcher (internal use)
-  property Process launchProcess: Process {
-    id: launchProcess
-    running: false
-
-    stdout: StdioCollector {
-      onStreamFinished: {
-        launchProcess.running = false;
-      }
-    }
-
-    stderr: StdioCollector {
-      onStreamFinished: {
-        console.log("Process error:", text);
-        launchProcess.running = false;
-      }
-    }
-  }
-
-  // System command executor with callback
-  function executeCommand(command, callback) {
-    const proc = Qt.createQmlObject(`
-            import Quickshell.Io
-            Process {
-                id: proc
-                command: ${JSON.stringify(command)}
-                running: true
-
-                stdout: StdioCollector {
-                    onStreamFinished: {
-                        if (callback) callback(text, null)
-                        proc.destroy()
-                    }
-                }
-
-                stderr: StdioCollector {
-                    onStreamFinished: {
-                        if (callback) callback(null, text)
-                        proc.destroy()
-                    }
-                }
-            }
-        `, utils, "dynamicProcess");
-
-    return proc;
   }
 
   // Array utilities

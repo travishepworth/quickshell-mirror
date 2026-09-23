@@ -30,7 +30,7 @@ Rectangle {
     }
     return 0;
   }
-  
+
   property int workspaceOffset: monitorIndex * 25
 
   // Computed properties
@@ -129,7 +129,6 @@ Rectangle {
         onWindowClicked: {
           if (modelData?.workspace?.id) {
             root.workspaceClicked(modelData.workspace.id);
-            WorkspaceUtils.focusWorkspace(modelData.address);
           }
         }
 

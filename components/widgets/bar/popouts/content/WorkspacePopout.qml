@@ -7,7 +7,6 @@ import Quickshell.Hyprland
 import qs.services
 import qs.config
 import qs.components.methods
-import qs.components.stolen
 
 Item {
   id: root
@@ -79,21 +78,8 @@ Item {
           Layout.preferredWidth: Widget.height
           Layout.preferredHeight: Widget.height
 
-          property var iconPath: findIconPath()
           property var windowData: HyprlandData.biggestWindowForWorkspace(wsId)
-
-          function findIconPath() {
-            let baseIcon = Quickshell.iconPath(AppSearch.guessIcon(windowData?.class), "image-missing");
-            // Check if icon is kitty, and check if it is running nvim, and use nvim icon if so
-            if (baseIcon.includes("kitty")) {
-              for (let win of HyprlandData.windowList) {
-                if (win.class === "kitty" && windowData?.title.toLowerCase().includes("nvim")) {
-                  return Quickshell.iconPath("nvim", "image-missing");
-                }
-              }
-            }
-            return baseIcon;
-          }
+          property var iconPath: IconResolver.resolveWindowIcon(windowData?.class, windowData?.title)
 
           radius: Appearance.borderRadius
           // property color baseColor: isActive ? Theme.accent : hasWindows ? Colors.outline : Theme.backgroundAlt

@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 I18N = ROOT / "config" / "i18n"
 SCHEMA = ROOT / "config" / "json" / "config.schema.json"
 QML_DIRS = ["components", "modules", "services", "config"]
-SKIP = ["components/stolen"]
+SKIP = []
 
 # "..." with escapes, as the first argument of I18n.tr(
 TR_CALL = re.compile(r'I18n\.tr\(\s*"((?:[^"\\]|\\.)*)"')

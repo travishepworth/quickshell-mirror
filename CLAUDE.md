@@ -31,7 +31,6 @@ components/     reusable UI building blocks
   reusable/     generic styled widgets (StyledRectButton, StyledTextEntry, BaseWidget, etc.) with no feature-specific logic
   widgets/      feature-specific composed components, grouped by feature (bar/, notifications/, popouts/, lockscreen/, menu/, applauncher/, powermenu/, workspaces/, overlay/, workspaceContainer/, common/)
   methods/      singleton pure-function helpers (Utils, IconResolver, SchemaValidation, WindowUtils, WorkspaceUtils)
-  stolen/       code adapted from other dotfiles/projects, kept isolated pending reimplementation — see components/stolen/README.md
 services/       pragma Singleton QtObjects — global state and side-effecting logic (see below)
 config/         static QML config singletons + JSON config/theme files
 assets/         static assets (icons, images)
@@ -123,4 +122,3 @@ Shared pieces live in `components/widgets/popouts/`: `PopoutWrapperBase` (open/c
 
 - Variable naming is not yet consistent across the codebase.
 - Some components still use inline properties instead of `alias`es to reusable components.
-- `components/stolen/` is intentionally temporary — treat replacing it with native implementations as welcome cleanup, not scope creep, if asked.

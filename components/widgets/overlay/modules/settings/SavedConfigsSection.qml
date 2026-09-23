@@ -84,7 +84,7 @@ SchemaSection {
           }
 
           StyledText {
-            text: Qt.formatDateTime(row.fileModified, "yyyy-MM-dd hh:mm")
+            text: I18n.formatDate(row.fileModified, "yyyy-MM-dd hh:mm")
             opacity: 0.6
             textSize: Appearance.fontSize - 2
             Layout.fillWidth: true

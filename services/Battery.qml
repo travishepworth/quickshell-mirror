@@ -3,12 +3,15 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.UPower
 
+import qs.config
+
 QtObject {
   id: root
 
-  property UPowerDevice battery: null
+  property UPowerDevice battery: UPower.displayDevice?.isLaptopBattery ? UPower.displayDevice : null
   property bool isAvailable: battery !== null
-  property int percentage: battery?.percentage ?? 0
+  // UPowerDevice.percentage is a 0-1 ratio
+  property int percentage: Math.round((battery?.percentage ?? 0) * 100)
   property bool isCharging: battery?.state === UPowerDeviceState.Charging
   property bool isDischarging: battery?.state === UPowerDeviceState.Discharging
   property bool isFull: battery?.state === UPowerDeviceState.FullyCharged
@@ -16,21 +19,6 @@ QtObject {
   property bool isCritical: percentage <= 10
   property string timeRemaining: formatTime(battery?.timeToEmpty ?? 0)
   property string timeToFull: formatTime(battery?.timeToFull ?? 0)
-
-  Component.onCompleted: {
-    findBattery();
-  }
-
-  function findBattery() {
-    const devices = UPower.devices;
-    for (let i = 0; i < devices.length; i++) {
-      const device = devices[i];
-      if (device.type === UPowerDeviceType.Battery) {
-        battery = device;
-        break;
-      }
-    }
-  }
 
   function formatTime(seconds) {
     if (seconds <= 0)

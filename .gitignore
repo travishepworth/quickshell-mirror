@@ -11,3 +11,6 @@ config/user
 config/state
 
 .venv
+
+__pycache__/
+*.pyc

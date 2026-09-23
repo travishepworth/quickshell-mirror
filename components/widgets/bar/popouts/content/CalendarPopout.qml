@@ -247,7 +247,7 @@ Item {
 
         StyledTextButton {
           Layout.preferredHeight: root.footerHeight
-          text: "今日"
+          text: I18n.tr("Today")
           textPadding: 6
           onClicked: root.goToToday()
         }
