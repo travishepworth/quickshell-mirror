@@ -11,41 +11,16 @@ import Quickshell.Hyprland
 Singleton {
   id: root
   property var windowList: []
-  property var addresses: []
-  property var windowByAddress: ({})
-  property var workspaces: []
-  property var workspaceIds: []
-  property var workspaceById: ({})
   property var activeWorkspace: null
-  property var monitors: []
-  property var layers: ({})
 
-  function updateWindowList() {
-    getClients.running = true;
-  }
-
-  function updateLayers() {
-    getLayers.running = true;
-  }
-
-  function updateMonitors() {
-    getMonitors.running = true;
-  }
-
-  function updateWorkspaces() {
-    getWorkspaces.running = true;
-    getActiveWorkspace.running = true;
-  }
-
+  // Refetch soon. Events arrive in bursts (a window opening fires several),
+  // so they are coalesced into one fetch.
   function updateAll() {
-    updateWindowList();
-    updateMonitors();
-    updateLayers();
-    updateWorkspaces();
+    _debounce.restart();
   }
 
   function biggestWindowForWorkspace(workspaceId) {
-    const windowsInThisWorkspace = HyprlandData.windowList.filter(w => w.workspace.id == workspaceId);
+    const windowsInThisWorkspace = root.windowList.filter(w => w.workspace.id == workspaceId);
     return windowsInThisWorkspace.reduce((maxWin, win) => {
       const maxArea = (maxWin?.size[0] ?? 0) * (maxWin?.size[1] ?? 0);
       const winArea = (win?.size[0] ?? 0) * (win?.size[1] ?? 0);
@@ -53,16 +28,50 @@ Singleton {
     }, null);
   }
 
-  Component.onCompleted: {
-    updateAll();
-  }
+  Component.onCompleted: _fetch()
 
   Connections {
     target: Hyprland
 
     function onRawEvent(event) {
-      // console.log("Hyprland raw event:", event.name);
-      updateAll();
+      // Layer surfaces (including our own popouts) don't affect clients
+      if (event.name === "openlayer" || event.name === "closelayer")
+        return;
+      root.updateAll();
+    }
+  }
+
+  property Timer _debounce: Timer {
+    interval: 50
+    onTriggered: root._fetch()
+  }
+
+  // Set when a fetch is asked for while one is still running: starting a
+  // running Process is a no-op, so it's re-run once the current one ends
+  property bool _pending: false
+
+  function _fetch() {
+    if (getClients.running || getActiveWorkspace.running) {
+      _pending = true;
+      return;
+    }
+    getClients.running = true;
+    getActiveWorkspace.running = true;
+  }
+
+  function _fetchFinished() {
+    if (_pending && !getClients.running && !getActiveWorkspace.running) {
+      _pending = false;
+      _fetch();
+    }
+  }
+
+  function _parse(text, what) {
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.warn("[HyprlandData] Could not parse hyprctl " + what + ":", e);
+      return undefined;
     }
   }
 
@@ -72,56 +81,12 @@ Singleton {
     stdout: StdioCollector {
       id: clientsCollector
       onStreamFinished: {
-        root.windowList = JSON.parse(clientsCollector.text);
-        let tempWinByAddress = {};
-        for (var i = 0; i < root.windowList.length; ++i) {
-          var win = root.windowList[i];
-          tempWinByAddress[win.address] = win;
-        }
-        root.windowByAddress = tempWinByAddress;
-        root.addresses = root.windowList.map(win => win.address);
+        const clients = root._parse(clientsCollector.text, "clients");
+        if (Array.isArray(clients))
+          root.windowList = clients;
       }
     }
-  }
-
-  Process {
-    id: getMonitors
-    command: ["hyprctl", "monitors", "-j"]
-    stdout: StdioCollector {
-      id: monitorsCollector
-      onStreamFinished: {
-        root.monitors = JSON.parse(monitorsCollector.text);
-      }
-    }
-  }
-
-  Process {
-    id: getLayers
-    command: ["hyprctl", "layers", "-j"]
-    stdout: StdioCollector {
-      id: layersCollector
-      onStreamFinished: {
-        root.layers = JSON.parse(layersCollector.text);
-      }
-    }
-  }
-
-  Process {
-    id: getWorkspaces
-    command: ["hyprctl", "workspaces", "-j"]
-    stdout: StdioCollector {
-      id: workspacesCollector
-      onStreamFinished: {
-        root.workspaces = JSON.parse(workspacesCollector.text);
-        let tempWorkspaceById = {};
-        for (var i = 0; i < root.workspaces.length; ++i) {
-          var ws = root.workspaces[i];
-          tempWorkspaceById[ws.id] = ws;
-        }
-        root.workspaceById = tempWorkspaceById;
-        root.workspaceIds = root.workspaces.map(ws => ws.id);
-      }
-    }
+    onExited: root._fetchFinished()
   }
 
   Process {
@@ -130,8 +95,11 @@ Singleton {
     stdout: StdioCollector {
       id: activeWorkspaceCollector
       onStreamFinished: {
-        root.activeWorkspace = JSON.parse(activeWorkspaceCollector.text);
+        const workspace = root._parse(activeWorkspaceCollector.text, "activeworkspace");
+        if (workspace)
+          root.activeWorkspace = workspace;
       }
     }
+    onExited: root._fetchFinished()
   }
 }

@@ -49,12 +49,20 @@ OverlayCard {
         width: parent.width
         spacing: Widget.spacing / 2
 
+        // Modelled by count: the rows are a new array every sample, which
+        // would recreate the delegates (and drop the hover) each time
         Repeater {
-          model: root.rows
+          model: root.rows.length
 
           Rectangle {
             id: row
-            required property var modelData
+            required property int index
+            readonly property var proc: root.rows[index] ?? ({
+                "command": "",
+                "cpu": 0,
+                "mem": 0,
+                "pid": 0
+              })
             width: parent.width
             height: root.rowHeight
             radius: Appearance.borderRadius
@@ -73,17 +81,17 @@ OverlayCard {
               StyledText {
                 Layout.fillWidth: true
                 elide: Text.ElideRight
-                text: row.modelData.command
+                text: row.proc.command
               }
               StyledText {
                 visible: !root.compact
-                text: `${row.modelData.cpu.toFixed(1)}%`
+                text: `${row.proc.cpu.toFixed(1)}%`
                 textColor: root.sortBy === "cpu" ? Theme.accent : Theme.foreground
                 textSize: Appearance.fontSize - 1
               }
               StyledText {
                 visible: !root.compact
-                text: `${row.modelData.mem.toFixed(1)}%`
+                text: `${row.proc.mem.toFixed(1)}%`
                 textColor: root.sortBy === "mem" ? Theme.accent : Theme.foreground
                 textSize: Appearance.fontSize - 1
                 opacity: 0.8
@@ -95,7 +103,7 @@ OverlayCard {
                 MouseArea {
                   anchors.fill: parent
                   cursorShape: Qt.PointingHandCursor
-                  onClicked: SystemManager.kill(row.modelData.pid)
+                  onClicked: SystemManager.kill(row.proc.pid)
                 }
               }
             }

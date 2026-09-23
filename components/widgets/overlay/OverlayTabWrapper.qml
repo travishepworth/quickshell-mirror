@@ -7,6 +7,8 @@ import qs.components.widgets.overlay.views
 Item {
   id: wrapper
   required property var screen
+  // Whether the overlay window is showing; pages unload when it isn't
+  property bool open: false
   property var viewsConfig: OverlayConfig.views || []
   property var viewsModel: buildViewsModel(viewsConfig)
   property int currentIndex: 0
@@ -39,6 +41,16 @@ Item {
   // Store current view dimensions to avoid binding loops
   property real currentViewWidth: wrapper.currentPage ? wrapper.currentPage.implicitWidth : 0
   property real currentViewHeight: wrapper.currentPage ? wrapper.currentPage.implicitHeight : 0
+
+  // Only the current page and its neighbours (navigation wraps around) are
+  // loaded, and only while the overlay is open, so hidden pages don't keep
+  // polling. Neighbours stay loaded so the slide in has something to show.
+  function isLoaded(pageIndex) {
+    if (!wrapper.open)
+      return false;
+    const distance = Math.abs(pageIndex - wrapper.currentIndex);
+    return Math.min(distance, wrapper.pageCount - distance) <= 1;
+  }
 
   function buildViewsModel(viewConfigArray) {
     return (viewConfigArray || []).filter(viewConf => viewConf.visible !== false).map(viewConf => {
@@ -100,6 +112,7 @@ Item {
             required property var modelData
             pageIndex: index
             currentIndex: wrapper.currentIndex
+            loaded: wrapper.isLoaded(index)
 
             OverlayViewWrapper {
               anchors.centerIn: parent
@@ -113,6 +126,7 @@ Item {
           id: editorPage
           pageIndex: wrapper.editorIndex
           currentIndex: wrapper.currentIndex
+          loaded: wrapper.isLoaded(wrapper.editorIndex)
 
           OverlayEditor {
             anchors.centerIn: parent

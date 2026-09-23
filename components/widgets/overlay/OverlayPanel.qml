@@ -18,9 +18,7 @@ PanelWindow {
 
   required property var screen
 
-  property bool isPrimaryScreen: screen.name === General.primaryMonitor
   property bool isOpen: false
-  property bool enabled: overlay.isPrimaryScreen
   property real slideOffset: isOpen ? 0 : -height
 
   anchors {
@@ -77,7 +75,6 @@ PanelWindow {
 
   Connections {
     target: ShellManager
-    enabled: overlay.isPrimaryScreen
     function onToggleOverlay() {
       overlay.toggle();
     }
@@ -85,7 +82,6 @@ PanelWindow {
 
   IpcHandler {
     target: "overlay"
-    enabled: overlay.isPrimaryScreen
 
     function open() {
       overlay.open();
@@ -102,7 +98,7 @@ PanelWindow {
 
   HyprlandFocusGrab {
     id: grab
-    active: overlay.visible && overlay.isPrimaryScreen
+    active: overlay.visible
     windows: [overlay]
     onCleared: {
       if (!overlay.isOpen) {
@@ -139,6 +135,7 @@ PanelWindow {
       id: tabWrapper
       anchors.centerIn: parent
       screen: overlay.screen
+      open: overlay.visible
     }
 
     OverlayPageNavigator {

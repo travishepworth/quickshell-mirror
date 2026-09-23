@@ -13,15 +13,19 @@ QtObject {
   /**
      * @brief Creates a state handler for a specific service
      * @param serviceName The name of the service (e.g., "launcher")
-     * @returns An object with save/load methods
+     * @returns An object with save/load methods, shared by every caller
+     *   asking for the same name (so re-created consumers don't each leak
+     *   a FileView)
      */
   function createStateHandler(serviceName) {
+    if (_handlers[serviceName])
+      return _handlers[serviceName];
     const stateFile = serviceName + ".json";
     const fileView = fileViewComponent.createObject(stateManager, {
       path: Qt.resolvedUrl(stateDir + stateFile)
     });
 
-    return {
+    const handler = {
       save: function (data) {
         try {
           const stateString = JSON.stringify(data, null, 2);
@@ -53,9 +57,13 @@ QtObject {
         }
       }
     };
+    _handlers[serviceName] = handler;
+    return handler;
   }
 
-  property Component _componet: Component {
+  property var _handlers: ({})
+
+  property Component _fileViewComponent: Component {
     id: fileViewComponent
     FileView {
       // A missing state file is normal (nothing saved yet): load() falls

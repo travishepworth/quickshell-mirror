@@ -17,43 +17,66 @@ BaseWidget {
   property var screen
   property var properties
 
-  readonly property var segments: {
+  // Which segments show, from config and what the machine can report. A
+  // string, so it only notifies when the set changes: a model rebuilt on
+  // every sample would recreate the delegates many times a second.
+  readonly property string segmentKeys: {
     const p = properties;
-    const list = [];
+    const keys = [];
     if (p.showCpu)
-      list.push({
+      keys.push("cpu");
+    if (p.showMemory)
+      keys.push("mem");
+    if (p.showTemp && SystemManager.hasCpuTemp)
+      keys.push("temp");
+    if (p.showGpu && SystemManager.hasGpu)
+      keys.push("gpu");
+    if (p.showDisk && SystemManager.disks[p.diskPath])
+      keys.push("disk");
+    return keys.join(",");
+  }
+  readonly property var segments: segmentKeys === "" ? [] : segmentKeys.split(",")
+
+  // Live icon/value/level for one segment key
+  function segmentData(key) {
+    const p = properties;
+    switch (key) {
+    case "cpu":
+      return {
         "icon": "\u{F0EE0}",
         "value": `${SystemManager.cpuUsage}%`,
         "level": SystemManager.cpuUsage
-      });
-    if (p.showMemory)
-      list.push({
+      };
+    case "mem":
+      return {
         "icon": "\u{F035B}",
         "value": p.memoryFormat === "used" ? `${(SystemManager.memUsedBytes / 1073741824).toFixed(1)}G` : `${SystemManager.memUsage}%`,
         "level": SystemManager.memUsage
-      });
-    if (p.showTemp && SystemManager.hasCpuTemp)
-      list.push({
+      };
+    case "temp":
+      return {
         "icon": "\u{F050F}",
         "value": `${SystemManager.cpuTemp}°`,
         "level": SystemManager.cpuTemp
-      });
-    if (p.showGpu && SystemManager.hasGpu)
-      list.push({
+      };
+    case "gpu":
+      return {
         "icon": "\u{F08AE}",
         "value": `${SystemManager.gpuUsage}%`,
         "level": SystemManager.gpuUsage
-      });
-    const disk = SystemManager.disks[p.diskPath];
-    if (p.showDisk && disk)
-      list.push({
-        "icon": "\u{F02CA}",
-        "value": `${disk.usage}%`,
-        "level": disk.usage
-      });
-    return list;
+      };
+    default:
+      {
+        const usage = SystemManager.disks[p.diskPath]?.usage ?? 0;
+        return {
+          "icon": "\u{F02CA}",
+          "value": `${usage}%`,
+          "level": usage
+        };
+      }
+    }
   }
-  readonly property bool warning: segments.some(s => s.level >= properties.warnThreshold)
+  readonly property bool warning: segments.some(key => segmentData(key).level >= properties.warnThreshold)
   readonly property color foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
   isVertical: barConfig.vertical
@@ -96,6 +119,7 @@ BaseWidget {
       delegate: Grid {
         id: segment
         required property var modelData
+        readonly property var stat: root.segmentData(modelData)
 
         columns: root.isVertical ? 1 : 2
         spacing: root.isVertical ? 0 : 4
@@ -103,13 +127,13 @@ BaseWidget {
         verticalItemAlignment: Grid.AlignVCenter
 
         Text {
-          text: segment.modelData.icon
+          text: segment.stat.icon
           color: root.foregroundColor
           font.family: Appearance.fontFamily
           font.pixelSize: Appearance.fontSize
         }
         Text {
-          text: segment.modelData.value
+          text: segment.stat.value
           color: root.foregroundColor
           font.family: Appearance.fontFamily
           font.pixelSize: Appearance.fontSize * (root.isVertical ? 0.7 : 0.9)

@@ -92,6 +92,8 @@ Also `pragma Singleton`, but these are typed config *readers*, not owners — on
 
 Views and modules are `oneOf`s discriminated by `type`, like `BarWidget`.
 
+**Loading:** there is one overlay, on `General.primaryMonitor` (`modules/Overlay.qml`). Only the current page and its neighbours (navigation wraps) are instantiated, and only while the overlay is open (`OverlayTabWrapper.isLoaded` → `OverlayPage.loaded`), so modules must not assume they live forever: acquire in `Component.onCompleted`, release in `onDestruction`, and keep state that must survive in a service.
+
 **Writing overlay modules:**
 - **Shape-aware.** `OverlayCard` exposes the slot's `slotRect`, `cols`/`rows` (half units), `shape` and `compact` (a quarter slot), plus `pad`. Each module picks its internal layout from these: side by side when horizontal, stacked when vertical, the key figure only when compact.
 - **Shared parts** live in `modules/common/`: `ModuleHeader`, `Sparkline`, `StatFigure`, `IconToggle`.
@@ -99,7 +101,7 @@ Views and modules are `oneOf`s discriminated by `type`, like `BarWidget`.
 - **Data sources.**
   - `SystemManager` adds `history: true` (60-sample ring buffers), a `net` metric (`/proc/net/dev` rates plus a 10s nmcli poll for `netInfo`/`wifiEnabled`, with `setWifi`) and a `processes` metric (two-frame `top`, with `kill(pid)`).
   - Weather comes from `common/WeatherSource.qml`, a plain component that the bar widget and the module both instantiate.
-- **Never derive a Repeater model, or anything passed to `acquire()`, from live values.** Build it from config (and tool availability) only. A model that re-evaluates on every sample rebuilds its delegates (and Canvases) many times a second. That once pushed qs past 25 GB. `SystemManager.acquire()` now ignores identical re-registrations.
+- **Never derive a Repeater model, or anything passed to `acquire()`, from live values.** Build it from config (and tool availability) only. When the set of items is itself derived, model the Repeater by a joined string key or a count (`model: rows.length`, delegate reads `rows[index]`): an `int`/`string` only notifies when it actually changes, so the delegates survive each sample. A model that re-evaluates on every sample rebuilds its delegates (and Canvases) many times a second. That once pushed qs past 25 GB. `SystemManager.acquire()` now ignores identical re-registrations.
 - **Testing a module safely.**
   - The running shell only picks up schema changes on a QML reload, and a reload only fires when a file it has *loaded* changes. A new module file doesn't count until something uses it.
   - A config checked against a stale schema fails validation, and the whole shell falls back to defaults until it's fixed.

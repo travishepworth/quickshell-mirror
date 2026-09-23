@@ -21,6 +21,7 @@ BaseWidget {
   property color foregroundColor: Theme.background
 
   readonly property bool _hasIcon: showIcon && icon !== ""
+  readonly property var _iconLines: icon.split("\n")
   readonly property string displayText: showText ? (text || "—") : ""
   readonly property bool _hasText: displayText !== ""
   readonly property real _gap: _hasIcon && _hasText ? spacing : 0
@@ -49,14 +50,16 @@ BaseWidget {
       x: root.isVertical ? Math.round((run.width - width) / 2) : 0
       y: root.isVertical ? 0 : Math.round((run.height - height) / 2)
 
+      // Modelled by line count, so a changing icon (battery level, volume)
+      // updates the text instead of recreating the delegates
       Repeater {
-        model: root.icon.split("\n")
+        model: root._iconLines.length
 
         Text {
-          required property string modelData
+          required property int index
           x: Math.round((iconLabel.width - width) / 2)
           color: root.foregroundColor
-          text: modelData
+          text: root._iconLines[index] ?? ""
           font.family: Appearance.fontFamily
           font.pixelSize: Appearance.fontSize * root.iconScale
         }

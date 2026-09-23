@@ -115,18 +115,21 @@ Item {
     required property var lines
     spacing: root.japanese ? 2 : 0
 
+    // Modelled by count, not by the line objects: those are rebuilt on
+    // every clock tick, which would recreate the delegates each time
     Repeater {
-      model: stack.lines
+      model: stack.lines.length
 
       delegate: ClockText {
-        required property var modelData
+        required property int index
+        readonly property var line: stack.lines[index] ?? root._line("")
         x: Math.round((stack.width - width) / 2)
         horizontalAlignment: Text.AlignHCenter
         lineHeight: 0.9
-        text: modelData.text
-        font.pixelSize: Appearance.fontSize * modelData.scale
-        font.bold: modelData.bold
-        opacity: modelData.opacity
+        text: line.text
+        font.pixelSize: Appearance.fontSize * line.scale
+        font.bold: line.bold
+        opacity: line.opacity
       }
     }
   }

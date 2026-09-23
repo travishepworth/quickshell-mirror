@@ -3,21 +3,28 @@ import QtQuick
 import qs.config
 
 // One page of the overlay: shown when it's the current page, sliding in
-// from the side it sits on relative to the current one
+// from the side it sits on relative to the current one. The content is
+// only instantiated while `loaded`.
 Item {
   id: page
 
   required property int pageIndex
   required property int currentIndex
-  default property alias content: page.data
-
-  readonly property Item _content: page.children.length > 0 ? page.children[0] : null
+  required property bool loaded
+  default property Component content
 
   anchors.centerIn: parent
-  implicitWidth: page._content ? page._content.implicitWidth : 0
-  implicitHeight: page._content ? page._content.implicitHeight : 0
+  implicitWidth: contentLoader.item ? contentLoader.item.implicitWidth : 0
+  implicitHeight: contentLoader.item ? contentLoader.item.implicitHeight : 0
   visible: page.currentIndex === page.pageIndex
   opacity: page.currentIndex === page.pageIndex ? 1 : 0
+
+  Loader {
+    id: contentLoader
+    anchors.centerIn: parent
+    active: page.loaded
+    sourceComponent: page.content
+  }
 
   transform: Translate {
     id: slideTransform

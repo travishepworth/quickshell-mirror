@@ -2,6 +2,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.services
+// Aliased: this file's own type is also called Battery
+import qs.services as Services
 import qs.config
 import qs.components.reusable
 
@@ -14,11 +16,11 @@ IconTextWidget {
   property var screen
   property var properties
 
-  property bool isCharging: false
-  property bool isDischarging: false
-  property int percentage: 0
-  property string timeRemaining: ""
-  property string warningLevel: "none"
+  // From UPower's display device (services/Battery.qml)
+  readonly property bool isCharging: Services.Battery.isCharging
+  readonly property bool isDischarging: Services.Battery.isDischarging
+  readonly property int percentage: Services.Battery.percentage
+  readonly property string timeRemaining: isCharging ? Services.Battery.timeToFull : Services.Battery.timeRemaining
   // "none" / "low" / "critical": the last level notified about, so each
   // threshold notifies once per crossing
   property string _notifiedLevel: "none"
@@ -26,9 +28,9 @@ IconTextWidget {
   readonly property string level: {
     if (isCharging)
       return "none";
-    if (warningLevel === "critical" || percentage <= properties.criticalThreshold)
+    if (percentage <= properties.criticalThreshold)
       return "critical";
-    if (warningLevel === "low" || percentage <= properties.lowThreshold)
+    if (percentage <= properties.lowThreshold)
       return "low";
     return "none";
   }
@@ -94,52 +96,10 @@ IconTextWidget {
   function getBatteryStatus() {
     let status = I18n.tr(isCharging ? "Charging" : "Discharging");
     let details = `${status}: ${percentage}%`;
-    if (timeRemaining && timeRemaining !== "N/A") {
+    if (timeRemaining) {
       details += " " + (isCharging ? I18n.tr("({0} to full)", timeRemaining) : I18n.tr("({0} remaining)", timeRemaining));
     }
     return details;
-  }
-
-  PollingProcess {
-    id: batteryChecker
-    interval: 20000
-    command: ["sh", "-c", `
-      upower -i /org/freedesktop/UPower/devices/DisplayDevice | awk '
-        /state:/ { state = $2 }
-        /percentage:/ {
-          percentage = $2;
-          gsub(/%/, "", percentage)
-        }
-        /time to empty:/ {
-          for(i=4; i<=NF; i++) time_remaining = time_remaining " " $i
-          time_remaining = substr(time_remaining, 2)
-        }
-        /time to full:/ {
-          for(i=4; i<=NF; i++) time_remaining = time_remaining " " $i
-          time_remaining = substr(time_remaining, 2)
-        }
-        /warning-level:/ { warning = $2 }
-        END {
-          print state ";" percentage ";" time_remaining ";" warning
-        }
-      '
-    `]
-
-    onDataReceived: data => {
-      const parts = data.trim().split(';');
-      if (parts.length >= 4) {
-        const state = parts[0] || "";
-        const pct = parseInt(parts[1]) || 0;
-        const time = parts[2] || "";
-        const warning = parts[3] || "none";
-
-        root.isCharging = (state === "charging");
-        root.isDischarging = (state === "discharging");
-        root.percentage = pct;
-        root.timeRemaining = time.trim();
-        root.warningLevel = warning;
-      }
-    }
   }
 
   // Charging animation
@@ -169,7 +129,7 @@ IconTextWidget {
   MouseArea {
     anchors.fill: parent
     onClicked: {
-      Notify.send(I18n.tr("Battery Status"), root.getBatteryStatus());
+      Notifs.sendNotification("axiom", I18n.tr("Battery Status"), root.getBatteryStatus());
     }
   }
 
@@ -177,9 +137,9 @@ IconTextWidget {
   onLevelChanged: {
     if (properties.notify && level !== _notifiedLevel) {
       if (level === "critical")
-        Notify.send(I18n.tr("Critical Battery"), I18n.tr("Battery critically low: {0}%", percentage));
+        Notifs.sendNotification("axiom", I18n.tr("Critical Battery"), I18n.tr("Battery critically low: {0}%", percentage));
       else if (level === "low" && _notifiedLevel !== "critical")
-        Notify.send(I18n.tr("Low Battery"), I18n.tr("Battery low: {0}%", percentage));
+        Notifs.sendNotification("axiom", I18n.tr("Low Battery"), I18n.tr("Battery low: {0}%", percentage));
     }
     _notifiedLevel = level;
   }

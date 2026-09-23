@@ -15,14 +15,17 @@ OverlayCard {
 
   readonly property int count: root.properties.count ?? 10
   readonly property int activeId: HyprlandData.activeWorkspace?.id ?? -1
-  readonly property var ids: {
+  // A string, so the tiles are only rebuilt when the set of workspaces
+  // shown changes, not on every window event
+  readonly property string _idsKey: {
     const ids = [];
     for (let i = 1; i <= root.count; i++)
       ids.push(i);
     if (root.properties.showEmpty === false)
-      return ids.filter(id => HyprlandData.windowList.some(w => w.workspace?.id === id) || id === root.activeId);
-    return ids;
+      return ids.filter(id => HyprlandData.windowList.some(w => w.workspace?.id === id) || id === root.activeId).join(",");
+    return ids.join(",");
   }
+  readonly property var ids: root._idsKey === "" ? [] : root._idsKey.split(",").map(Number)
   // Tiles laid out to suit the slot: roughly matching its aspect ratio
   readonly property int columns: Math.max(1, Math.round(Math.sqrt(root.ids.length * Math.max(0.25, width / Math.max(1, height)))))
 
@@ -66,13 +69,14 @@ OverlayCard {
           readonly property real iconSize: Math.max(12, Math.min(parent.height * 0.4, (parent.width - 8) / Math.max(1, Math.min(tile.windows.length, 3)) - 2))
 
           Repeater {
-            model: tile.windows.slice(0, 6)
+            model: Math.min(tile.windows.length, 6)
             Image {
-              required property var modelData
+              required property int index
+              readonly property var window: tile.windows[index]
               width: parent.iconSize
               height: parent.iconSize
               sourceSize: Qt.size(64, 64)
-              source: IconResolver.resolveWindowIcon(modelData.class, modelData.title)
+              source: window ? IconResolver.resolveWindowIcon(window.class, window.title) : ""
             }
           }
         }
