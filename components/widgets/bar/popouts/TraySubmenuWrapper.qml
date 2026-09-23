@@ -4,12 +4,12 @@ import Quickshell
 import qs.config
 import qs.components.widgets.bar
 import qs.components.widgets.popouts
-import qs.components.reusable
 
 /**
- * Popout wrapper for submenus.
- * Positions to the right of parent menu items with slide animation;
- * opens to the left instead if there's no space to the right.
+ * Popout wrapper for tray submenus.
+ * Attaches to the side of the parent popout's box (right, or left when
+ * openToLeft) with the same AttachedSurface shape as bar/edge popouts,
+ * level with the hovered item and slid out of the parent.
  * Open/close/queue state and dismiss timing come from PopoutWrapperBase —
  * this file only adds submenu-specific positioning and animation.
  */
@@ -23,12 +23,11 @@ Item {
   property int minWidth: 100
   property int maxWidth: 600
 
-  // Forward everything the base needs, plus a bit of connector geometry.
   PopoutWrapperBase {
     id: root
     anchors.fill: parent
 
-    property int connectorGap: 4
+    property int connectorGap: Appearance.borderRadius * 2
 
     currentItem: loader.item ?? null
 
@@ -44,107 +43,63 @@ Item {
       }
       readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
 
-      implicitWidth: contentWidth + root.connectorGap
-      implicitHeight: contentHeight
+      implicitWidth: surface.implicitWidth
+      implicitHeight: surface.implicitHeight
 
-      property int offset: Widget.padding * 4 - Appearance.borderWidth
-      property int baseX: root.currentData?.anchorX ?? 0
-      property int openLeftX: baseX - submenuPopup.contentWidth - root.connectorGap - offset + Widget.padding * 3
-      property int openRightX: baseX + (root.currentData?.anchorWidth ?? 0) + offset
-      property int finalX: outer.openToLeft ? openLeftX : openRightX
-      property int finalY: 0
+      // The parent popout's content box, in the anchor window's
+      // coordinates. Its free sides are the outer edge of the parent's
+      // stroke (AttachedSurface.boxRect).
+      readonly property rect attachRect: root.currentData?.attachRect ?? Qt.rect(0, 0, 0, 0)
+
+      // Overlap the parent's side stroke with our attach-edge stroke, the
+      // same way bar/edge popouts overlap the bar or border stroke
+      readonly property real attachX: outer.openToLeft ? attachRect.x + Appearance.borderWidth - implicitWidth : attachRect.x + attachRect.width - Appearance.borderWidth
+
+      // Line our first menu item up with the hovered one: the fillet
+      // margin, then the loader margin, then TraySubmenuPopout's own
+      // background margin + half its 20px layout inset.
+      readonly property real firstItemOffset: (root.connectorGap - Appearance.borderWidth) + Widget.spacing + Widget.padding + 10
+      // Keep both fillets on the straight part of the parent's side, clear
+      // of its rounded corners (or its fillets into the bar)
+      readonly property real minY: attachRect.y + Appearance.borderRadius
+      readonly property real maxY: attachRect.y + attachRect.height - Appearance.borderRadius - implicitHeight
+      readonly property real attachY: Math.max(minY, Math.min((root.currentData?.anchorY ?? 0) - firstItemOffset, maxY))
 
       anchor {
         window: root.currentAnchor
         rect {
-          x: finalX
-          y: (root.currentData?.anchorY ?? 0)
+          x: submenuPopup.attachX
+          y: submenuPopup.attachY
           width: 1
           height: 1
         }
       }
 
-      SlideAnimation {
-        id: slideContainer
+      AttachedSurface {
+        id: surface
         anchors.fill: parent
 
+        edge: outer.openToLeft ? Bar.Right : Bar.Left
         active: root.occupied && !root.isClosing
-        slideFromRight: outer.openToLeft
-        slideFromLeft: !outer.openToLeft
-        slideFromTop: false
-        slideFromBottom: false
-        animationDuration: Appearance.animNormal
-        enableFade: false
+        connectorGap: root.connectorGap
+        boxWidth: submenuPopup.contentWidth + Widget.spacing * 2
+        boxHeight: submenuPopup.contentHeight + Widget.spacing * 2
 
-        Rectangle {
-          id: contentContainer
+        Loader {
+          id: loader
+          anchors.fill: parent
+          anchors.margins: Widget.spacing
+          active: root.occupied
+          asynchronous: false
 
-          color: Theme.background
-          radius: Appearance.borderRadius
-          border.color: Theme.foreground
-          border.width: Appearance.borderWidth
-
-          x: outer.openToLeft ? Appearance.borderWidth : (root.connectorGap - Appearance.borderRadius)
-          y: 0
-          width: parent.width - root.connectorGap + (outer.openToLeft ? Appearance.borderWidth + Appearance.borderRadius : 0)
-          height: parent.height
-
-          Loader {
-            id: loader
-            anchors.fill: parent
-            anchors.margins: Widget.spacing
-            active: root.occupied
-            asynchronous: false
-
-            sourceComponent: Component {
-              TraySubmenuPopout {
-                wrapper: root
-                menuItem: root.currentData?.menuItem
-              }
+          sourceComponent: Component {
+            TraySubmenuPopout {
+              wrapper: root
+              menuItem: root.currentData?.menuItem
             }
-
-            onLoaded: root.updateDismissTimer()
           }
-        }
 
-        Rectangle {
-          id: connector
-
-          color: Theme.bg0
-          // color: "green"
-          x: outer.openToLeft ? (parent.width - root.connectorGap) : root.connectorGap
-          y: 0
-          width: root.connectorGap
-          height: parent.height
-        }
-
-        Rectangle {
-          id: topCorner
-          anchors.top: connector.top
-          anchors.left: connector.left
-          anchors.right: connector.right
-          width: connector.width
-          height: Appearance.borderRadius
-          // color: "red"
-          color: "transparent"
-          CornerPiece {
-            isLeft: true
-            isTop: false
-          }
-        }
-
-        Rectangle {
-          id: bottomCorner
-          anchors.bottom: connector.bottom
-          anchors.left: connector.left
-          anchors.right: connector.right
-          width: connector.width
-          height: Appearance.borderRadius
-          color: "transparent"
-          CornerPiece {
-            isLeft: true
-            isTop: false
-          }
+          onLoaded: root.updateDismissTimer()
         }
       }
     }

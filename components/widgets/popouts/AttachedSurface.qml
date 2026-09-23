@@ -51,6 +51,12 @@ Item {
   implicitWidth: vertical ? boxWidth + connectorGap : boxWidth + connectorGap * 2 - Appearance.borderWidth * 2
   implicitHeight: vertical ? boxHeight + connectorGap * 2 - Appearance.borderWidth * 2 : boxHeight + connectorGap
 
+  // The content box in this item's coordinates, at rest (not slid). On
+  // every side but the attach edge it coincides with the outer edge of
+  // the stroke, so things attaching to this surface (tray submenus) can
+  // line their own stroke up with it.
+  readonly property rect boxRect: Qt.rect((width - boxWidth) / 2, (height - boxHeight) / 2, boxWidth, boxHeight)
+
   // ---- Outline geometry, in edge-local coordinates ----
   // u runs along the attach edge, v away from it (v = 0 is the attach
   // edge). Everything below is laid out as if attached to the Top edge,

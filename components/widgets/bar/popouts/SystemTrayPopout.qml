@@ -117,15 +117,13 @@ Item {
           }
 
           onSubmenuRequested: function(itemDelegate) {
-            // let globalPos = itemDelegate.mapToGlobal(0, 0);
-            let localPos = itemDelegate.mapToItem(backgroundContainer, 0, 0);
-            console.log("Opening submenu for", itemDelegate.menuItem.text, "at", localPos.x, localPos.y, "item size", itemDelegate.width, itemDelegate.height);
-            
-            submenuWrapper.safeOpenPopout(root.wrapper.popupWindow, { menuItem: itemDelegate.menuItem,
-              anchorX: localPos.x,
-              anchorY: localPos.y,
-              anchorWidth: itemDelegate.width,
-              anchorHeight: itemDelegate.height
+            // Everything in the popup window's coordinates: the submenu
+            // attaches to the side of this popout's box, level with the item
+            const windowPos = itemDelegate.mapToItem(null, 0, 0);
+            submenuWrapper.safeOpenPopout(root.wrapper.popupWindow, {
+              menuItem: itemDelegate.menuItem,
+              anchorY: windowPos.y,
+              attachRect: root.wrapper.boxRect
             });
           }
 

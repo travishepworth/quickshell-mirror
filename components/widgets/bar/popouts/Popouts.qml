@@ -23,6 +23,8 @@ PopoutWrapperBase {
   required property QtObject panel
 
   property alias popupWindow: mainPopup
+  // Content box in popupWindow coordinates (see AttachedSurface.boxRect)
+  readonly property rect boxRect: surface.boxRect
 
   // The content-type name travels inside currentData.name (see
   // PopoutAnchor.qml) rather than as a separate argument, so this file
@@ -80,6 +82,20 @@ PopoutWrapperBase {
     readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
     readonly property int isOnRightHalfOfScreen: (root.currentData?.anchorX ?? 0) > (root.screen.width / 2) ? true : false
 
+    // Along-bar clamp range, in bar-window coordinates. The perpendicular
+    // screen borders may sit inside the bar window (bar mapped first) or
+    // outside it, so derive where their inner edge falls from how much of
+    // the screen the window spans. The surface (fillets included) keeps a
+    // screen margin clear of that edge, so the fillets never run into the
+    // border's inner corner — the same gap EdgePopout leaves.
+    readonly property real panelLength: {
+      const mapped = root.barConfig.vertical ? root.panel.height : root.panel.width;
+      return mapped > 0 ? mapped : (root.barConfig.vertical ? root.screen.height : root.screen.width);
+    }
+    readonly property real borderInset: Appearance.screenMargin - ((root.barConfig.vertical ? root.screen.height : root.screen.width) - panelLength) / 2
+    readonly property real minAlong: borderInset + Appearance.screenMargin
+    readonly property real maxAlong: panelLength - borderInset - Appearance.screenMargin
+
     // Size comes from the shared attached shape. The content box is a
     // little shorter than the content along the bar (kept for parity
     // with how bar popout contents were sized before the extraction).
@@ -103,7 +119,7 @@ PopoutWrapperBase {
             let popoutCenter = mainPopup.implicitWidth / 2;
             let targetX = anchorCenter - popoutCenter;
 
-            return Math.max(Appearance.screenMargin, Math.min(targetX, root.screen.width - mainPopup.implicitWidth - Appearance.screenMargin));
+            return Math.max(mainPopup.minAlong, Math.min(targetX, mainPopup.maxAlong - mainPopup.implicitWidth));
           }
         }
 
@@ -120,7 +136,7 @@ PopoutWrapperBase {
             let popoutCenter = mainPopup.implicitHeight / 2;
             let targetY = anchorCenter - popoutCenter;
 
-            return Math.max(Appearance.screenMargin, Math.min(targetY, root.screen.height - mainPopup.implicitHeight - Appearance.screenMargin));
+            return Math.max(mainPopup.minAlong, Math.min(targetY, mainPopup.maxAlong - mainPopup.implicitHeight));
           }
         }
 
