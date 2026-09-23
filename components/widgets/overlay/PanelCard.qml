@@ -13,6 +13,7 @@ OverlayCard {
   property alias title: header.title
   property alias dirty: header.dirty
   property alias showActions: header.showActions
+  property alias canSave: header.canSave
   // Fixed content between the divider and the scrolling body
   property alias headerExtras: extras.data
   property alias contentSpacing: body.spacing

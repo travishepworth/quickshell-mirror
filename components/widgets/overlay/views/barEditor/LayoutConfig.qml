@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.components.widgets.overlay
 import qs.services
 import qs.components.reusable
 import qs.components.widgets.common
@@ -15,8 +16,9 @@ ColumnLayout {
   Layout.fillWidth: true
   spacing: Widget.spacing * 2
 
-  AddWidgetPopup {
+  TypePickerPopup {
     id: addPopup
+    types: Bar.availableWidgetTypes
     parent: root
     x: (root.width - width) / 2
     y: (root.height - height) / 2

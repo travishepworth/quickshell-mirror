@@ -26,6 +26,11 @@ Item {
     const unknown = Object.keys(root.slots).filter(name => !(name in root.layout.slots));
     if (unknown.length > 0)
       console.warn(`Overlay cell layout ${root.cellConfig.layout} has no slot(s): ${unknown.join(", ")}`);
+    Object.keys(root.slots).filter(name => name in root.layout.slots).forEach(name => {
+      const type = root.slots[name]?.type;
+      if (type && !OverlayConfig.fits(type, root.layout.slots[name]))
+        console.warn(`Overlay module ${type} doesn't fit the ${OverlayConfig.slotShape(root.layout.slots[name])} ${name} slot of ${root.cellConfig.layout}`);
+    });
   }
 
   implicitWidth: OverlayConfig.span(root.layout.cols)

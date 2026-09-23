@@ -11,6 +11,8 @@ Rectangle {
   property bool dirty: false
   // Hide both buttons for panels with nothing to save
   property bool showActions: true
+  // Save stays visible while dirty but is disabled when false
+  property bool canSave: true
 
   signal save
   signal reset
@@ -42,6 +44,7 @@ Rectangle {
       color: saveArea.containsMouse ? Qt.lighter(Theme.accent, 1.1) : Theme.accent
       radius: Appearance.borderRadius
       visible: root.showActions && root.dirty
+      opacity: root.canSave ? 1 : 0.4
 
       RowLayout {
         anchors.centerIn: parent
@@ -67,6 +70,7 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        enabled: root.canSave
         onClicked: root.save()
       }
     }

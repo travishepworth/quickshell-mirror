@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatBackends\", \"colors\" for the 16 base theme colors); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatBackends\", \"colors\" for the 16 base theme colors); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches. `x-shapes` on an overlay module definition lists the slot shapes it fits (\"square\", \"horizontal\", \"vertical\"; a slot's shape comes from its span in OverlayConfig.layouts), and is enforced by the overlay editor. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -560,9 +560,9 @@
       "type": "object",
       "required": ["layout"],
       "additionalProperties": false,
-      "description": "One cell split into slots, defined in OverlayConfig.layouts. Cells are one card, except Tall (two cards high) and Wide (two cards wide). Slots per layout: Single/Tall/Wide main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.",
+      "description": "One cell split into slots, defined in OverlayConfig.layouts. A column flows its cells left to right, wrapping at its widest cell, so two Singles after a Wide sit side by side under it (an empty Single leaves a gap). Cells are one card, except Tall (two cards high), Wide (two cards wide) and Large (two by two cards). Slots per layout: Single/Tall/Wide/Large main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.",
       "properties": {
-        "layout": { "type": "string", "title": "Layout", "default": "Single", "enum": ["Single", "Tall", "Wide", "Grid2x2", "Vert1x1", "Vert1x2", "Vert2x1", "Horiz1x1", "Horiz1x2", "Horiz2x1"] },
+        "layout": { "type": "string", "title": "Layout", "default": "Single", "enum": ["Single", "Tall", "Wide", "Large", "Grid2x2", "Vert1x1", "Vert1x2", "Vert2x1", "Horiz1x1", "Horiz1x2", "Horiz2x1"] },
         "slots": {
           "type": "object",
           "default": {},
@@ -599,6 +599,7 @@
     },
     "CpuOverlayModule": {
       "type": "object",
+      "x-shapes": ["square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -607,6 +608,7 @@
     },
     "GpuOverlayModule": {
       "type": "object",
+      "x-shapes": ["square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -615,6 +617,7 @@
     },
     "MemoryOverlayModule": {
       "type": "object",
+      "x-shapes": ["square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -623,6 +626,7 @@
     },
     "StorageOverlayModule": {
       "type": "object",
+      "x-shapes": ["square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -631,6 +635,7 @@
     },
     "MediaOverlayModule": {
       "type": "object",
+      "x-shapes": ["square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -639,6 +644,7 @@
     },
     "SettingsOverlayModule": {
       "type": "object",
+      "x-shapes": ["vertical"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -647,6 +653,7 @@
     },
     "ThemeEditorOverlayModule": {
       "type": "object",
+      "x-shapes": ["vertical"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -655,6 +662,7 @@
     },
     "VolumeOverlayModule": {
       "type": "object",
+      "x-shapes": ["vertical", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -671,6 +679,7 @@
     },
     "ColorSwatchOverlayModule": {
       "type": "object",
+      "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {

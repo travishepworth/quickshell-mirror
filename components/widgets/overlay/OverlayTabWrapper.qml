@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.components.widgets.overlay.views
 
 Item {
   id: wrapper
@@ -9,13 +10,30 @@ Item {
   property var viewsConfig: OverlayConfig.views || []
   property var viewsModel: buildViewsModel(viewsConfig)
   property int currentIndex: 0
+  // The configured views, then the overlay editor, which isn't in config:
+  // it's always the last page and can't be removed
+  readonly property int editorIndex: viewsModel.length
+  readonly property int pageCount: viewsModel.length + 1
+  readonly property Item currentPage: wrapper.currentIndex === wrapper.editorIndex ? editorPage : viewsRepeater.itemAt(wrapper.currentIndex)
+
+  // The views rebuild on every config change (including the editor's own
+  // saves); stay on the editor if it was showing, else keep the index valid
+  property int _lastEditorIndex: 0
+  onEditorIndexChanged: {
+    if (wrapper.currentIndex === wrapper._lastEditorIndex)
+      wrapper.currentIndex = wrapper.editorIndex;
+    else
+      wrapper.currentIndex = Math.min(wrapper.currentIndex, wrapper.editorIndex);
+    wrapper._lastEditorIndex = wrapper.editorIndex;
+  }
+  Component.onCompleted: wrapper._lastEditorIndex = wrapper.editorIndex
 
   implicitWidth: currentViewWidth + OverlayConfig.cardSpacing * 2
   implicitHeight: currentViewHeight + OverlayConfig.cardSpacing * 2
 
   // Store current view dimensions to avoid binding loops
-  property real currentViewWidth: viewsRepeater.count > 0 && viewsRepeater.itemAt(wrapper.currentIndex) ? viewsRepeater.itemAt(wrapper.currentIndex).implicitWidth : 0
-  property real currentViewHeight: viewsRepeater.count > 0 && viewsRepeater.itemAt(wrapper.currentIndex) ? viewsRepeater.itemAt(wrapper.currentIndex).implicitHeight : 0
+  property real currentViewWidth: wrapper.currentPage ? wrapper.currentPage.implicitWidth : 0
+  property real currentViewHeight: wrapper.currentPage ? wrapper.currentPage.implicitHeight : 0
 
   function buildViewsModel(viewConfigArray) {
     return (viewConfigArray || []).filter(viewConf => viewConf.visible !== false).map(viewConf => {
@@ -71,74 +89,29 @@ Item {
           id: viewsRepeater
           model: wrapper.viewsModel
 
-          Item {
-            id: viewContainer
+          OverlayPage {
+            id: viewPage
             required property int index
             required property var modelData
-
-            anchors.centerIn: parent
-            implicitWidth: viewWrapper.implicitWidth
-            implicitHeight: viewWrapper.implicitHeight
-            visible: wrapper.currentIndex === index
-            opacity: wrapper.currentIndex === index ? 1 : 0
+            pageIndex: index
+            currentIndex: wrapper.currentIndex
 
             OverlayViewWrapper {
-              id: viewWrapper
               anchors.centerIn: parent
               screen: wrapper.screen
-              viewModel: viewContainer.modelData
+              viewModel: viewPage.modelData
             }
+          }
+        }
 
-            transform: Translate {
-              id: slideTransform
-              x: 0
-            }
+        OverlayPage {
+          id: editorPage
+          pageIndex: wrapper.editorIndex
+          currentIndex: wrapper.currentIndex
 
-            Behavior on opacity {
-              NumberAnimation {
-                duration: Appearance.animFast
-                easing.type: Easing.InOutQuad
-              }
-            }
-
-            Behavior on visible {
-              enabled: false
-            }
-
-            states: [
-              State {
-                name: "left"
-                when: viewContainer.index < wrapper.currentIndex
-                PropertyChanges {
-                  target: slideTransform
-                  x: -100
-                }
-              },
-              State {
-                name: "center"
-                when: viewContainer.index === wrapper.currentIndex
-                PropertyChanges {
-                  target: slideTransform
-                  x: 0
-                }
-              },
-              State {
-                name: "right"
-                when: viewContainer.index > wrapper.currentIndex
-                PropertyChanges {
-                  target: slideTransform
-                  x: 100
-                }
-              }
-            ]
-
-            transitions: Transition {
-              NumberAnimation {
-                property: "x"
-                duration: Appearance.animFast
-                easing.type: Easing.InOutQuad
-              }
-            }
+          OverlayEditor {
+            anchors.centerIn: parent
+            screen: wrapper.screen
           }
         }
       }

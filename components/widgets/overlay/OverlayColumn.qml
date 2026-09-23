@@ -1,23 +1,31 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import qs.config
 
-// One column of a Custom view: its cells stacked top to bottom
-ColumnLayout {
+// One column of a Custom view: its cells flow left to right, wrapping at
+// the widest cell, so smaller cells can sit side by side under a wide one
+// (OverlayConfig.columnFlow computes the same arrangement for the editor)
+Item {
   id: root
 
   // { cells: [...] }
   required property var columnConfig
 
-  spacing: OverlayConfig.cardSpacing
+  implicitWidth: OverlayConfig.columnFlow(root.columnConfig.cells).width
+  implicitHeight: flow.implicitHeight
 
-  Repeater {
-    model: root.columnConfig.cells ?? []
+  Flow {
+    id: flow
+    width: root.implicitWidth
+    spacing: OverlayConfig.cardSpacing
 
-    OverlayCell {
-      required property var modelData
-      cellConfig: modelData
+    Repeater {
+      model: root.columnConfig.cells ?? []
+
+      OverlayCell {
+        required property var modelData
+        cellConfig: modelData
+      }
     }
   }
 }

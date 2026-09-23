@@ -147,11 +147,10 @@ PanelWindow {
         bottomMargin: Widget.padding * 2
         horizontalCenter: parent.horizontalCenter
       }
-      visible: tabWrapper.viewsModel.length > 1
       currentIndex: tabWrapper.currentIndex
-      count: tabWrapper.viewsModel.length
-      onPrevious: tabWrapper.currentIndex = (tabWrapper.currentIndex - 1 + tabWrapper.viewsModel.length) % tabWrapper.viewsModel.length
-      onNext: tabWrapper.currentIndex = (tabWrapper.currentIndex + 1) % tabWrapper.viewsModel.length
+      count: tabWrapper.pageCount
+      onPrevious: tabWrapper.currentIndex = (tabWrapper.currentIndex - 1 + tabWrapper.pageCount) % tabWrapper.pageCount
+      onNext: tabWrapper.currentIndex = (tabWrapper.currentIndex + 1) % tabWrapper.pageCount
       onSelect: index => tabWrapper.currentIndex = index
     }
   }

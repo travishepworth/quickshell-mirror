@@ -20,37 +20,38 @@ ColumnLayout {
 
   readonly property color _currentColor: root.swatches && root.currentValue ? Theme.resolveColor(root.currentValue) : Theme.backgroundAlt
   readonly property color _currentTextColor: root.swatches && root.currentValue ? Utils.getContrastColor(root._currentColor) : Theme.foreground
-  
+
   signal selectionChanged(string newValue)
-  
+
   Layout.fillWidth: true
   spacing: 4
-  
+
   StyledText {
     text: root.label
+    visible: root.label !== ""
     Layout.fillWidth: true
   }
-  
+
   StyledContainer {
     id: comboContainer
     Layout.fillWidth: true
     Layout.preferredHeight: Widget.height
     backgroundColor: root._currentColor
     borderColor: comboBox.popup.visible ? Theme.accent : Theme.border
-    
+
     RowLayout {
       anchors.fill: parent
       anchors.leftMargin: Widget.padding
       anchors.rightMargin: Widget.padding
       spacing: 0
-      
+
       StyledText {
         text: root.currentValue
         textColor: root._currentTextColor
         Layout.fillWidth: true
         elide: Text.ElideRight
       }
-      
+
       StyledText {
         text: "▾"
         textColor: root.swatches ? root._currentTextColor : Theme.accent
@@ -58,33 +59,33 @@ ColumnLayout {
         Layout.preferredWidth: implicitWidth
       }
     }
-    
+
     ComboBox {
       id: comboBox
       anchors.fill: parent
       model: root.options
       currentIndex: root.options.indexOf(root.currentValue)
-      
+
       background: Item {}
       contentItem: Item {}
       indicator: Item {}
-      
-      onActivated: (index) => {
+
+      onActivated: index => {
         root.selectionChanged(root.options[index]);
       }
-      
+
       // Rows are inset from the popup's rounded border and rounded
       // themselves, so the background shows all the way around
       popup: Popup {
         y: comboContainer.height + Widget.spacing
         width: comboContainer.width
         padding: Widget.spacing
-        
+
         background: StyledContainer {
           backgroundColor: Theme.backgroundAlt
           borderColor: Theme.border
           borderRadius: Appearance.borderRadius
-          
+
           layer.enabled: true
           layer.effect: DropShadow {
             transparentBorder: true
@@ -95,31 +96,31 @@ ColumnLayout {
             color: "#40000000"
           }
         }
-        
+
         contentItem: ListView {
           clip: true
           implicitHeight: Math.min(contentHeight, Widget.height * 10)
           spacing: root.swatches ? Widget.spacing / 2 : 0
           model: comboBox.popup.visible ? comboBox.delegateModel : null
           currentIndex: comboBox.highlightedIndex
-          
+
           ScrollIndicator.vertical: ScrollIndicator {}
         }
       }
-      
+
       delegate: Rectangle {
         id: optionDelegate
         required property int index
         required property string modelData
         readonly property color swatchColor: root.swatches ? Theme.resolveColor(modelData) : "transparent"
-        
+
         width: ListView.view.width
         height: Widget.height
         radius: Appearance.borderRadius
         color: root.swatches ? swatchColor : (delegateArea.containsMouse ? Theme.backgroundHighlight : "transparent")
         border.width: root.swatches && (delegateArea.containsMouse || modelData === root.currentValue) ? Appearance.borderWidth * 2 : 0
         border.color: Utils.getContrastColor(swatchColor)
-        
+
         StyledText {
           anchors.fill: parent
           anchors.leftMargin: Widget.padding
@@ -129,7 +130,7 @@ ColumnLayout {
           verticalAlignment: Text.AlignVCenter
           elide: Text.ElideRight
         }
-        
+
         MouseArea {
           id: delegateArea
           anchors.fill: parent
@@ -142,7 +143,7 @@ ColumnLayout {
         }
       }
     }
-    
+
     MouseArea {
       anchors.fill: parent
       onClicked: {
@@ -150,7 +151,7 @@ ColumnLayout {
       }
     }
   }
-  
+
   StyledText {
     visible: root.description !== ""
     text: root.description

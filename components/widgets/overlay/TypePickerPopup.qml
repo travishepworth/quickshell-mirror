@@ -6,10 +6,13 @@ import Qt5Compat.GraphicalEffects
 import qs.config
 import qs.components.reusable
 
-// Shared "pick a module type to add" popup, reused by every zone in
-// LayoutConfig.qml. The caller tracks which zone it opened this for.
+// Shared "pick a type to add" popup (bar widgets, overlay views, ...).
+// `types` is a list of { type, label }; the caller tracks what it opened
+// this for.
 Popup {
   id: root
+
+  required property var types
 
   signal typeSelected(string type)
 
@@ -34,7 +37,7 @@ Popup {
   contentItem: ListView {
     implicitHeight: Math.min(contentHeight, 320)
     clip: true
-    model: Bar.availableWidgetTypes
+    model: root.types
 
     ScrollIndicator.vertical: ScrollIndicator {}
 
