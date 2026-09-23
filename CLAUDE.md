@@ -50,7 +50,9 @@ Every file is `pragma Singleton QtObject` — one global instance per name, impo
 - **Secrets** — chat API keys, never in config.json: `$<BACKEND>_API_KEY` env var, else `$XDG_STATE_HOME/axiom/secrets.json` (mode 600).
 - **ThemeManager** — theme discovery (`allThemes`/`defaultThemes`/`generatedThemes` ListModels via `FolderListModel`), theme generation from a wallpaper (spawns `scripts/generate_theme.py` per backend: wal, colorz, colorthief, haishoku), and dark/light pairing logic. Delegates actual persistence to `ConfigManager.setTheme`.
 - **ShellManager** — cross-cutting UI signals (dark mode, lock screen, power menu) that modules connect to rather than calling each other directly.
-- Other domain services (Audio, Battery, MprisController, Notifs, HyprlandData, HyprConfigManager, SystemManager, StateManager, BarManager, LauncherManager, SettingsMenu, Authentication, Chat) follow the same singleton pattern — one owns polling/IPC/process-spawning for its domain and exposes readonly properties + signals.
+- **SystemManager** — CPU/memory/temp/GPU/disk stats. Reference-counted: consumers call `acquire(owner, {interval, metrics, diskPaths})` / `release(owner)`, and it polls only the union of requested metrics (sysfs/procfs `FileView` reads, no processes on the hot path), stopping entirely with no consumers.
+- **IdleInhibit** — shared caffeine state + `idleInhibit` IPC target; the Wayland inhibitor itself lives in `bar/modules/IdleInhibitor.qml` (it needs a window).
+- Other domain services (Audio, Battery, MprisController, Notifs, HyprlandData, HyprConfigManager, StateManager, BarManager, LauncherManager, SettingsMenu, Authentication, Chat) follow the same singleton pattern — one owns polling/IPC/process-spawning for its domain and exposes readonly properties + signals.
 
 ### Config layer (`config/*.qml`)
 

@@ -18,6 +18,11 @@ Rectangle {
   property real cpuUsage: SystemManager.cpuUsage
   property real cpuTemp: SystemManager.cpuTemp
 
+  Component.onCompleted: SystemManager.acquire(root, {
+    "metrics": ["cpu", "cpuTemp"]
+  })
+  Component.onDestruction: SystemManager.release(root)
+
   SystemMonitor {
     anchors.fill: parent
     anchors.margins: OverlayConfig.cardPadding

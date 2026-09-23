@@ -1,0 +1,46 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+
+import qs.config
+
+// Layout helper for the bar: a divider line, a dot, or plain space, taking
+// exactly `size` px along the bar.
+Item {
+  id: root
+
+  property var barConfig
+  property var popouts
+  property var panel
+  property var screen
+  property var properties
+
+  readonly property bool isVertical: barConfig.vertical
+  readonly property color color: Theme.resolveColor(properties.color)
+
+  // BarModule sizing contract
+  readonly property string sizePolicy: "fixed"
+  readonly property real preferredSize: properties.size
+
+  implicitWidth: isVertical ? Widget.height : properties.size
+  implicitHeight: isVertical ? properties.size : Widget.height
+
+  // Across the bar, so it divides the modules on either side
+  Rectangle {
+    visible: root.properties.style === "line"
+    anchors.centerIn: parent
+    readonly property real span: Widget.height * root.properties.length / 100
+    width: root.isVertical ? span : root.properties.thickness
+    height: root.isVertical ? root.properties.thickness : span
+    radius: root.properties.thickness / 2
+    color: root.color
+  }
+
+  Rectangle {
+    visible: root.properties.style === "dot"
+    anchors.centerIn: parent
+    width: root.properties.thickness * 2
+    height: width
+    radius: width / 2
+    color: root.color
+  }
+}

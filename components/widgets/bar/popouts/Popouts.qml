@@ -215,6 +215,10 @@ PopoutWrapperBase {
             return calendarComponent;
           case "notifications":
             return notificationsComponent;
+          case "updates":
+            return updatesComponent;
+          case "weather":
+            return weatherComponent;
           default:
             return null;
           }
@@ -269,6 +273,20 @@ PopoutWrapperBase {
   Component {
     id: notificationsComponent
     NotificationsPopout {
+      wrapper: root
+    }
+  }
+
+  Component {
+    id: updatesComponent
+    UpdatesPopout {
+      wrapper: root
+    }
+  }
+
+  Component {
+    id: weatherComponent
+    WeatherPopout {
       wrapper: root
     }
   }

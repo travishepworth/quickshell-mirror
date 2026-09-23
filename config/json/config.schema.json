@@ -434,7 +434,14 @@
         { "$ref": "#/definitions/SystemTrayWidget" },
         { "$ref": "#/definitions/NotificationsWidget" },
         { "$ref": "#/definitions/ButtonWidget" },
-        { "$ref": "#/definitions/BatteryWidget" }
+        { "$ref": "#/definitions/BatteryWidget" },
+        { "$ref": "#/definitions/SystemStatsWidget" },
+        { "$ref": "#/definitions/KeyboardLayoutWidget" },
+        { "$ref": "#/definitions/IdleInhibitorWidget" },
+        { "$ref": "#/definitions/PrivacyWidget" },
+        { "$ref": "#/definitions/UpdatesWidget" },
+        { "$ref": "#/definitions/WeatherWidget" },
+        { "$ref": "#/definitions/SeparatorWidget" }
       ]
     },
     "WindowWidget": {
@@ -658,6 +665,169 @@
             "lowColor": { "type": "string", "title": "Low background", "x-options": "colors", "default": "base0C" },
             "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "SystemStatsWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "SystemStats", "description": "System Stats" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showCpu": { "type": "boolean", "title": "CPU usage", "default": true },
+            "showMemory": { "type": "boolean", "title": "Memory", "default": true },
+            "memoryFormat": { "type": "string", "title": "Memory format", "default": "percent", "enum": ["percent", "used"], "description": "Percentage of RAM in use, or GiB used.", "x-showIf": { "showMemory": true } },
+            "showTemp": { "type": "boolean", "title": "CPU temperature", "default": true, "description": "Hidden on machines without a k10temp / coretemp / zenpower sensor." },
+            "showGpu": { "type": "boolean", "title": "GPU usage", "default": false, "description": "AMD (sysfs) or NVIDIA (nvidia-smi). Hidden when no GPU is found." },
+            "showDisk": { "type": "boolean", "title": "Disk usage", "default": false },
+            "diskPath": { "type": "string", "title": "Disk path", "default": "/", "description": "Any path on the filesystem to report.", "x-showIf": { "showDisk": true } },
+            "interval": { "type": "integer", "title": "Poll interval (ms)", "default": 2000, "minimum": 1000, "maximum": 60000 },
+            "warnThreshold": { "type": "integer", "title": "Warning at", "default": 90, "minimum": 1, "maximum": 100, "description": "Any usage (%) or temperature (°C) at or above this switches to the warning background." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0E" },
+            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "base08" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "KeyboardLayoutWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "KeyboardLayout", "description": "Keyboard Layout" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "format": { "type": "string", "title": "Format", "default": "short", "enum": ["short", "full"], "description": "Layout code (US) or full keymap name (English (US))." },
+            "hideSingle": { "type": "boolean", "title": "Hide single layout", "default": false, "description": "Hide the widget when only one layout is configured." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "IdleInhibitorWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "IdleInhibitor", "description": "Idle Inhibitor" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showLabel": { "type": "boolean", "title": "Show label", "default": false },
+            "activeColor": { "type": "string", "title": "Active background", "x-options": "colors", "default": "base0A" },
+            "inactiveColor": { "type": "string", "title": "Inactive background", "x-options": "colors", "default": "base02" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "PrivacyWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Privacy", "description": "Privacy Indicators" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showMic": { "type": "boolean", "title": "Microphone", "default": true },
+            "showScreen": { "type": "boolean", "title": "Screen share", "default": true },
+            "showCamera": { "type": "boolean", "title": "Camera", "default": true },
+            "ignoreApps": { "type": "string", "title": "Ignored apps", "default": "cava", "description": "Comma-separated app names that never trigger an indicator." },
+            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base08" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "UpdatesWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Updates", "description": "Package Updates" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "includeAur": { "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages." },
+            "aurHelper": { "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true } },
+            "intervalMinutes": { "type": "integer", "title": "Check interval (min)", "default": 30, "minimum": 5, "maximum": 1440 },
+            "hideWhenEmpty": { "type": "boolean", "title": "Hide when up to date", "default": true },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List pending packages when hovered." },
+            "terminal": { "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`)." },
+            "upgradeCommand": { "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu." },
+            "manyThreshold": { "type": "integer", "title": "Many updates", "default": 50, "minimum": 1, "maximum": 1000, "description": "At or above this count, the widget uses the many-updates background." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0B" },
+            "manyColor": { "type": "string", "title": "Many-updates background", "x-options": "colors", "default": "base09" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "WeatherWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Weather", "description": "Weather" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "location": { "type": "string", "title": "Location", "default": "", "description": "City name to look up. Empty uses your IP location." },
+            "latitude": { "type": "string", "title": "Latitude", "default": "", "description": "Exact coordinates; with longitude, overrides the location lookup." },
+            "longitude": { "type": "string", "title": "Longitude", "default": "" },
+            "units": { "type": "string", "title": "Units", "default": "celsius", "enum": ["celsius", "fahrenheit"] },
+            "intervalMinutes": { "type": "integer", "title": "Refresh interval (min)", "default": 15, "minimum": 5, "maximum": 1440 },
+            "showCondition": { "type": "boolean", "title": "Show condition", "default": false, "description": "Show the condition (e.g. Rain) next to the temperature." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Show the forecast when hovered." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "SeparatorWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Separator", "description": "Separator / Spacer" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "style": { "type": "string", "title": "Style", "default": "line", "enum": ["line", "dot", "space"] },
+            "size": { "type": "integer", "title": "Size", "default": 12, "minimum": 0, "maximum": 500, "description": "Space it takes along the bar (px)." },
+            "thickness": { "type": "integer", "title": "Thickness", "default": 2, "minimum": 1, "maximum": 10, "description": "Line width (px); dots are twice this across.", "x-showIf": { "style": { "not": "space" } } },
+            "length": { "type": "integer", "title": "Line length (%)", "default": 60, "minimum": 10, "maximum": 100, "description": "Share of the widget height the line spans.", "x-showIf": { "style": "line" } },
+            "color": { "type": "string", "title": "Color", "x-options": "colors", "default": "base03", "x-showIf": { "style": { "not": "space" } } }
           }
         }
       }

@@ -17,6 +17,11 @@ Rectangle {
   
   property real gpuUsage: SystemManager.gpuUsage
   property real gpuTemp: SystemManager.gpuTemp
+
+  Component.onCompleted: SystemManager.acquire(root, {
+    "metrics": ["gpu"]
+  })
+  Component.onDestruction: SystemManager.release(root)
   
   Timer {
     id: timer

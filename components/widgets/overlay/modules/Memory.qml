@@ -16,7 +16,12 @@ Rectangle {
   border.width: Appearance.borderWidth
   
   property real memUsage: SystemManager.memUsage
-  property real memTemp: SystemManager.memTemp
+  property real memTemp: -1  // No memory temperature sensor
+
+  Component.onCompleted: SystemManager.acquire(root, {
+    "metrics": ["mem"]
+  })
+  Component.onDestruction: SystemManager.release(root)
   
   Timer {
     id: timer
