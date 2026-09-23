@@ -36,20 +36,20 @@ StyledContainer {
     // Vertical list of key combinations for the same action
     ColumnLayout {
       id: keyCombosColumn
-      spacing: Menu.cardPadding
+      spacing: OverlayConfig.cardPadding
 
       Repeater {
         model: root.keybindGroup ? root.keybindGroup.binds : []
 
         delegate: RowLayout {
-          spacing: Menu.cardSpacing / 2
+          spacing: OverlayConfig.cardSpacing / 2
 
           // Modifier keys
           RowLayout {
-            spacing: Menu.cardPadding / 3
+            spacing: OverlayConfig.cardPadding / 3
 
             Item {
-              Layout.preferredWidth: Menu.cardSpacing
+              Layout.preferredWidth: OverlayConfig.cardSpacing
               visible: !modelData.mod || modelData.mod === ""
             }
             

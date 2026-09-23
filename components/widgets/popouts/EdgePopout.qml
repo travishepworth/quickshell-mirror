@@ -61,9 +61,9 @@ PopoutWrapperBase {
 
   // Hover strip at the very edge of the screen that opens the popout
   property bool triggerEnabled: true
-  property int triggerWidth: 5
+  property int triggerWidth: PopoutConfig.edgeTriggerSize
   property int triggerLength: 200
-  property int hoverDelay: 0
+  property int hoverDelay: PopoutConfig.openDelay
 
   property bool wantsKeyboardFocus: false
   property bool closeOnClickOutside: false

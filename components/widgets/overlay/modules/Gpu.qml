@@ -11,9 +11,9 @@ Rectangle {
   id: root
   color: Theme.blue
   anchors.fill: parent
-  radius: Menu.cardBorderRadius
+  radius: Appearance.borderRadius
   border.color: Theme.foreground
-  border.width: Menu.cardBorderWidth
+  border.width: Appearance.borderWidth
   
   property real gpuUsage: SystemManager.gpuUsage
   property real gpuTemp: SystemManager.gpuTemp
@@ -30,7 +30,7 @@ Rectangle {
   
   SystemMonitor {
     anchors.fill: parent
-    anchors.margins: Menu.cardPadding
+    anchors.margins: OverlayConfig.cardPadding
     
     label: "GPU"
     iconText: "◆"

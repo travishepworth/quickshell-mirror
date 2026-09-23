@@ -37,7 +37,7 @@ PanelWindow {
 
   IpcHandler {
     target: "appLauncher"
-    enabled: rootWindow.screen.name === Display.primary
+    enabled: rootWindow.screen.name === General.primaryMonitor
 
     function toggle() {
       rootWindow.toggle();
@@ -120,7 +120,7 @@ PanelWindow {
           clip: true
           Behavior on height {
             NumberAnimation {
-              duration: 150
+              duration: Appearance.animNormal
               easing.type: Easing.InOutQuad
             }
           }

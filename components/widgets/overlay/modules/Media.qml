@@ -13,7 +13,7 @@ StyledContainer {
   anchors.fill: parent
   backgroundColor: Theme.background
   borderColor: Theme.foreground
-  borderWidth: Menu.cardBorderWidth
+  borderWidth: Appearance.borderWidth
   visible: true
   clip: true
 

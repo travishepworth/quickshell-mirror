@@ -85,7 +85,7 @@ StyledContainer {
         hoverColor: Theme.backgroundHighlight
 
         Behavior on rotation {
-          NumberAnimation { duration: Appearance.animationDuration }
+          NumberAnimation { duration: Appearance.animNormal }
         }
 
         onClicked: root.collapsed = !root.collapsed

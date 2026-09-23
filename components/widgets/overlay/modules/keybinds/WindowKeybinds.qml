@@ -11,14 +11,14 @@ Rectangle {
   required property var keybinds
   color: Theme.background
   Layout.fillHeight: true
-  Layout.preferredWidth: Menu.cardUnit
+  Layout.preferredWidth: OverlayConfig.cardUnit
   border.color: Theme.border
-  border.width: Menu.cardBorderWidth
+  border.width: Appearance.borderWidth
 
   ColumnLayout {
     anchors.fill: parent
-    anchors.margins: Menu.cardPadding
-    spacing: Menu.cardSpacing
+    anchors.margins: OverlayConfig.cardPadding
+    spacing: OverlayConfig.cardSpacing
     SchemaSection {
       title: "Window Management"
       expanded: true

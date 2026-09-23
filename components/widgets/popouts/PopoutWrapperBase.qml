@@ -43,7 +43,7 @@ Item {
   // overridden by the wrapper.
   property bool keepAlive: false
   readonly property bool contentHovered: (currentItem?.hovered ?? false) || keepAlive
-  property int dismissDelay: currentItem?.dismissDelay ?? 250
+  property int dismissDelay: currentItem?.dismissDelay ?? PopoutConfig.dismissDelay
   property bool autoDismiss: currentItem?.autoDismiss ?? true
 
   onContentHoveredChanged: updateDismissTimer()
@@ -115,7 +115,7 @@ Item {
 
   Timer {
     id: closeDelayTimer
-    interval: Appearance.animationDuration
+    interval: Appearance.animNormal
     repeat: false
     onTriggered: {
       root.occupied = false;

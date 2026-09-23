@@ -73,7 +73,7 @@ Item {
         slideFromLeft: !outer.openToLeft
         slideFromTop: false
         slideFromBottom: false
-        animationDuration: Appearance.animationDuration
+        animationDuration: Appearance.animNormal
         enableFade: false
 
         Rectangle {

@@ -21,7 +21,7 @@ Scope {
   property color overlayBgColor: Qt.rgba(0, 0, 0, 0.7)
   
   // Animation
-  property int fadeAnimationDuration: 200
+  property int fadeAnimationDuration: Appearance.animNormal
   
   // Shared visibility state
   property bool overlayVisible: false

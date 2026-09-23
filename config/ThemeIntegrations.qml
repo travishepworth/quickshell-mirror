@@ -1,12 +1,12 @@
 pragma Singleton
 import QtQuick
-
 import qs.services
 
+// Reader for the ThemeIntegrations section (only implemented integrations).
 QtObject {
-  readonly property bool gtk: ConfigManager.config.ThemeIntegrations.gtk ?? false
-  readonly property bool nvim: ConfigManager.config.ThemeIntegrations.gtk ?? false
-  readonly property bool vscode: ConfigManager.config.ThemeIntegrations.gtk ?? false
-  readonly property bool alacritty: ConfigManager.config.ThemeIntegrations.gtk ?? false
-  readonly property bool kitty: ConfigManager.config.ThemeIntegrations.gtk ?? false
+  readonly property var _c: ConfigManager.config.ThemeIntegrations
+
+  readonly property bool kitty: _c.kitty
+  readonly property bool k9s: _c.k9s
+  readonly property bool cava: _c.cava
 }

@@ -20,8 +20,8 @@ Item {
   property color textColor: Theme.foreground
 
   // Animation properties
-  property int animationDuration: Appearance.animations ? Appearance.animationDuration : 0
-  property int hoverAnimationDuration: 150
+  property int animationDuration: Appearance.animNormal
+  property int hoverAnimationDuration: Appearance.animNormal
   property real dragScale: 1.05
   property real dragOpacity: 0.8
 

@@ -165,7 +165,7 @@ Item {
 
               Behavior on width {
                 enabled: !root.isSeeking
-                NumberAnimation { duration: 150 }
+                NumberAnimation { duration: Appearance.animNormal }
               }
             }
           }
@@ -183,7 +183,7 @@ Item {
                         sliderTrack.width - width / 2)
             scale: seekMouseArea.pressed ? 1.3 : 1.0
 
-            Behavior on scale { NumberAnimation { duration: 100 } }
+            Behavior on scale { NumberAnimation { duration: Appearance.animFast } }
           }
 
           // Floating time readout shown while dragging — the "feedback"

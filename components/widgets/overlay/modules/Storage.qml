@@ -9,9 +9,9 @@ Rectangle {
   id: root
   color: Theme.cyan
   anchors.fill: parent
-  radius: Menu.cardBorderRadius
+  radius: Appearance.borderRadius
   border.color: Theme.foreground
-  border.width: Menu.cardBorderWidth
+  border.width: Appearance.borderWidth
   
   // Disk Usage Process
   Process {
@@ -49,7 +49,7 @@ Rectangle {
   
   SystemMonitor {
     anchors.fill: parent
-    anchors.margins: Menu.cardPadding
+    anchors.margins: OverlayConfig.cardPadding
     
     label: "Storage"
     iconText: ""

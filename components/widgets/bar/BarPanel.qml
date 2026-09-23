@@ -14,9 +14,10 @@ PanelWindow {
 
   required property var barConfig
 
-  screen: Quickshell.screens.find(s => s.name === barConfig.display) || null
+  // An empty monitor means the first screen
+  screen: Quickshell.screens.find(s => s.name === barConfig.monitor) ?? Quickshell.screens[0] ?? null
   WlrLayershell.layer: WlrLayer.Top
-  WlrLayershell.exclusiveZone: barConfig.autoHide ? 0 : barConfig.extent - Appearance.screenMargin + Appearance.borderWidth
+  WlrLayershell.exclusiveZone: !barConfig.reserveSpace ? 0 : barConfig.extent - Appearance.screenMargin + Appearance.borderWidth
   WlrLayershell.namespace: "axiom-bar"
 
   anchors {
@@ -33,7 +34,7 @@ PanelWindow {
 
   Component.onCompleted: {
     console.log("========== BAR PANEL ==========");
-    console.log("  > Screen:", barConfig.display, "->", screen ? "Found" : "Not Found");
+    console.log("  > Screen:", barConfig.monitor, "->", screen ? "Found" : "Not Found");
     console.log("  > Panel width:", width, "height:", height);
     console.log("  > Visible:", visible);
     console.log("  > implicitWidth:", implicitWidth, "implicitHeight:", implicitHeight);

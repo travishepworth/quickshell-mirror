@@ -95,8 +95,8 @@ Item {
           if (!delegateRoot.ti)
             return "";
           const appName = delegateRoot.ti.id || delegateRoot.ti.title || "";
-          if (appName && Config.customIconOverrides[appName]) {
-            return Config.customIconOverrides[appName];
+          if (appName && IconConfig.overrides[appName]) {
+            return IconConfig.overrides[appName];
           }
           return delegateRoot.ti.icon || "";
         }

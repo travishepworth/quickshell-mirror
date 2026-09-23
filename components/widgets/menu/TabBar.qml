@@ -39,7 +39,7 @@ StyledContainer {
         onClicked: root.tabClicked(index)
         // Behavior on Layout.preferredWidth {
         //   NumberAnimation {
-        //     duration: 250
+        //     duration: Appearance.animNormal
         //     easing.type: Easing.InOutQuad
         //   }
         // }

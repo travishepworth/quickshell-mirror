@@ -214,7 +214,7 @@ Item {
             color: modelData.isToday ? Theme.accent : (dayMouseArea.containsMouse && modelData.inMonth ? Theme.backgroundHighlight : "transparent")
 
             Behavior on color {
-              ColorAnimation { duration: 120 }
+              ColorAnimation { duration: Appearance.animFast }
             }
 
             StyledText {

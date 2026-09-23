@@ -109,7 +109,7 @@ PanelWindow {
   //   visible: root.showTriggerIndicator
   //
   //   Behavior on opacity {
-  //     NumberAnimation { duration: 200 }
+  //     NumberAnimation { duration: Appearance.animNormal }
   //   }
   // }
 

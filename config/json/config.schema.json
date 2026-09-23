@@ -1,163 +1,414 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatBackends\").",
   "type": "object",
-  "required": ["Config", "Display", "Appearance", "Bar", "Widget"],
+  "additionalProperties": false,
   "properties": {
-    "Config": {
-      "type": "object",
-      "properties": {
-        "userName": { "type": "string" },
-        "workspaceCount": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 10
-        },
-        "singleMonitor": { "type": "boolean" },
-        "customIconOverrides": {
-          "type": "object",
-          "additionalProperties": { "type": "string" }
-        },
-        "wallpaper": { "type": "string" }
-      }
+    "$schema": { "type": "string", "x-settings": false },
+    "version": {
+      "type": "integer",
+      "default": 2,
+      "description": "Config format version, used for automatic migration.",
+      "x-settings": false
     },
-    "Display": {
+
+    "General": {
       "type": "object",
+      "title": "General",
+      "additionalProperties": false,
       "properties": {
-        "primary": { "type": "string" },
-        "resolutionWidth": { "type": "integer" },
-        "resolutionHeight": { "type": "integer" },
-        "monitors": {
-          "type": "array",
-          "items": { "type": "string" }
+        "displayName": {
+          "type": "string",
+          "title": "Display name",
+          "default": "",
+          "description": "Name shown on the lockscreen and in chat. Empty uses your login name."
+        },
+        "primaryMonitor": {
+          "type": "string",
+          "title": "Primary monitor",
+          "default": "",
+          "description": "Monitor that hosts the lockscreen input, launcher, power menu and overlay. Empty uses the first screen.",
+          "x-options": "screens"
         }
       }
     },
+
     "Appearance": {
       "type": "object",
+      "title": "Appearance",
+      "additionalProperties": false,
       "properties": {
-        "theme": { "type": "string" },
-        "darkMode": { "type": "boolean" },
-        "borderRadius": { "type": "integer" },
-        "borderWidth": { "type": "integer" },
-        "screenMargin": { "type": "integer" },
-        "fontFamily": { "type": "string" },
-        "fontSize": { "type": "integer" },
-        "autoThemeSwitch": { "type": "boolean" },
-        "allowGeneratedTheme": { "type": "boolean" },
-        "workspacePopoutIcons": { "type": "boolean" },
-        "animations": { "type": "boolean" },
-        "animationDuration": { "type": "integer" }
+        "theme": {
+          "type": "string",
+          "default": "gruvbox-dark",
+          "description": "Active theme (set by the theme selector).",
+          "x-settings": false
+        },
+        "darkMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Follows the active theme's variant (set by the theme selector).",
+          "x-settings": false
+        },
+        "wallpaper": {
+          "type": "string",
+          "default": "",
+          "description": "Current wallpaper file URL (set by the theme selector).",
+          "x-settings": false
+        },
+        "autoThemeSwitch": {
+          "type": "boolean",
+          "title": "Auto theme switch",
+          "default": true,
+          "description": "Allow toggling between a theme and its paired light/dark variant."
+        },
+        "font": {
+          "type": "object",
+          "title": "Font",
+          "additionalProperties": false,
+          "properties": {
+            "family": {
+              "type": "string",
+              "title": "Family",
+              "default": "monospace",
+              "description": "Font used throughout the shell."
+            },
+            "size": {
+              "type": "integer",
+              "title": "Size",
+              "default": 14,
+              "minimum": 8,
+              "maximum": 32,
+              "description": "Base font size (px). Larger text is derived from it."
+            }
+          }
+        },
+        "shape": {
+          "type": "object",
+          "title": "Shape",
+          "additionalProperties": false,
+          "properties": {
+            "radius": {
+              "type": "integer",
+              "title": "Corner radius",
+              "default": 6,
+              "minimum": 0,
+              "maximum": 50,
+              "description": "Roundness of every corner: widgets, popouts, cards and the screen border (px)."
+            },
+            "borderWidth": {
+              "type": "integer",
+              "title": "Border width",
+              "default": 1,
+              "minimum": 0,
+              "maximum": 10,
+              "description": "Thickness of every outline (px)."
+            },
+            "screenMargin": {
+              "type": "integer",
+              "title": "Screen border",
+              "default": 8,
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Width of the frame around the screen edges (px)."
+            }
+          }
+        },
+        "motion": {
+          "type": "object",
+          "title": "Motion",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "title": "Animations",
+              "default": true,
+              "description": "Turn every animation in the shell on or off."
+            },
+            "speed": {
+              "type": "integer",
+              "title": "Animation speed (%)",
+              "default": 100,
+              "minimum": 25,
+              "maximum": 400,
+              "description": "Speed of every animation. 100 is normal, 200 is twice as fast, 50 is half speed."
+            }
+          }
+        }
       }
     },
+
     "Widget": {
       "type": "object",
+      "title": "Widgets",
+      "description": "Shared sizing for bar widgets and form controls. A bar's own thickness is its `extent`.",
+      "additionalProperties": false,
       "properties": {
-        "height": { "type": "integer" },
-        "padding": { "type": "integer" },
-        "spacing": { "type": "integer" }
-      }
-    },
-    "Bar": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "enabled", "widgets"],
-        "properties": {
-          "id": { "type": "string" },
-          "primary": { "type": "boolean" },
-          "enabled": { "type": "boolean" },
-          "display": { "type": "string" },
-          "extent": { "type": "integer" },
-          "spacing": { "type": "integer" },
-          "padding": { "type": "integer" },
-          "location": {
-            "type": "string",
-            "enum": ["Top", "Bottom", "Left", "Right"]
-          },
-          "autoHide": { "type": "boolean" },
-          "widgets": {
-            "type": "object",
-            "properties": {
-              "left": {
-                "type": "array",
-                "items": { "$ref": "#/definitions/BarWidget" }
-              },
-              "leftCenter": {
-                "type": "array",
-                "items": { "$ref": "#/definitions/BarWidget" }
-              },
-              "center": {
-                "type": "array",
-                "items": { "$ref": "#/definitions/BarWidget" }
-              },
-              "rightCenter": {
-                "type": "array",
-                "items": { "$ref": "#/definitions/BarWidget" }
-              },
-              "right": {
-                "type": "array",
-                "items": { "$ref": "#/definitions/BarWidget" }
-              }
-            }
-          }
+        "height": {
+          "type": "integer",
+          "title": "Height",
+          "default": 30,
+          "minimum": 16,
+          "maximum": 128,
+          "description": "Height of bar widgets and controls (px)."
+        },
+        "padding": {
+          "type": "integer",
+          "title": "Padding",
+          "default": 10,
+          "minimum": 0,
+          "maximum": 32,
+          "description": "Inner padding of widgets and panels (px)."
+        },
+        "spacing": {
+          "type": "integer",
+          "title": "Spacing",
+          "default": 4,
+          "minimum": 0,
+          "maximum": 32,
+          "description": "Gap between items inside widgets and panels (px)."
         }
       }
     },
-    "Menu": {
+
+    "Popouts": {
       "type": "object",
-      "enablePanel": { "type": "boolean" },
-      "cardUnit": { "type": "integer" },
-      "cardSpacing": { "type": "integer" },
-      "cardPadding": { "type": "integer" },
-      "cardBorderRadius": { "type": "integer" },
-      "cardBorderWidth": { "type": "integer" },
-      "views": {
-        "type": "array",
-        "items": { "type": "string" }
-      },
+      "title": "Popouts",
+      "description": "Behaviour shared by bar popouts and screen-edge popouts (side panel, OSD, theme selector).",
+      "additionalProperties": false,
       "properties": {
-        "distanceFromWorkspaceContainer": { "type": "integer" },
-        "startMenuPinned": { "type": "boolean" }
+        "openDelay": {
+          "type": "integer",
+          "title": "Open delay (ms)",
+          "default": 10,
+          "minimum": 0,
+          "maximum": 2000,
+          "description": "How long to hover a bar widget or screen edge before its popout opens."
+        },
+        "dismissDelay": {
+          "type": "integer",
+          "title": "Dismiss delay (ms)",
+          "default": 250,
+          "minimum": 0,
+          "maximum": 5000,
+          "description": "How long after the mouse leaves a popout before it closes."
+        },
+        "edgeTriggerSize": {
+          "type": "integer",
+          "title": "Edge trigger size (px)",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Thickness of the hover strip at the screen edge that opens edge popouts."
+        },
+        "osdTimeout": {
+          "type": "integer",
+          "title": "OSD timeout (ms)",
+          "default": 1000,
+          "minimum": 250,
+          "maximum": 10000,
+          "description": "How long the volume OSD stays open after the last change."
+        },
+        "workspaceIcons": {
+          "type": "boolean",
+          "title": "Workspace popout icons",
+          "default": true,
+          "description": "Show app icons in the workspace popout."
+        }
       }
     },
-    "ChatConfig": {
+
+    "SidePanel": {
       "type": "object",
+      "title": "Side panel",
+      "additionalProperties": false,
       "properties": {
-        "enabled": { "type": "boolean" },
-        "defaultBackend": { "type": "string" },
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "default": false,
+          "description": "Show the side panel (quick settings, media, chat) when hovering the right screen edge."
+        }
+      }
+    },
+
+    "Chat": {
+      "type": "object",
+      "title": "Chat",
+      "description": "API keys are read from GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY, or from $XDG_STATE_HOME/axiom/secrets.json. They are never stored here.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "default": false,
+          "description": "Enable the chat tab in the side panel."
+        },
+        "defaultBackend": {
+          "type": "string",
+          "title": "Default backend",
+          "default": "gemini",
+          "x-options": "chatBackends"
+        },
         "backends": {
           "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9_]+$": {
-              "type": "object",
-              "properties": {
-                "apiKey": { "type": "string" },
-                "defaultModel": { "type": "string" },
-                "models": {
-                  "type": "array",
-                  "items": { "type": "string" }
-                }
-              }
+          "x-settings": false,
+          "default": {
+            "gemini": { "defaultModel": "gemini-2.5-flash", "models": ["gemini-2.5-pro", "gemini-2.5-flash"] },
+            "openai": { "defaultModel": "gpt-4o-mini", "models": ["gpt-4o", "gpt-4o-mini"] },
+            "anthropic": { "defaultModel": "claude-sonnet-4-20250514", "models": ["claude-sonnet-4-20250514"] }
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["defaultModel"],
+            "properties": {
+              "defaultModel": { "type": "string" },
+              "models": { "type": "array", "items": { "type": "string" } }
             }
           }
         }
       }
     },
+
     "ThemeIntegrations": {
       "type": "object",
+      "title": "Theme integrations",
+      "description": "Re-theme external apps whenever the shell theme changes.",
+      "additionalProperties": false,
       "properties": {
-        "gtk": { "type": "boolean" },
-        "nvim": { "type": "boolean" },
-        "vscode": { "type": "boolean" },
-        "alacritty": { "type": "boolean" },
-        "kitty": { "type": "boolean" },
-        "k9s": { "type": "boolean" },
-        "cava": { "type": "boolean" }
+        "kitty": { "type": "boolean", "title": "Kitty", "default": false },
+        "k9s": { "type": "boolean", "title": "k9s", "default": false },
+        "cava": { "type": "boolean", "title": "Cava", "default": false }
       }
+    },
+
+    "Icons": {
+      "type": "object",
+      "title": "Icons",
+      "additionalProperties": false,
+      "properties": {
+        "overrides": {
+          "type": "object",
+          "default": {},
+          "description": "App name → icon path/URL, for apps whose tray or window icon doesn't resolve.",
+          "additionalProperties": { "type": "string" },
+          "x-settings": false
+        }
+      }
+    },
+
+    "Overlay": {
+      "type": "object",
+      "title": "Overlay",
+      "x-settings": false,
+      "additionalProperties": false,
+      "properties": {
+        "views": {
+          "type": "array",
+          "description": "Tabs shown in the overlay, in order.",
+          "default": [
+            { "type": "OverView" },
+            { "type": "ConfigEditor" },
+            { "type": "KeybindView" },
+            { "type": "BarEditor" }
+          ],
+          "items": { "$ref": "#/definitions/OverlayView" }
+        }
+      }
+    },
+
+    "Bars": {
+      "type": "array",
+      "description": "Bars, in priority order: the first is the primary bar. Edited in the overlay's bar editor.",
+      "x-settings": false,
+      "default": [
+        {
+          "id": "primary",
+          "location": "Top",
+          "widgets": {
+            "left": [{ "type": "Workspaces" }],
+            "center": [{ "type": "Time" }],
+            "right": [{ "type": "SystemTray" }, { "type": "Network" }]
+          }
+        }
+      ],
+      "items": { "$ref": "#/definitions/Bar" }
     }
   },
-    "definitions": {
+
+  "definitions": {
+    "Bar": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "title": "Id" },
+        "enabled": { "type": "boolean", "title": "Enabled", "default": true },
+        "monitor": {
+          "type": "string",
+          "title": "Monitor",
+          "default": "",
+          "description": "Monitor this bar is shown on. Empty uses the first screen.",
+          "x-options": "screens"
+        },
+        "location": {
+          "type": "string",
+          "title": "Location",
+          "default": "Top",
+          "enum": ["Top", "Bottom", "Left", "Right"]
+        },
+        "extent": {
+          "type": "integer",
+          "title": "Thickness",
+          "default": 30,
+          "minimum": 10,
+          "maximum": 200,
+          "description": "Thickness of the bar (px)."
+        },
+        "spacing": {
+          "type": "integer",
+          "title": "Spacing",
+          "default": 4,
+          "minimum": 0,
+          "maximum": 50,
+          "description": "Gap between widgets (px)."
+        },
+        "reserveSpace": {
+          "type": "boolean",
+          "title": "Reserve space",
+          "default": true,
+          "description": "Keep windows from tiling underneath the bar."
+        },
+        "widgets": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "left": { "type": "array", "default": [], "items": { "$ref": "#/definitions/BarWidget" } },
+            "leftCenter": { "type": "array", "default": [], "items": { "$ref": "#/definitions/BarWidget" } },
+            "center": { "type": "array", "default": [], "items": { "$ref": "#/definitions/BarWidget" } },
+            "rightCenter": { "type": "array", "default": [], "items": { "$ref": "#/definitions/BarWidget" } },
+            "right": { "type": "array", "default": [], "items": { "$ref": "#/definitions/BarWidget" } }
+          }
+        }
+      }
+    },
+
+    "OverlayView": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["OverView", "ConfigEditor", "KeybindView", "BarEditor", "ThemeSelector"]
+        },
+        "visible": { "type": "boolean" },
+        "properties": { "type": "object" }
+      }
+    },
+
     "BarWidget": {
       "type": "object",
       "required": ["type"],
@@ -179,10 +430,7 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "Window",
-          "description": "Window Title"
-        },
+        "type": { "const": "Window", "description": "Window Title" },
         "visible": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -191,10 +439,7 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "Media",
-          "description": "Media Player"
-        },
+        "type": { "const": "Media", "description": "Media Player" },
         "visible": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -203,10 +448,7 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "Workspaces",
-          "description": "Workspace Switcher"
-        },
+        "type": { "const": "Workspaces", "description": "Workspace Switcher" },
         "visible": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -215,10 +457,7 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "Time",
-          "description": "Clock"
-        },
+        "type": { "const": "Time", "description": "Clock" },
         "visible": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -227,10 +466,7 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "TimeJapanese",
-          "description": "Japanese Clock"
-        },
+        "type": { "const": "TimeJapanese", "description": "Japanese Clock" },
         "visible": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -239,10 +475,7 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "Tailscale",
-          "description": "Tailscale Status"
-        },
+        "type": { "const": "Tailscale", "description": "Tailscale Status" },
         "visible": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -251,10 +484,7 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "Network",
-          "description": "Network Status"
-        },
+        "type": { "const": "Network", "description": "Network Status" },
         "visible": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -263,10 +493,7 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "SystemTray",
-          "description": "System Tray"
-        },
+        "type": { "const": "SystemTray", "description": "System Tray" },
         "visible": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -275,10 +502,7 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "Notifications",
-          "description": "Notification Center"
-        },
+        "type": { "const": "Notifications", "description": "Notification Center" },
         "visible": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -287,10 +511,7 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "Battery",
-          "description": "Battery Status"
-        },
+        "type": { "const": "Battery", "description": "Battery Status" },
         "visible": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -299,20 +520,17 @@
       "type": "object",
       "required": ["type"],
       "properties": {
-        "type": {
-          "const": "Logo",
-          "description": "Custom Logo"
-        },
+        "type": { "const": "Logo", "description": "Custom Logo" },
         "visible": { "type": "boolean" },
         "properties": {
           "type": "object",
           "properties": {
-            "icon": { 
+            "icon": {
               "type": "string",
               "description": "Icon glyph or text",
               "default": "󰣇"
             },
-            "backgroundColor": { 
+            "backgroundColor": {
               "type": "string",
               "description": "Background color (Theme.* or hex)",
               "default": "Theme.info",

@@ -30,7 +30,7 @@ Switch {
     
     Behavior on x {
       NumberAnimation {
-        duration: 150
+        duration: Appearance.animNormal
         easing.type: Easing.InOutQuad
       }
     }
@@ -46,7 +46,7 @@ Switch {
     
     Behavior on color {
       ColorAnimation {
-        duration: 150
+        duration: Appearance.animNormal
       }
     }
   }

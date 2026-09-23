@@ -11,19 +11,21 @@ QtObject {
     Left,
     Right
   }
+  // Adds derived orientation flags to a bar entry from the Bars section
+  // (whose keys are always filled in from the schema defaults).
   function enrichBarConfig(barConfig, index = 0) {
-    const loc = Bar.getLocationFromString(barConfig.location ?? "Top");
+    const loc = Bar.getLocationFromString(barConfig.location);
 
     return {
-      "id": barConfig.id || "",
-      "primary": barConfig.primary ?? (index === 0),
-      "enabled": barConfig.enabled ?? true,
-      "display": barConfig.display || "",
-      "extent": barConfig.extent ?? Bar.extent,
-      "spacing": barConfig.spacing ?? Bar.spacing,
+      "id": barConfig.id,
+      "primary": index === 0,
+      "enabled": barConfig.enabled,
+      "monitor": barConfig.monitor,
+      "extent": barConfig.extent,
+      "spacing": barConfig.spacing,
       "location": loc,
-      "autoHide": barConfig.autoHide ?? false,
-      "widgets": barConfig.widgets || null,
+      "reserveSpace": barConfig.reserveSpace,
+      "widgets": barConfig.widgets,
       "vertical": loc === Bar.Left || loc === Bar.Right,
       "left": loc === Bar.Left,
       "right": loc === Bar.Right,
@@ -32,17 +34,8 @@ QtObject {
     };
   }
 
-  property var bars: {
-    const configs = ConfigManager.config.Bar || [];
-    const result = [];
-
-    for (let i = 0; i < configs.length; i++) {
-      result.push(Bar.enrichBarConfig(configs[i], i));
-    }
-
-    // Ensuer primary bar is first
-    return result.sort((a, b) => (a.primary === b.primary) ? 0 : a.primary ? -1 : 1);
-  }
+  // The first entry in Bars is the primary bar
+  readonly property var bars: ConfigManager.config.Bars.map((bar, i) => Bar.enrichBarConfig(bar, i))
 
   readonly property var availableWidgetTypes: {
     const oneOf = ConfigManager.configSchema?.definitions?.BarWidget?.oneOf || [];
@@ -59,12 +52,12 @@ QtObject {
     }).filter(t => t !== null);
   }
   // Global convenience properties for first bar
-  readonly property bool enabled: Bar.bars[0]?.enabled ?? true
-  readonly property int extent: Bar.bars[0]?.extent ?? 30
-  readonly property bool autoHide: Bar.bars[0]?.autoHide ?? false
-  readonly property int location: Bar.getLocationFromString(Bar.bars[0]?.location ?? "Top")
+  // Convenience values for the primary bar (Bars may be empty)
+  readonly property bool enabled: Bar.bars[0]?.enabled ?? false
+  readonly property int extent: Bar.bars[0]?.extent ?? 0
+  readonly property int location: Bar.bars[0]?.location ?? Bar.Top
   readonly property var widgets: Bar.bars[0]?.widgets ?? null
-  readonly property int spacing: Bar.bars[0]?.spacing ?? 6
+  readonly property int spacing: Bar.bars[0]?.spacing ?? 0
 
   readonly property bool vertical: location === Bar.Left || location === Bar.Right
   readonly property bool left: location === Bar.Left
@@ -83,7 +76,7 @@ QtObject {
     case "Right":
       return Bar.Right;
     default:
-      return Bar.Left;
+      return Bar.Top;
     }
   }
 }

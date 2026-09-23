@@ -108,7 +108,7 @@ StyledContainer {
           Behavior on x {
             NumberAnimation {
               id: slideAnimation
-              duration: 250
+              duration: Appearance.animNormal
               easing.type: Easing.InOutQuad
             }
           }

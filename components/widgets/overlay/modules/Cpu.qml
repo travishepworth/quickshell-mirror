@@ -12,15 +12,15 @@ Rectangle {
   color: Theme.magenta
   anchors.fill: parent
   border.color: Theme.foreground
-  border.width: Menu.cardBorderWidth
-  radius: Menu.cardBorderRadius
+  border.width: Appearance.borderWidth
+  radius: Appearance.borderRadius
   
   property real cpuUsage: SystemManager.cpuUsage
   property real cpuTemp: SystemManager.cpuTemp
 
   SystemMonitor {
     anchors.fill: parent
-    anchors.margins: Menu.cardPadding
+    anchors.margins: OverlayConfig.cardPadding
     
     label: "CPU"
     iconText: ""

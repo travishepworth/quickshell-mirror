@@ -25,7 +25,7 @@ StyledContainer {
   backgroundColor: Theme.backgroundAlt
   
   Behavior on borderColor {
-    ColorAnimation { duration: 200; easing.type: Easing.InOutQuad }
+    ColorAnimation { duration: Appearance.animNormal; easing.type: Easing.InOutQuad }
   }
   
   TextField {
@@ -69,7 +69,8 @@ StyledContainer {
       SequentialAnimation on opacity {
         loops: Animation.Infinite
         running: textField.activeFocus
-        PropertyAnimation { to: 1; duration: 500 }
+        // Cursor blink: a behaviour timing, not motion, so not scaled
+          PropertyAnimation { to: 1; duration: 500 }
         PropertyAnimation { to: 0; duration: 500 }
       }
     }

@@ -19,31 +19,31 @@ Item {
 
   GridLayout {
     id: cellLayout
-    Layout.preferredHeight: Menu.cardUnit
-    Layout.preferredWidth: Menu.cardUnit
-    // Layout.margins: Menu.cardPadding
-    columnSpacing: Menu.cardSpacing
-    rowSpacing: Menu.cardSpacing
+    Layout.preferredHeight: OverlayConfig.cardUnit
+    Layout.preferredWidth: OverlayConfig.cardUnit
+    // Layout.margins: OverlayConfig.cardPadding
+    columnSpacing: OverlayConfig.cardSpacing
+    rowSpacing: OverlayConfig.cardSpacing
     columns: 2
     rows: 2
 
     Item {
       id: topLeftContainer
-      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      Layout.preferredWidth: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
+      Layout.preferredHeight: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
       clip: true
     }
     Item {
       id: rightContainer
       Layout.rowSpan: 2
-      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
-      Layout.preferredHeight: Menu.cardUnit + 2 //TODO: What is this number
+      Layout.preferredWidth: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
+      Layout.preferredHeight: OverlayConfig.cardUnit + 2 //TODO: What is this number
       clip: true
     }
     Item {
       id: bottomLeftContainer
-      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      Layout.preferredWidth: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
+      Layout.preferredHeight: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
       clip: true
     }
   }

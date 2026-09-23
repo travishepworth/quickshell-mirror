@@ -44,18 +44,12 @@ QtObject {
      * @param wallpaperUrl The full file URL of the wallpaper.
      */
   function setWallpaper(wallpaperUrl) {
-    if (_config.Config) {
-      if (_config.Config.wallpaper === wallpaperUrl) {
-        return;
-      }
-      console.log("[ConfigManager] Setting wallpaper to", wallpaperUrl);
-      _config.Config.wallpaper = wallpaperUrl;
-      Utils.executeWallpaperScript(wallpaperUrl);
-
-      saveConfig();
-    } else {
-      console.error("[ConfigManager] Cannot set wallpaper, _config.Config is not defined.");
-    }
+    if (_config.Appearance.wallpaper === wallpaperUrl)
+      return;
+    console.log("[ConfigManager] Setting wallpaper to", wallpaperUrl);
+    _config.Appearance.wallpaper = wallpaperUrl;
+    Utils.executeWallpaperScript(wallpaperUrl);
+    saveConfig();
   }
 
   /**
@@ -92,32 +86,17 @@ QtObject {
   function themeIntegrations() {
     var scriptPath = Config.scriptsPath;
     var themePath = Config.themePath + Appearance.theme + ".json";
-    // TODO: not 4 processes
-    if (_config.ThemeIntegrations.kitty) {
-      if (_kittyProcess.running) {
-        console.log("Kitty theming process is already running. Skipping new request.");
-        return;
-      }
-      console.log("Theming Kitty with theme at:", themePath);
-      _kittyProcess.command = [scriptPath + "theme_kitty.sh", themePath];
-      console.log("Kitty theming command set to:", _kittyProcess.command);
-      _kittyProcess.running = true;
-    }
-    if (_config.ThemeIntegrations.cava) {
-      if (_cavaProcess.running) {
-        console.log("Cava theming process is already running. Skipping new request.");
-        return;
-      }
-      _cavaProcess.command = [scriptPath + "theme_cava.sh", themePath];
-      _cavaProcess.running = true;
-    }
-    if (_config.ThemeIntegrations.k9s) {
-      if (_k9sProcess.running) {
-        console.log("K9s theming process is already running. Skipping new request.");
-        return;
-      }
-      _k9sProcess.command = [scriptPath + "theme_k9s.sh", themePath];
-      _k9sProcess.running = true;
+    const integrations = [
+      { enabled: ThemeIntegrations.kitty, process: _kittyProcess, script: "theme_kitty.sh" },
+      { enabled: ThemeIntegrations.cava, process: _cavaProcess, script: "theme_cava.sh" },
+      { enabled: ThemeIntegrations.k9s, process: _k9sProcess, script: "theme_k9s.sh" }
+    ];
+    for (const integration of integrations) {
+      // A busy integration only skips itself, not the ones after it
+      if (!integration.enabled || integration.process.running)
+        continue;
+      integration.process.command = [scriptPath + integration.script, themePath];
+      integration.process.running = true;
     }
   }
 
@@ -143,13 +122,14 @@ QtObject {
   // --- Private Implementation ---
   Component.onCompleted: {
     console.log("[ConfigManager] ♻ ConfigManager service started.");
-    configManager._configSchema = _loadSchema();
-    configManager._config = _loadConfig();
     _checkForChanges();
   }
 
-  property var _config: ({})
-  property var _configSchema: ({})
+  // Loaded eagerly (synchronous reads) so the config readers never see a
+  // partially-filled config: every key has its schema default from the
+  // very first evaluation.
+  property var _configSchema: _loadSchema()
+  property var _config: _loadConfig(_loadSchema())
   property var _theme: ({})
 
   property string _configSchemaPath: "../config/json/config.schema.json"
@@ -204,8 +184,8 @@ QtObject {
     return {};
   }
 
-  function _validateConfig(config) {
-    if (SchemaValidation.validateAgainstSchema(config, _configSchema)) {
+  function _validateConfig(config, schema = _configSchema) {
+    if (SchemaValidation.validateAgainstSchema(config, schema)) {
       console.log("[ConfigManager] Schema validation passed.");
       return true;
     } else {
@@ -214,27 +194,61 @@ QtObject {
     }
   }
 
-  function _loadConfig() {
+  /**
+   * Load pipeline: parse → migrate old layouts → drop unknown keys → fill
+   * schema defaults → validate. A migrated config is written back once
+   * (and any API keys found in it go to the secrets file instead). A
+   * missing or unusable file falls back to pure schema defaults.
+   */
+  function _loadConfig(schema = _configSchema) {
     console.log("[ConfigManager] Loading configuration from", _configPath);
+    const defaults = SchemaValidation.applyDefaults({}, schema);
     var content = _getFileContent(configManager.configDir + configManager.configFile);
-    if (content) {
-      try {
-        const config = JSON.parse(content);
-        if (_validateConfig(config)) {
-          console.log("[ConfigManager] Configuration loaded and validated successfully.");
-          return config;
-        }
-      } catch (e) {
-        console.error("Failed to parse config.json:", e);
-      }
+    if (!content) {
+      console.warn("[ConfigManager] No config.json found, writing defaults.");
+      Qt.callLater(() => _write(defaults));
+      return defaults;
     }
-    return {
-      Config: {},
-      Display: {},
-      Appearance: {},
-      Bar: {},
-      Widget: {}
-    };
+
+    // Remember what was loaded, so the first poll doesn't load it again
+    if (_fileHashes)
+      _fileHashes.config = _hashString(content);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch (e) {
+      console.error("[ConfigManager] Failed to parse config.json, using defaults:", e);
+      return defaults;
+    }
+
+    const migration = ConfigMigration.migrate(parsed);
+    if (migration.migrated) {
+      console.log("[ConfigManager] Migrated config to version", ConfigMigration.currentVersion + ":");
+      migration.changes.forEach(change => console.log("  - " + change));
+    }
+    if (Object.keys(migration.secrets).length > 0)
+      Secrets.store(migration.secrets);
+
+    const config = migration.config;
+    const removed = SchemaValidation.pruneUnknown(config, schema);
+    removed.forEach(path => console.warn("[ConfigManager] Ignoring unknown config key:", path));
+
+    const filled = SchemaValidation.applyDefaults(config, schema);
+    if (!_validateConfig(filled, schema)) {
+      console.error("[ConfigManager] config.json is invalid, using defaults until it is fixed.");
+      return defaults;
+    }
+
+    if (migration.migrated)
+      Qt.callLater(() => _write(filled));
+    console.log("[ConfigManager] Configuration loaded and validated successfully.");
+    return filled;
+  }
+
+  // Writes a config object to disk as-is (no reload); used after migration
+  function _write(config) {
+    _configFileView.setText(JSON.stringify(config, null, 2));
   }
 
   function _loadObjectToConfig(object) {

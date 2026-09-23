@@ -11,9 +11,9 @@ Rectangle {
   id: root
   color: Theme.green
   anchors.fill: parent
-  radius: Menu.cardBorderRadius
+  radius: Appearance.borderRadius
   border.color: Theme.foreground
-  border.width: Menu.cardBorderWidth
+  border.width: Appearance.borderWidth
   
   property real memUsage: SystemManager.memUsage
   property real memTemp: SystemManager.memTemp
@@ -30,7 +30,7 @@ Rectangle {
   
   SystemMonitor {
     anchors.fill: parent
-    anchors.margins: Menu.cardPadding
+    anchors.margins: OverlayConfig.cardPadding
     
     label: "Memory"
     iconText: "▦"

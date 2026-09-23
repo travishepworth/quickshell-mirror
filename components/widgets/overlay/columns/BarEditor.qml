@@ -7,7 +7,7 @@ import qs.services
 import qs.components.widgets.overlay.modules.barEditor
 
 ColumnLayout {
-  spacing: Menu.cardSpacing
+  spacing: OverlayConfig.cardSpacing
 
   property int requiredVerticalCells: 2
   property int requiredHorizontalCells: 2
@@ -18,16 +18,16 @@ ColumnLayout {
     readonly property int requiredVerticalCells: 1
     readonly property int requiredHorizontalCells: 2
 
-    implicitHeight: Menu.cardUnit * 2 + Menu.cardSpacing
-    implicitWidth: Menu.cardUnit
+    implicitHeight: OverlayConfig.cardUnit * 2 + OverlayConfig.cardSpacing
+    implicitWidth: OverlayConfig.cardUnit
 
     Rectangle {
       id: root
       anchors.fill: parent
       color: Theme.background
-      radius: Menu.cardBorderRadius
+      radius: Appearance.borderRadius
       border.color: Theme.border
-      border.width: Menu.cardBorderWidth
+      border.width: Appearance.borderWidth
 
       ColumnLayout {
         anchors.fill: parent

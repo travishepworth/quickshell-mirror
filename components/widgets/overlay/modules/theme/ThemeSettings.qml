@@ -13,8 +13,8 @@ Rectangle {
   color: Theme.background
   anchors.fill: parent
   border.color: Theme.border
-  border.width: Menu.cardBorderWidth
-  radius: Menu.cardBorderRadius
+  border.width: Appearance.borderWidth
+  radius: Appearance.borderRadius
 
   property var localConfig: SettingsMenu.localConfig
   property bool isDirty: SettingsMenu.isDirty

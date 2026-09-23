@@ -19,11 +19,12 @@ import qs.components.widgets.menu.chat
 StyledContainer {
   id: root
 
-  readonly property bool panelEnabled: Menu.enablePanel
+  readonly property bool panelEnabled: SidePanel.enabled
 
   visible: panelEnabled
   implicitWidth: panelEnabled ? 600 : 0
-  implicitHeight: panelEnabled ? ((customHeight > 0) ? customHeight : Display.resolutionHeight - Appearance.screenMargin * 4) : 0
+  // Height is given by the side panel popout (the space along its screen edge)
+  implicitHeight: panelEnabled ? customHeight : 0
 
   property string panelId: ""
   property real customWidth: 0
@@ -132,7 +133,7 @@ StyledContainer {
 
               Behavior on x {
                 NumberAnimation {
-                  duration: 250
+                  duration: Appearance.animNormal
                   easing.type: Easing.InOutQuad
                 }
               }

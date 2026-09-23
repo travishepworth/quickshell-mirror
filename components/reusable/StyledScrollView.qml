@@ -29,7 +29,7 @@ ScrollView {
 
     Behavior on opacity {
       NumberAnimation {
-        duration: 150
+        duration: Appearance.animNormal
       }
     }
 
@@ -42,7 +42,7 @@ ScrollView {
 
       Behavior on opacity {
         NumberAnimation {
-          duration: 150
+          duration: Appearance.animNormal
         }
       }
     }

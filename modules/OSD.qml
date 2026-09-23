@@ -33,7 +33,6 @@ Item {
     { app: "master", showOsd: true, icon: "" }
   ]
 
-  property real hideTimeout: 1000
 
   Variants {
     model: Quickshell.screens
@@ -48,7 +47,7 @@ Item {
       edge: Bar.Bottom
       position: 0.5
       triggerEnabled: false
-      dismissDelay: osdRoot.hideTimeout
+      dismissDelay: PopoutConfig.osdTimeout
       // The volume bars inside also report per-app changes, so they must
       // exist while the OSD is closed
       keepLoaded: true

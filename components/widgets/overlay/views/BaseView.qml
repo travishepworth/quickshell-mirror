@@ -14,6 +14,6 @@ Item {
   
   RowLayout {
     id: rowLayout
-    spacing: Menu.cardSpacing
+    spacing: OverlayConfig.cardSpacing
   }
 }

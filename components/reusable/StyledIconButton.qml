@@ -35,7 +35,7 @@ ToolButton {
   scale: component.pressed ? 0.92 : 1.0
 
   Behavior on scale {
-    NumberAnimation { duration: 80 }
+    NumberAnimation { duration: Appearance.animFast }
   }
 
   HoverHandler {
@@ -59,7 +59,7 @@ ToolButton {
 
     Behavior on color {
       ColorAnimation {
-        duration: 150
+        duration: Appearance.animNormal
       }
     }
   }

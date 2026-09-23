@@ -53,7 +53,7 @@ PanelWindow {
 
   IpcHandler {
     target: "powermenu"
-    enabled: screen.name === Display.primary
+    enabled: screen.name === General.primaryMonitor
     function toggle() { rootWindow.toggle() }
     function show() { if (!rootWindow.shown) rootWindow.toggle() }
     function hide() { if (rootWindow.shown) rootWindow.toggle() }
@@ -114,7 +114,7 @@ PanelWindow {
           radius: Appearance.borderRadius
           
           Behavior on color {
-            ColorAnimation { duration: 150; easing.type: Easing.InOutQuad }
+            ColorAnimation { duration: Appearance.animNormal; easing.type: Easing.InOutQuad }
           }
           
           StyledText {

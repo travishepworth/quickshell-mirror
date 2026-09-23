@@ -31,8 +31,8 @@ SchemaSection {
 
     SchemaSwitch {
       label: "Primary"
-      checked: root.bar?.primary || false
-      description: "Exactly one bar must be primary"
+      checked: BarManager.selectedBarIndex === 0
+      description: "The primary bar is the first one"
       onToggled: value => {
         if (value)
           BarManager.setPrimary(BarManager.selectedBarIndex);
@@ -40,10 +40,11 @@ SchemaSection {
     }
 
     SchemaSwitch {
-      label: "Auto Hide"
-      checked: root.bar?.autoHide || false
+      label: "Reserve Space"
+      checked: root.bar?.reserveSpace ?? true
+      description: "Keep windows from tiling underneath the bar"
       onToggled: value => {
-        root.bar.autoHide = value;
+        root.bar.reserveSpace = value;
         BarManager.applyChanges();
       }
     }
@@ -59,12 +60,12 @@ SchemaSection {
     }
 
     SchemaComboBox {
-      label: "Display"
+      label: "Monitor"
       options: ["", ...Quickshell.screens.map(s => s.name)]
-      currentValue: root.bar?.display || ""
+      currentValue: root.bar?.monitor || ""
       description: "Which monitor this bar is shown on"
       onSelectionChanged: newValue => {
-        root.bar.display = newValue;
+        root.bar.monitor = newValue;
         BarManager.applyChanges();
       }
     }

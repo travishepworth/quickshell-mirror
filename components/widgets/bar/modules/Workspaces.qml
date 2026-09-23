@@ -171,8 +171,8 @@ Item {
         color: Theme.background
       }
 
-      Behavior on color { ColorAnimation { duration: 50 } }
-      Behavior on opacity { NumberAnimation { duration: 150 } }
+      Behavior on color { ColorAnimation { duration: Appearance.animFast } }
+      Behavior on opacity { NumberAnimation { duration: Appearance.animNormal } }
 
       MouseArea {
         anchors.fill: parent

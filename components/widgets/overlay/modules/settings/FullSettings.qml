@@ -1,4 +1,3 @@
-// SettingsMenu.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
@@ -7,7 +6,6 @@ import qs.config
 import qs.services
 import qs.components.widgets.common
 import qs.components.widgets.overlay.modules.settings
-// TODO: Fix bindings and whatnot. Not exaclty the biggest fan of the state management here
 
 /**
  * Main settings menu component - fits in square grid cell
@@ -15,10 +13,10 @@ import qs.components.widgets.overlay.modules.settings
 Rectangle {
   id: root
   color: Theme.background
-  radius: Menu.cardBorderRadius
+  radius: Appearance.borderRadius
   anchors.fill: parent
   border.color: Theme.border
-  border.width: Menu.cardBorderWidth
+  border.width: Appearance.borderWidth
 
   // Local state management
   property var localConfig: SettingsMenu.localConfig
@@ -62,76 +60,13 @@ Rectangle {
           height: Widget.spacing
         }
 
-        // GeneralSettings {}
-        AppearanceSettings {
-          localConfig: root.localConfig
+        // Every section and setting comes from the config schema
+        SchemaForm {
+          Layout.fillWidth: true
+          schema: ConfigManager.configSchema
+          config: root.localConfig
+          onEdited: (path, value) => SettingsMenu.setValue(path, value)
         }
-        SchemaSection {
-          title: "Widget"
-          Layout.leftMargin: Widget.padding
-          Layout.rightMargin: Widget.padding
-
-          GridLayout {
-            Layout.fillWidth: true
-            columns: 1
-            columnSpacing: Widget.spacing
-            rowSpacing: Widget.spacing
-
-            SchemaSpinBox {
-              label: "Height"
-              currentConfigValue: root.localConfig.Widget?.height || 0
-              minimum: 16
-              maximum: 128
-              onValueChanged: {
-                if (!root.localConfig.Widget)
-                  root.localConfig.Widget = {};
-                root.localConfig.Widget.height = value;
-                SettingsMenu.applyChanges();
-              }
-              onIsDirtyChanged: {
-                SettingsMenu.markDirty();
-              }
-            }
-
-            SchemaSpinBox {
-              id: paddingSpinBox
-              label: "Padding"
-              currentConfigValue: root.localConfig.Widget?.padding || 0
-              minimum: 0
-              maximum: 32
-              onValueChanged: {
-                if (!root.localConfig.Widget)
-                  root.localConfig.Widget = {};
-                root.localConfig.Widget.padding = value;
-                SettingsMenu.applyChanges();
-              }
-              onIsDirtyChanged: {
-                SettingsMenu.markDirty();
-              }
-            }
-
-            SchemaSpinBox {
-              label: "Spacing"
-              currentConfigValue: root.localConfig.Widget?.spacing || 0
-              minimum: 0
-              maximum: 32
-              onValueChanged: {
-                if (!root.localConfig.Widget)
-                  root.localConfig.Widget = {};
-                root.localConfig.Widget.spacing = value;
-                SettingsMenu.applyChanges();
-              }
-              onIsDirtyChanged: {
-                SettingsMenu.markDirty();
-              }
-            }
-          }
-        }
-
-        // ChatSettings {}
-        // IntegrationSettings {}
-        // Item {
-        // }
       }
     }
   }

@@ -10,8 +10,8 @@ Image {
     // This property computes the final source URL, respecting user overrides first.
     readonly property string finalIconSource: {
         // 1. Check for a user-defined override in the config
-        if (Config.customIconOverrides && Config.customIconOverrides[iconName]) {
-            return Config.customIconOverrides[iconName];
+        if (IconConfig.overrides && IconConfig.overrides[iconName]) {
+            return IconConfig.overrides[iconName];
         }
         // 2. Handle absolute file paths
         if (iconName.startsWith("file://")) {

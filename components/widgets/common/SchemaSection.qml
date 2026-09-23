@@ -33,7 +33,7 @@ ColumnLayout {
         
         Behavior on rotation {
           NumberAnimation {
-            duration: Appearance.animations ? Appearance.animationDuration : 0
+            duration: Appearance.animNormal
           }
         }
       }
@@ -75,7 +75,7 @@ ColumnLayout {
     
     Behavior on Layout.topMargin {
       NumberAnimation {
-        duration: Appearance.animations ? Appearance.animationDuration : 0
+        duration: Appearance.animNormal
       }
     }
   }

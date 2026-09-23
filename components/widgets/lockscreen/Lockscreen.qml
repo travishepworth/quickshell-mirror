@@ -14,9 +14,10 @@ import qs.services
 PanelWindow {
   id: rootWindow
 
-  property bool isPrimaryScreen: screen.name === Display.primary
+  property bool isPrimaryScreen: screen.name === General.primaryMonitor
 
-  property int containerWidth: Display.aspectRatio > 2.0 ? Math.min(screen.width * 0.5, 400) : Math.min(screen.width * 0.6, 400)
+  readonly property real aspectRatio: screen.width / screen.height
+  property int containerWidth: aspectRatio > 2.0 ? Math.min(screen.width * 0.5, 400) : Math.min(screen.width * 0.6, 400)
   property bool isLocked: false
   property bool showMediaControl: MprisController.isPlaying
   property real slideOffset: isLocked ? 0 : -height
@@ -26,7 +27,7 @@ PanelWindow {
       rootWindow.lock();
     });
     console.log("========== LockScreen ==========")
-    console.log("  > Screen:", screen.name, "Primary:", isPrimaryScreen, "Width:", screen.width, "Height:", screen.height, "Aspect Ratio:", Display.aspectRatio);
+    console.log("  > Screen:", screen.name, "Primary:", isPrimaryScreen, "Width:", screen.width, "Height:", screen.height, "Aspect Ratio:", aspectRatio);
     console.log("================================")
   }
 
@@ -64,7 +65,7 @@ PanelWindow {
 
   Timer {
     id: hideTimer
-    interval: 300
+    interval: Appearance.animSlow
     repeat: false
     onTriggered: {
       if (!rootWindow.isLocked) {
@@ -152,7 +153,7 @@ PanelWindow {
       y: rootWindow.slideOffset
       Behavior on y {
         NumberAnimation {
-          duration: 300
+          duration: Appearance.animSlow
           easing.type: Easing.InOutQuad
         }
       }
@@ -187,28 +188,28 @@ PanelWindow {
           property: "anchors.horizontalCenterOffset"
           from: 0
           to: 20
-          duration: 50
+          duration: Appearance.animFast
         }
         PropertyAnimation {
           target: lockContainer
           property: "anchors.horizontalCenterOffset"
           from: 20
           to: -20
-          duration: 100
+          duration: Appearance.animFast
         }
         PropertyAnimation {
           target: lockContainer
           property: "anchors.horizontalCenterOffset"
           from: -20
           to: 20
-          duration: 100
+          duration: Appearance.animFast
         }
         PropertyAnimation {
           target: lockContainer
           property: "anchors.horizontalCenterOffset"
           from: 20
           to: 0
-          duration: 50
+          duration: Appearance.animFast
         }
       }
 
@@ -218,7 +219,7 @@ PanelWindow {
         spacing: Appearance.screenMargin
 
         StyledText {
-          text: "hey " + Config.userName
+          text: "hey " + General.displayName
           textSize: Appearance.fontSize * 3
           textColor: Theme.foreground
           horizontalAlignment: Text.AlignHCenter
@@ -230,7 +231,7 @@ PanelWindow {
 
           property bool showMedia: true
           property alias mediaControl: mediaControlLoader.item
-          property int animationDuration: Appearance.animations ? Appearance.animationDuration : 0
+          property int animationDuration: Appearance.animNormal
 
           Layout.fillWidth: true
           Layout.preferredHeight: showMedia ? mediaControlLoader.height : 0
@@ -330,7 +331,7 @@ PanelWindow {
 
             Behavior on opacity {
               NumberAnimation {
-                duration: 150
+                duration: Appearance.animNormal
                 easing.type: Easing.InOutQuad
               }
             }
@@ -350,18 +351,18 @@ PanelWindow {
 
               SequentialAnimation on x {
                 loops: Animation.Infinite
-                running: Authentication.isAuthenticating
+                running: Authentication.isAuthenticating && Appearance.animations
 
                 NumberAnimation {
                   from: 0
                   to: lockContainer.width * 0.7
-                  duration: 1000
+                  duration: Appearance.animSlow * 3
                   easing.type: Easing.InOutQuad
                 }
                 NumberAnimation {
                   from: lockContainer.width * 0.7
                   to: 0
-                  duration: 1000
+                  duration: Appearance.animSlow * 3
                   easing.type: Easing.InOutQuad
                 }
               }

@@ -127,7 +127,7 @@ IconTextWidget {
 
   // Charging animation
   SequentialAnimation {
-    running: root.isCharging
+    running: root.isCharging && Appearance.animations
     loops: Animation.Infinite
 
     PropertyAnimation {
@@ -135,7 +135,7 @@ IconTextWidget {
       property: "opacity"
       from: 1.0
       to: 0.7
-      duration: 1500
+      duration: Appearance.animSlow * 5
       easing.type: Easing.InOutQuad
     }
 
@@ -144,7 +144,7 @@ IconTextWidget {
       property: "opacity"
       from: 0.7
       to: 1.0
-      duration: 1500
+      duration: Appearance.animSlow * 5
       easing.type: Easing.InOutQuad
     }
   }

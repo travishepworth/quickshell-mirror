@@ -16,7 +16,7 @@ Item {
   property bool slideFromTop: false
   property bool slideFromBottom: false
   
-  property int animationDuration: Appearance.animations ? Appearance.animationDuration : 0
+  property int animationDuration: Appearance.animNormal
   property bool enableFade: true
   property var easingType: Easing.OutCubic
 

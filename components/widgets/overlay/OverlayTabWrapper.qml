@@ -6,12 +6,12 @@ import qs.config
 Item {
   id: wrapper
   required property var screen
-  property var viewsConfig: Menu.views || []
+  property var viewsConfig: OverlayConfig.views || []
   property var viewsModel: buildViewsModel(viewsConfig)
   property int currentIndex: 0
 
-  implicitWidth: currentViewWidth + Menu.cardSpacing * 2
-  implicitHeight: currentViewHeight + Menu.cardSpacing * 2
+  implicitWidth: currentViewWidth + OverlayConfig.cardSpacing * 2
+  implicitHeight: currentViewHeight + OverlayConfig.cardSpacing * 2
 
   // Store current view dimensions to avoid binding loops
   property real currentViewWidth: viewsRepeater.count > 0 && viewsRepeater.itemAt(wrapper.currentIndex) ? 
@@ -44,20 +44,20 @@ Item {
       left: parent.left
       right: parent.right
     }
-    height: wrapper.currentViewHeight + Menu.cardSpacing * 2
-    width: wrapper.currentViewWidth + Menu.cardSpacing * 2
+    height: wrapper.currentViewHeight + OverlayConfig.cardSpacing * 2
+    width: wrapper.currentViewWidth + OverlayConfig.cardSpacing * 2
     clip: true
 
     Behavior on height {
       NumberAnimation {
-        duration: Appearance.animationDuration
+        duration: Appearance.animNormal
         easing.type: Easing.InOutQuad
       }
     }
 
     Behavior on width {
       NumberAnimation {
-        duration: Appearance.animationDuration
+        duration: Appearance.animNormal
         easing.type: Easing.InOutQuad
       }
     }
@@ -67,15 +67,15 @@ Item {
       anchors.centerIn: parent
       width: contentContainer.width
       height: contentContainer.height
-      radius: Menu.cardBorderRadius
+      radius: Appearance.borderRadius
       color: Theme.backgroundAlt
       border.color: Theme.foreground
-      border.width: Menu.cardBorderWidth
+      border.width: Appearance.borderWidth
 
       Item {
         id: viewsContainer
         anchors.fill: parent
-        anchors.margins: Menu.cardSpacing
+        anchors.margins: OverlayConfig.cardSpacing
 
         Repeater {
           id: viewsRepeater
@@ -106,7 +106,7 @@ Item {
 
             Behavior on opacity {
               NumberAnimation {
-                duration: Appearance.animationDuration / 2
+                duration: Appearance.animFast
                 easing.type: Easing.InOutQuad
               }
             }
@@ -145,7 +145,7 @@ Item {
             transitions: Transition {
               NumberAnimation {
                 property: "x"
-                duration: Appearance.animationDuration / 2
+                duration: Appearance.animFast
                 easing.type: Easing.InOutQuad
               }
             }

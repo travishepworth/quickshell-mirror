@@ -37,7 +37,7 @@ Rectangle {
   
   Behavior on color {
     ColorAnimation {
-      duration: 150
+      duration: Appearance.animNormal
       easing.type: Easing.InOutQuad
     }
   }
@@ -51,7 +51,7 @@ Rectangle {
     
     Behavior on textColor {
       ColorAnimation {
-        duration: 150
+        duration: Appearance.animNormal
         easing.type: Easing.InOutQuad
       }
     }

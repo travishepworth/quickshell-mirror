@@ -2,9 +2,10 @@ pragma Singleton
 import QtQuick
 
 import qs.config
+import qs.components.methods
 import qs.services
 
-/* BarManager holds a sandboxed, in-memory copy of the Bar config for the
+/* BarManager holds a sandboxed, in-memory copy of the Bars config for the
  * Bar Editor overlay. Edits here only affect localConfig (and whatever
  * reads it, e.g. the editor's own preview) - the real running bars and
  * config.json are untouched until saveChanges() is called. */
@@ -21,8 +22,8 @@ QtObject {
   }
 
   function loadConfig() {
-    localConfig = JSON.parse(JSON.stringify(ConfigManager.config.Bar || []));
-    _savedConfig = JSON.parse(JSON.stringify(ConfigManager.config.Bar || []));
+    localConfig = JSON.parse(JSON.stringify(ConfigManager.config.Bars));
+    _savedConfig = JSON.parse(JSON.stringify(ConfigManager.config.Bars));
     selectedBarIndex = 0;
     isDirty = false;
   }
@@ -59,23 +60,13 @@ QtObject {
   }
 
   function addBar() {
-    root.localConfig.push({
-      "id": "bar-" + (root.localConfig.length + 1),
-      "primary": root.localConfig.length === 0,
-      "enabled": true,
-      "display": "",
-      "extent": 30,
-      "spacing": 4,
-      "location": "Top",
-      "autoHide": false,
-      "widgets": {
-        "left": [],
-        "leftCenter": [],
-        "center": [],
-        "rightCenter": [],
-        "right": []
-      }
-    });
+    // Every other field comes from the Bar schema's defaults
+    const bar = SchemaValidation.applyDefaults({
+      "id": "bar-" + (root.localConfig.length + 1)
+    }, {
+      "$ref": "#/definitions/Bar"
+    }, ConfigManager.configSchema);
+    root.localConfig.push(bar);
     root.selectedBarIndex = root.localConfig.length - 1;
     applyChanges();
   }
@@ -83,16 +74,18 @@ QtObject {
   function removeBar(index) {
     if (root.localConfig.length <= 1)
       return; // never remove the last bar
-    const wasPrimary = root.localConfig[index]?.primary;
     root.localConfig.splice(index, 1);
-    if (wasPrimary && root.localConfig.length > 0)
-      root.localConfig[0].primary = true;
     root.selectedBarIndex = Math.max(0, Math.min(root.selectedBarIndex, root.localConfig.length - 1));
     applyChanges();
   }
 
+  // The first bar is the primary one: move the chosen bar to the front
   function setPrimary(index) {
-    root.localConfig.forEach((bar, i) => bar.primary = (i === index));
+    if (index <= 0 || index >= root.localConfig.length)
+      return;
+    const [bar] = root.localConfig.splice(index, 1);
+    root.localConfig.unshift(bar);
+    root.selectedBarIndex = 0;
     applyChanges();
   }
 
@@ -140,7 +133,7 @@ QtObject {
   // step for this sandboxed flow.
   function saveChanges() {
     const merged = JSON.parse(JSON.stringify(ConfigManager.config));
-    merged.Bar = JSON.parse(JSON.stringify(root.localConfig));
+    merged.Bars = JSON.parse(JSON.stringify(root.localConfig));
     ConfigManager.applyConfig(merged);
     ConfigManager.saveConfig();
     root._savedConfig = JSON.parse(JSON.stringify(root.localConfig));

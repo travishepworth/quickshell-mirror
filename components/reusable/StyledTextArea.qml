@@ -32,11 +32,11 @@ StyledContainer {
   backgroundColor: Theme.backgroundAlt
   
   Behavior on borderColor {
-    ColorAnimation { duration: 200; easing.type: Easing.InOutQuad }
+    ColorAnimation { duration: Appearance.animNormal; easing.type: Easing.InOutQuad }
   }
   
   Behavior on implicitHeight {
-    NumberAnimation { duration: 150; easing.type: Easing.InOutQuad }
+    NumberAnimation { duration: Appearance.animNormal; easing.type: Easing.InOutQuad }
   }
   
   Flickable {
@@ -108,6 +108,7 @@ StyledContainer {
         SequentialAnimation on opacity {
           loops: Animation.Infinite
           running: textInput.activeFocus
+          // Cursor blink: a behaviour timing, not motion, so not scaled
           PropertyAnimation { to: 1; duration: 500 }
           PropertyAnimation { to: 0; duration: 500 }
         }

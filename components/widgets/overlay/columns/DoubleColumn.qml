@@ -8,7 +8,7 @@ import qs.components.widgets.overlay.layouts
 import qs.components.widgets.overlay.modules
 
 ColumnLayout {
-  spacing: Menu.cardSpacing
+  spacing: OverlayConfig.cardSpacing
 
   property int requiredVerticalCells: topCell.requiredVerticalCells + bottomCell.requiredVerticalCells
   property int requiredHorizontalCells: Math.max(topCell.requiredHorizontalCells, bottomCell.requiredHorizontalCells)
@@ -28,7 +28,7 @@ ColumnLayout {
     rightCell: Rectangle {
       anchors.fill: parent
       color: Theme.background
-      radius: Menu.cardBorderRadius
+      radius: Appearance.borderRadius
       border.color: Theme.foreground
       border.width: 3
       PipewireVolumeBar {

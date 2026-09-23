@@ -46,20 +46,20 @@ TabButton {
       
       Behavior on width {
         NumberAnimation {
-          duration: 150
+          duration: Appearance.animNormal
         }
       }
     }
     
     Behavior on width {
       NumberAnimation {
-        duration: 150
+        duration: Appearance.animNormal
       }
     }
     
     Behavior on height {
       NumberAnimation {
-        duration: 150
+        duration: Appearance.animNormal
       }
     }
   }

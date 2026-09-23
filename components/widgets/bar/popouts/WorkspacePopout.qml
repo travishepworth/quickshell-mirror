@@ -73,7 +73,7 @@ Item {
           readonly property bool hasWindows: workspace?.toplevels?.values?.length > 0
           // readonly property bool isCurrentColumn: (wsId - 1) % 5 === root.currentColumn
           readonly property bool isCurrentColumn: index % 5 === root.currentColumn
-          readonly property bool showIcons: Appearance.workspacePopoutIcons
+          readonly property bool showIcons: PopoutConfig.workspaceIcons
           property bool hovered: false
 
           Layout.preferredWidth: Widget.height
@@ -108,7 +108,7 @@ Item {
 
           transitions: Transition {
             ColorAnimation {
-              duration: 100
+              duration: Appearance.animFast
             }
           }
 
@@ -118,7 +118,7 @@ Item {
             width: parent.width * 0.7
             height: parent.height * 0.7
             anchors.centerIn: parent
-            visible: Appearance.workspacePopoutIcons
+            visible: PopoutConfig.workspaceIcons
           }
 
           Text {
@@ -156,20 +156,20 @@ Item {
 
           Behavior on scale {
             NumberAnimation {
-              duration: 100
+              duration: Appearance.animFast
               easing.type: Easing.OutCubic
             }
           }
 
           Behavior on color {
             ColorAnimation {
-              duration: 150
+              duration: Appearance.animNormal
             }
           }
 
           Behavior on opacity {
             NumberAnimation {
-              duration: 150
+              duration: Appearance.animNormal
             }
           }
         }

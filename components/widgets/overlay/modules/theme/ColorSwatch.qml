@@ -13,14 +13,14 @@ Rectangle {
   color: swatchColor
   radius: Appearance.borderRadius
   border.color: Theme.foreground
-  border.width: Math.max(Menu.cardBorderWidth, 3)
+  border.width: Math.max(Appearance.borderWidth, 3)
 
   Text {
     id: label
     text: swatch.swatchName
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
-    anchors.bottomMargin: Menu.cardSpacing / 2
+    anchors.bottomMargin: OverlayConfig.cardSpacing / 2
     color: (swatch.color === Theme.background || swatch.color === Theme.backgroundAlt) ? Theme.foreground : Theme.background
     font.pixelSize: Appearance.fontSize - 4
     font.bold: true
@@ -33,7 +33,7 @@ Rectangle {
     text: swatch.swatchSemantic
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.top: parent.top
-    anchors.topMargin: Menu.cardSpacing / 2
+    anchors.topMargin: OverlayConfig.cardSpacing / 2
     color: (swatch.color === Theme.background || swatch.color === Theme.backgroundAlt) ? Theme.foreground : Theme.background
     font.pixelSize: Appearance.fontSize - 4
     font.bold: true

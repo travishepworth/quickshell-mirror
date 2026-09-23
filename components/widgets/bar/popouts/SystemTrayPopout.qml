@@ -35,13 +35,13 @@ Item {
 
   Behavior on width {
     NumberAnimation {
-      duration: Appearance.animationDuration / 3
+      duration: Appearance.animFast
       easing.type: Easing.OutCubic
     }
   }
   Behavior on implicitHeight {
     NumberAnimation {
-      duration: Appearance.animationDuration
+      duration: Appearance.animNormal
       easing.type: Easing.OutCubic
     }
   }

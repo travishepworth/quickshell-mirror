@@ -32,7 +32,7 @@ Item {
     
     Behavior on color {
       ColorAnimation {
-        duration: 200
+        duration: Appearance.animNormal
       }
     }
   }
@@ -70,7 +70,7 @@ Item {
         Behavior on height {
           enabled: component.orientation === Qt.Vertical
           NumberAnimation {
-            duration: 150
+            duration: Appearance.animNormal
             easing.type: Easing.OutCubic
           }
         }
@@ -78,7 +78,7 @@ Item {
         Behavior on width {
           enabled: component.orientation === Qt.Horizontal
           NumberAnimation {
-            duration: 150
+            duration: Appearance.animNormal
             easing.type: Easing.OutCubic
           }
         }

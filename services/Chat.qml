@@ -111,8 +111,8 @@ QtObject {
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig) return _handleError("Gemini", "Backend config not found.");
     
-    const apiKey = backendConfig.apiKey;
-    if (!apiKey) return _handleError("Gemini", "API Key is missing from config.");
+    const apiKey = Secrets.apiKey("gemini");
+    if (!apiKey) return _handleError("Gemini", "No API key: set GEMINI_API_KEY or add \"gemini\" to " + Secrets.secretsPath);
 
     const url = "https://generativelanguage.googleapis.com/v1beta/models/" + currentModel + ":generateContent?key=" + apiKey;
     const headers = { "Content-Type": "application/json" };
@@ -128,8 +128,8 @@ QtObject {
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig) return _handleError("OpenAI", "Backend config not found.");
 
-    const apiKey = backendConfig.apiKey;
-    if (!apiKey) return _handleError("OpenAI", "API Key is missing from config.");
+    const apiKey = Secrets.apiKey("openai");
+    if (!apiKey) return _handleError("OpenAI", "No API key: set OPENAI_API_KEY or add \"openai\" to " + Secrets.secretsPath);
 
     const url = "https://api.openai.com/v1/chat/completions";
     const headers = {
@@ -151,8 +151,8 @@ QtObject {
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig) return _handleError("Anthropic", "Backend config not found.");
 
-    const apiKey = backendConfig.apiKey;
-    if (!apiKey) return _handleError("Anthropic", "API Key is missing from config.");
+    const apiKey = Secrets.apiKey("anthropic");
+    if (!apiKey) return _handleError("Anthropic", "No API key: set ANTHROPIC_API_KEY or add \"anthropic\" to " + Secrets.secretsPath);
 
     const url = "https://api.anthropic.com/v1/messages";
     const headers = {

@@ -18,7 +18,7 @@ Item {
       required property ShellScreen modelData
 
       screen: modelData
-      available: Cfg.Menu.enablePanel
+      available: Cfg.SidePanel.enabled
       edge: Cfg.Bar.Right
       position: 0.5
       triggerLength: modelData.height

@@ -14,14 +14,14 @@ Item {
 
   GridLayout {
     id: cellLayout
-    Layout.preferredHeight: Menu.cardUnit
-    Layout.preferredWidth: Menu.cardUnit
+    Layout.preferredHeight: OverlayConfig.cardUnit
+    Layout.preferredWidth: OverlayConfig.cardUnit
     columns: 1
     rows: 1
     Item {
       id: container
-      Layout.preferredWidth: Menu.cardUnit
-      Layout.preferredHeight: Menu.cardUnit
+      Layout.preferredWidth: OverlayConfig.cardUnit
+      Layout.preferredHeight: OverlayConfig.cardUnit
       clip: true
     }
   }

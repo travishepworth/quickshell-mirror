@@ -10,16 +10,16 @@ Rectangle {
   id: root
   required property var keybinds
   color: Theme.background
-  implicitWidth: Menu.cardUnit
+  implicitWidth: OverlayConfig.cardUnit
   implicitHeight: 1440 - 100
   
   border.color: Theme.border
-  border.width: Menu.cardBorderWidth
+  border.width: Appearance.borderWidth
 
   ColumnLayout {
     anchors.fill: parent
-    anchors.margins: Menu.cardPadding
-    spacing: Menu.cardSpacing
+    anchors.margins: OverlayConfig.cardPadding
+    spacing: OverlayConfig.cardSpacing
     SchemaSection {
       title: "Other"
       expanded: true

@@ -1,14 +1,24 @@
 pragma Singleton
 import QtQuick
-import Quickshell.Io
 
-import qs.config
-import qs.services
-
+/**
+ * JSON-schema helpers for the config: validation, filling in defaults, and
+ * pruning unknown keys. Every entry point takes the root schema, which is
+ * used to resolve `#/definitions/...` refs, so this has no dependency on
+ * ConfigManager (which lets ConfigManager load eagerly at startup).
+ */
 QtObject {
   id: jsonUtils
 
+  // Root schema of the call in progress, for $ref resolution. Held in a
+  // plain JS object (mutated, never reassigned) so setting it doesn't emit
+  // a property change: callers evaluate these functions inside bindings
+  // (e.g. ConfigManager's eager load), and a notifying write here would
+  // re-trigger those bindings in a loop.
+  readonly property var _ctx: ({ root: {} })
+
   function validateAgainstSchema(value, schema, path = '') {
+    _ctx.root = schema;
     const errors = [];
     _validate(value, schema, path, errors);
 
@@ -20,16 +30,101 @@ QtObject {
     return true;
   }
 
+  /**
+   * Returns a deep copy of `value` with every missing key that has a schema
+   * `default` filled in, recursing into objects and array items. Objects
+   * with declared properties are created when missing, so nested defaults
+   * always resolve. oneOf schemas (bar widgets) are left untouched.
+   */
+  function applyDefaults(value, schema, root = schema) {
+    _ctx.root = root;
+    const copy = value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    return _applyDefaults(copy, schema);
+  }
+
+  /**
+   * Removes keys the schema doesn't allow (additionalProperties: false)
+   * from `value` in place and returns their paths. Used on load, so a stray
+   * or outdated key is dropped with a warning instead of rejecting the
+   * whole config.
+   */
+  function pruneUnknown(value, schema) {
+    _ctx.root = schema;
+    const removed = [];
+    _prune(value, schema, '', removed);
+    return removed;
+  }
+
+  function _resolve(schema) {
+    if (schema && schema.$ref) {
+      const refPath = schema.$ref.replace('#/definitions/', '');
+      return _ctx.root?.definitions?.[refPath] ?? schema;
+    }
+    return schema;
+  }
+
+  function _isPlainObject(value) {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  function _applyDefaults(value, schema) {
+    schema = _resolve(schema);
+    if (!schema || schema.oneOf)
+      return value;
+
+    if (value === undefined && schema.default !== undefined)
+      value = JSON.parse(JSON.stringify(schema.default));
+
+    if (schema.type === 'object' && schema.properties) {
+      if (value === undefined)
+        value = {};
+      if (_isPlainObject(value)) {
+        for (const key in schema.properties) {
+          const filled = _applyDefaults(value[key], schema.properties[key]);
+          if (filled !== undefined)
+            value[key] = filled;
+        }
+      }
+    }
+
+    if (schema.type === 'array' && Array.isArray(value) && schema.items) {
+      for (let i = 0; i < value.length; i++)
+        value[i] = _applyDefaults(value[i], schema.items);
+    }
+
+    return value;
+  }
+
+  function _prune(value, schema, path, removed) {
+    schema = _resolve(schema);
+    if (!schema || schema.oneOf || value === null || typeof value !== 'object')
+      return;
+
+    if (Array.isArray(value)) {
+      if (schema.items)
+        value.forEach((item, i) => _prune(item, schema.items, `${path}[${i}]`, removed));
+      return;
+    }
+
+    const props = schema.properties || {};
+    Object.keys(value).forEach(key => {
+      const propPath = path ? `${path}.${key}` : key;
+      if (props[key]) {
+        _prune(value[key], props[key], propPath, removed);
+      } else if (schema.additionalProperties === false) {
+        removed.push(propPath);
+        delete value[key];
+      } else if (typeof schema.additionalProperties === 'object') {
+        _prune(value[key], schema.additionalProperties, propPath, removed);
+      }
+    });
+  }
+
   function _validate(value, schema, path, errors) {
     if (!schema)
       return;
 
-    if (schema.$ref) {
-      const refPath = schema.$ref.replace('#/definitions/', '');
-      if (ConfigManager._configSchema && ConfigManager._configSchema.definitions && ConfigManager._configSchema.definitions[refPath]) {
-        schema = ConfigManager._configSchema.definitions[refPath];
-      }
-    }
+    schema = _resolve(schema);
 
     if (schema.type) {
       if (!_validateType(value, schema.type, path, errors)) {
@@ -171,14 +266,7 @@ QtObject {
       const subErrors = [];
       const subSchema = oneOfSchemas[i];
 
-      // Resolve $ref if present
-      let resolvedSchema = subSchema;
-      if (subSchema.$ref) {
-        const refPath = subSchema.$ref.replace('#/definitions/', '');
-        if (ConfigManager._configSchema?.definitions[refPath]) {
-          resolvedSchema = ConfigManager._configSchema.definitions[refPath];
-        }
-      }
+      const resolvedSchema = _resolve(subSchema);
 
       if (resolvedSchema.properties?.type?.const !== undefined) {
         if (value.type !== resolvedSchema.properties.type.const) {

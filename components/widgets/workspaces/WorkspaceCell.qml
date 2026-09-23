@@ -17,8 +17,8 @@ Rectangle {
   property color cellTextColor: Theme.foreground
 
   // Animation properties
-  property int colorAnimationDuration: 150
-  property int borderAnimationDuration: 150
+  property int colorAnimationDuration: Appearance.animNormal
+  property int borderAnimationDuration: Appearance.animNormal
 
   // Core properties
   property int workspaceId: 1

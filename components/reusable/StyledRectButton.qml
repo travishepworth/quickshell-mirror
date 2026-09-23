@@ -51,13 +51,13 @@ Rectangle {
   
   Behavior on color {
     ColorAnimation {
-      duration: 150
+      duration: Appearance.animNormal
     }
   }
   
   Behavior on border.color {
     ColorAnimation {
-      duration: 150
+      duration: Appearance.animNormal
     }
   }
   

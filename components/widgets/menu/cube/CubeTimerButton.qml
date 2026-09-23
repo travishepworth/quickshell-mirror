@@ -3,6 +3,8 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 
+import qs.config
+
 Rectangle {
   id: root
 
@@ -72,7 +74,7 @@ Rectangle {
 
   Behavior on color {
     ColorAnimation {
-      duration: 150
+      duration: Appearance.animNormal
     }
   }
 

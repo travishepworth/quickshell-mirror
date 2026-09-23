@@ -76,7 +76,7 @@ Item {
                   width: wallpaperGrid.cellWidth
                   height: wallpaperGrid.cellHeight
 
-                  property bool isActive: Config.wallpaper === modelData.fileUrl
+                  property bool isActive: Appearance.wallpaper === modelData.fileUrl
                   property bool isHovered: wallpaperMouseArea.hovered
                   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
@@ -90,7 +90,7 @@ Item {
 
                     Behavior on border.color {
                       ColorAnimation {
-                        duration: 150
+                        duration: Appearance.animNormal
                       }
                     }
 

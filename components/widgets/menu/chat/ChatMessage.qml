@@ -19,7 +19,7 @@ RowLayout {
 
   readonly property string senderIcon: isUser ? "" : isConfig ? "󰍛" : "󱚤"
   readonly property color senderIconColor: isUser ? Theme.userColor : isConfig ? Theme.accent : Theme.robotColor
-  readonly property string senderName: isUser ? Config.userName : isConfig ? "system" : messageBackend
+  readonly property string senderName: isUser ? General.displayName : isConfig ? "system" : messageBackend
   readonly property color senderColor: isUser ? Theme.userColor : isConfig ? Theme.accent : Theme.robotColor
 
   // 2. When the component is created, capture the current backend name

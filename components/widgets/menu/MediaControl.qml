@@ -14,7 +14,7 @@ StyledContainer {
   clip: true
 
   property int widgetPadding: Widget.padding
-  property int animationDuration: Appearance.animations ? Appearance.animationDuration : 0
+  property int animationDuration: Appearance.animNormal
   property int albumArtSize: 80
   property int itemSpacing: 12
   property int innerSpacing: 4

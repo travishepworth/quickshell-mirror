@@ -83,7 +83,7 @@ Item {
   
   Behavior on percentage {
     NumberAnimation {
-      duration: 300
+      duration: Appearance.animSlow
       easing.type: Easing.OutCubic
     }
   }

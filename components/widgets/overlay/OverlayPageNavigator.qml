@@ -32,10 +32,10 @@ Rectangle {
     Rectangle {
       Layout.preferredWidth: 30
       Layout.preferredHeight: 30
-      radius: Menu.cardBorderRadius
+      radius: Appearance.borderRadius
       color: leftArrowMouse.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
       border.color: Theme.border
-      border.width: Menu.cardBorderWidth
+      border.width: Appearance.borderWidth
 
       Text {
         anchors.centerIn: parent
@@ -58,10 +58,10 @@ Rectangle {
     Rectangle {
       Layout.preferredWidth: indicatorRow.implicitWidth + 12
       Layout.preferredHeight: 30
-      radius: Menu.cardBorderRadius
+      radius: Appearance.borderRadius
       color: Theme.backgroundAlt
       border.color: Theme.border
-      border.width: Menu.cardBorderWidth
+      border.width: Appearance.borderWidth
 
       Row {
         id: indicatorRow
@@ -76,10 +76,10 @@ Rectangle {
             required property int index
             width: 12
             height: 12
-            radius: Menu.cardBorderRadius
+            radius: Appearance.borderRadius
             color: root.currentIndex === index ? Theme.accent : dotMouse.containsMouse ? Theme.foreground : Theme.background
             border.color: Theme.border
-            border.width: Menu.cardBorderWidth
+            border.width: Appearance.borderWidth
 
             MouseArea {
               id: dotMouse
@@ -91,7 +91,7 @@ Rectangle {
 
             Behavior on color {
               ColorAnimation {
-                duration: Appearance.animationDuration / 2
+                duration: Appearance.animFast
               }
             }
           }
@@ -103,10 +103,10 @@ Rectangle {
     Rectangle {
       Layout.preferredWidth: 30
       Layout.preferredHeight: 30
-      radius: Menu.cardBorderRadius
+      radius: Appearance.borderRadius
       color: rightArrowMouse.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
       border.color: Theme.border
-      border.width: Menu.cardBorderWidth
+      border.width: Appearance.borderWidth
 
       Text {
         anchors.centerIn: parent

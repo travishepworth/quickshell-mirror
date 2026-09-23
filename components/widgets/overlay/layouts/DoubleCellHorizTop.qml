@@ -20,28 +20,28 @@ Item {
 
   GridLayout {
     id: cellLayout
-    Layout.preferredHeight: Menu.cardUnit
-    Layout.preferredWidth: Menu.cardUnit * 2 + Menu.cardSpacing
-    columnSpacing: Menu.cardSpacing
-    rowSpacing: Menu.cardSpacing
+    Layout.preferredHeight: OverlayConfig.cardUnit
+    Layout.preferredWidth: OverlayConfig.cardUnit * 2 + OverlayConfig.cardSpacing
+    columnSpacing: OverlayConfig.cardSpacing
+    rowSpacing: OverlayConfig.cardSpacing
     columns: 2
     rows: 2
 
     Item {
       id: topContainer
       Layout.columnSpan: 2
-      Layout.preferredWidth: Menu.cardUnit * 2 + Menu.cardSpacing
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) * 2 + Menu.cardSpacing
+      Layout.preferredWidth: OverlayConfig.cardUnit * 2 + OverlayConfig.cardSpacing
+      Layout.preferredHeight: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) * 2 + OverlayConfig.cardSpacing
     }
     Item {
       id: bottomLeftContainer
-      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing)
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing)
+      Layout.preferredWidth: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing)
+      Layout.preferredHeight: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing)
     }
     Item {
       id: bottomRightContainer
-      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing)
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing)
+      Layout.preferredWidth: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing)
+      Layout.preferredHeight: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing)
     }
   }
 }

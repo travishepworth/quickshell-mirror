@@ -1,10 +1,12 @@
 pragma Singleton
 import QtQuick
-
 import qs.services
 
+// Reader for the Widget section: shared sizing for bar widgets and controls.
 QtObject {
-  readonly property int height: ConfigManager.config.Widget.height ?? 24
-  readonly property int padding: ConfigManager.config.Widget.padding ?? 8
-  readonly property int spacing: ConfigManager.config.Widget.spacing ?? 4
+  readonly property var _c: ConfigManager.config.Widget
+
+  readonly property int height: _c.height
+  readonly property int padding: _c.padding
+  readonly property int spacing: _c.spacing
 }

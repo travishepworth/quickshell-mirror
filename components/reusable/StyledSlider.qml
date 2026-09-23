@@ -45,7 +45,7 @@ Item {
   Behavior on _internalValue {
     enabled: !mouseArea.isDragging && component.smoothUpdate
     NumberAnimation {
-      duration: 150
+      duration: Appearance.animNormal
       easing.type: Easing.OutQuad
     }
   }
@@ -70,7 +70,7 @@ Item {
     Behavior on width {
       enabled: !mouseArea.isDragging
       NumberAnimation {
-        duration: 150
+        duration: Appearance.animNormal
         easing.type: Easing.OutQuad
       }
     }
@@ -88,14 +88,14 @@ Item {
     
     Behavior on scale {
       NumberAnimation {
-        duration: 150
+        duration: Appearance.animNormal
         easing.type: Easing.OutQuad
       }
     }
     
     Behavior on opacity {
       NumberAnimation {
-        duration: 150
+        duration: Appearance.animNormal
       }
     }
   }

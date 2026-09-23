@@ -6,7 +6,7 @@ import qs.config
 import qs.components.widgets.overlay.modules.settings
 
 ColumnLayout {
-  spacing: Menu.cardSpacing
+  spacing: OverlayConfig.cardSpacing
 
   property int requiredVerticalCells: 2
   property int requiredHorizontalCells: 2
@@ -17,10 +17,10 @@ ColumnLayout {
     readonly property int requiredVerticalCells: 1
     readonly property int requiredHorizontalCells: 2
 
-    // implicitWidth: Menu.cardUnit * 2 + Menu.cardSpacing
-    implicitHeight: Menu.cardUnit * 2 + Menu.cardSpacing
-    implicitWidth: Menu.cardUnit
-    // implicitHeight: Menu.cardUnit
+    // implicitWidth: OverlayConfig.cardUnit * 2 + OverlayConfig.cardSpacing
+    implicitHeight: OverlayConfig.cardUnit * 2 + OverlayConfig.cardSpacing
+    implicitWidth: OverlayConfig.cardUnit
+    // implicitHeight: OverlayConfig.cardUnit
 
     FullSettings {}
   }

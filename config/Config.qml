@@ -1,31 +1,22 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 
 import qs.config
-import qs.services
 
+// Derived, non-configurable values: filesystem paths and layout helpers.
 QtObject {
   id: root
 
-  // --- Configurable ---
-  readonly property string userName: ConfigManager.config.Config.userName ?? "user"
-  readonly property int workspaceCount: ConfigManager.config.Config.workspaceCount ?? 5
-  readonly property bool singleMonitor: ConfigManager.config.Config.singleMonitor ?? true
-  readonly property var customIconOverrides: ConfigManager.config.Config.customIconOverrides ?? {}
-  property string wallpaper: ConfigManager.config.Config.wallpaper ?? ""
-
-  // --- Computed ---
   readonly property int orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
-  readonly property int containerOffset: Appearance.screenMargin + Appearance.borderWidth
 
-  // todo - make this dynamic and fix
-  property string homeDirectory: "/home/" + root.userName + "/"
-  property string themePath: root.homeDirectory + ".config/quickshell/axiom/config/themes/"
-
-  readonly property string axiomPath: root.homeDirectory + ".config/quickshell/axiom/"
+  // --- Paths (from the environment, not from any config value) ---
+  readonly property string homeDirectory: Quickshell.env("HOME") + "/"
+  // Shell root (this repo), always with a trailing slash
+  readonly property string axiomPath: Quickshell.shellDir.toString().replace("file://", "").replace(/\/?$/, "/")
+  readonly property string themePath: root.axiomPath + "config/themes/"
   readonly property string scriptsPath: root.axiomPath + "scripts/"
   readonly property string venvPythonPath: root.axiomPath + ".venv/bin/python3"
-
   readonly property string configPath: root.axiomPath + "config/"
   readonly property string statePath: root.configPath + "state/"
 

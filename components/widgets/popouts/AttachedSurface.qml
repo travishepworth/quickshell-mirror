@@ -33,7 +33,7 @@ Item {
   property real boxWidth: 100
   property real boxHeight: 100
   property int connectorGap: Appearance.borderRadius * 2
-  property int animationDuration: Appearance.animationDuration
+  property int animationDuration: Appearance.animNormal
 
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground

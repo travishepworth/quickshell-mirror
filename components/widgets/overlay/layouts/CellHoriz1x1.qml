@@ -15,23 +15,23 @@ Item {
 
   GridLayout {
     id: cellLayout
-    Layout.preferredHeight: Menu.cardUnit
-    Layout.preferredWidth: Menu.cardUnit
-    columnSpacing: Menu.cardSpacing
+    Layout.preferredHeight: OverlayConfig.cardUnit
+    Layout.preferredWidth: OverlayConfig.cardUnit
+    columnSpacing: OverlayConfig.cardSpacing
     columns: 2
     rows: 2
     Item {
       id: topContainer
       Layout.columnSpan: 2
-      Layout.preferredWidth: Menu.cardUnit
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      Layout.preferredWidth: OverlayConfig.cardUnit
+      Layout.preferredHeight: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
       clip: true
     }
     Item {
       id: bottomContainer
       Layout.columnSpan: 2
-      Layout.preferredWidth: Menu.cardUnit
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      Layout.preferredWidth: OverlayConfig.cardUnit
+      Layout.preferredHeight: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
       clip: true
     }
   }

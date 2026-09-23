@@ -32,7 +32,7 @@ BaseView {
   Component {
     id: leftLayout
     RowLayout {
-      spacing: Menu.cardSpacing
+      spacing: OverlayConfig.cardSpacing
       BarEditorPreview {
         Layout.fillHeight: true
       }
@@ -44,7 +44,7 @@ BaseView {
   Component {
     id: rightLayout
     RowLayout {
-      spacing: Menu.cardSpacing
+      spacing: OverlayConfig.cardSpacing
       BarEditor {}
       BarEditorLayout {}
       BarEditorPreview {
@@ -56,12 +56,12 @@ BaseView {
   Component {
     id: topLayout
     ColumnLayout {
-      spacing: Menu.cardSpacing
+      spacing: OverlayConfig.cardSpacing
       BarEditorPreview {
         Layout.fillWidth: true
       }
       RowLayout {
-        spacing: Menu.cardSpacing
+        spacing: OverlayConfig.cardSpacing
         BarEditor {}
         BarEditorLayout {}
       }
@@ -71,9 +71,9 @@ BaseView {
   Component {
     id: bottomLayout
     ColumnLayout {
-      spacing: Menu.cardSpacing
+      spacing: OverlayConfig.cardSpacing
       RowLayout {
-        spacing: Menu.cardSpacing
+        spacing: OverlayConfig.cardSpacing
         BarEditor {}
         BarEditorLayout {}
       }

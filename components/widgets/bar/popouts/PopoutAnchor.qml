@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+import qs.config
+
 /**
  * Drop this into any bar widget that wants to open a bar popout on hover.
  * Handles hover detection, open-delay timing, position/size computation,
@@ -27,7 +29,7 @@ Item {
   required property string popoutName
 
   property var extraData: ({})
-  property int openDelay: 10
+  property int openDelay: PopoutConfig.openDelay
   property bool active: true
 
   property alias hovered: hoverHandler.hovered

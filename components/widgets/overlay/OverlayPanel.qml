@@ -17,7 +17,7 @@ PanelWindow {
 
   required property var screen
 
-  property bool isPrimaryScreen: screen.name === Display.primary
+  property bool isPrimaryScreen: screen.name === General.primaryMonitor
   property bool isOpen: false
   property bool enabled: overlay.isPrimaryScreen
   property real slideOffset: isOpen ? 0 : -height
@@ -63,7 +63,7 @@ PanelWindow {
 
   Timer {
     id: hideTimer
-    interval: 300
+    interval: Appearance.animSlow
     repeat: false
     onTriggered: {
       overlay.visible = false;
@@ -106,7 +106,7 @@ PanelWindow {
       y: overlay.slideOffset
       Behavior on y {
         NumberAnimation {
-          duration: Appearance.animationDuration * 1.5
+          duration: Appearance.animSlow
           easing.type: Easing.InOutQuad
         }
       }
@@ -116,8 +116,8 @@ PanelWindow {
       id: background
       anchors.fill: parent
       border.color: Theme.foreground
-      border.width: Math.max(Menu.cardBorderWidth, 2)
-      radius: Menu.cardBorderRadius
+      border.width: Math.max(Appearance.borderWidth, 2)
+      radius: Appearance.borderRadius
       color: Appearance.darkMode ? Theme.background : Theme.foreground
       opacity: 0.85
     }

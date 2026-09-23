@@ -25,15 +25,15 @@ Rectangle {
 
   // --- STYLING ---
 
-  radius: Menu.cardBorderRadius
+  radius: Appearance.borderRadius
   color: Theme.background
   // highly likely to break
   // kind illegal to access this here (kinda abusing qml context properties)
   implicitHeight: screen.height - 300 // TODO: magix num
-  implicitWidth: flow.implicitWidth + (Menu.cardSpacing * 2)
+  implicitWidth: flow.implicitWidth + (OverlayConfig.cardSpacing * 2)
 
   border.color: Theme.border
-  border.width: Menu.cardBorderWidth
+  border.width: Appearance.borderWidth
 
 
   // --- JAVASCRIPT LOGIC ---
@@ -97,15 +97,15 @@ Rectangle {
   Flow {
     id: flow
     anchors.fill: parent
-    anchors.margins: Menu.cardSpacing
+    anchors.margins: OverlayConfig.cardSpacing
     flow: Flow.TopToBottom
-    spacing: Menu.cardPadding
+    spacing: OverlayConfig.cardPadding
 
     Repeater {
       model: root.displayModel
       delegate: Loader {
         id: itemLoader
-        width: Menu.cardUnit
+        width: OverlayConfig.cardUnit
         required property var modelData
 
         sourceComponent: {
@@ -130,7 +130,7 @@ Rectangle {
     StyledContainer {
       id: header
       property var itemData
-      width: Menu.cardUnit
+      width: OverlayConfig.cardUnit
       color: Theme.backgroundHighlight
       height: 32
       StyledText {
@@ -144,10 +144,10 @@ Rectangle {
       Rectangle {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        width: parent.width - (Menu.cardPadding * 2)
+        width: parent.width - (OverlayConfig.cardPadding * 2)
         height: 1
         anchors.rightMargin: Widget.padding
-        anchors.leftMargin: Menu.cardPadding
+        anchors.leftMargin: OverlayConfig.cardPadding
         color: Theme.info
       }
     }
@@ -156,7 +156,7 @@ Rectangle {
   Component {
     id: separatorComponent
     StyledContainer {
-      width: Menu.cardUnit - (Menu.cardPadding * 2)
+      width: OverlayConfig.cardUnit - (OverlayConfig.cardPadding * 2)
       height: 1
       color: Theme.border
       anchors.bottomMargin: 8
@@ -166,7 +166,7 @@ Rectangle {
   Component {
     id: keybindComponent
     KeybindPreview {
-      width: Menu.cardUnit
+      width: OverlayConfig.cardUnit
       anchors.topMargin: 4
       anchors.bottomMargin: 4
     }

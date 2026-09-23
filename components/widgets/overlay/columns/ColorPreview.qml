@@ -7,7 +7,7 @@ import qs.components.widgets.overlay.modules
 import qs.components.widgets.overlay.columns
 
 RowLayout {
-  spacing: Menu.cardSpacing
+  spacing: OverlayConfig.cardSpacing
 
   property int requiredVerticalCells: Math.max(columnOne.requiredVerticalCells, columnTwo.requiredVerticalCells)
   property int requiredHorizontalCells: columnOne.requiredHorizontalCells + columnTwo.requiredHorizontalCells

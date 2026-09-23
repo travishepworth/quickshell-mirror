@@ -46,7 +46,7 @@ RowLayout {
     opacity: enabled ? 1.0 : 0.5
     onClicked: control.submit()
 
-    Behavior on opacity { OpacityAnimator { duration: 150 } }
+    Behavior on opacity { OpacityAnimator { duration: Appearance.animNormal } }
   }
 
   function focus() {

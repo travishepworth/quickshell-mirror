@@ -19,28 +19,28 @@ Item {
 
   GridLayout {
     id: cellLayout
-    Layout.preferredHeight: Menu.cardUnit
-    Layout.preferredWidth: Menu.cardUnit
-    columnSpacing: Menu.cardSpacing
-    rowSpacing: Menu.cardSpacing
+    Layout.preferredHeight: OverlayConfig.cardUnit
+    Layout.preferredWidth: OverlayConfig.cardUnit
+    columnSpacing: OverlayConfig.cardSpacing
+    rowSpacing: OverlayConfig.cardSpacing
     columns: 2
     rows: 2
 
     Item {
       id: topContainer
       Layout.columnSpan: 2
-      Layout.preferredWidth: Menu.cardUnit
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      Layout.preferredWidth: OverlayConfig.cardUnit
+      Layout.preferredHeight: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
     }
     Item {
       id: bottomLeftContainer
-      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      Layout.preferredWidth: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
+      Layout.preferredHeight: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
     }
     Item {
       id: bottomRightContainer
-      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      Layout.preferredWidth: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
+      Layout.preferredHeight: (OverlayConfig.cardUnit - OverlayConfig.cardSpacing) / 2
     }
   }
 }

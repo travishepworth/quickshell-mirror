@@ -65,7 +65,7 @@ PopupWindow {
       property: "y"
       from: -16
       to: 0
-      duration: Appearance.animationDuration
+      duration: Appearance.animNormal
       easing.type: Easing.OutCubic
     }
     NumberAnimation {
@@ -73,7 +73,7 @@ PopupWindow {
       property: "opacity"
       from: 0
       to: 1
-      duration: Appearance.animationDuration
+      duration: Appearance.animNormal
       easing.type: Easing.OutCubic
     }
   }
@@ -83,7 +83,7 @@ PopupWindow {
     target: card
     property: "opacity"
     to: 0
-    duration: Appearance.animationDuration / 2
+    duration: Appearance.animFast
     easing.type: Easing.InQuad
     onFinished: {
       popup.visible = false;
@@ -96,7 +96,7 @@ PopupWindow {
     target: card
     property: "x"
     to: 0
-    duration: Appearance.animationDuration / 2
+    duration: Appearance.animFast
     easing.type: Easing.OutCubic
   }
 
