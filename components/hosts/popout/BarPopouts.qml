@@ -204,6 +204,27 @@ PopoutWrapperBase {
     // (the surface's own margin: none on a joined or straight side)
     readonly property real alongPos: boxStart - surface.startMargin
 
+    // On a transparent bar a popout is a detached box, unless it's pushed
+    // to an end: then there's no bar to take its bar side, so it attaches
+    // to that perpendicular edge instead, joining it on both sides
+    readonly property bool detached: root.barConfig.background === "transparent"
+    readonly property bool cornerAttach: detached && (joinStart || joinEnd)
+    readonly property int surfaceEdge: {
+      if (!cornerAttach)
+        return root.barConfig.location;
+      if (root.barConfig.vertical)
+        return joinStart ? Bar.Top : Bar.Bottom;
+      return joinStart ? Bar.Left : Bar.Right;
+    }
+    // Where a detached box sits across the bar (its top-left, in
+    // bar-window coordinates): the connector gap past the bar's inner edge
+    readonly property real boxAcross: {
+      const near = root.attachAt + root.connectorGap / 2;
+      if (root.barConfig.left || root.barConfig.top)
+        return near;
+      return root.panelThickness - near - (root.barConfig.vertical ? surface.boxWidth : surface.boxHeight);
+    }
+
     // The merged pill stays hoverable and clickable through the notch
     mask: Region {
       item: surface
@@ -233,6 +254,8 @@ PopoutWrapperBase {
         x: {
           if (!root.currentData)
             return 0;
+          if (mainPopup.cornerAttach)
+            return root.barConfig.vertical ? mainPopup.boxAcross - surface.startMargin : (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - mainPopup.implicitWidth);
 
           if (root.barConfig.left) {
             return root.attachAt;
@@ -248,6 +271,8 @@ PopoutWrapperBase {
         y: {
           if (!root.currentData)
             return 0;
+          if (mainPopup.cornerAttach)
+            return root.barConfig.vertical ? (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - mainPopup.implicitHeight) : mainPopup.boxAcross - surface.startMargin;
 
           if (root.barConfig.top) {
             return root.attachAt;
@@ -267,19 +292,19 @@ PopoutWrapperBase {
       id: surface
       anchors.fill: parent
 
-      edge: root.barConfig.location
+      edge: mainPopup.surfaceEdge
       active: root.occupied && !root.isClosing
       connectorGap: root.connectorGap
       boxWidth: mainPopup.contentWidth + contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : 0)
       boxHeight: mainPopup.contentHeight + contentInset * 2 + (root.barConfig.vertical ? 0 : root.pillClearance)
 
-      // A transparent bar has nothing to join onto
-      detached: root.barConfig.background === "transparent"
-      joinStart: mainPopup.joinStart
-      joinEnd: mainPopup.joinEnd
+      // A transparent bar has nothing to join onto (see cornerAttach)
+      detached: mainPopup.detached && !mainPopup.cornerAttach
+      joinStart: !mainPopup.cornerAttach && mainPopup.joinStart
+      joinEnd: !mainPopup.cornerAttach && mainPopup.joinEnd
       // Without the border, a popout merged around a pill runs straight off
       // the screen edge, and one pushed to an end straight off that one
-      straight: root.mergeWithPill && !Appearance.screenBorder
+      straight: (root.mergeWithPill || mainPopup.cornerAttach) && !Appearance.screenBorder
       straightJoins: !Appearance.screenBorder
       startFoot: root.startFoot
       endFoot: root.endFoot

@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import qs.config
+import qs.services
 import qs.components.reusable
 
 Item {
@@ -22,7 +23,11 @@ Item {
   readonly property var edges: Bar.edgesFor(root.screen)
   function cornerMargin(edge) {
     const bar = root.edges[edge];
-    return bar?.floating && bar.reserveSpace ? -bar.extent : -root.strokeWidth;
+    if (!bar?.floating || !bar.reserveSpace)
+      return -root.strokeWidth;
+    // A transparent bar reserves gaps_out less (see BarPanel)
+    const gap = bar.background === "transparent" ? (HyprlandManager.gapsOut[edge] ?? 0) : 0;
+    return -(bar.extent - gap);
   }
 
   Component.onCompleted: {
