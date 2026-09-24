@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 
 import qs.components.hosts.popout
+import qs.components.reusable
 import qs.config
 import qs.services
 
@@ -84,6 +85,14 @@ Scope {
     function search(text: string): void {
       root.open(text);
     }
+  }
+
+  // The dim background, under the bars and border, for either host
+  ScreenBackdrop {
+    screen: root.screen
+    shown: root.shown && LauncherConfig.showBackdrop
+    fillColor: Theme.background
+    fillOpacity: LauncherConfig.backdrop
   }
 
   LazyLoader {

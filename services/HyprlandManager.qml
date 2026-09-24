@@ -191,10 +191,20 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // side by side (placeWindow, and the overview's drop preview)
   property real splitWidthMultiplier: 1
 
+  // Full-screen surfaces' backdrops (ScreenBackdrop) are Top-layer
+  // surfaces that must sit under the bars and border, which are on the
+  // same layer (or above) but mapped before them. A higher layer order stacks them under
+  // (Hyprland: "closer to the edge of the monitor"; -1 puts it on top).
+  // Rules added at runtime are lost when Hyprland reloads its config.
+  function _addLayerRules() {
+    _eval(`hl.layer_rule({ match = { namespace = "^axiom-backdrop$" }, order = 10 })`);
+  }
+
   Component.onCompleted: {
     _fetch();
     getGaps.running = true;
     getSplitMultiplier.running = true;
+    _addLayerRules();
   }
 
   Connections {
@@ -207,6 +217,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       if (event.name === "configreloaded") {
         getGaps.running = true;
         getSplitMultiplier.running = true;
+        root._addLayerRules();
       }
       root.updateAll();
     }

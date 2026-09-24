@@ -16,6 +16,8 @@ QtObject {
   readonly property int width: _c.width
   readonly property int maxResults: _c.maxResults
   readonly property int iconSize: _c.iconSize
+  // Dim the screen behind it
+  readonly property bool showBackdrop: _c.showBackdrop
   // 0-1 opacity of the backdrop
   readonly property real backdrop: _c.backdrop / 100
   readonly property bool showDescriptions: _c.showDescriptions

@@ -6,8 +6,8 @@ import Quickshell.Hyprland
 
 import qs.config
 
-// The floating launcher: a full-screen window with a backdrop and the
-// LauncherPanel in a card, centred or in the upper third.
+// The floating launcher: a full-screen window with the LauncherPanel in a
+// card, centred or in the upper third.
 PanelWindow {
   id: root
 
@@ -43,19 +43,11 @@ PanelWindow {
     onCleared: root.close()
   }
 
-  Rectangle {
+  // The empty background (Launcher's backdrop, if on, shows through it):
+  // a click on it closes
+  MouseArea {
     anchors.fill: parent
-    color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, LauncherConfig.backdrop)
-    opacity: root.shown ? 1 : 0
-    Behavior on opacity {
-      NumberAnimation {
-        duration: Appearance.animNormal
-      }
-    }
-    MouseArea {
-      anchors.fill: parent
-      onClicked: root.close()
-    }
+    onClicked: root.close()
   }
 
   Rectangle {

@@ -55,6 +55,14 @@ Scope {
       id: overlayWindow
       required property var modelData
 
+      // The dim background, under the bars and border
+      ScreenBackdrop {
+        screen: overlayWindow.modelData
+        shown: overlayWindow.shown
+        fillColor: Theme.base00
+        fillOpacity: WorkspaceOverlayConfig.backdrop
+      }
+
       readonly property bool shown: root.overlayVisible && modelData.name === root.openScreen
       // Room the controls hint takes under the grid
       readonly property real hintSpace: hint.visible ? hint.height + Widget.spacing : 0
@@ -114,15 +122,11 @@ Scope {
             root.overlayVisible = false;
         }
 
-        // Dim backdrop: a click on it closes
-        Rectangle {
+        // The empty background (the backdrop shows through it): a click
+        // on it closes
+        MouseArea {
           anchors.fill: parent
-          color: Qt.rgba(Theme.base00.r, Theme.base00.g, Theme.base00.b, WorkspaceOverlayConfig.backdrop)
-
-          MouseArea {
-            anchors.fill: parent
-            onClicked: root.overlayVisible = false
-          }
+          onClicked: root.overlayVisible = false
         }
 
         OverviewGrid {

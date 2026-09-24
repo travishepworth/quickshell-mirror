@@ -108,7 +108,8 @@
         "width": { "type": "integer", "title": "Width (px)", "default": 680, "minimum": 400, "maximum": 1200, "description": "Width of the launcher." },
         "maxResults": { "type": "integer", "title": "Results shown", "default": 8, "minimum": 3, "maximum": 20, "description": "How many rows fit before the list scrolls." },
         "iconSize": { "type": "integer", "title": "Icon size (px)", "default": 32, "minimum": 16, "maximum": 64, "description": "Size of the result icons." },
-        "backdrop": { "type": "integer", "title": "Backdrop darkness (%)", "default": 25, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the launcher goes.", "x-showIf": { "position": ["center", "upper"] } },
+        "showBackdrop": { "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the launcher, under the bars and border." },
+        "backdrop": { "type": "integer", "title": "Backdrop darkness (%)", "default": 25, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the launcher goes.", "x-showIf": { "showBackdrop": true } },
         "showDescriptions": { "type": "boolean", "title": "Descriptions", "default": true, "description": "Show a second line under each result (an app's generic name, a window's class, a command's description)." },
         "showRecent": { "type": "boolean", "title": "Frequent apps when empty", "default": true, "description": "List your most used apps before you type anything." },
         "showHint": { "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the search prefixes and keys under the results." },
@@ -490,6 +491,18 @@
           "minimum": 50,
           "maximum": 150,
           "description": "Size of the overlay's cards, relative to what fits the screen. Pages that would still overflow are shrunk to fit."
+        },
+        "closeOnEscape": {
+          "type": "boolean",
+          "title": "Close on Escape",
+          "default": false,
+          "description": "Close the overlay when Escape is pressed (unless something in it, like a popup, uses the key first)."
+        },
+        "closeOnOutsideClick": {
+          "type": "boolean",
+          "title": "Close on outside click",
+          "default": false,
+          "description": "Close the overlay when you click outside it: on a bar, the screen border or another monitor."
         },
         "views": {
           "type": "array",

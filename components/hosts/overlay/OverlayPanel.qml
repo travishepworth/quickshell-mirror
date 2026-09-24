@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Qt5Compat.GraphicalEffects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -28,11 +27,12 @@ PanelWindow {
   }
 
   // Normal exclusion with no zone of its own places the window inside the
-  // border's and bars' reserved area, wherever the bars are; the
-  // -borderWidth margin lines it up with their inner stroke (as EdgePopout)
-  // A bare screen edge (no border, no bar) has no stroke to land on: the
-  // panel meets the edge and runs straight off it (its corners and stroke
-  // on that side pushed past the window, see background)
+  // border's and bars' reserved area, wherever the bars are, so pages
+  // center in the free space and clicks on the bars reach them; the
+  // -borderWidth margin lines it up with their inner stroke (as EdgePopout).
+  // The window itself is transparent: ScreenBackdrop dims the whole
+  // monitor under it. A bare screen edge (no border, no bar) has no stroke
+  // to land on: the panel meets the edge.
   readonly property bool openTop: Bar.screenEdgeOpen(root.screen, Bar.Top)
   readonly property bool openBottom: Bar.screenEdgeOpen(root.screen, Bar.Bottom)
   readonly property bool openLeft: Bar.screenEdgeOpen(root.screen, Bar.Left)
@@ -66,6 +66,7 @@ PanelWindow {
   function open() {
     visible = true;
     isOpen = true;
+    slideContainer.forceActiveFocus();
   }
 
   function close() {
@@ -73,7 +74,14 @@ PanelWindow {
     hideTimer.start();
   }
 
+  // When the overlay last closed from a click outside it: a click on the
+  // bar's overlay button clears the grab (closing it) before the button
+  // toggles, which must not reopen it
+  property real _outsideCloseTime: 0
+
   function toggle() {
+    if (!isOpen && Date.now() - _outsideCloseTime < 300)
+      return;
     if (isOpen) {
       close();
     } else {
@@ -135,6 +143,9 @@ PanelWindow {
     onCleared: {
       if (!root.isOpen) {
         grab.active = true;
+      } else if (OverlayConfig.closeOnOutsideClick) {
+        root._outsideCloseTime = Date.now();
+        root.close();
       }
     }
   }
@@ -142,6 +153,14 @@ PanelWindow {
   Item {
     id: slideContainer
     anchors.fill: parent
+    // Keys nothing inside the overlay handled end up here
+    focus: true
+    Keys.onEscapePressed: event => {
+      if (OverlayConfig.closeOnEscape && root.isOpen)
+        root.close();
+      else
+        event.accepted = false;
+    }
 
     transform: Translate {
       y: root.slideOffset
@@ -153,19 +172,21 @@ PanelWindow {
       }
     }
 
-    Rectangle {
-      id: background
-      readonly property real offscreen: -(radius + border.width)
+    // The empty background (the backdrop shows through it): a click on
+    // it, outside the page and the navigator, closes. Declared first, so it
+    // only gets clicks nothing over it takes.
+    MouseArea {
+      id: backgroundClicks
       anchors.fill: parent
-      anchors.leftMargin: root.openLeft ? offscreen : 0
-      anchors.rightMargin: root.openRight ? offscreen : 0
-      anchors.topMargin: root.openTop ? offscreen : 0
-      anchors.bottomMargin: root.openBottom ? offscreen : 0
-      border.color: Theme.foreground
-      border.width: Math.max(Appearance.borderWidth, 2)
-      radius: Appearance.borderRadius
-      color: Appearance.darkMode ? Theme.background : Theme.foreground
-      opacity: 0.85
+      enabled: OverlayConfig.closeOnOutsideClick && root.isOpen
+      onClicked: mouse => {
+        const inside = item => {
+          const p = backgroundClicks.mapToItem(item, mouse.x, mouse.y);
+          return item.contains(p);
+        };
+        if (!inside(tabWrapper) && !inside(navigator))
+          root.close();
+      }
     }
 
     // Where pages go: everything above the navigator, so a page never

@@ -10,6 +10,8 @@ QtObject {
   readonly property int size: ConfigManager.config.Overlay.size
   // "general" | "primaryBar" | "focused" (see General.screensFor)
   readonly property string monitors: ConfigManager.config.Overlay.monitors
+  readonly property bool closeOnEscape: ConfigManager.config.Overlay.closeOnEscape
+  readonly property bool closeOnOutsideClick: ConfigManager.config.Overlay.closeOnOutsideClick
 
   // What the overlay editor offers, read from the schema's oneOfs so new
   // module/view types show up there automatically
