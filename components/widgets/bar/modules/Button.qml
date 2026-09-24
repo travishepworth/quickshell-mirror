@@ -13,7 +13,18 @@ import qs.components.reusable
 BarIconWidget {
   id: root
 
-  property string commandLabel: ""
+  // First line of the label command's output (CommandManager runs it)
+  readonly property string commandLabel: (CommandManager.outputs[properties.labelCommand] ?? "").split("\n")[0]
+
+  function registerLabel() {
+    CommandManager.acquire(root, {
+      "command": root.properties.labelCommand,
+      "interval": root.properties.labelInterval
+    });
+  }
+  onPropertiesChanged: registerLabel()
+  Component.onCompleted: registerLabel()
+  Component.onDestruction: CommandManager.release(root)
   property bool _tooltipShown: false
 
   icon: properties.icon
@@ -53,6 +64,13 @@ BarIconWidget {
       labelRefresh.restart();
   }
 
+  // Shortly after a click, so the command has had time to act
+  Timer {
+    id: labelRefresh
+    interval: 250
+    onTriggered: CommandManager.refresh(root.properties.labelCommand)
+  }
+
   // Hover outline, like the other clickable bar widgets
   Rectangle {
     anchors.fill: parent
@@ -86,20 +104,6 @@ BarIconWidget {
       else
         root.runAction();
     }
-  }
-
-  PollingProcess {
-    id: labelPoller
-    interval: root.properties.labelInterval
-    command: root.properties.labelCommand ? ["sh", "-c", root.properties.labelCommand] : []
-    onCommandChanged: refresh()
-    onDataReceived: data => root.commandLabel = data.split("\n")[0].trim()
-  }
-
-  Timer {
-    id: labelRefresh
-    interval: 250
-    onTriggered: labelPoller.refresh()
   }
 
   // Tooltip after hovering for a moment

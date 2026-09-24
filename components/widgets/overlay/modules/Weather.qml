@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.components.reusable
-import qs.components.widgets.common
+import qs.services
 import qs.components.widgets.overlay
 
 // Current weather, plus the next hours (wide/large slots) and days (tall /
@@ -12,17 +12,21 @@ import qs.components.widgets.overlay
 OverlayCard {
   id: root
 
+  // From config only (acquire() must not follow live values)
+  readonly property var weatherRequest: ({
+      "latitude": root.properties.latitude ?? "",
+      "longitude": root.properties.longitude ?? "",
+      "location": root.properties.location ?? "",
+      "units": root.properties.units ?? "celsius"
+    })
+  readonly property var source: WeatherManager.sourceFor(weatherRequest)
+  onWeatherRequestChanged: WeatherManager.acquire(root, weatherRequest)
+  Component.onCompleted: WeatherManager.acquire(root, weatherRequest)
+  Component.onDestruction: WeatherManager.release(root)
+
   readonly property var current: source.current
   readonly property bool showHourly: !root.compact && root.cols >= 2 && (root.shape === "horizontal" || root.rows >= 3)
   readonly property bool showDaily: !root.compact && root.rows >= 2 && root.shape !== "horizontal"
-
-  WeatherSource {
-    id: source
-    latitude: root.properties.latitude ?? ""
-    longitude: root.properties.longitude ?? ""
-    location: root.properties.location ?? ""
-    units: root.properties.units ?? "celsius"
-  }
 
   StyledText {
     anchors.centerIn: parent

@@ -3,11 +3,12 @@ import QtQuick
 
 import qs.config
 
-// Weather from Open-Meteo (no API key), shared by the bar Weather widget
-// and the overlay Weather module. Location comes from latitude/longitude,
-// else `location` (geocoded), else the machine's IP. Refreshes every
-// `intervalMinutes`; a failed refresh keeps the last good data.
-Item {
+// Weather for one location from Open-Meteo (no API key). Location comes
+// from latitude/longitude, else `location` (geocoded), else the machine's
+// IP. Refreshes every `intervalMinutes` while `active`; a failed refresh
+// keeps the last good data. Not a singleton: WeatherManager owns one per
+// distinct location/units that some widget asked for.
+QtObject {
   id: root
 
   // -- Settings --
@@ -17,6 +18,8 @@ Item {
   // "celsius" | "fahrenheit"
   property string units: "celsius"
   property int intervalMinutes: 30
+  // Off for WeatherManager's placeholder: same API, never fetches
+  property bool active: true
 
   // -- Data --
   // { latitude, longitude, name }, resolved once per location setting
@@ -181,21 +184,23 @@ Item {
 
   on_LocationKeyChanged: {
     place = null;
-    refreshSoon.restart();
+    if (active)
+      refreshSoon.restart();
   }
-  onUnitsChanged: refreshSoon.restart()
+  onUnitsChanged: if (active)
+    refreshSoon.restart()
 
   // Coalesces setting changes into one refresh. A Timer rather than
   // Qt.callLater, so it dies with this instance on a config reload.
-  Timer {
+  property Timer _refreshSoon: Timer {
     id: refreshSoon
     interval: 250
     onTriggered: root.refresh()
   }
 
-  Timer {
+  property Timer _refreshTimer: Timer {
     interval: Math.max(1, root.intervalMinutes) * 60000
-    running: true
+    running: root.active
     repeat: true
     triggeredOnStart: true
     onTriggered: root.refresh()

@@ -14,7 +14,9 @@ import Quickshell.Io
 // its own slow timer) and NVIDIA GPUs (`nvidia-smi`, only without an AMD
 // card). Metric names: "cpu", "mem", "cpuTemp", "gpu", "disk", "net"
 // (throughput from /proc/net/dev, plus connection details from nmcli on a
-// slow timer) and "processes" (`top`, two frames so %CPU is current).
+// slow timer), "link" (just the primary connection's device and kind: one
+// cheap nmcli call, at the requested interval) and "processes" (`top`, two
+// frames so %CPU is current).
 // Request `history: true` to also keep the last `historyLength` samples of
 // each polled metric (for graphs).
 QtObject {
@@ -43,6 +45,11 @@ QtObject {
       "ip": ""
     })
   property bool wifiEnabled: false
+  // "link": the primary connection, { device, kind } (both "" when offline)
+  property var netLink: ({
+      "device": "",
+      "kind": ""
+    })
   // [{ pid, user, cpu, mem, command }], every process, by CPU (descending)
   property var processes: []
 
@@ -267,6 +274,36 @@ QtObject {
     onTriggered: {
       if (!root._nmcli.running)
         root._nmcli.running = true;
+    }
+  }
+
+  // "link" at the shortest interval its requests asked for
+  readonly property int _linkInterval: {
+    const intervals = _requests.filter(r => r.metrics.includes("link")).map(r => r.interval);
+    return intervals.length > 0 ? Math.max(2000, Math.min(...intervals)) : 2000;
+  }
+  property Timer _linkTimer: Timer {
+    interval: root._linkInterval
+    repeat: true
+    triggeredOnStart: true
+    running: root._active && root.wants("link")
+    onTriggered: {
+      if (!root._nmcliLink.running)
+        root._nmcliLink.running = true;
+    }
+  }
+
+  property Process _nmcliLink: Process {
+    command: ["sh", "-c", "nmcli -t -f DEVICE,TYPE,STATE device | awk -F: '$3==\"connected\" && $2!~/^(loopback|tun|bridge|wifi-p2p)$/ {print $1\":\"$2; exit}'"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        const [device, kind] = text.trim().split(":");
+        if (device !== root.netLink.device || (kind ?? "") !== root.netLink.kind)
+          root.netLink = {
+            "device": device ?? "",
+            "kind": kind ?? ""
+          };
+      }
     }
   }
 

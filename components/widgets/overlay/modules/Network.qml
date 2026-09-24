@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Io
 import qs.config
 import qs.services
 import qs.components.reusable
@@ -15,7 +14,8 @@ OverlayCard {
 
   readonly property var info: SystemManager.netInfo
   readonly property string kindIcon: root.info.kind === "wifi" ? "\u{F0928}" : root.info.kind === "ethernet" ? "\u{F0200}" : "\u{F0B8C}"
-  property string tailscale: ""
+  // "Running 100.x.y.z", or "" when Tailscale isn't installed
+  readonly property string tailscale: TailscaleManager.available ? (TailscaleManager.backendState + " " + TailscaleManager.ip).trim() : ""
 
   function rate(bytes) {
     const units = ["B/s", "KB/s", "MB/s", "GB/s"];
@@ -27,27 +27,19 @@ OverlayCard {
     return `${bytes < 10 && i > 0 ? bytes.toFixed(1) : Math.round(bytes)} ${units[i]}`;
   }
 
-  Component.onCompleted: SystemManager.acquire(root, {
-    "metrics": ["net"],
-    "history": true,
-    "interval": 1000
-  })
-  Component.onDestruction: SystemManager.release(root)
-
-  // Tailscale state every 30s, if it's installed
-  Process {
-    id: tailscaleCheck
-    command: ["sh", "-c", "command -v tailscale >/dev/null || exit 0; tailscale status --json 2>/dev/null | jq -r '.BackendState + \" \" + (.Self.TailscaleIPs[0] // \"\")'"]
-    stdout: StdioCollector {
-      onStreamFinished: root.tailscale = text.trim()
-    }
+  Component.onCompleted: {
+    SystemManager.acquire(root, {
+      "metrics": ["net"],
+      "history": true,
+      "interval": 1000
+    });
+    TailscaleManager.acquire(root, {
+      "interval": 30000
+    });
   }
-  Timer {
-    interval: 30000
-    running: true
-    repeat: true
-    triggeredOnStart: true
-    onTriggered: tailscaleCheck.running = true
+  Component.onDestruction: {
+    SystemManager.release(root);
+    TailscaleManager.release(root);
   }
 
   ColumnLayout {

@@ -1,13 +1,26 @@
 pragma ComponentBehavior: Bound
+import QtQuick
 
 import qs.config
+import qs.services
 import qs.components.reusable
 
 BarIconWidget {
   id: root
 
-  property string iface: ""
-  property string kind: ""
+  // From SystemManager's "link" metric
+  readonly property string iface: SystemManager.netLink.device
+  readonly property string kind: SystemManager.netLink.kind
+
+  Component.onCompleted: SystemManager.acquire(root, {
+    "metrics": ["link"],
+    "interval": root.properties.interval
+  })
+  onPropertiesChanged: SystemManager.acquire(root, {
+    "metrics": ["link"],
+    "interval": root.properties.interval
+  })
+  Component.onDestruction: SystemManager.release(root)
   readonly property bool connected: kind !== ""
 
   backgroundColor: Theme.resolveColor(connected ? properties.backgroundColor : properties.disconnectedColor)
@@ -23,17 +36,6 @@ BarIconWidget {
       return "󰈀";
     default:
       return "󰤭";
-    }
-  }
-
-  PollingProcess {
-    interval: root.properties.interval
-    command: ["sh", "-c", "nmcli -t -f DEVICE,TYPE,STATE device | awk -F: '$3==\"connected\"{print $1\":\"$2; exit}'"]
-
-    onDataReceived: data => {
-      const parts = data.split(":");
-      root.iface = parts[0] || "";
-      root.kind = parts[1] || "";
     }
   }
 }

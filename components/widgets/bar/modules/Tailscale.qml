@@ -9,8 +9,16 @@ import qs.components.reusable
 BarIconWidget {
   id: root
 
-  property bool isConnected: false
-  property string tailnetName: ""
+  readonly property bool isConnected: TailscaleManager.connected
+  readonly property string tailnetName: TailscaleManager.tailnetName
+
+  Component.onCompleted: TailscaleManager.acquire(root, {
+    "interval": root.properties.interval
+  })
+  onPropertiesChanged: TailscaleManager.acquire(root, {
+    "interval": root.properties.interval
+  })
+  Component.onDestruction: TailscaleManager.release(root)
 
   icon: isConnected ? "󰳌" : "󰌙"
   text: isConnected ? (properties.label || tailnetName) : ""
@@ -20,36 +28,6 @@ BarIconWidget {
 
   iconScale: 1.1
   textScale: 0.9
-
-  PollingProcess {
-    id: statusChecker
-    interval: root.properties.interval
-    command: ["sh", "-c", "tailscale status &>/dev/null"]
-    treatExitCodeAsStatus: true
-
-    onStatusChanged: (exitCode, stdout, stderr) => {
-      root.isConnected = (exitCode === 0);
-
-      // If connected, get the tailnet name
-      if (root.isConnected) {
-        tailnetChecker.refresh();
-      } else {
-        root.tailnetName = "";
-      }
-    }
-  }
-
-  PollingProcess {
-    id: tailnetChecker
-    interval: 5000
-    command: ["sh", "-c", "tailscale status --json 2>/dev/null | jq -r '.CurrentTailnet.Name // empty' 2>/dev/null"]
-    autoStart: false
-
-    onDataReceived: data => {
-      let name = data.trim().replace(/^["']|["']$/g, '');
-      root.tailnetName = name || "";
-    }
-  }
 
   MouseArea {
     anchors.fill: parent

@@ -208,31 +208,12 @@ QtObject {
     onTriggered: root.updatePosition()
   }
 
-  property Timer _startupPoller: Timer {
-    running: true
-    interval: 100
-    repeat: true
-    triggeredOnStart: true
-    property int attempts: 0
-    property int maxAttempts: 50
-    property int lastPlayerCount: 0
-    onTriggered: {
-      attempts++;
-      if (Mpris.players && Mpris.players.values.length > 0) {
-        console.log("[MediaManager] MPRIS players detected after", attempts, "attempts.");
-        _updateActivePlayer();
-        updateAllMetadata();
-        running = false;
-      } else if (attempts >= maxAttempts) {
-        // Not a problem: onPlayersChanged picks up players that start later
-        console.log("[MediaManager] No MPRIS players yet after", attempts, "attempts.");
-        running = false;
-      }
-    }
-  }
-
+  // Players already running at startup (later ones: onPlayersChanged)
   Component.onCompleted: {
-    _updateActivePlayer();
+    if (root.players.length > 0) {
+      root._updateActivePlayer();
+      root.updateAllMetadata();
+    }
   }
 
   function _pickActivePlayer() {
