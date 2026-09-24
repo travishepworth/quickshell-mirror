@@ -12,7 +12,6 @@ QtObject {
   readonly property string axiomPath: Quickshell.shellDir.toString().replace("file://", "").replace(/\/?$/, "/")
   readonly property string themePath: root.axiomPath + "config/themes/"
   readonly property string scriptsPath: root.axiomPath + "scripts/"
-  readonly property string venvPythonPath: root.axiomPath + ".venv/bin/python3"
   readonly property string configPath: root.axiomPath + "config/"
   readonly property string statePath: root.configPath + "state/"
 

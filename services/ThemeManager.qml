@@ -71,7 +71,7 @@ QtObject {
       return;
     }
     console.log("[ThemeManager] Starting generation process for:", wallpaperUrl.toString());
-    _generationController.start(wallpaperUrl);
+    generationProcess.start(wallpaperUrl);
   }
 
   // Switches to the current theme's dark/light pair, if it has one
@@ -210,7 +210,6 @@ QtObject {
   readonly property string _themesPath: "file://" + Paths.themePath
   readonly property string _generatedThemesPath: "file://" + Paths.themePath + "generated"
   readonly property string _pythonScriptPath: Paths.scriptsPath + "generate_theme.py"
-  readonly property string _venvPythonPath: Paths.venvPythonPath
 
   property ListModel _defaultThemesModel: ListModel {}
   property ListModel _generatedThemesModel: ListModel {}
@@ -256,59 +255,39 @@ QtObject {
   }
 
   // --- Generation Logic ---
-  property QtObject _generationController: QtObject {
-    id: _generationController
-    property int index: 0
-    property url wallpaperUrl
-    readonly property var backends: ["wal", "colorz", "colorthief", "haishoku"]
-
-    function start(url) {
-      wallpaperUrl = url;
-      index = 0;
-      runNext();
-    }
-
-    function runNext() {
-      const backend = backends[index];
-      const themeIndex = index + 1;
-      const wallpaperPath = wallpaperUrl.toString().replace("file://", "");
-      const scriptPath = root._pythonScriptPath.replace("file://", "");
-      const outputDir = root._generatedThemesPath.replace("file://", "");
-      const pythonPath = root._venvPythonPath.replace("file://", "");
-
-      console.log("[ThemeManager] Generating theme", themeIndex, "using backend:", backend);
-      generationProcess.command = [pythonPath, scriptPath, wallpaperPath, "--output_dir", outputDir, "--backend", backend];
-      console.log("[ThemeManager] Executing:", generationProcess.command.join(" "));
-      generationProcess.running = true;
-    }
-
-    function onProcessFinished(success, errorText) {
-      if (success) {
-        index++;
-        if (index >= backends.length) {
-          console.log("[ThemeManager] Theme generation finished successfully.");
-          root._reloadAllThemes();
-          return;
-        }
-        runNext();
-      } else {
-        console.error("[ThemeManager] Script execution failed.", errorText);
-        root.generationFailed(errorText);
-      }
-    }
-  }
+  // One run generates every backend's pair; it fails only if all of them do.
+  // venv_python.sh sets up (or updates) the venv first.
+  readonly property var _generationBackends: ["wal", "colorz", "colorthief", "haishoku"]
 
   property Process _generationProcess: Process {
     id: generationProcess
+
+    function start(wallpaperUrl) {
+      const wallpaperPath = wallpaperUrl.toString().replace("file://", "");
+      command = [Paths.scriptsPath + "venv_python.sh", root._pythonScriptPath, wallpaperPath, "--output_dir", Paths.themePath + "generated", "--backend", ...root._generationBackends];
+      console.log("[ThemeManager] Executing:", command.join(" "));
+      running = true;
+    }
+
     stdout: StdioCollector {
-      id: stdoutCollector
+      onStreamFinished: if (text.trim())
+        console.log("[ThemeManager] generate_theme.py:", text.trim())
     }
     stderr: StdioCollector {
       id: stderrCollector
     }
     onExited: (exitCode, exitStatus) => {
-      const success = (exitStatus === 0 && exitCode === 0);
-      _generationController.onProcessFinished(success, stderrCollector.text);
+      const errors = stderrCollector.text.trim();
+      if (exitStatus !== 0 || exitCode !== 0) {
+        console.error("[ThemeManager] Theme generation failed.", errors);
+        root.generationFailed(errors);
+        return;
+      }
+      // Some backends failed, or the venv was set up
+      if (errors)
+        console.warn("[ThemeManager] generate_theme.py:", errors);
+      console.log("[ThemeManager] Theme generation finished successfully.");
+      root._reloadAllThemes();
     }
   }
 
