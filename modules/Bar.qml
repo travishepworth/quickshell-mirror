@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import QtQuick
 import qs.config
-import qs.components.widgets.bar
+import qs.components.bar
 
 Scope {
   id: root

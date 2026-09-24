@@ -4,8 +4,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import Quickshell.Io
 
-import qs.components.reusable
-import qs.components.widgets.applauncher
+import qs.components.surfaces.launcher
 import qs.config
 
 Scope {

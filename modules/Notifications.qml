@@ -3,7 +3,7 @@ import Quickshell
 
 import qs.services
 import qs.config
-import qs.components.widgets.notifications
+import qs.components.surfaces.notifications
 
 // Stacks incoming notifications as toasts near the top-left of the screen
 // (offset past the bar), driven by NotificationManager.showPopup. Dismissing a toast

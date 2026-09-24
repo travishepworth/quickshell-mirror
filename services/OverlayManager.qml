@@ -3,7 +3,6 @@ import QtQuick
 
 import qs.config
 import qs.components.methods
-import qs.services
 
 /* OverlayManager holds a sandboxed, in-memory copy of Overlay.views for the
  * overlay editor (the pinned last page). Edits only affect localViews (and

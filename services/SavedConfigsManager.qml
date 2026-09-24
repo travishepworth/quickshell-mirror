@@ -4,7 +4,6 @@ import Qt.labs.folderlistmodel
 import Quickshell.Io
 
 import qs.config
-import qs.services
 
 /**
  * Named snapshots of the whole config, one JSON file each in

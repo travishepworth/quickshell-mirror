@@ -5,7 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.services
 import qs.config
-import qs.components.widgets.workspaces
+import qs.components.surfaces.workspaces
 
 Scope {
   id: root

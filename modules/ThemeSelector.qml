@@ -8,7 +8,7 @@ import Quickshell
 import qs.config
 import qs.services
 import qs.components.reusable
-import qs.components.widgets.popouts
+import qs.components.hosts.popout
 
 // does the job for now. On the plan for a good re-write
 Item {

@@ -1,13 +1,13 @@
 import Quickshell
 
-import qs.components.widgets.lockscreen
+import qs.components.surfaces.lockscreen
 
 Scope {
   Variants {
     model: Quickshell.screens
     delegate: Lockscreen {
-      property var modelData: modelData
       id: lockScreen
+      property var modelData: modelData
       screen: modelData
     }
   }

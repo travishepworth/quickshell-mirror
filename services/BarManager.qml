@@ -3,7 +3,6 @@ import QtQuick
 
 import qs.config
 import qs.components.methods
-import qs.services
 
 /* BarManager holds a sandboxed, in-memory copy of the Bars config for the
  * Bar Editor overlay. Edits here only affect localConfig (and whatever

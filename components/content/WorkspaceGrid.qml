@@ -1,0 +1,173 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Hyprland
+
+import qs.services
+import qs.config
+import qs.components.methods
+
+Item {
+  id: root
+
+  required property var wrapper
+
+  property var monitor: wrapper.currentData?.monitor
+  property int workspaceBase: wrapper.currentData?.workspaceBase ?? 1
+  property int activeWorkspaceId: wrapper.currentData?.activeId ?? 1
+  property int currentColumn: ((activeWorkspaceId - workspaceBase) % 5)
+  readonly property int cell: (Widget.height && Widget.height > 0) ? Widget.height : 28
+
+  property alias hovered: hoverHandler.hovered
+
+  Component.onCompleted: {
+    console.log("WorkspaceGrid initialized for monitor", monitor?.name ?? "unknown");
+    console.log("Workspace range:", workspaceBase, "to", workspaceBase + 24);
+  }
+
+  implicitWidth: (5 * cell + 6 * 6) + 20 // wtf is this
+  implicitHeight: (5 * cell + 6 * 6) + 20
+  width: implicitWidth
+  height: implicitHeight
+
+  Rectangle {
+    id: content
+    anchors.centerIn: parent
+    visible: true
+
+    // 5 columns × widget height + spacing
+    width: 5 * Widget.height + 4 * 6
+    height: 5 * Widget.height + 4 * 6
+
+    color: Theme.background
+    border.color: Theme.backgroundAlt
+    border.width: 0
+    radius: Appearance.borderRadius + 2
+
+    // Hover detection only — root.hovered above (read by the wrapper)
+    // is just an alias to this.
+    HoverHandler {
+      id: hoverHandler
+    }
+
+    GridLayout {
+      anchors.centerIn: parent
+      columns: 5
+      rows: 5
+      columnSpacing: 6
+      rowSpacing: 6
+
+      Repeater {
+        model: 25
+
+        Rectangle {
+          id: wsCell
+          required property var index
+
+          readonly property int wsId: root.workspaceBase + index
+          readonly property var workspace: root.getWorkspace(wsId)
+          readonly property bool isActive: root.monitor?.activeWorkspace?.id === wsId
+          readonly property bool hasWindows: workspace?.toplevels?.values?.length > 0
+          // readonly property bool isCurrentColumn: (wsId - 1) % 5 === root.currentColumn
+          readonly property bool isCurrentColumn: index % 5 === root.currentColumn
+          readonly property bool showIcons: PopoutConfig.workspaceIcons
+          property bool hovered: false
+
+          Layout.preferredWidth: Widget.height
+          Layout.preferredHeight: Widget.height
+
+          property var windowData: HyprlandManager.biggestWindowForWorkspace(wsId)
+          property var iconPath: IconResolver.resolveWindowIcon(windowData?.class, windowData?.title)
+
+          radius: Appearance.borderRadius
+          // property color baseColor: isActive ? Theme.accent : hasWindows ? Colors.outline : Theme.backgroundAlt
+
+          color: isActive ? Theme.accent : hovered ? Theme.accentAlt : hasWindows ? Theme.border : Theme.backgroundAlt
+
+          // Highlight the column shown in bar
+          border.width: 0
+          border.color: Theme.backgroundAlt
+          // border.color: hovered ? Theme.accentAlt : Theme.backgroundAlt
+          opacity: isCurrentColumn ? 1.0 : 0.85
+
+          transitions: Transition {
+            ColorAnimation {
+              duration: Appearance.animFast
+            }
+          }
+
+          Image {
+            id: windowIcon
+            source: (parent.hasWindows && parent.iconPath) ? parent.iconPath : ""
+            width: parent.width * 0.7
+            height: parent.height * 0.7
+            anchors.centerIn: parent
+            visible: PopoutConfig.workspaceIcons
+          }
+
+          Text {
+            anchors.centerIn: parent
+            text: parent.wsId
+            color: parent.isActive ? Theme.background : Theme.backgroundAlt
+            font.pixelSize: 11
+            font.family: Appearance.fontFamily
+            visible: false
+          }
+
+          MouseArea {
+            id: boxMouseArea
+            anchors.fill: parent
+            hoverEnabled: true
+
+            cursorShape: containsMouse ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: {
+              console.log("Click ws", parent.wsId);
+              HyprlandManager.focusWorkspace(parent.wsId);
+            }
+
+            onContainsMouseChanged:
+            // Handled by HoverHandler
+            {}
+
+            onEntered: {
+              parent.hovered = true;
+            }
+
+            onExited: {
+              parent.hovered = false;
+            }
+          }
+
+          Behavior on scale {
+            NumberAnimation {
+              duration: Appearance.animFast
+              easing.type: Easing.OutCubic
+            }
+          }
+
+          Behavior on color {
+            ColorAnimation {
+              duration: Appearance.animNormal
+            }
+          }
+
+          Behavior on opacity {
+            NumberAnimation {
+              duration: Appearance.animNormal
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function getWorkspace(id) {
+    const arr = Hyprland.workspaces.values;
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i].id === id)
+        return arr[i];
+    }
+    return null;
+  }
+}

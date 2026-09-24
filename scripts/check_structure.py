@@ -6,8 +6,9 @@ a file name, loaded by URL at runtime. A typo, a rename or a missing import
 only shows up when something tries to instantiate it. This checks, without
 running anything:
 
-  - every schema type (BarWidget, OverlayView, OverlayModule oneOfs) and
-    every PopoutAnchor popoutName has its file
+  - every schema type (BarWidget → bar/widgets, OverlayView → views,
+    OverlayModule → content) and every PopoutAnchor popoutName (→ content)
+    has its file, and nothing is left under retired directories
   - every URL-loaded directory is imported by name somewhere (qs only makes
     sibling types visible to URL-loaded files in directories it scanned)
   - every `import qs.…` names a directory that exists
@@ -31,12 +32,16 @@ QML_DIRS = ["components", "modules", "services", "config"]
 # (schema oneOf definition, directory its types load from, import that must
 # exist somewhere so qs scans that directory)
 LOADERS = [
-    ("BarWidget", "components/widgets/bar/modules", "qs.components.widgets.bar.modules"),
-    ("OverlayView", "components/widgets/overlay/views", "qs.components.widgets.overlay.views"),
-    ("OverlayModule", "components/widgets/overlay/modules", "qs.components.widgets.overlay.modules"),
+    ("BarWidget", "components/bar/widgets", "qs.components.bar.widgets"),
+    ("OverlayView", "components/views", "qs.components.views"),
+    ("OverlayModule", "components/content", "qs.components.content"),
 ]
-POPOUT_DIR = "components/widgets/bar/popouts/content"
-POPOUT_IMPORT = "qs.components.widgets.bar.popouts.content"
+# Bar popouts load content/<popoutName>.qml, from the same directory as
+# overlay modules (a content file can be both)
+POPOUT_DIR = "components/content"
+POPOUT_IMPORT = "qs.components.content"
+# Directories retired by restructuring: nothing may live or be imported there
+RETIRED = ["components/widgets", "components/stolen"]
 
 errors, warnings = [], []
 
@@ -83,6 +88,8 @@ def main():
         if required_import not in imports:
             errors.append(f"nothing imports {required_import}: files loaded by URL from {directory} won't see each other's types")
         for f in sorted((ROOT / directory).glob("*.qml")):
+            if directory == POPOUT_DIR:
+                continue  # content: checked below, with popout names
             if f.stem not in types and not used_as_type(f.stem, rel(f)):
                 warnings.append(f"{rel(f)}: not a {definition} type and not used anywhere")
 
@@ -92,14 +99,22 @@ def main():
         for m in re.finditer(r'popoutName:\s*"([^"]+)"', text):
             names.setdefault(m.group(1), path)
     for name, path in sorted(names.items()):
-        if not (ROOT / POPOUT_DIR / f"{name}Popout.qml").exists():
-            errors.append(f'{path}: popoutName "{name}" has no {POPOUT_DIR}/{name}Popout.qml')
+        if not (ROOT / POPOUT_DIR / f"{name}.qml").exists():
+            errors.append(f'{path}: popoutName "{name}" has no {POPOUT_DIR}/{name}.qml')
     if POPOUT_IMPORT not in imports:
         errors.append(f"nothing imports {POPOUT_IMPORT}: popout content won't see its sibling types")
-    for f in sorted((ROOT / POPOUT_DIR).glob("*Popout.qml")):
-        name = f.stem[: -len("Popout")]
-        if name not in names and not used_as_type(f.stem, rel(f)):
-            warnings.append(f"{rel(f)}: no PopoutAnchor opens it and nothing embeds it")
+    # A content file is fine if it's an overlay module type, a popout name,
+    # or used by name somewhere
+    module_types = set(schema_types(schema, "OverlayModule"))
+    for f in sorted((ROOT / POPOUT_DIR).glob("*.qml")):
+        if f.stem not in names and f.stem not in module_types and not used_as_type(f.stem, rel(f)):
+            warnings.append(f"{rel(f)}: not an overlay module, no PopoutAnchor opens it, and nothing uses it")
+
+    # Retired directories stay empty
+    for d in RETIRED:
+        leftovers = list((ROOT / d).rglob("*.qml")) if (ROOT / d).exists() else []
+        for f in leftovers:
+            errors.append(f"{rel(f)}: lives under retired {d}/")
 
     # qs.* imports resolve
     for path, text in sources.items():

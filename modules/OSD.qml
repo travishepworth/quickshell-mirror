@@ -5,8 +5,8 @@ import Quickshell
 
 import qs.config
 import qs.services
-import qs.components.widgets.popouts
-import qs.components.widgets.common
+import qs.components.hosts.popout
+import qs.components.reusable
 
 Item {
   id: osdRoot

@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell.Bluetooth
 
 import qs.config
+import qs.components.bar.widgets
 
 // Bluetooth state and actions over the default adapter (BlueZ via
 // Quickshell.Bluetooth). Named BluetoothManager so it doesn't shadow

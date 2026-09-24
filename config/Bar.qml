@@ -2,7 +2,6 @@ pragma Singleton
 import QtQuick
 
 import qs.services
-import qs.config
 
 QtObject {
   enum Location {

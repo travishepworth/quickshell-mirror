@@ -3,14 +3,14 @@ import QtQuick.Shapes
 import Quickshell
 
 import qs.config
-import qs.components.widgets.workspaceContainer
+import qs.components.surfaces.border
 
 Scope {
   Variants {
     model: Quickshell.screens
     delegate: RoundedBorders {
-      property var modelData: modelData
       id: lockScreen
+      property var modelData: modelData
       screen: modelData
     }
   }

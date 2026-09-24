@@ -7,9 +7,14 @@
 shell.qml     # entrypoint: one top-level item per module
 modules/      # top-level pieces loaded directly into shell.qml
 components/
+  methods/    # pure singleton helpers
   reusable/   # generic styled widgets, no feature-specific logic
-  widgets/    # feature-specific components, grouped by feature
-  methods/    # singleton helper functions (Utils, IconResolver, SchemaValidation, ...)
+  forms/      # schema-driven form widgets
+  content/    # every loadable panel (overlay modules, bar popouts), loaded by name
+  hosts/      # where content appears: bar/edge popouts, overlay cards and pages
+  views/      # overlay pages
+  bar/        # the bar; bar/widgets/ = bar widget types
+  surfaces/   # standalone windows (launcher, lockscreen, toasts, power menu, ...)
 services/     # singletons owning global state and side effects
 config/       # config reader singletons, the config schema, themes, translations
 assets/       # static assets

@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import qs.config
 import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
