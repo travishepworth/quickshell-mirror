@@ -700,6 +700,13 @@
     "Overlay Editor": "オーバーレイエディター",
     "Search results": "検索結果",
     "More in": "関連ページ",
-    "No settings match \"{0}\"": "「{0}」に一致する設定はありません"
+    "No settings match \"{0}\"": "「{0}」に一致する設定はありません",
+    "Search keybinds": "キーバインドを検索",
+    "{0} binds": "{0} 件のバインド",
+    "No keybinds match \"{0}\"": "「{0}」に一致するキーバインドはありません",
+    "Undescribed": "説明なし",
+    "Other": "その他",
+    "A bind's description sets its label, and a \"Section: Label\" prefix picks its section.": "バインドの説明がラベルになり、「セクション: ラベル」の形式でセクションを指定できます。",
+    "No description": "説明なし"
   }
 }

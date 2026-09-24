@@ -1,0 +1,54 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import qs.config
+import qs.components.reusable
+
+// One section of keybinds as a card: its title, then a row per action
+StyledContainer {
+  id: root
+
+  // A KeybindManager section, binds possibly filtered by a search
+  required property var section
+
+  Layout.fillWidth: true
+  implicitHeight: column.implicitHeight + Widget.padding * 2
+  backgroundColor: Theme.backgroundAlt
+
+  ColumnLayout {
+    id: column
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.margins: Widget.padding
+    spacing: Widget.spacing
+
+    StyledText {
+      text: root.section.undescribed ? I18n.tr("Undescribed") : (root.section.title || I18n.tr("Other"))
+      textColor: Theme.accent
+      textSize: Appearance.fontSize + 1
+      font.bold: true
+      elide: Text.ElideRight
+      Layout.fillWidth: true
+      Layout.bottomMargin: Widget.spacing / 2
+    }
+
+    StyledText {
+      visible: root.section.undescribed
+      text: I18n.tr("A bind's description sets its label, and a \"Section: Label\" prefix picks its section.")
+      opacity: 0.6
+      textSize: Appearance.fontSize - 2
+      wrapMode: Text.WordWrap
+      Layout.fillWidth: true
+    }
+
+    Repeater {
+      model: root.section.binds
+
+      delegate: KeybindRow {
+        required property var modelData
+        bind: modelData
+      }
+    }
+  }
+}
