@@ -4,18 +4,24 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
-import qs.components.forms
 
 /**
- * Save the whole config under a name, and restore or delete saved ones.
+ * Settings page, Backups: save the whole config under a name, and restore or delete saved ones.
  * Restore, delete and reverting to the defaults ask for a second click to
  * confirm.
  */
-SchemaSection {
+ColumnLayout {
   id: root
-  title: I18n.tr("Saved Configurations")
-  description: I18n.tr("Snapshots of the entire configuration, stored in {0}. Restoring replaces the current configuration.", SavedConfigsManager.savedDir)
-  expanded: false
+  spacing: Widget.spacing
+
+  StyledText {
+    text: I18n.tr("Snapshots of the entire configuration, stored in {0}. Restoring replaces the current configuration.", SavedConfigsManager.savedDir)
+    opacity: 0.7
+    textSize: Appearance.fontSize - 1
+    wrapMode: Text.WordWrap
+    Layout.fillWidth: true
+    Layout.bottomMargin: Widget.spacing
+  }
 
   // Row awaiting a confirming click: { name, action }. The defaults row uses
   // an empty name, which no saved file can have.

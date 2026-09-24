@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.services
 import qs.components.views
 
 Item {
@@ -16,7 +17,11 @@ Item {
   // Whether the overlay window is showing; pages unload when it isn't
   property bool open: false
   property var viewsConfig: OverlayConfig.views || []
-  property var viewsModel: buildViewsModel(viewsConfig)
+  // Every config change is a new views array, so the pages are keyed by
+  // their JSON: a string only notifies when it really changes, and pages
+  // aren't rebuilt by edits elsewhere (e.g. each settings change)
+  readonly property string _viewsKey: JSON.stringify(viewsConfig)
+  property var viewsModel: buildViewsModel(JSON.parse(_viewsKey))
   property int currentIndex: 0
   // The configured views, then the pages that aren't in config: the Themes
   // page and the overlay editor, always last and can't be removed
@@ -29,8 +34,8 @@ Item {
 
   // A new launch opens on the first page; closing and re-opening keeps the
   // page (this wrapper lives as long as the overlay window). The views
-  // rebuild on every config change, including saves from the pinned pages
-  // (the editor's, a theme change): stay on a pinned page if the user is on
+  // rebuild whenever Overlay.views changes, including saves from the
+  // overlay editor: stay on a pinned page if the user is on
   // one, otherwise keep the index valid. Tracked from real navigation only:
   // while the views are still loading the pinned pages briefly sit at the
   // start, which isn't the user being on them.
@@ -42,6 +47,21 @@ Item {
       wrapper.currentIndex = wrapper.pageCount - 1 - wrapper._pinnedFromEnd;
     else
       wrapper.currentIndex = Math.max(0, Math.min(wrapper.currentIndex, wrapper.themesIndex - 1));
+  }
+
+  Connections {
+    target: ShellManager
+    function onShowOverlayPage(type) {
+      if (type === "Themes")
+        wrapper.currentIndex = wrapper.themesIndex;
+      else if (type === "OverlayEditor")
+        wrapper.currentIndex = wrapper.editorIndex;
+      else {
+        const index = wrapper.viewsModel.findIndex(view => view.viewConfig.type === type);
+        if (index >= 0)
+          wrapper.currentIndex = index;
+      }
+    }
   }
 
   implicitWidth: currentViewWidth * fitScale + OverlayConfig.cardSpacing * 2

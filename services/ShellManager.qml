@@ -11,6 +11,9 @@ QtObject {
   signal toggleAppLauncher
   signal toggleOverlay
   signal toggleWorkspaceOverlay
+  // Switch the overlay to a page by view type ("Themes" and
+  // "OverlayEditor" for the pinned pages), e.g. from a settings link
+  signal showOverlayPage(string type)
 
   // The screen whose instance of a surface answers a shortcut or IPC call:
   // the focused monitor when surfaces are on every monitor, else the one

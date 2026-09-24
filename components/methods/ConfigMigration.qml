@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 4
+  readonly property int currentVersion: 5
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -35,6 +35,8 @@ QtObject {
       result = _v2ToV3(result, changes);
     if (version < 4)
       result = _v3ToV4(result, changes);
+    if (version < 5)
+      result = _v4ToV5(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -81,6 +83,49 @@ QtObject {
     if (config.Appearance?.autoThemeSwitch !== undefined) {
       delete config.Appearance.autoThemeSwitch;
       changes.push("Appearance.autoThemeSwitch removed");
+    }
+    return config;
+  }
+
+  // v5 made Settings a view type of its own instead of a module: a Custom
+  // view holding nothing but Settings becomes one, and Settings modules
+  // anywhere else are dropped (an empty slot is a gap), keeping one page
+  function _v4ToV5(config, changes) {
+    const views = config.Overlay?.views;
+    if (!Array.isArray(views))
+      return config;
+    const slotsOf = view => [].concat(...(view?.columns ?? []).map(column => (column?.cells ?? []).map(cell => cell?.slots ?? {})));
+    const isSettings = module => module?.type === "Settings";
+    let converted = false;
+    let dropped = false;
+    views.forEach((view, viewIndex) => {
+      if (view?.type !== "Custom")
+        return;
+      const modules = [].concat(...slotsOf(view).map(slots => Object.keys(slots).map(key => slots[key])));
+      if (modules.length > 0 && modules.every(isSettings)) {
+        views[viewIndex] = view.visible === undefined ? {
+          "type": "Settings"
+        } : {
+          "type": "Settings",
+          "visible": view.visible
+        };
+        converted = true;
+        changes.push(`Overlay.views[${viewIndex}]: Custom Settings view -> Settings view`);
+        return;
+      }
+      slotsOf(view).forEach(slots => Object.keys(slots).forEach(key => {
+          if (!isSettings(slots[key]))
+            return;
+          delete slots[key];
+          dropped = true;
+          changes.push(`Overlay.views[${viewIndex}]: Settings module removed`);
+        }));
+    });
+    if (dropped && !converted) {
+      views.push({
+        "type": "Settings"
+      });
+      changes.push("Overlay.views: Settings view added");
     }
     return config;
   }

@@ -8,13 +8,14 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 4,
+      "default": 5,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
 
     "Lockscreen": {
       "type": "object",
+      "x-category": "Desktop",
       "title": "Lockscreen",
       "description": "Which locker locks the session. Point your idle daemon's lock command at `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.",
       "additionalProperties": false,
@@ -53,6 +54,7 @@
 
     "General": {
       "type": "object",
+      "x-category": "Desktop",
       "title": "General",
       "additionalProperties": false,
       "properties": {
@@ -89,6 +91,8 @@
 
     "Appearance": {
       "type": "object",
+      "x-category": "Look & Feel",
+      "x-links": ["Themes"],
       "title": "Appearance",
       "additionalProperties": false,
       "properties": {
@@ -202,6 +206,7 @@
 
     "Widget": {
       "type": "object",
+      "x-category": "Look & Feel",
       "title": "Widgets",
       "description": "Shared sizing for widgets and form controls. Bar widgets are as thick as their bar, minus twice its widget inset.",
       "additionalProperties": false,
@@ -235,6 +240,8 @@
 
     "Popouts": {
       "type": "object",
+      "x-category": "Bar & Popouts",
+      "x-links": ["BarEditor"],
       "title": "Popouts",
       "description": "Behaviour shared by bar popouts and screen-edge popouts (side panel, OSD).",
       "additionalProperties": false,
@@ -274,6 +281,7 @@
 
     "Chat": {
       "type": "object",
+      "x-category": "Chat",
       "title": "Chat",
       "description": "API keys are read from GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY, or from $XDG_STATE_HOME/axiom/secrets.json. They are never stored here.",
       "additionalProperties": false,
@@ -313,6 +321,7 @@
 
     "OSD": {
       "type": "object",
+      "x-category": "Overlay & OSD",
       "title": "OSD",
       "description": "Volume on-screen display, shown when a volume changes.",
       "additionalProperties": false,
@@ -384,6 +393,8 @@
 
     "ThemeIntegrations": {
       "type": "object",
+      "x-category": "Look & Feel",
+      "x-links": ["Themes"],
       "title": "Theme integrations",
       "description": "Re-theme external apps whenever the shell theme changes.",
       "additionalProperties": false,
@@ -397,6 +408,7 @@
 
     "Icons": {
       "type": "object",
+      "x-category": "Bar & Popouts",
       "title": "Icons",
       "additionalProperties": false,
       "properties": {
@@ -412,6 +424,8 @@
 
     "Overlay": {
       "type": "object",
+      "x-category": "Overlay & OSD",
+      "x-links": ["OverlayEditor"],
       "title": "Overlay",
       "additionalProperties": false,
       "properties": {
@@ -463,13 +477,7 @@
                 } }
               ] }
             ] },
-            { "type": "Custom", "name": "Settings", "columns": [
-              { "cells": [
-                { "layout": "Tall", "slots": {
-                  "main": { "type": "Settings" }
-                } }
-              ] }
-            ] },
+            { "type": "Settings" },
             { "type": "Keybinds" },
             { "type": "BarEditor" }
           ],
@@ -618,7 +626,8 @@
       "oneOf": [
         { "$ref": "#/definitions/CustomOverlayView" },
         { "$ref": "#/definitions/KeybindsOverlayView" },
-        { "$ref": "#/definitions/BarEditorOverlayView" }
+        { "$ref": "#/definitions/BarEditorOverlayView" },
+        { "$ref": "#/definitions/SettingsOverlayView" }
       ]
     },
     "CustomOverlayView": {
@@ -638,6 +647,15 @@
       "additionalProperties": false,
       "properties": {
         "type": { "const": "Keybinds", "description": "Keybinds" },
+        "visible": { "type": "boolean" }
+      }
+    },
+    "SettingsOverlayView": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Settings", "description": "Settings" },
         "visible": { "type": "boolean" }
       }
     },
@@ -689,7 +707,6 @@
       "type": "object",
       "required": ["type"],
       "oneOf": [
-        { "$ref": "#/definitions/SettingsOverlayModule" },
         { "$ref": "#/definitions/ThemeEditorOverlayModule" },
         { "$ref": "#/definitions/NowPlayingOverlayModule" },
         { "$ref": "#/definitions/AudioMixerOverlayModule" },
@@ -714,15 +731,6 @@
         { "$ref": "#/definitions/WallpaperPickerOverlayModule" },
         { "$ref": "#/definitions/ColorSwatchOverlayModule" }
       ]
-    },
-    "SettingsOverlayModule": {
-      "type": "object",
-      "x-shapes": ["vertical"],
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "Settings", "description": "Settings panel (use a Tall cell)" }
-      }
     },
     "ThemeEditorOverlayModule": {
       "type": "object",

@@ -12,7 +12,8 @@ import qs.components.reusable
 // One row of a schema-driven form: picks the control for the row's schema
 // type (or a list editor for an array of objects), hidden while its
 // `x-showIf` doesn't hold. `form` provides valueAt(path) and an
-// edited(path, value) signal (SchemaForm or SchemaPropertiesForm).
+// edited(path, value) signal (SchemaPropertiesForm, or the settings page's
+// SettingsContent).
 Loader {
   id: root
 

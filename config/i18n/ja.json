@@ -334,7 +334,6 @@
     "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu.": "クリック時に実行。空欄の場合は `sudo pacman -Syu`、または AUR ヘルパーの -Syu を使います。",
     "Save": "保存",
     "Save to": "保存先",
-    "Saved Configurations": "保存された設定",
     "Scanning…": "スキャン中…",
     "Screen": "画面全体",
     "Screen border": "画面の枠",
@@ -352,7 +351,6 @@
     "Separator / Spacer": "区切り／スペーサー",
     "Session / power": "セッション／電源",
     "Settings": "設定",
-    "Settings panel (use a Tall cell)": "設定パネル（Tall セル用）",
     "Shape": "形",
     "Share of the widget height the line spans.": "ウィジェットの高さに対する線の長さの割合。",
     "Shared sizing for widgets and form controls. Bar widgets are as thick as their bar, minus twice its widget inset.": "ウィジェットとフォームのコントロール共通のサイズ。バーのウィジェットの太さは、バーの太さからウィジェットの余白の2倍を引いたものです。",
@@ -689,6 +687,19 @@
     "Active theme (set on the overlay's Themes page).": "現在のテーマ（オーバーレイのテーマページで設定）。",
     "Where the overlay, launcher, power menu, workspace overlay and OSD appear (the OSD and overlay can override this). On every monitor, shortcuts open them on the focused one.": "オーバーレイ、ランチャー、電源メニュー、ワークスペースオーバーレイ、OSDを表示する場所（OSDとオーバーレイは個別に変更できます）。すべてのモニターの場合、ショートカットはフォーカス中のモニターで開きます。",
     "Behaviour shared by bar popouts and screen-edge popouts (side panel, OSD).": "バーのポップアウトと画面端のポップアウト（サイドパネル、OSD）に共通の動作。",
-    "Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.": "モニター名 → 壁紙のファイルURL（オーバーレイのテーマページで設定）。エントリのないモニターには `wallpaper` が表示されます。"
+    "Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.": "モニター名 → 壁紙のファイルURL（オーバーレイのテーマページで設定）。エントリのないモニターには `wallpaper` が表示されます。",
+    "Reset to default": "デフォルトに戻す",
+    "Search settings": "設定を検索",
+    "Desktop": "デスクトップ",
+    "Look & Feel": "外観と操作感",
+    "Bar & Popouts": "バーとポップアウト",
+    "Overlay & OSD": "オーバーレイとOSD",
+    "Backups": "バックアップ",
+    "{0} unsaved changes": "未保存の変更: {0}件",
+    "Changes apply as you make them. Save keeps them.": "変更はすぐに反映されます。保存すると保持されます。",
+    "Overlay Editor": "オーバーレイエディター",
+    "Search results": "検索結果",
+    "More in": "関連ページ",
+    "No settings match \"{0}\"": "「{0}」に一致する設定はありません"
   }
 }
