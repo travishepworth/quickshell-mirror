@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 import qs.services
 
 // Reader for the Appearance section. Values are always present: schema
@@ -14,6 +15,9 @@ QtObject {
   // From the active theme, not config: a theme is dark or light
   readonly property bool darkMode: ThemeManager.currentTheme.variant !== "light"
   readonly property string wallpaper: _c.wallpaper
+  // As configured (for display), and with ~ expanded, no trailing slash
+  readonly property string wallpaperFolder: _c.wallpaperFolder
+  readonly property string wallpaperPath: _c.wallpaperFolder.trim().replace(/^~(?=\/|$)/, Quickshell.env("HOME")).replace(/\/+$/, "")
   readonly property bool autoThemeSwitch: _c.autoThemeSwitch
 
   // --- Font ---

@@ -117,7 +117,7 @@ Item {
 
               StyledText {
                 anchors.centerIn: parent
-                text: I18n.tr("No wallpapers found in pictures/wallpapers")
+                text: I18n.tr("No wallpapers in {0}", Appearance.wallpaperFolder)
                 textColor: Theme.foregroundAlt
                 visible: ThemeManager.wallpaperModel.count === 0 && !ThemeManager.isGenerating
               }

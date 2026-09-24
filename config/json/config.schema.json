@@ -104,6 +104,13 @@
           "description": "Current wallpaper file URL (set by the theme selector).",
           "x-settings": false
         },
+        "wallpaperFolder": {
+          "type": "string",
+          "title": "Wallpaper folder",
+          "default": "~/Pictures/wallpapers",
+          "pattern": "\\S",
+          "description": "Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder."
+        },
         "autoThemeSwitch": {
           "type": "boolean",
           "title": "Auto theme switch",
@@ -350,10 +357,7 @@
           "title": "Applications",
           "description": "One volume bar per entry, in order. App is matched as a substring of the stream's binary/name. Two special values: \"other\" is the first stream not matched by another entry, \"master\" is the system output volume (its icon follows the volume level).",
           "default": [
-            { "app": "Zen", "icon": "\uf269 ", "showOsd": true },
-            { "app": "vesktop", "icon": "\uf1ff ", "showOsd": true },
-            { "app": "other", "icon": "\uf11b ", "showOsd": true },
-            { "app": "spotify", "icon": "\uec1b ", "showOsd": true },
+            { "app": "other", "icon": "\uf001 ", "showOsd": true },
             { "app": "master", "icon": "", "showOsd": true }
           ],
           "items": {
@@ -414,15 +418,30 @@
           "x-settings": false,
           "description": "Pages shown in the overlay, in order. A Custom view lays out columns side by side; a Cells column stacks cell layouts, whose slots each hold one module.",
           "default": [
-            { "type": "Custom", "name": "Overview", "columns": [
+            { "type": "Custom", "name": "Home", "columns": [
               { "cells": [
-                { "layout": "Vert2x1", "slots": {
-                  "topLeft": { "type": "SystemGraphs", "properties": { "metrics": ["cpu"] } },
-                  "bottomLeft": { "type": "SystemGraphs", "properties": { "metrics": ["mem"] } },
-                  "right": { "type": "VolumeDials" }
+                { "layout": "Tall", "slots": {
+                  "main": { "type": "ClockCalendar" }
+                } }
+              ] },
+              { "cells": [
+                { "layout": "Horiz1x1", "slots": {
+                  "top": { "type": "QuickToggles" },
+                  "bottom": { "type": "Session" }
                 } },
                 { "layout": "Single", "slots": {
+                  "main": { "type": "SystemGraphs" }
+                } }
+              ] },
+              { "cells": [
+                { "layout": "Wide", "slots": {
                   "main": { "type": "NowPlaying" }
+                } },
+                { "layout": "Single", "slots": {
+                  "main": { "type": "Notifications" }
+                } },
+                { "layout": "Single", "slots": {
+                  "main": { "type": "VolumeDials" }
                 } }
               ] }
             ] },
@@ -482,10 +501,28 @@
         {
           "id": "primary",
           "location": "Top",
+          "extent": 34,
+          "inset": 4,
+          "background": "pills",
+          "lockCenter": true,
           "widgets": {
-            "left": [{ "type": "Workspaces" }],
-            "center": [{ "type": "Time" }],
-            "right": [{ "type": "SystemTray" }, { "type": "Network" }]
+            "left": [
+              { "type": "Button", "properties": { "action": "overlay", "icon": "", "tooltip": "Overlay", "backgroundColor": "base0E" } },
+              { "type": "Workspaces", "properties": { "count": 5 } },
+              { "type": "Window" }
+            ],
+            "center": [
+              { "type": "Time", "properties": { "showSeconds": false } }
+            ],
+            "right": [
+              { "type": "SystemTray" },
+              { "type": "Volume" },
+              { "type": "Network" },
+              { "type": "Bluetooth", "properties": { "hideWhenOff": true } },
+              { "type": "Battery" },
+              { "type": "Notifications" },
+              { "type": "Button", "properties": { "action": "powerMenu", "tooltip": "Power", "backgroundColor": "base08" } }
+            ]
           }
         }
       ],

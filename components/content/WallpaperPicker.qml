@@ -6,7 +6,7 @@ import qs.services
 import qs.components.reusable
 import qs.components.content.base
 
-// Wallpapers from ~/Pictures/wallpapers as a scrolling strip (a grid in
+// Wallpapers from Appearance.wallpaperFolder as a scrolling strip (a grid in
 // taller slots); clicking one sets it and regenerates the theme from it.
 Card {
   id: root
@@ -16,7 +16,7 @@ Card {
   StyledText {
     anchors.centerIn: parent
     visible: ThemeManager.wallpaperModel.count === 0
-    text: I18n.tr("No wallpapers in ~/Pictures/wallpapers")
+    text: I18n.tr("No wallpapers in {0}", Appearance.wallpaperFolder)
     opacity: 0.6
   }
 

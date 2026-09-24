@@ -269,8 +269,7 @@
     "No saved configurations yet.": "保存された設定はまだありません。",
     "No submenu items": "サブメニュー項目がありません",
     "No track playing": "再生中の曲はありません",
-    "No wallpapers found in pictures/wallpapers": "pictures/wallpapers に壁紙が見つかりません",
-    "No wallpapers in ~/Pictures/wallpapers": "~/Pictures/wallpapers に壁紙がありません",
+    "No wallpapers in {0}": "{0} に壁紙がありません",
     "None": "なし",
     "Note name": "メモの名前",
     "Notes": "メモ",
@@ -459,6 +458,8 @@
     "Volume dials": "音量ダイヤル",
     "Volume on-screen display, shown when a volume changes.": "音量が変わったときに表示するオンスクリーン表示。",
     "Wallpapers": "壁紙",
+    "Wallpaper folder": "壁紙フォルダー",
+    "Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder.": "壁紙ピッカーが画像 (jpg、png、bmp) を読み込むフォルダー。先頭の ~ はホームフォルダーです。",
     "Warning at": "警告のしきい値",
     "Warning background": "警告時の背景",
     "Weather": "天気",
@@ -671,6 +672,10 @@
     "Merge distance": "結合距離",
     "Groups closer than this share one pill (px).": "この距離より近いグループは1つのピルにまとめます（px）。",
     "Overlay size (%)": "オーバーレイのサイズ（%）",
-    "Size of the overlay's cards, relative to what fits the screen. Pages that would still overflow are shrunk to fit.": "画面に収まるサイズを基準にしたオーバーレイのカードの大きさ。それでもはみ出すページは収まるように縮小されます。"
+    "Size of the overlay's cards, relative to what fits the screen. Pages that would still overflow are shrunk to fit.": "画面に収まるサイズを基準にしたオーバーレイのカードの大きさ。それでもはみ出すページは収まるように縮小されます。",
+    "Defaults": "デフォルト",
+    "The configuration a first run starts with": "初回起動時の設定",
+    "The default configuration is not valid": "デフォルト設定が無効です",
+    "Restored the default configuration": "デフォルト設定を復元しました"
   }
 }

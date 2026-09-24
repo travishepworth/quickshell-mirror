@@ -8,7 +8,8 @@ import qs.components.forms
 
 /**
  * Save the whole config under a name, and restore or delete saved ones.
- * Restore and delete ask for a second click to confirm.
+ * Restore, delete and reverting to the defaults ask for a second click to
+ * confirm.
  */
 SchemaSection {
   id: root
@@ -16,7 +17,8 @@ SchemaSection {
   description: I18n.tr("Snapshots of the entire configuration, stored in {0}. Restoring replaces the current configuration.", SavedConfigsManager.savedDir)
   expanded: false
 
-  // Row awaiting a confirming click: { name, action }
+  // Row awaiting a confirming click: { name, action }. The defaults row uses
+  // an empty name, which no saved file can have.
   property var pending: null
 
   RowLayout {
@@ -107,6 +109,47 @@ SchemaSection {
     }
   }
 
+  StyledContainer {
+    Layout.fillWidth: true
+    Layout.preferredHeight: Widget.height + Widget.padding * 2
+    backgroundColor: Theme.backgroundAlt
+
+    RowLayout {
+      anchors.fill: parent
+      anchors.leftMargin: Widget.padding
+      anchors.rightMargin: Widget.padding
+      spacing: Widget.spacing
+
+      ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 0
+
+        StyledText {
+          text: I18n.tr("Defaults")
+          font.bold: true
+          elide: Text.ElideRight
+          Layout.fillWidth: true
+        }
+
+        StyledText {
+          text: I18n.tr("The configuration a first run starts with")
+          opacity: 0.6
+          textSize: Appearance.fontSize - 2
+          elide: Text.ElideRight
+          Layout.fillWidth: true
+        }
+      }
+
+      StyledTextButton {
+        readonly property bool armed: root.pending?.name === "" && root.pending?.action === "restore"
+        Layout.preferredHeight: Widget.height
+        text: I18n.tr(armed ? "Confirm" : "Restore")
+        hoverColor: Theme.error
+        onClicked: root.confirm("", "restore")
+      }
+    }
+  }
+
   function save() {
     SavedConfigsManager.save(nameEntry.text);
     nameEntry.text = "";
@@ -123,7 +166,9 @@ SchemaSection {
       return;
     }
     root.pending = null;
-    if (action === "restore")
+    if (action === "restore" && name === "")
+      SavedConfigsManager.restoreDefaults();
+    else if (action === "restore")
       SavedConfigsManager.restore(name);
     else
       SavedConfigsManager.remove(name);

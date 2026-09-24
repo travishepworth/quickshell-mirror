@@ -4,6 +4,7 @@ import Qt.labs.folderlistmodel
 import Quickshell.Io
 
 import qs.config
+import qs.components.methods
 
 /**
  * Named snapshots of the whole config, one JSON file each in
@@ -68,6 +69,21 @@ QtObject {
     SettingsManager.loadConfig();
     root.status = I18n.tr("Restored \"{0}\"", name);
     console.log("[SavedConfigsManager] Restored", path);
+  }
+
+  // Replaces the config with the schema defaults (what a first run writes).
+  // The current version skips migration, which would otherwise treat the
+  // empty object as a version 1 config.
+  function restoreDefaults() {
+    if (!ConfigManager.restoreConfig({
+      "version": ConfigMigration.currentVersion
+    })) {
+      root.status = I18n.tr("The default configuration is not valid");
+      return;
+    }
+    SettingsManager.loadConfig();
+    root.status = I18n.tr("Restored the default configuration");
+    console.log("[SavedConfigsManager] Restored defaults");
   }
 
   function remove(name) {

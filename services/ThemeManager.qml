@@ -2,7 +2,6 @@ pragma Singleton
 
 import QtQuick
 import Qt.labs.folderlistmodel
-import QtCore
 import Quickshell
 import Quickshell.Io
 
@@ -20,7 +19,7 @@ QtObject {
   // Public Models & State
   //=========================================================================
   readonly property FolderListModel wallpaperModel: FolderListModel {
-    folder: StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/wallpapers"
+    folder: "file://" + Appearance.wallpaperPath
     nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.bmp"]
     showDirs: false
   }

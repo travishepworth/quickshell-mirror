@@ -15,6 +15,9 @@ BarIconWidget {
   // "none" / "low" / "critical": the last level notified about, so each
   // threshold notifies once per crossing
   property string _notifiedLevel: "none"
+  // No laptop battery (a desktop): collapse to nothing, so a default bar
+  // can carry the widget on any machine
+  readonly property bool hidden: !BatteryManager.isAvailable
 
   readonly property string level: {
     if (isCharging)
@@ -28,7 +31,9 @@ BarIconWidget {
 
   icon: getBatteryIcon()
   text: `${percentage}%`
-  showText: properties.showPercentage
+  showIcon: !hidden
+  showText: properties.showPercentage && !hidden
+  padding: hidden ? 0 : Widget.padding
 
   backgroundColor: getBatteryColor()
 
@@ -92,7 +97,7 @@ BarIconWidget {
 
   // Charging animation
   SequentialAnimation {
-    running: root.isCharging && Appearance.animations
+    running: root.isCharging && !root.hidden && Appearance.animations
     loops: Animation.Infinite
 
     PropertyAnimation {
@@ -116,6 +121,7 @@ BarIconWidget {
 
   MouseArea {
     anchors.fill: parent
+    enabled: !root.hidden
     onClicked: {
       NotificationManager.sendNotification("axiom", I18n.tr("Battery Status"), root.getBatteryStatus());
     }
@@ -123,7 +129,7 @@ BarIconWidget {
 
   // Low battery notifications, once each time a threshold is crossed
   onLevelChanged: {
-    if (properties.notify && level !== _notifiedLevel) {
+    if (properties.notify && !hidden && level !== _notifiedLevel) {
       if (level === "critical")
         NotificationManager.sendNotification("axiom", I18n.tr("Critical Battery"), I18n.tr("Battery critically low: {0}%", percentage));
       else if (level === "low" && _notifiedLevel !== "critical")
