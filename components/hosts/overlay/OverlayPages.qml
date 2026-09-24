@@ -57,7 +57,7 @@ Item {
       else if (type === "OverlayEditor")
         wrapper.currentIndex = wrapper.editorIndex;
       else {
-        const index = wrapper.viewsModel.findIndex(view => view.viewConfig.type === type);
+        const index = wrapper.viewsModel.findIndex(view => view.viewConfig.type === type || view.viewConfig.name === type);
         if (index >= 0)
           wrapper.currentIndex = index;
       }

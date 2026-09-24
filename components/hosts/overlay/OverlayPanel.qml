@@ -96,6 +96,12 @@ PanelWindow {
       if (ShellManager.isTarget(root.screen, OverlayConfig.monitors))
         root.toggle();
     }
+    function onOpenOverlayPage(type) {
+      if (!ShellManager.isTarget(root.screen, OverlayConfig.monitors))
+        return;
+      root.open();
+      ShellManager.showOverlayPage(type);
+    }
   }
 
   IpcHandler {

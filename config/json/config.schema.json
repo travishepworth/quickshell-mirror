@@ -89,6 +89,39 @@
       }
     },
 
+    "Launcher": {
+      "type": "object",
+      "x-category": "Desktop",
+      "title": "Launcher",
+      "description": "The search launcher: apps, open windows, a calculator, web search, running commands, and / commands that control the shell.",
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "type": "string",
+          "title": "Position",
+          "enum": ["center", "upper", "top"],
+          "x-enumLabels": { "center": "Center", "upper": "Upper third", "top": "Top" },
+          "default": "upper",
+          "description": "Where on the screen the launcher opens."
+        },
+        "width": { "type": "integer", "title": "Width (px)", "default": 680, "minimum": 400, "maximum": 1200, "description": "Width of the launcher." },
+        "maxResults": { "type": "integer", "title": "Results shown", "default": 8, "minimum": 3, "maximum": 20, "description": "How many rows fit before the list scrolls." },
+        "iconSize": { "type": "integer", "title": "Icon size (px)", "default": 32, "minimum": 16, "maximum": 64, "description": "Size of the result icons." },
+        "backdrop": { "type": "integer", "title": "Backdrop darkness (%)", "default": 25, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the launcher goes." },
+        "showDescriptions": { "type": "boolean", "title": "Descriptions", "default": true, "description": "Show a second line under each result (an app's generic name, a window's class, a command's description)." },
+        "showRecent": { "type": "boolean", "title": "Frequent apps when empty", "default": true, "description": "List your most used apps before you type anything." },
+        "showHint": { "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the search prefixes and keys under the results." },
+        "hiddenApps": { "type": "array", "title": "Hidden apps", "default": [], "items": { "type": "string" }, "description": "Desktop entry ids never shown, comma-separated (e.g. avahi-discover, qv4l2)." },
+        "windows": { "type": "boolean", "title": "Open windows", "default": true, "description": "Also match open windows by title and class; picking one focuses it." },
+        "calculator": { "type": "boolean", "title": "Calculator", "default": true, "description": "Show the result of math as you type it (or after =), using qalc. Enter copies the result." },
+        "commands": { "type": "boolean", "title": "Shell commands (/)", "default": true, "description": "Type / for commands that control the shell: themes, volume, wifi, bluetooth, overlay pages, session and more." },
+        "runCommands": { "type": "boolean", "title": "Run commands (>)", "default": true, "description": "Type > and a command to run it. Shift+Enter runs it in the terminal." },
+        "terminal": { "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal used for commands run with Shift+Enter and for terminal apps. It's started as: terminal -e command." },
+        "webSearch": { "type": "boolean", "title": "Web search (?)", "default": true, "description": "Offer a web search for what you typed, last in the list (or first after ?)." },
+        "searchEngine": { "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } }
+      }
+    },
+
     "Appearance": {
       "type": "object",
       "x-category": "Look & Feel",

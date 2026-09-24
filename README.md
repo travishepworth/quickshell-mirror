@@ -31,7 +31,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 **The rest**
 - Notification toasts and a notification center.
 - An OSD that follows the volume of the apps you choose.
-- An app launcher, and a power menu that asks you to confirm.
+- A launcher that searches apps (ranked by how often and how recently you use them), open windows, a calculator and the web, runs shell commands, and controls the shell with `/` commands. A power menu that asks you to confirm.
 - A workspace overlay with live window previews: drag a window onto a side of another window or onto another workspace, right-drag to resize it, middle-click to close it.
 - AI chat with Gemini, OpenAI, Anthropic or an offline backend. API keys are read from environment variables or a secrets file with mode 600, never from `config.json`.
 - A lockscreen with three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
@@ -56,6 +56,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
 | Tailscale | `tailscale` |
 | Screenshot module | `grim`, `slurp`, `wl-copy` |
+| Launcher calculator | `qalc` (libqalculate), `wl-copy` |
 | NVIDIA GPU stats | `nvidia-smi` (AMD is read from sysfs) |
 | hyprlock mode | `hyprlock`, and `hypridle` to lock on idle |
 | Theme integrations | `kitty`, `cava`, `k9s`, `nvim` |
@@ -89,7 +90,7 @@ qs -c axiom ipc call <target> <function>
 | Target | Functions |
 | --- | --- |
 | `overlay` | `open`, `close`, `toggle` |
-| `appLauncher` | `show`, `hide`, `toggle` |
+| `appLauncher` | `open`, `close`, `toggle`, `search <text>` |
 | `powermenu` | `open`, `close`, `toggle` |
 | `workspaceOverlay` | `show`, `hide`, `toggle` |
 | `idleInhibit` | `enable`, `disable`, `toggle`, `status` |
@@ -98,7 +99,30 @@ qs -c axiom ipc call <target> <function>
 ```ini
 bind = SUPER, SPACE, exec, qs -c axiom ipc call appLauncher toggle
 bind = SUPER, TAB, exec, qs -c axiom ipc call overlay toggle
+bind = SUPER, T, exec, qs -c axiom ipc call appLauncher search "/theme "
 ```
+
+### Launcher
+
+Plain text searches apps and open windows. When the text is math, the result shows first, and a web search comes last. A prefix picks one kind of search:
+
+| Prefix | Does |
+| --- | --- |
+| `/` | Shell commands (list below) |
+| `=` | Calculator (qalc: math, units, currencies). Enter copies the result |
+| `>` | Runs a shell command. Shift+Enter runs it in your terminal |
+| `?` | Web search, with the engine set in Settings |
+
+Tab completes a command or its argument. Commands that change something you can see, like the theme, volume or wallpaper, keep the launcher open, so you can try several. `logout`, `reboot` and `poweroff` ask for a second Enter.
+
+- **Session:** `/lock` `/suspend` `/hibernate` `/logout` `/reboot` `/poweroff` `/power`
+- **Pages:** `/overlay [page]` `/settings` `/themes` `/bar` `/keybinds` `/editor` `/workspaces`
+- **Look:** `/theme <name>` `/dark` `/light` `/mode` `/wallpaper <file|Random>` `/generate`
+- **Audio and media:** `/volume <n|+n|-n>` `/mute` `/mic` `/output <device>` `/input <device>` `/play` `/next` `/prev`
+- **Connectivity:** `/wifi [on|off]` `/bluetooth [on|off]` `/connect <device>`
+- **Other:** `/dnd [on|off]` `/clear` `/caffeine [on|off]` `/ws <n>` `/save-config <name>` `/restore-config <name>` `/reload` `/help`
+
+Every provider can be switched off under Settings › Desktop › Launcher. The same page sets the launcher's position, size, hidden apps, terminal and search engine.
 
 ### Locking with hypridle
 
