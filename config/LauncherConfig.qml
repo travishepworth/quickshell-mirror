@@ -7,8 +7,12 @@ import qs.services
 QtObject {
   readonly property var _c: ConfigManager.config.Launcher
 
-  // "center" | "upper" | "top"
+  // "center" | "upper" | "top" | "bottom"
   readonly property string position: _c.position
+  // On the top or bottom edge, as an edge popout
+  readonly property bool attached: position === "top" || position === "bottom"
+  // Search field under the results
+  readonly property bool reverse: _c.reverse
   readonly property int width: _c.width
   readonly property int maxResults: _c.maxResults
   readonly property int iconSize: _c.iconSize

@@ -856,7 +856,6 @@
     "center": "中央",
     "Width (px)": "幅 (px)",
     "Hidden apps": "非表示のアプリ",
-    "Where on the screen the launcher opens.": "ランチャーを開く画面上の位置。",
     "upper": "上寄り",
     "Also match open windows by title and class; picking one focuses it.": "開いているウィンドウもタイトルとクラスで検索し、選ぶとフォーカスします。",
     "Upper third": "上から1/3",
@@ -884,6 +883,11 @@
     "Type / for commands that control the shell: themes, volume, wifi, bluetooth, overlay pages, session and more.": "/ でシェルを操作するコマンド: テーマ、音量、Wi-Fi、Bluetooth、オーバーレイのページ、セッションなど。",
     "Results shown": "表示する結果数",
     "Icon size (px)": "アイコンサイズ (px)",
-    "The search launcher: apps, open windows, a calculator, web search, running commands, and / commands that control the shell.": "検索ランチャー: アプリ、開いているウィンドウ、電卓、ウェブ検索、コマンドの実行、そしてシェルを操作する / コマンド。"
+    "The search launcher: apps, open windows, a calculator, web search, running commands, and / commands that control the shell.": "検索ランチャー: アプリ、開いているウィンドウ、電卓、ウェブ検索、コマンドの実行、そしてシェルを操作する / コマンド。",
+    "Put the search field under the results, with the best match nearest to it. Suits the bottom edge.": "検索欄を結果の下に置き、最も一致する結果をそのすぐ上に表示します。下端に向いています。",
+    "Top edge": "上端",
+    "Bottom edge": "下端",
+    "Where on the screen the launcher opens. On the top or bottom edge it grows out of the border or bar there, like the other edge popouts.": "ランチャーを開く画面上の位置。上端・下端では、他の端のポップアウトと同じく、そこの枠やバーから伸びて表示されます。",
+    "Search bar at the bottom": "検索欄を下に"
   }
 }

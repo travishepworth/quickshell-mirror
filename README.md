@@ -122,7 +122,7 @@ Tab completes a command or its argument. Commands that change something you can 
 - **Connectivity:** `/wifi [on|off]` `/bluetooth [on|off]` `/connect <device>`
 - **Other:** `/dnd [on|off]` `/clear` `/caffeine [on|off]` `/ws <n>` `/save-config <name>` `/restore-config <name>` `/reload` `/help`
 
-Every provider can be switched off under Settings › Desktop › Launcher. The same page sets the launcher's position, size, hidden apps, terminal and search engine.
+Every provider can be switched off under Settings › Desktop › Launcher. The same page sets the launcher's size, hidden apps, terminal and search engine, and where it opens: floating (centered or in the upper third), or attached to the top or bottom edge like the other edge popouts, with the search field above or below the results.
 
 ### Locking with hypridle
 
