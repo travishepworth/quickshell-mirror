@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Creates/updates the venv used by all python scripts in this repo (cube.py, generate_theme.py).
+# Creates/updates the venv used by all python scripts in this repo (generate_theme.py).
 set -euo pipefail
 
 AXIOM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

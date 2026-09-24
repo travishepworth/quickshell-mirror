@@ -26,11 +26,11 @@ A [Quickshell](https://quickshell.org) desktop shell config (QML) for Hyprland, 
 
 ### Directory roles
 ```
-shell.qml       entrypoint — instantiates one top-level Item per module (Bar, Lockscreen, Notifications, Overlay, OSD, Menu, ThemeSelector, AppLauncher, PowerMenu, WorkspaceOverlay, RoundedCorners)
+shell.qml       entrypoint — instantiates one top-level Item per module (Bar, Lockscreen, Notifications, Overlay, OSD, ThemeSelector, AppLauncher, PowerMenu, WorkspaceOverlay, RoundedCorners)
 modules/        top-level pieces loaded directly into shell.qml
 components/     reusable UI building blocks
   reusable/     generic styled widgets (StyledRectButton, StyledTextEntry, BaseWidget, etc.) with no feature-specific logic
-  widgets/      feature-specific composed components, grouped by feature (bar/, notifications/, popouts/, lockscreen/, menu/, applauncher/, powermenu/, workspaces/, overlay/, workspaceContainer/, common/)
+  widgets/      feature-specific composed components, grouped by feature (bar/, notifications/, popouts/, lockscreen/, applauncher/, powermenu/, workspaces/, overlay/, workspaceContainer/, common/)
   methods/      singleton helpers (Utils, IconResolver, SchemaValidation, ConfigMigration, WindowUtils, WorkspaceUtils)
 services/       pragma Singleton QtObjects — global state and side-effecting logic (see below)
 config/         static QML config singletons + JSON config/theme files
@@ -59,7 +59,7 @@ Every file is `pragma Singleton QtObject` — one global instance per name, impo
 
 ### Config layer (`config/*.qml`)
 
-Also `pragma Singleton`, but these are typed config *readers*, not owners — one per config section, exposing `readonly property` values from `ConfigManager.config`. No `??` fallbacks: the schema defaults are already filled in. Readers: `General` (displayName, primaryMonitor), `Appearance` (theme, font, shape, motion tokens), `Widget`, `Bar` (from `Bars`; the first bar is primary), `PopoutConfig` (open/dismiss delays, edge trigger size — shared by bar and edge popouts), `OSDConfig` (volume OSD: edge, position, orientation, timeout, tracked apps), `SidePanel`, `OverlayConfig` (views + card-grid constants), `IconConfig`, `ChatConfig`, `ThemeIntegrations`, plus `Config` (derived paths from `$HOME` / `Quickshell.shellDir`, not configurable) and `Theme`. Readers whose section name collides with a type get a `Config` suffix (`Popouts`, `Overlay`, `Icons`, `OSD`). UI code should read colors/settings from these (`Theme.background`, `Widget.padding`, `Bar.extent`) rather than reaching into `ConfigManager.config` directly.
+Also `pragma Singleton`, but these are typed config *readers*, not owners — one per config section, exposing `readonly property` values from `ConfigManager.config`. No `??` fallbacks: the schema defaults are already filled in. Readers: `General` (displayName, primaryMonitor), `Appearance` (theme, font, shape, motion tokens), `Widget`, `Bar` (from `Bars`; the first bar is primary), `PopoutConfig` (open/dismiss delays, edge trigger size — shared by bar and edge popouts), `OSDConfig` (volume OSD: edge, position, orientation, timeout, tracked apps), `OverlayConfig` (views + card-grid constants), `IconConfig`, `ChatConfig`, `ThemeIntegrations`, plus `Config` (derived paths from `$HOME` / `Quickshell.shellDir`, not configurable) and `Theme`. Readers whose section name collides with a type get a `Config` suffix (`Popouts`, `Overlay`, `Icons`, `OSD`). UI code should read colors/settings from these (`Theme.background`, `Widget.padding`, `Bar.extent`) rather than reaching into `ConfigManager.config` directly.
 
 **Animation timing is uniform:** every `duration:` uses `Appearance.animFast` / `animNormal` / `animSlow` (derived from `Appearance.motion.speed`, and 0 when `motion.enabled` is off), never a literal. Looping animations also gate `running` on `Appearance.animations`. Only behaviour timings (cursor blink, notification timeout, polling) stay as literals.
 
@@ -117,7 +117,7 @@ Views and modules are `oneOf`s discriminated by `type`, like `BarWidget`.
 
 ### Popouts (bar + screen edge)
 
-Shared pieces live in `components/widgets/popouts/`: `PopoutWrapperBase` (open/close/queue state, hover-loss dismiss timer), `SlideAnimation`, and `AttachedSurface` (the content box + connector + `CornerPiece` fillets that make a popout look like it grows out of a bar or the screen border; `edge` is a `Bar.Location`). Bar popouts (`bar/popouts/Popouts.qml`) share one wrapper per bar. Screen-edge popouts (`EdgePopout.qml`, used by `modules/Menu.qml`, `OSD.qml`, `ThemeSelector.qml`) are one independent instance per screen (`Variants` over `Quickshell.screens`). Each is an Overlay-layer `PanelWindow` with Normal exclusion and a `-borderWidth` margin, so it lands on the inner stroke of whatever reserves that edge: the border (`workspaceContainer/`) or a bar.
+Shared pieces live in `components/widgets/popouts/`: `PopoutWrapperBase` (open/close/queue state, hover-loss dismiss timer), `SlideAnimation`, and `AttachedSurface` (the content box + connector + `CornerPiece` fillets that make a popout look like it grows out of a bar or the screen border; `edge` is a `Bar.Location`). Bar popouts (`bar/popouts/Popouts.qml`) share one wrapper per bar. Screen-edge popouts (`EdgePopout.qml`, used by `OSD.qml` and `ThemeSelector.qml`) are one independent instance per screen (`Variants` over `Quickshell.screens`). Each is an Overlay-layer `PanelWindow` with Normal exclusion and a `-borderWidth` margin, so it lands on the inner stroke of whatever reserves that edge: the border (`workspaceContainer/`) or a bar.
 
 Icon + label bar modules extend `bar/modules/BarIconWidget.qml` (the BarModule inputs `barConfig`/`popouts`/`panel`/`screen`/`properties`, orientation, configured colors; override `backgroundColor` for states). `components/reusable/BaseWidget.qml` is the common sizing/background wrapper underneath (`Widget.height`, `Widget.padding`, `Appearance.borderRadius`, vertical/horizontal orientation via `Bar.vertical`).
 

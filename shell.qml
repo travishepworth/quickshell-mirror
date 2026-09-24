@@ -41,16 +41,11 @@ ShellRoot {
     id: themeSelector
   }
 
-  Menu {
-    id: mainMenu
-  }
-
   AppLauncher {
     id: appLauncher
   }
-  
+
   PowerMenu {
     id: powerMenu
   }
-
 }

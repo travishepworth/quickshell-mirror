@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
 import qs.components.widgets.overlay
-import qs.components.widgets.menu.chat
+import qs.components.widgets.overlay.modules.chat
 
 // The AI chat (same conversation and backends as the menu's chat)
 OverlayCard {

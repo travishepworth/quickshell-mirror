@@ -1,4 +1,3 @@
-// components/widgets/menu/chat/ChatInput.qml
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls // Added for TextInput.Wrap enum

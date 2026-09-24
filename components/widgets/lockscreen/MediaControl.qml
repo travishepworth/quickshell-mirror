@@ -6,7 +6,6 @@ import QtQuick.Layouts
 import qs.services
 import qs.config
 import qs.components.reusable
-import qs.components.widgets.menu
 
 StyledContainer {
   id: root

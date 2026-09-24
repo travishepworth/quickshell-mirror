@@ -218,20 +218,6 @@
       }
     },
 
-    "SidePanel": {
-      "type": "object",
-      "title": "Side panel",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "title": "Enabled",
-          "default": false,
-          "description": "Show the side panel (quick settings, media, chat) when hovering the right screen edge."
-        }
-      }
-    },
-
     "Chat": {
       "type": "object",
       "title": "Chat",

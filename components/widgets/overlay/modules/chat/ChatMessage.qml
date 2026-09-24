@@ -1,4 +1,3 @@
-// components/widgets/menu/chat/ChatMessage.qml
 import QtQuick
 import QtQuick.Layouts
 import qs.config
@@ -11,7 +10,7 @@ RowLayout {
 
   property string role: "user"
   property string content: "..."
-  
+
   property string messageBackend: ""
 
   readonly property bool isUser: role === "user"
@@ -25,7 +24,7 @@ RowLayout {
   // 2. When the component is created, capture the current backend name
   Component.onCompleted: {
     if (!isUser && !isConfig) {
-      messageBackend = ChatManager.currentBackend
+      messageBackend = ChatManager.currentBackend;
     }
   }
 
@@ -34,7 +33,7 @@ RowLayout {
     Layout.maximumWidth: delegateRoot.width * 0.75
     Layout.leftMargin: 10
     Layout.rightMargin: 10
-    
+
     spacing: 6
 
     RowLayout {
