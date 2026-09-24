@@ -498,6 +498,74 @@
       }
     },
 
+    "WorkspaceOverlay": {
+      "type": "object",
+      "x-category": "Overlay & OSD",
+      "title": "Workspace overview",
+      "description": "The full-screen 5×5 workspace grid: drag windows between workspaces, right-drag to resize, middle-click to close.",
+      "additionalProperties": false,
+      "properties": {
+        "background": {
+          "type": "string",
+          "title": "Workspace background",
+          "enum": ["wallpaper", "color"],
+          "x-enumLabels": { "wallpaper": "Monitor's wallpaper", "color": "Theme color" },
+          "default": "wallpaper",
+          "description": "What each workspace shows behind its windows."
+        },
+        "color": {
+          "type": "string",
+          "title": "Background color",
+          "x-options": "colors",
+          "default": "base01",
+          "description": "The workspaces' color.",
+          "x-showIf": { "background": "color" }
+        },
+        "dimInactive": {
+          "type": "integer",
+          "title": "Dim other workspaces (%)",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 90,
+          "description": "How much darker workspaces other than the active one are drawn."
+        },
+        "size": {
+          "type": "integer",
+          "title": "Size (%)",
+          "default": 85,
+          "minimum": 40,
+          "maximum": 100,
+          "description": "How much of the screen the grid may take."
+        },
+        "backdrop": {
+          "type": "integer",
+          "title": "Backdrop darkness (%)",
+          "default": 70,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "How dark the screen behind the grid goes."
+        },
+        "showNumbers": {
+          "type": "boolean",
+          "title": "Workspace numbers",
+          "default": true,
+          "description": "Show each workspace's number in its corner."
+        },
+        "showTitles": {
+          "type": "boolean",
+          "title": "Window titles",
+          "default": true,
+          "description": "Show a window's title while it's hovered."
+        },
+        "showHint": {
+          "type": "boolean",
+          "title": "Controls hint",
+          "default": true,
+          "description": "Show the mouse controls under the grid."
+        }
+      }
+    },
+
     "Bars": {
       "type": "array",
       "description": "Bars, in priority order: the first is the primary bar. Edited in the overlay's bar editor.",

@@ -5,38 +5,30 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.services
 import qs.config
+import qs.components.reusable
 import qs.components.surfaces.workspaces
 
+// The workspace overview: this monitor's 5×5 workspace grid with its
+// windows, full screen. Drag a window to move it (onto a side of another
+// window), right-drag to resize, middle-click to close.
 Scope {
   id: root
   objectName: "workspaceOverlay"
 
-  // Configuration
-  property int gridSize: 5
-  property int totalWorkspaces: 25
-  property real overviewScale: 0.15
-
-  // Colors
-  property color overlayBgColor: Qt.rgba(0, 0, 0, 0.7)
-
-  // Animation
-  property int fadeAnimationDuration: Appearance.animNormal
-
-  // Shared visibility state
   property bool overlayVisible: false
   // Screen it opens on, fixed when it opens
   property string openScreen: ""
   onOverlayVisibleChanged: {
-    if (overlayVisible)
+    if (overlayVisible) {
       openScreen = ShellManager.targetScreen;
+      HyprlandManager.updateAll();
+    }
   }
 
   Connections {
     target: ShellManager
     function onToggleWorkspaceOverlay() {
       root.overlayVisible = !root.overlayVisible;
-      if (root.overlayVisible)
-        HyprlandManager.updateAll();
     }
   }
 
@@ -44,17 +36,11 @@ Scope {
     target: "workspaceOverlay"
 
     function toggle(): void {
-      console.log("Toggling workspace overlay");
       root.overlayVisible = !root.overlayVisible;
-      if (root.overlayVisible) {
-        HyprlandManager.updateAll();
-      }
-      console.log("Overlay visible:", root.overlayVisible);
     }
 
     function show(): void {
       root.overlayVisible = true;
-      HyprlandManager.updateAll();
     }
 
     function hide(): void {
@@ -62,18 +48,6 @@ Scope {
     }
   }
 
-  // Single focus grab for all windows
-  HyprlandFocusGrab {
-    active: root.overlayVisible
-
-    onCleared: {
-      if (!active) {
-        root.overlayVisible = false;
-      }
-    }
-  }
-
-  // Create a PanelWindow for each screen
   Variants {
     model: General.screens
 
@@ -81,73 +55,97 @@ Scope {
       id: overlayWindow
       required property var modelData
 
-      screen: modelData
+      readonly property bool shown: root.overlayVisible && modelData.name === root.openScreen
+      // Room the controls hint takes under the grid
+      readonly property real hintSpace: hint.visible ? hint.height + Widget.spacing : 0
 
+      screen: modelData
       anchors {
         top: true
         bottom: true
         left: true
         right: true
       }
-
-      // Only the screen it was opened on
-      visible: root.overlayVisible && modelData.name === root.openScreen
-      focusable: visible
+      // Over everything, so window coordinates are the monitor's (the
+      // cursor goes back to them after a drop)
+      exclusionMode: ExclusionMode.Ignore
+      visible: overlayWindow.shown || content.opacity > 0
       color: "transparent"
 
       WlrLayershell.layer: WlrLayer.Overlay
-      WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+      WlrLayershell.namespace: "axiom-workspaces"
+      // OnDemand, not Exclusive: an exclusive layer makes Hyprland refuse
+      // focus to every window, so focusing one (a click, a drop's target)
+      // would only switch the workspace, and closing would refocus the old
+      // window and switch back. The focus grab keeps the keyboard here.
+      WlrLayershell.keyboardFocus: overlayWindow.shown ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
-      Component.onCompleted: {
-        console.log("Created overlay window for screen:", modelData?.name ?? "unknown");
-      }
-
-      // Keyboard handling
-      Item {
-        anchors.fill: parent
-        focus: overlayWindow.focusable
-
-        Keys.onPressed: event => {
-          if (event.key === Qt.Key_Escape) {
+      HyprlandFocusGrab {
+        id: grab
+        // Off for a moment to take the grab back after a drop moved focus
+        property bool rearming: false
+        active: overlayWindow.shown && !grab.rearming
+        windows: [overlayWindow]
+        onCleared: {
+          if (overview.recentAction()) {
+            grab.rearming = true;
+            Qt.callLater(() => grab.rearming = false);
+          } else {
             root.overlayVisible = false;
-            event.accepted = true;
           }
         }
       }
 
-      Rectangle {
+      Item {
+        id: content
         anchors.fill: parent
-        anchors.topMargin: Bar.vertical ? Appearance.screenMargin : Appearance.borderWidth
-        anchors.bottomMargin: Bar.bottom ? Appearance.borderWidth : Appearance.screenMargin
-        anchors.rightMargin: Bar.right ? Appearance.borderWidth : Appearance.screenMargin
-        anchors.leftMargin: Bar.vertical ? Appearance.borderWidth : Appearance.screenMargin
-        radius: Appearance.borderRadius
-        color: root.overlayBgColor
+        opacity: overlayWindow.shown ? 1 : 0
+        focus: overlayWindow.shown
 
         Behavior on opacity {
           NumberAnimation {
-            duration: root.fadeAnimationDuration
-            easing.type: Easing.InOutQuad
+            duration: Appearance.animNormal
+            easing.type: Appearance.easing
           }
         }
 
-        MouseArea {
-          anchors.fill: parent
-          onClicked: {
+        Keys.onEscapePressed: {
+          if (!overview.cancelInteraction())
             root.overlayVisible = false;
+        }
+
+        // Dim backdrop: a click on it closes
+        Rectangle {
+          anchors.fill: parent
+          color: Qt.rgba(Theme.base00.r, Theme.base00.g, Theme.base00.b, WorkspaceOverlayConfig.backdrop)
+
+          MouseArea {
+            anchors.fill: parent
+            onClicked: root.overlayVisible = false
           }
         }
-      }
 
-      OverviewGrid {
-        id: workspaceGrid
-        anchors.centerIn: parent
-        overviewScale: root.overviewScale
-        screen: overlayWindow.screen
+        OverviewGrid {
+          id: overview
+          anchors.centerIn: parent
+          anchors.verticalCenterOffset: -overlayWindow.hintSpace / 2
+          screen: overlayWindow.modelData
+          active: overlayWindow.shown
+          availableWidth: parent.width * WorkspaceOverlayConfig.size
+          availableHeight: parent.height * WorkspaceOverlayConfig.size - overlayWindow.hintSpace
 
-        onWorkspaceClicked: workspaceId => {
-          root.overlayVisible = false;
-          HyprlandManager.focusWorkspace(workspaceId);
+          onCloseRequested: root.overlayVisible = false
+        }
+
+        StyledText {
+          id: hint
+          visible: WorkspaceOverlayConfig.showHint
+          anchors.top: overview.bottom
+          anchors.topMargin: Widget.spacing
+          anchors.horizontalCenter: parent.horizontalCenter
+          text: I18n.tr("Click to go · Drag to move · Right-drag to resize · Middle-click to close")
+          textColor: Theme.foregroundAlt
+          textSize: Appearance.fontSize - 1
         }
       }
     }

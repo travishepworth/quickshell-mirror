@@ -26,19 +26,8 @@ Item {
 
   property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
 
-  // Base ID for this monitor's 25-workspace range - calculate from monitor index
-  readonly property int workspaceBase: {
-    if (!monitor)
-      return 1;
-
-    const monitors = Hyprland.monitors.values;
-    for (let i = 0; i < monitors.length; i++) {
-      if (monitors[i].id === monitor.id) {
-        return i * 25 + 1;
-      }
-    }
-    return 1;
-  }
+  // First id of this monitor's 25-workspace range
+  readonly property int workspaceBase: HyprlandManager.gridBase(root.monitor)
 
   // Get workspaces for THIS monitor only
   readonly property var monitorWorkspaces: {

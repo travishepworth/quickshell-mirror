@@ -32,7 +32,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 - Notification toasts and a notification center.
 - An OSD that follows the volume of the apps you choose.
 - An app launcher, and a power menu that asks you to confirm.
-- A workspace overlay.
+- A workspace overlay with live window previews: drag a window onto a side of another window or onto another workspace, right-drag to resize it, middle-click to close it.
 - AI chat with Gemini, OpenAI, Anthropic or an offline backend. API keys are read from environment variables or a secrets file with mode 600, never from `config.json`.
 - A lockscreen with three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
 - Multi-monitor: interactive surfaces open on the primary monitor, or on whichever monitor has focus.

@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 
@@ -8,148 +7,323 @@ import qs.services
 import qs.config
 import qs.components.methods
 
+// One monitor's 5×5 workspace board: wallpaper cells with their windows as
+// live previews. Input is all OverviewInput's; this lays out, and turns its
+// drops and resizes into HyprlandManager actions.
 Rectangle {
   id: root
+
   required property var screen
+  // Open: previews capture only then
+  property bool active: true
+  property real availableWidth: 1920
+  property real availableHeight: 1080
 
-  // Colors
-  property color gridBgColor: Theme.background
-  property color gridBorderColor: Theme.border
+  signal closeRequested
 
-  // Grid configuration
-  property real overviewScale: 0.15
-  property int gridSize: 5
-  property int workspaceSpacing: 10
-  property real padding: 20
+  readonly property int grid: 5
+  readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
+  readonly property int base: HyprlandManager.gridBase(root.monitor)
+  readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
+  // Global layout origin (hyprctl coordinates) and logical size
+  readonly property real monitorX: root.monitor?.x ?? 0
+  readonly property real monitorY: root.monitor?.y ?? 0
+  readonly property real monitorW: root.screen?.width ?? 1920
+  readonly property real monitorH: root.screen?.height ?? 1080
 
-  property int monitorIndex: {
-    for (let i = 0; i < Hyprland.monitors.values.length; i++) {
-      if (Hyprland.monitors.values[i]?.name === monitorName) {
-        return i;
+  readonly property real gap: Widget.spacing * 1.5
+  readonly property real pad: Widget.spacing * 2
+  readonly property real miniScale: WorkspaceGeometry.fitScale(availableWidth - pad * 2, availableHeight - pad * 2, monitorW, monitorH, gap, grid)
+  readonly property real cellW: Math.floor(monitorW * miniScale)
+  readonly property real cellH: Math.floor(monitorH * miniScale)
+  readonly property real cellRadius: Math.max(2, Appearance.borderRadius * 0.75)
+
+  // This monitor's windows on its 25 workspaces
+  readonly property var windows: HyprlandManager.windowList.filter(w => w.monitor === root.monitor?.id && w.workspace?.id >= root.base && w.workspace?.id < root.base + root.grid * root.grid && w.mapped !== false && !w.hidden)
+  readonly property var byAddress: root.windows.reduce((map, w) => {
+    map[w.address] = w;
+    return map;
+  }, {})
+  // Hit-testing and layout: [{ address, floating, cell, rect (board coords) }]
+  readonly property var items: root.windows.map(w => {
+    const cell = w.workspace.id - root.base;
+    const origin = WorkspaceGeometry.cellRect(cell, root.cellW, root.cellH, root.gap, root.grid);
+    const r = WorkspaceGeometry.windowRect(w, root.monitorX, root.monitorY, root.miniScale, root.cellW, root.cellH);
+    return {
+      address: w.address,
+      floating: w.floating,
+      cell: cell,
+      rect: {
+        x: origin.x + r.x,
+        y: origin.y + r.y,
+        w: r.w,
+        h: r.h
       }
+    };
+  })
+  // The previews are modelled by this, so they (and their captures) only
+  // rebuild when windows come or go, not on every window event
+  readonly property string _addressKey: root.windows.map(w => w.address).join(",")
+
+  function itemFor(address) {
+    return root.items.find(item => item.address === address) ?? null;
+  }
+
+  // Set on each action: a drop can move keyboard focus, which clears the
+  // focus grab, and that shouldn't close the overview
+  property real _lastAction: 0
+  function recentAction() {
+    return Date.now() - root._lastAction < 1000;
+  }
+
+  // Esc: stop a drag or resize. False when there was none.
+  function cancelInteraction() {
+    return input.cancel();
+  }
+
+  function goTo(cell) {
+    HyprlandManager.focusWorkspace(root.base + cell);
+    root.closeRequested();
+  }
+
+  function focusWindow(address) {
+    HyprlandManager.focusWindow(address);
+    root.closeRequested();
+  }
+
+  function closeWindow(address) {
+    root._lastAction = Date.now();
+    HyprlandManager.closeWindow(address);
+  }
+
+  // A window dropped at a board point, its preview's corner at `corner`;
+  // `cursor` is the pointer in overlay coordinates
+  function dropWindow(address, cell, point, corner, cursor) {
+    const win = root.byAddress[address];
+    if (!win || cell < 0)
+      return;
+    const workspaceId = root.base + cell;
+    const same = win.workspace.id === workspaceId;
+    root._lastAction = Date.now();
+    if (win.floating) {
+      const origin = WorkspaceGeometry.cellRect(cell, root.cellW, root.cellH, root.gap, root.grid);
+      const size = root.itemFor(address)?.rect ?? {
+        w: 0,
+        h: 0
+      };
+      const x = Math.min(Math.max(corner.x - origin.x, 0), root.cellW - size.w);
+      const y = Math.min(Math.max(corner.y - origin.y, 0), root.cellH - size.h);
+      HyprlandManager.placeWindow(address, workspaceId, "", "", null, same, {
+        x: root.monitorX + x / root.miniScale,
+        y: root.monitorY + y / root.miniScale
+      });
+      return;
     }
-    return 0;
+    const target = root.dropTargetAt(cell, point, address);
+    // Alone on its workspace: nowhere else to go
+    if (same && !target)
+      return;
+    HyprlandManager.placeWindow(address, workspaceId, target?.address ?? "", target?.side ?? "", {
+      x: root.monitorX + cursor.x,
+      y: root.monitorY + cursor.y
+    }, same, null);
   }
 
-  property int workspaceOffset: monitorIndex * 25
-
-  // Computed properties
-  property var activeWorkspace: HyprlandManager.activeWorkspaceId()
-
-  property real workspaceWidth: ((screen?.width ?? Hyprland.focusedMonitor?.width ?? 1920) * overviewScale)
-  property real workspaceHeight: ((screen?.height ?? Hyprland.focusedMonitor?.height ?? 1080) * overviewScale)
-  property string monitorName: screen?.name ?? Hyprland.focusedMonitor?.name ?? ""
-
-  signal workspaceClicked(int workspaceId)
-
-  implicitWidth: (workspaceWidth * gridSize) + (workspaceSpacing * (gridSize - 1)) + (padding * 2)
-  implicitHeight: (workspaceHeight * gridSize) + (workspaceSpacing * (gridSize - 1)) + (padding * 2)
-
-  color: gridBgColor
-  radius: 8
-  border.width: 2
-  border.color: gridBorderColor
-
-  Component.onCompleted: {
-    console.log("WorkspaceGrid created for monitor:", monitorName, "index:", monitorIndex, "offset:", workspaceOffset);
+  // Where a tiled window dropped at a point lands (see WorkspaceGeometry)
+  function dropTargetAt(cell, point, address) {
+    const others = root.items.filter(item => item.cell === cell && !item.floating && item.address !== address);
+    return WorkspaceGeometry.dropTarget(others, point.x, point.y, HyprlandManager.splitWidthMultiplier);
   }
 
-  // Container for all workspace cells
+  // A resize step, in board pixels
+  function resizeWindow(address, dw, dh, dx, dy) {
+    root._lastAction = Date.now();
+    const s = root.miniScale;
+    HyprlandManager.resizeWindow(address, dw / s, dh / s, dx / s, dy / s);
+  }
+
+  implicitWidth: board.width + root.pad * 2
+  implicitHeight: board.height + root.pad * 2
+  radius: Appearance.borderRadius
+  color: Theme.background
+  border.color: Theme.border
+  border.width: Appearance.borderWidth
+
+  // Clicks on the panel's margin don't reach the backdrop (which closes)
+  MouseArea {
+    anchors.fill: parent
+    acceptedButtons: Qt.AllButtons
+  }
+
   Item {
-    id: workspaceContainer
-    anchors.centerIn: parent
-    width: (root.workspaceWidth * root.gridSize) + (root.workspaceSpacing * (root.gridSize - 1))
-    height: (root.workspaceHeight * root.gridSize) + (root.workspaceSpacing * (root.gridSize - 1))
+    id: board
+    x: root.pad
+    y: root.pad
+    width: root.cellW * root.grid + root.gap * (root.grid - 1)
+    height: root.cellH * root.grid + root.gap * (root.grid - 1)
 
-    // Create all 25 workspace cells
     Repeater {
-      model: 25
+      model: root.grid * root.grid
 
       WorkspaceCell {
         required property int index
+        readonly property var rect: WorkspaceGeometry.cellRect(index, root.cellW, root.cellH, root.gap, root.grid)
 
-        workspaceId: index + 1 + root.workspaceOffset
-        width: root.workspaceWidth
-        height: root.workspaceHeight
-        isActive: workspaceId === root.activeWorkspace
-
-        property var gridPos: WorkspaceGeometry.getWorkspacePosition(index + 1, root.gridSize)
-        x: gridPos.col * (root.workspaceWidth + root.workspaceSpacing)
-        y: gridPos.row * (root.workspaceHeight + root.workspaceSpacing)
-
-        onClicked: {
-          root.workspaceClicked(workspaceId);
-        }
+        x: rect.x
+        y: rect.y
+        width: root.cellW
+        height: root.cellH
+        number: index + 1
+        wallpaper: WorkspaceOverlayConfig.wallpaper ? Appearance.wallpaperFor(root.screen?.name ?? "") : ""
+        color: WorkspaceOverlayConfig.color
+        dim: WorkspaceOverlayConfig.dimInactive
+        showNumber: WorkspaceOverlayConfig.showNumbers
+        radius: root.cellRadius
+        current: root.base + index === root.activeId
+        hovered: input.hoveredCell === index && input.mode === ""
+        dropTarget: input.mode === "drag" && input.dropCell === index
+        // An empty workspace takes the whole cell
+        dropFill: dropTarget && input.dropHint === null
       }
     }
-  }
-
-  Item {
-    id: windowContainer
-    anchors.centerIn: parent
-    width: workspaceContainer.width
-    height: workspaceContainer.height
-    z: 1000
 
     Repeater {
-      model: HyprlandManager.windowList
+      model: root._addressKey === "" ? [] : root._addressKey.split(",")
 
-      delegate: DraggableWindow {
-        required property var modelData
-        required property int index
-
-        windowData: modelData
-        overviewScale: root.overviewScale
-        gridSize: root.gridSize
-        workspaceWidth: root.workspaceWidth
-        workspaceHeight: root.workspaceHeight
-        workspaceSpacing: root.workspaceSpacing
-        workspaceOffset: root.workspaceOffset
-
-        monitorActualWidth: root.screen?.width ?? 1920
-        monitorActualHeight: root.screen?.height ?? 1080
-
-        property int wsId: modelData?.workspace?.id ?? 1
-        property int localWsId: ((wsId - 1) % 25) + 1
-        property var windowMonitor: Hyprland.monitors.values[modelData?.monitor ?? 0]
-        property var gridPos: WorkspaceGeometry.getWorkspacePosition(localWsId, root.gridSize)
-
-        visible: WorkspaceGeometry.isWorkspaceVisible(localWsId) && (windowMonitor?.name === root.monitorName)
-
-        offsetX: gridPos.col * (root.workspaceWidth + root.workspaceSpacing)
-        offsetY: gridPos.row * (root.workspaceHeight + root.workspaceSpacing)
-
-        onWindowDropped: targetWorkspace => {
-          if (modelData?.workspace?.id && targetWorkspace !== modelData.workspace.id) {
-            HyprlandManager.moveWindowToWorkspace(modelData.address, targetWorkspace);
-            HyprlandManager.updateAll();
-          }
+      WindowPreview {
+        id: preview
+        required property string modelData
+        readonly property var item: root.itemFor(modelData)
+        readonly property var rect: item?.rect ?? {
+          x: 0,
+          y: 0,
+          w: 0,
+          h: 0
         }
 
-        onWindowClicked: {
-          if (modelData?.workspace?.id) {
-            root.workspaceClicked(modelData.workspace.id);
+        x: rect.x
+        y: rect.y
+        width: rect.w
+        height: rect.h
+        z: item?.floating ? 2 : 1
+        visible: item !== null
+        windowData: root.byAddress[modelData] ?? null
+        capturing: root.active
+        showTitle: WorkspaceOverlayConfig.showTitles
+        radius: Math.max(2, root.cellRadius * 0.6)
+        hovered: input.hoveredAddress === modelData && (input.mode === "" || input.mode === "resize")
+        resizing: input.mode === "resize" && input.activeAddress === modelData
+        opacity: input.mode === "drag" && input.activeAddress === modelData ? 0.3 : 1
+
+        Behavior on x {
+          enabled: !preview.resizing
+          NumberAnimation {
+            duration: Appearance.animFast
+            easing.type: Appearance.easing
           }
         }
-
-        onWindowClosed: {
-          if (modelData?.address) {
-            HyprlandManager.closeWindow(modelData.address);
-            HyprlandManager.updateAll();
+        Behavior on y {
+          enabled: !preview.resizing
+          NumberAnimation {
+            duration: Appearance.animFast
+            easing.type: Appearance.easing
           }
         }
-
-        onWindowResized:
-        // TODO: Implement window resize functionality
-        {}
+        Behavior on width {
+          enabled: !preview.resizing
+          NumberAnimation {
+            duration: Appearance.animFast
+            easing.type: Appearance.easing
+          }
+        }
+        Behavior on height {
+          enabled: !preview.resizing
+          NumberAnimation {
+            duration: Appearance.animFast
+            easing.type: Appearance.easing
+          }
+        }
       }
     }
-  }
 
-  // TODO: Add special workspace boxes here for scratchpads
-  // SpecialWorkspaceContainer {
-  //   anchors.left: parent.right
-  //   anchors.leftMargin: 20
-  //   anchors.verticalCenter: parent.verticalCenter
-  // }
+    // Where a dragged tiled window will land
+    Rectangle {
+      id: dropBox
+      readonly property var hint: input.dropHint
+      // It appears in place and only animates between halves once shown;
+      // otherwise it would fly in from the board's corner (0, 0)
+      property bool animate: false
+      onVisibleChanged: {
+        dropBox.animate = false;
+        if (dropBox.visible)
+          Qt.callLater(() => dropBox.animate = dropBox.visible);
+      }
+
+      visible: input.mode === "drag" && hint !== null
+      x: hint?.rect.x ?? 0
+      y: hint?.rect.y ?? 0
+      width: hint?.rect.w ?? 0
+      height: hint?.rect.h ?? 0
+      z: 3
+      radius: Math.max(2, root.cellRadius * 0.6)
+      color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
+      border.color: Theme.accent
+      border.width: Appearance.borderWidth * 2
+
+      Behavior on x {
+        enabled: dropBox.animate
+        NumberAnimation {
+          duration: Appearance.animFast
+          easing.type: Appearance.easing
+        }
+      }
+      Behavior on y {
+        enabled: dropBox.animate
+        NumberAnimation {
+          duration: Appearance.animFast
+          easing.type: Appearance.easing
+        }
+      }
+      Behavior on width {
+        enabled: dropBox.animate
+        NumberAnimation {
+          duration: Appearance.animFast
+          easing.type: Appearance.easing
+        }
+      }
+      Behavior on height {
+        enabled: dropBox.animate
+        NumberAnimation {
+          duration: Appearance.animFast
+          easing.type: Appearance.easing
+        }
+      }
+    }
+
+    // The dragged window, under the pointer
+    WindowPreview {
+      readonly property var rect: root.itemFor(input.activeAddress)?.rect ?? {
+        w: 0,
+        h: 0
+      }
+      visible: input.mode === "drag"
+      x: input.ghostX
+      y: input.ghostY
+      width: rect.w
+      height: rect.h
+      z: 4
+      windowData: input.mode === "drag" ? root.byAddress[input.activeAddress] ?? null : null
+      capturing: root.active && visible
+      radius: Math.max(2, root.cellRadius * 0.6)
+      hovered: true
+      opacity: 0.9
+    }
+
+    OverviewInput {
+      id: input
+      anchors.fill: parent
+      z: 5
+      overview: root
+    }
+  }
 }

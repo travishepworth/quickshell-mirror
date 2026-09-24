@@ -2,48 +2,146 @@ pragma Singleton
 
 import QtQuick
 
-// Pure geometry for the workspace overlay grid (actions live in
-// HyprlandManager)
+// Pure geometry for the workspace overview: a grid×grid board of monitor
+// miniatures. Grid coordinates have (0, 0) at the first cell's corner; rects
+// are { x, y, w, h } (actions live in HyprlandManager).
 QtObject {
   id: root
 
-  // The workspace grid shows workspaces 1-25
-  function isWorkspaceVisible(workspaceId) {
-    return workspaceId >= 1 && workspaceId <= 25;
+  // The largest scale at which grid×grid monitors of monW×monH, `gap` apart,
+  // fit in availW×availH
+  function fitScale(availW, availH, monW, monH, gap, grid) {
+    if (monW <= 0 || monH <= 0)
+      return 0.1;
+    const sx = (availW - gap * (grid - 1)) / (monW * grid);
+    const sy = (availH - gap * (grid - 1)) / (monH * grid);
+    return Math.max(0.01, Math.min(sx, sy));
   }
 
-  function getWorkspacePosition(workspaceId, gridSize) {
-    let index = workspaceId - 1;
+  function cellRect(index, cellW, cellH, gap, grid) {
     return {
-      row: Math.floor(index / gridSize),
-      col: index % gridSize
+      x: (index % grid) * (cellW + gap),
+      y: Math.floor(index / grid) * (cellH + gap),
+      w: cellW,
+      h: cellH
     };
   }
 
-  function calculateWindowConstraints(windowData, scale, workspaceWidth, workspaceHeight) {
-    let scaledX = ((windowData?.at[0] ?? 0) * scale);
-    let scaledY = ((windowData?.at[1] ?? 0) * scale);
-    let scaledWidth = Math.max((windowData?.size[0] ?? 100) * scale, 20);
-    let scaledHeight = Math.max((windowData?.size[1] ?? 100) * scale, 20);
+  // The cell index under a point, or -1 (gaps and outside the board)
+  function cellAt(x, y, cellW, cellH, gap, grid) {
+    const col = Math.floor(x / (cellW + gap));
+    const row = Math.floor(y / (cellH + gap));
+    if (col < 0 || row < 0 || col >= grid || row >= grid)
+      return -1;
+    if (x - col * (cellW + gap) > cellW || y - row * (cellH + gap) > cellH)
+      return -1;
+    return row * grid + col;
+  }
 
+  // A hyprctl client's rect inside its cell. `at` is global layout
+  // coordinates, so the monitor's origin comes off first.
+  function windowRect(win, monitorX, monitorY, scale, cellW, cellH) {
+    const w = Math.max(8, Math.min((win?.size?.[0] ?? 0) * scale, cellW));
+    const h = Math.max(8, Math.min((win?.size?.[1] ?? 0) * scale, cellH));
+    const x = ((win?.at?.[0] ?? 0) - monitorX) * scale;
+    const y = ((win?.at?.[1] ?? 0) - monitorY) * scale;
     return {
-      x: Math.min(Math.max(scaledX, 0), Math.max(workspaceWidth - scaledWidth, 0)),
-      y: Math.min(Math.max(scaledY, 0), Math.max(workspaceHeight - scaledHeight, 0)),
-      width: scaledWidth,
-      height: scaledHeight
+      x: Math.min(Math.max(x, 0), cellW - w),
+      y: Math.min(Math.max(y, 0), cellH - h),
+      w: w,
+      h: h
     };
   }
 
-  function getTargetWorkspaceFromPosition(x, y, width, height, workspaceWidth, workspaceHeight, workspaceSpacing, gridSize) {
-    let centerX = x + (width / 2);
-    let centerY = y + (height / 2);
+  function contains(r, x, y) {
+    return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+  }
 
-    let col = Math.floor(centerX / (workspaceWidth + workspaceSpacing));
-    let row = Math.floor(centerY / (workspaceHeight + workspaceSpacing));
+  function _distance(r, x, y) {
+    const dx = Math.max(r.x - x, 0, x - (r.x + r.w));
+    const dy = Math.max(r.y - y, 0, y - (r.y + r.h));
+    return dx * dx + dy * dy;
+  }
 
-    col = Math.max(0, Math.min(col, gridSize - 1));
-    row = Math.max(0, Math.min(row, gridSize - 1));
+  // The topmost window under a point: floating windows sit above tiled ones.
+  // items: [{ address, floating, rect }] in grid coordinates.
+  function windowAt(items, x, y) {
+    let tiled = "";
+    for (let i = items.length - 1; i >= 0; i--) {
+      const item = items[i];
+      if (!contains(item.rect, x, y))
+        continue;
+      if (item.floating)
+        return item.address;
+      if (tiled === "")
+        tiled = item.address;
+    }
+    return tiled;
+  }
 
-    return row * gridSize + col + 1;
+  // Where dwindle tiles a window dropped at a point, as HyprlandManager's
+  // placeWindow reproduces it: on the tiled window under the point (else the
+  // nearest), side by side when that is wider than tall × multiplier, in the
+  // half the point is in. items: that cell's other tiled windows. Returns
+  // { address, side, rect: the half } or null for an empty workspace.
+  function dropTarget(items, x, y, multiplier) {
+    let best = null;
+    let bestDistance = -1;
+    for (const item of items) {
+      const d = _distance(item.rect, x, y);
+      if (best === null || d < bestDistance) {
+        best = item;
+        bestDistance = d;
+      }
+    }
+    if (best === null)
+      return null;
+    const r = best.rect;
+    if (r.w > r.h * multiplier) {
+      const first = x < r.x + r.w / 2;
+      return {
+        address: best.address,
+        side: first ? "left" : "right",
+        rect: {
+          x: first ? r.x : r.x + r.w / 2,
+          y: r.y,
+          w: r.w / 2,
+          h: r.h
+        }
+      };
+    }
+    const first = y < r.y + r.h / 2;
+    return {
+      address: best.address,
+      side: first ? "top" : "bottom",
+      rect: {
+        x: r.x,
+        y: first ? r.y : r.y + r.h / 2,
+        w: r.w,
+        h: r.h / 2
+      }
+    };
+  }
+
+  // The edges a resize grabs from a press: those whose outer third it's in
+  // (both near a corner), or the nearest one from the middle.
+  function resizeEdges(r, x, y) {
+    const edges = {
+      left: x < r.x + r.w / 3,
+      right: x > r.x + r.w * 2 / 3,
+      top: y < r.y + r.h / 3,
+      bottom: y > r.y + r.h * 2 / 3
+    };
+    if (edges.left || edges.right || edges.top || edges.bottom)
+      return edges;
+    const distances = {
+      left: x - r.x,
+      right: r.x + r.w - x,
+      top: y - r.y,
+      bottom: r.y + r.h - y
+    };
+    const nearest = Object.keys(distances).reduce((a, b) => distances[a] <= distances[b] ? a : b);
+    edges[nearest] = true;
+    return edges;
   }
 }

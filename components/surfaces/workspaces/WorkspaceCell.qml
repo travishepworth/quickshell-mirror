@@ -1,117 +1,111 @@
 import QtQuick
-import QtQuick.Layouts
-import Quickshell
+import QtQuick.Effects
 
-import qs.services
 import qs.config
+import qs.components.reusable
 
-Rectangle {
+// One workspace on the overview board: a miniature desktop (the monitor's
+// wallpaper, or a plain color) with its number. Visual only; OverviewInput takes the input.
+Item {
   id: root
 
-  // Colors
-  property color cellBgColor: Theme.backgroundAlt
-  property color cellBgHoverColor: Theme.base01
-  property color cellBgDragColor: Theme.base02
-  property color cellBorderColor: Theme.border
-  property color cellBorderActiveColor: Theme.accent
-  property color cellTextColor: Theme.foreground
+  property int number: 1
+  // A wallpaper URL, or "" for a plain `color`
+  property string wallpaper: ""
+  property color color: Theme.backgroundAlt
+  // 0-1: how dark it is drawn when it isn't the active workspace
+  property real dim: 0.5
+  property bool showNumber: true
+  property real radius: Appearance.borderRadius
+  // The monitor's active workspace
+  property bool current: false
+  property bool hovered: false
+  // A window is being dragged over it; dropFill: onto it as a whole (it
+  // has no tiled windows to split)
+  property bool dropTarget: false
+  property bool dropFill: false
 
-  // Animation properties
-  property int colorAnimationDuration: Appearance.animNormal
-  property int borderAnimationDuration: Appearance.animNormal
-
-  // Core properties
-  property int workspaceId: 1
-  property bool isActive: false
-  property real scale: 0.15
-
-  signal clicked
-
-  color: cellBgColor
-  radius: 4
-  border.width: isActive ? 3 : 1
-  border.color: isActive ? cellBorderActiveColor : cellBorderColor
-
-  Behavior on border.color {
-    ColorAnimation {
-      duration: root.borderAnimationDuration
-    }
-  }
-
-  Behavior on border.width {
-    NumberAnimation {
-      duration: root.borderAnimationDuration
-    }
-  }
-
-  // Optional workspace number label (uncomment if needed)
-  /*
-  Text {
-    anchors.centerIn: parent
-    text: root.workspaceId.toString()
-    font.family: "VictorMono Nerd Font"
-    font.pixelSize: Math.min(root.width, root.height) * 0.3
-    font.weight: Font.Bold
-    color: root.cellTextColor
-    opacity: 0.3
-  }
-  */
-
-  MouseArea {
-    id: mouseArea
+  Item {
+    id: desktop
     anchors.fill: parent
-    hoverEnabled: true
-    onClicked: {
-      root.clicked();
-    }
-  }
-
-  // Drop area for windows
-  DropArea {
-    id: dropArea
-    anchors.fill: parent
-    property bool containsDrag: false
-
-    onEntered: {
-      containsDrag = true;
-      root.color = root.cellBgDragColor;
+    layer.enabled: true
+    layer.effect: MultiEffect {
+      maskEnabled: true
+      maskSource: mask
+      maskThresholdMin: 0.5
+      maskSpreadAtMin: 1
     }
 
-    onExited: {
-      containsDrag = false;
-      root.color = root.cellBgColor;
+    Rectangle {
+      anchors.fill: parent
+      color: root.color
     }
 
-    onDropped: {
-      containsDrag = false;
-      root.color = root.cellBgColor;
+    Image {
+      anchors.fill: parent
+      visible: root.wallpaper !== ""
+      source: root.wallpaper
+      // Every cell asks for the same size, so they share one decoded image
+      sourceSize: Qt.size(Math.round(root.width), Math.round(root.height))
+      fillMode: Image.PreserveAspectCrop
+      asynchronous: true
+      cache: true
     }
-  }
 
-  states: [
-    State {
-      name: "hovered"
-      when: mouseArea.containsMouse && !dropArea.containsDrag
-      PropertyChanges {
-        target: root
-        color: root.cellBgHoverColor
-      }
-    },
-    State {
-      name: "dragging"
-      when: dropArea.containsDrag
-      PropertyChanges {
-        target: root
-        color: root.cellBgDragColor
-        border.color: root.cellBorderActiveColor
+    // Other workspaces sit back a little
+    Rectangle {
+      anchors.fill: parent
+      color: Theme.base00
+      opacity: root.current || root.dropTarget ? 0 : root.hovered ? root.dim * 0.4 : root.dim
+
+      Behavior on opacity {
+        NumberAnimation {
+          duration: Appearance.animFast
+        }
       }
     }
-  ]
+  }
 
-  transitions: Transition {
-    ColorAnimation {
-      properties: "color"
-      duration: root.colorAnimationDuration
+  Rectangle {
+    id: mask
+    anchors.fill: parent
+    radius: root.radius
+    visible: false
+    layer.enabled: true
+  }
+
+  Rectangle {
+    anchors.fill: parent
+    radius: root.radius
+    color: root.dropFill ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent"
+    border.width: root.current || root.dropTarget ? Appearance.borderWidth * 2 : Appearance.borderWidth
+    border.color: root.dropTarget ? Theme.accent : root.current ? Theme.accent : root.hovered ? Theme.borderFocus : Theme.border
+
+    Behavior on border.color {
+      ColorAnimation {
+        duration: Appearance.animFast
+      }
+    }
+  }
+
+  // Number badge
+  Rectangle {
+    visible: root.showNumber
+    anchors.left: parent.left
+    anchors.top: parent.top
+    anchors.margins: Math.max(4, root.radius / 2)
+    width: Math.max(height, label.implicitWidth + 10)
+    height: label.implicitHeight + 4
+    radius: height / 2
+    color: root.current ? Theme.accent : Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.75)
+
+    StyledText {
+      id: label
+      anchors.centerIn: parent
+      text: root.number
+      textSize: Appearance.fontSize - 2
+      textColor: root.current ? Theme.background : Theme.foreground
+      font.bold: root.current
     }
   }
 }

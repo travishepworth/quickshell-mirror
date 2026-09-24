@@ -1,99 +1,140 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell.Wayland
 
 import qs.services
 import qs.config
+import qs.components.methods
+import qs.components.reusable
 
-Rectangle {
+// A window on the overview board: its live capture (the app icon until it
+// has one), rounded. Visual only; OverviewInput takes the input.
+Item {
   id: root
 
-  // Colors
-  property color bgColor: Theme.backgroundAlt
-  property color borderColor: Theme.border
-  property color borderActiveColor: Theme.accent
-  property color borderHoverColor: Theme.accentAlt
-  property color textColor: Theme.foreground
-  property color xwaylandIndicatorColor: Theme.accentAlt
-
-  // Window data
+  // A hyprctl client
   property var windowData: null
-  property var toplevel: null
-  property string iconPath: ""
-  property string windowTitle: windowData?.title ?? windowData?.class ?? "Unknown"
-
-  // Display properties
-  property real windowOpacity: 0.9
-  property real borderWidth: 2
-  property real borderRadius: 4
-  property bool showScreencopy: true
-  property bool showIcon: true
+  // False while the overview is closed: nothing is captured
+  property bool capturing: true
+  property real radius: 4
+  property bool hovered: false
+  property bool resizing: false
+  // The title strip while hovered
   property bool showTitle: true
-  property bool isActive: false
-  property bool isHovered: false
-  property bool isXwayland: windowData?.xwayland ?? false
 
-  color: bgColor
-  radius: borderRadius
-  border.width: borderWidth
-  border.color: isActive ? borderActiveColor : (isHovered ? borderHoverColor : borderColor)
-  opacity: windowOpacity
-  clip: true
+  readonly property var toplevel: HyprlandManager.toplevelForAddress(root.windowData?.address)
+  readonly property string iconPath: IconResolver.resolveWindowIcon(root.windowData?.class, root.windowData?.title)
+  readonly property bool focused: (root.windowData?.focusHistoryID ?? -1) === 0
 
-  ScreencopyView {
-    id: screencopy
+  Item {
     anchors.fill: parent
-    anchors.margins: root.borderWidth
-    captureSource: root.toplevel
-    visible: root.showScreencopy && captureSource !== null
-  }
-
-  Column {
-    anchors.centerIn: parent
-    spacing: 4
-    visible: !screencopy.visible || root.showIcon
-
-    Image {
-      id: windowIcon
-      source: root.iconPath
-      width: Math.min(parent.parent.width * 0.4, 50)
-      height: width
-      fillMode: Image.PreserveAspectFit
-      smooth: true
-      anchors.horizontalCenter: parent.horizontalCenter
-      visible: true
+    layer.enabled: true
+    layer.effect: MultiEffect {
+      maskEnabled: true
+      maskSource: mask
+      maskThresholdMin: 0.5
+      maskSpreadAtMin: 1
     }
 
-    Text {
-      text: root.windowTitle
-      font.family: "VictorMono Nerd Font"
-      font.pixelSize: 10
-      color: root.textColor
-      opacity: 1
-      width: root.width - 8
-      elide: Text.ElideRight
-      horizontalAlignment: Text.AlignHCenter
-      visible: root.showTitle
+    Rectangle {
+      anchors.fill: parent
+      color: Theme.backgroundAlt
+    }
+
+    ScreencopyView {
+      id: capture
+      anchors.fill: parent
+      captureSource: root.capturing ? root.toplevel : null
+      // Only as sharp as shown; live only while it's being looked at or
+      // resized (otherwise one frame per open)
+      constraintSize: Qt.size(Math.round(root.width), Math.round(root.height))
+      live: root.hovered || root.resizing
+    }
+
+    Image {
+      anchors.centerIn: parent
+      visible: !capture.hasContent
+      width: Math.min(parent.width, parent.height) * 0.4
+      height: width
+      sourceSize: Qt.size(64, 64)
+      source: root.iconPath
+      fillMode: Image.PreserveAspectFit
+    }
+
+    // Title strip while hovered
+    Rectangle {
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      height: title.implicitHeight + 6
+      visible: root.showTitle && root.hovered && !root.resizing && root.height > height * 2.5
+      color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.85)
+
+      StyledText {
+        id: title
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.leftMargin: 6
+        anchors.rightMargin: 6
+        text: root.windowData?.title || root.windowData?.class || ""
+        textSize: Appearance.fontSize - 3
+        elide: Text.ElideRight
+        horizontalAlignment: Text.AlignHCenter
+      }
     }
   }
 
   Rectangle {
-    visible: root.isXwayland && !screencopy.visible
-    anchors.top: parent.top
-    anchors.right: parent.right
-    anchors.margins: 4
-    width: 16
-    height: 16
-    radius: 8
-    color: root.xwaylandIndicatorColor
-    opacity: 0.5
+    id: mask
+    anchors.fill: parent
+    radius: root.radius
+    visible: false
+    layer.enabled: true
+  }
 
-    Text {
+  Rectangle {
+    anchors.fill: parent
+    radius: root.radius
+    color: "transparent"
+    border.width: root.hovered || root.resizing ? Appearance.borderWidth * 2 : Appearance.borderWidth
+    border.color: root.resizing || root.hovered ? Theme.accent : root.focused ? Theme.borderFocus : Theme.border
+
+    Behavior on border.color {
+      ColorAnimation {
+        duration: Appearance.animFast
+      }
+    }
+  }
+
+  // App icon badge, once there's a capture to put it on
+  Image {
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    anchors.margins: 4
+    visible: capture.hasContent && root.height > 40
+    width: Math.min(24, root.height / 4)
+    height: width
+    sourceSize: Qt.size(48, 48)
+    source: root.iconPath
+    fillMode: Image.PreserveAspectFit
+  }
+
+  // Size while resizing
+  Rectangle {
+    anchors.centerIn: parent
+    visible: root.resizing
+    width: sizeLabel.implicitWidth + 12
+    height: sizeLabel.implicitHeight + 6
+    radius: height / 2
+    color: Theme.accent
+
+    StyledText {
+      id: sizeLabel
       anchors.centerIn: parent
-      text: "X"
-      font.family: "VictorMono Nerd Font"
-      font.pixelSize: 10
-      font.bold: true
-      color: Theme.backgroundAlt
+      text: `${root.windowData?.size?.[0] ?? 0} × ${root.windowData?.size?.[1] ?? 0}`
+      textSize: Appearance.fontSize - 2
+      textColor: Theme.background
     }
   }
 }
