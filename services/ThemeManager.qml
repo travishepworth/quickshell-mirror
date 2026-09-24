@@ -98,7 +98,7 @@ QtObject {
     setLightMode(Appearance.darkMode);
   }
 
-  // Runs the enabled integrations (kitty, cava, k9s) for a theme
+  // Runs the enabled integrations (kitty, cava, k9s, nvim) for a theme
   function themeIntegrations(themeName = Appearance.theme) {
     const themePath = Paths.themePath + themeName + ".json";
     const integrations = [
@@ -116,6 +116,11 @@ QtObject {
         enabled: ThemeIntegrations.k9s,
         process: _k9sProcess,
         script: "theme_k9s.sh"
+      },
+      {
+        enabled: ThemeIntegrations.nvim,
+        process: _nvimProcess,
+        script: "theme_nvim.sh"
       }
     ];
     if (LockscreenConfig.mode === "hyprlock")
@@ -267,6 +272,10 @@ QtObject {
   }
 
   property Process _kittyProcess: Process {
+    stderr: StdioCollector {}
+    stdout: StdioCollector {}
+  }
+  property Process _nvimProcess: Process {
     stderr: StdioCollector {}
     stdout: StdioCollector {}
   }

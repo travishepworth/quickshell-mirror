@@ -9,4 +9,5 @@ QtObject {
   readonly property bool kitty: _c.kitty
   readonly property bool k9s: _c.k9s
   readonly property bool cava: _c.cava
+  readonly property bool nvim: _c.nvim
 }

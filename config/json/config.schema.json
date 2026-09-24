@@ -390,7 +390,8 @@
       "properties": {
         "kitty": { "type": "boolean", "title": "Kitty", "default": false },
         "k9s": { "type": "boolean", "title": "k9s", "default": false },
-        "cava": { "type": "boolean", "title": "Cava", "default": false }
+        "cava": { "type": "boolean", "title": "Cava", "default": false },
+        "nvim": { "type": "boolean", "title": "Neovim", "default": false }
       }
     },
 
