@@ -4,7 +4,6 @@ import QtQuick.Layouts
 
 import qs.config
 import qs.services
-import qs.components.methods
 import qs.components.reusable
 
 StyledContainer {
@@ -37,7 +36,7 @@ StyledContainer {
 
       StyledText {
         Layout.alignment: Qt.AlignTop
-        text: Utils.formatRelativeTime(NotificationManager.receivedAtFor(root.notification))
+        text: I18n.formatRelative(NotificationManager.receivedAtFor(root.notification))
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize - 2
         opacity: 0.7

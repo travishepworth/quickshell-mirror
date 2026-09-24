@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Layouts
 
 import qs.config
-import qs.components.methods
 import qs.components.reusable
 
 StyledContainer {
@@ -46,7 +45,7 @@ StyledContainer {
 
         StyledText {
           Layout.fillWidth: true
-          text: Utils.formatRelativeTime(root.groupData.newestTime) + (root.groupData.notifications.length > 1 ? " · " + I18n.tr("{0} notifications", root.groupData.notifications.length) : "")
+          text: I18n.formatRelative(root.groupData.newestTime) + (root.groupData.notifications.length > 1 ? " · " + I18n.tr("{0} notifications", root.groupData.notifications.length) : "")
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 2
           opacity: 0.7

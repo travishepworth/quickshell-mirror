@@ -1,33 +1,15 @@
 pragma Singleton
 
-import Quickshell
-import Quickshell.Hyprland
+import QtQuick
 
-import qs.config
-
-Singleton {
+// Pure geometry for the workspace overlay grid (actions live in
+// HyprlandManager)
+QtObject {
   id: root
 
-  function getToplevelFromAddress(address) {
-    for (let toplevel of Hyprland.toplevels.values) {
-      let formattedAddress = "0x" + toplevel.address;
-      if (formattedAddress === address) {
-        return toplevel.wayland;
-      }
-    }
-    return null;
-  }
-
-  function moveWindowToWorkspace(windowAddress, targetWorkspace) {
-    Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${targetWorkspace}, follow = false, address = ${windowAddress} })`);
-  }
-
-  function closeWindow(windowAddress) {
-    Hyprland.dispatch(`hl.dsp.window.close{ address = ${windowAddress}}`);
-  }
-
-  function focusWindow(windowAddress) {
-    Hyprland.dispatch(`hl.dsp.focus({ address = ${windowAddress}})`);
+  // The workspace grid shows workspaces 1-25
+  function isWorkspaceVisible(workspaceId) {
+    return workspaceId >= 1 && workspaceId <= 25;
   }
 
   function getWorkspacePosition(workspaceId, gridSize) {

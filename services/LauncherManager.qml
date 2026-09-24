@@ -6,7 +6,6 @@ import Quickshell.Io
 
 import qs.config
 import qs.services
-import qs.components.methods
 
 /*
  * LauncherManager provides application filtering and launching logic.

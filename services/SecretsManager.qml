@@ -3,7 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-import qs.components.methods
 
 /**
  * Secrets (chat API keys) live outside the repo and outside config.json.
@@ -42,7 +41,7 @@ QtObject {
   }
 
   function _read() {
-    const content = Utils.getFileContent("file://" + secretsPath);
+    const content = FileManager.read("file://" + secretsPath);
     if (!content)
       return {};
     try {

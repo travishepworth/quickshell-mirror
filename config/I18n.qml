@@ -43,6 +43,19 @@ QtObject {
     return date.toLocaleString(root.locale, format);
   }
 
+  // An epoch-ms timestamp as a short time ago: "now", "5m", "3h", "2d"
+  // Keys, for scripts/check_i18n.py: I18n.tr("now") I18n.tr("{0}m") I18n.tr("{0}h") I18n.tr("{0}d")
+  function formatRelative(epochMs) {
+    const seconds = Math.max(0, Math.floor((Date.now() - epochMs) / 1000));
+    if (seconds < 60)
+      return root.tr("now");
+    if (seconds < 3600)
+      return root.tr("{0}m", Math.floor(seconds / 60));
+    if (seconds < 86400)
+      return root.tr("{0}h", Math.floor(seconds / 3600));
+    return root.tr("{0}d", Math.floor(seconds / 86400));
+  }
+
   // A named date format in the shell's language: the dictionary's
   // _meta.formats entry, else the English one below
   function dateFormat(name) {

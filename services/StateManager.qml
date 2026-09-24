@@ -3,7 +3,6 @@ import QtQuick
 import Quickshell.Io
 import qs.config
 
-import qs.components.methods
 
 QtObject {
   id: stateManager
@@ -40,7 +39,7 @@ QtObject {
       load: function (defaultValue) {
         const filepath = stateDir + stateFile;
         console.log(`[StateManager] Loading ${serviceName} from`, filepath);
-        const content = Utils.getFileContent(Qt.resolvedUrl(filepath));
+        const content = FileManager.read(Qt.resolvedUrl(filepath));
 
         if (content) {
           try {

@@ -11,7 +11,8 @@ QtObject {
 
   // --- Theme (UI-owned, set by the theme selector) ---
   readonly property string theme: _c.theme
-  readonly property bool darkMode: _c.darkMode
+  // From the active theme, not config: a theme is dark or light
+  readonly property bool darkMode: ThemeManager.currentTheme.variant !== "light"
   readonly property string wallpaper: _c.wallpaper
   readonly property bool autoThemeSwitch: _c.autoThemeSwitch
 

@@ -52,12 +52,6 @@
           "description": "Active theme (set by the theme selector).",
           "x-settings": false
         },
-        "darkMode": {
-          "type": "boolean",
-          "default": true,
-          "description": "Follows the active theme's variant (set by the theme selector).",
-          "x-settings": false
-        },
         "wallpaper": {
           "type": "string",
           "default": "",

@@ -1,4 +1,3 @@
-// services/ThemeManager.qml
 pragma Singleton
 
 import QtQuick
@@ -7,9 +6,13 @@ import QtCore
 import Quickshell
 import Quickshell.Io
 
-import qs.services
+import qs.config
 
-/* ThemeManager handles theme generation and the global application api */
+/* ThemeManager owns the active theme's data (loaded from its file, watched,
+ * with defaults for what it leaves out), the theme lists, theme generation
+ * from a wallpaper, the wallpaper itself, and re-theming integrated tools.
+ * The choice of theme is config (Appearance.theme), persisted through
+ * ConfigManager.setTheme. */
 QtObject {
   id: root
 
@@ -21,137 +24,187 @@ QtObject {
     nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.bmp"]
     showDirs: false
   }
-  readonly property ListModel allThemes: _allThemesModel
   readonly property ListModel generatedThemes: _generatedThemesModel
   readonly property ListModel defaultThemes: _defaultThemesModel
   readonly property bool isGenerating: generationProcess.running
 
-  readonly property var config: ConfigManager.config
-  readonly property var currentTheme: ConfigManager.theme
+  // The active theme's JSON ({ name, variant, paired, colors, semantic }),
+  // read through config/Theme
+  readonly property var currentTheme: _theme
+  // config/json/theme-defaults.json: fallback palette and semantic maps,
+  // shared with scripts/generate_theme.py
+  readonly property var defaults: _defaults
 
-  //=========================================================================
-  // Signals
-  //=========================================================================
-  signal themesReloaded
-  signal generationStatusChanged
   signal generationFailed(string errorText)
 
   //=========================================================================
   // Public Functions
   //=========================================================================
 
-  /**
-   * @brief Applies a theme by name and runs integration scripts.
-   * This function now correctly requests the change from ConfigManager.
-   */
   function applyTheme(themeName, isGenerated) {
     const fullThemeName = isGenerated ? "generated/" + themeName : themeName;
-    if (ConfigManager.config.Appearance && ConfigManager.config.Appearance.theme === fullThemeName) {
-      console.log("[ThemeManager] Theme", fullThemeName, "is already applied.");
+    if (Appearance.theme === fullThemeName)
       return;
-    }
-    console.log("[ThemeManager] Requesting to apply theme:", fullThemeName);
     ConfigManager.setTheme(fullThemeName);
   }
 
-  /**
-   * @brief Sets the wallpaper in the config AND starts the theme generation process.
-   * This is the main entry point for creating a new theme from an image.
-   */
+  // Sets the wallpaper, then generates themes from it
   function setWallpaperAndGenerate(wallpaperUrl) {
-    console.log("[ThemeManager] Setting wallpaper and generating themes from:", wallpaperUrl.toString());
-    ConfigManager.setWallpaper(wallpaperUrl.toString());
+    setWallpaper(wallpaperUrl.toString());
     generateThemesFromWallpaper(wallpaperUrl);
   }
 
-  /**
-   * @brief Kicks off the python script to generate themes from a wallpaper.
-   * This function is now purely for generation and does not modify config itself.
-   */
+  function setWallpaper(wallpaperUrl) {
+    if (!wallpaperUrl)
+      return;
+    Quickshell.execDetached([Config.scriptsPath + "setWallpaper.sh", wallpaperUrl.replace("file://", "")]);
+    ConfigManager.setWallpaper(wallpaperUrl);
+  }
+
   function generateThemesFromWallpaper(wallpaperUrl) {
     if (isGenerating) {
-      console.log("[ThemeManager]: Generation already in progress.");
+      console.log("[ThemeManager] Generation already in progress.");
       return;
     }
     console.log("[ThemeManager] Starting generation process for:", wallpaperUrl.toString());
     _generationController.start(wallpaperUrl);
   }
 
+  // Switches to the current theme's dark/light pair, if it has one
   function toggleDarkMode() {
-    console.log("[ThemeManager] toggleDarkMode called.");
-    const pairedThemeName = currentTheme.paired;
-
-    if (config.Appearance.autoThemeSwitch && pairedThemeName) {
-      console.log("[ThemeManager] Switching theme from '" + config.Appearance.theme + "' to '" + pairedThemeName + "'");
-
-      // config.Appearance.darkMode = !config.Appearance.darkMode;
-      const isPairedThemeGenerated = config.Appearance.theme.startsWith("generated/"); // this is stupid; should just read the json
-
-      console.log("[ThemeManager] Applying paired theme:", pairedThemeName, "Generated:", isPairedThemeGenerated);
-      applyTheme(pairedThemeName, isPairedThemeGenerated);
-    } else {
-      if (!config.Appearance.autoThemeSwitch)
-        console.log("Auto theme switching is disabled.");
-      if (!pairedThemeName)
-        console.log("Current theme has no paired theme.");
-    }
-  }
-
-  function setDarkMode(enabled) {
-    if (config.Appearance.darkMode === enabled) {
-      console.log("[ThemeManager] Dark mode is already set to", enabled);
+    const paired = currentTheme.paired;
+    if (!Appearance.autoThemeSwitch || !paired) {
+      console.log("[ThemeManager] No dark/light switch:", !Appearance.autoThemeSwitch ? "auto theme switching is off" : "the theme has no pair");
       return;
     }
-    console.log("[ThemeManager] Setting dark mode to", enabled);
-    toggleDarkMode();
+    applyTheme(paired, Appearance.theme.startsWith("generated/"));
+  }
 
-    // if (config.Appearance.autoThemeSwitch && currentTheme.paired) {
-    //   console.log("[ThemeManager] Auto-switching to paired theme:", currentTheme.paired);
-    //   const isPairedThemeGenerated = config.Appearance.theme.startsWith("generated/");
-    //   applyTheme(currentTheme.paired, isPairedThemeGenerated);
-    // } else {
-    //   if (!config.Appearance.autoThemeSwitch)
-    //     console.log("Auto theme switching is disabled.");
-    //   if (!currentTheme.paired)
-    //     console.log("Current theme has no paired theme.");
-    // }
+  // Runs the enabled integrations (kitty, cava, k9s) for a theme
+  function themeIntegrations(themeName = Appearance.theme) {
+    const themePath = Config.themePath + themeName + ".json";
+    const integrations = [
+      {
+        enabled: ThemeIntegrations.kitty,
+        process: _kittyProcess,
+        script: "theme_kitty.sh"
+      },
+      {
+        enabled: ThemeIntegrations.cava,
+        process: _cavaProcess,
+        script: "theme_cava.sh"
+      },
+      {
+        enabled: ThemeIntegrations.k9s,
+        process: _k9sProcess,
+        script: "theme_k9s.sh"
+      }
+    ];
+    for (const integration of integrations) {
+      // A busy integration only skips itself, not the ones after it
+      if (!integration.enabled || integration.process.running)
+        continue;
+      integration.process.command = [Config.scriptsPath + integration.script, themePath];
+      integration.process.running = true;
+    }
   }
 
   //=========================================================================
   // Private Implementation
   //=========================================================================
   Component.onCompleted: {
-    console.log("♻ ThemeManager service started.");
+    // What the initializer loaded, so the first change check is a no-op
+    root._themeContent = FileManager.read(root._themeUrl(root._themeName)) ?? "";
     _reloadAllThemes();
   }
 
-  // --- Paths and Models ---
-  property string _configPath: StandardPaths.writableLocation(StandardPaths.AppConfigLocation) + "/axiom"
-  property string _themesPath: _configPath + "/config/themes"
-  property string _generatedThemesPath: _themesPath + "/generated"
-  property string _pythonScriptPath: _configPath + "/scripts/generate_theme.py"
-  property string _venvPythonPath: _configPath + "/.venv/bin/python3"
+  // --- Active theme ---
+  // Loaded eagerly so config/Theme never sees an empty theme
+  property var _defaults: _readDefaults()
+  property var _theme: _parseTheme(FileManager.read(_themeUrl(ConfigManager.config.Appearance.theme)), ConfigManager.config.Appearance.theme)
+  property string _themeContent: ""
+  readonly property string _themeName: ConfigManager.config.Appearance.theme
+  on_ThemeNameChanged: _reloadTheme()
 
-  property ListModel _allThemesModel: ListModel {}
+  property FileView _themeWatch: FileView {
+    path: root._themeUrl(root._themeName)
+    watchChanges: true
+    printErrors: false
+    onFileChanged: {
+      reload();
+      root._reloadTheme();
+    }
+  }
+
+  function _themeUrl(name) {
+    return "file://" + Config.themePath + name + ".json";
+  }
+
+  function _readDefaults() {
+    try {
+      return JSON.parse(FileManager.read("file://" + Config.configPath + "json/theme-defaults.json"));
+    } catch (e) {
+      console.error("[ThemeManager] Could not read theme-defaults.json:", e);
+      return {
+        "colors": {},
+        "semantic": {
+          "dark": {},
+          "light": {}
+        }
+      };
+    }
+  }
+
+  // A theme file's JSON, or the default palette if it's missing or broken
+  function _parseTheme(content, name) {
+    if (content) {
+      try {
+        return JSON.parse(content);
+      } catch (e) {
+        console.error("[ThemeManager] Failed to parse theme:", name, e);
+      }
+    } else {
+      console.error("[ThemeManager] Theme not found:", name);
+    }
+    const defaults = root._defaults ?? _readDefaults();
+    return {
+      "name": "Default (fallback)",
+      "variant": "dark",
+      "colors": defaults.colors,
+      "semantic": defaults.semantic.dark
+    };
+  }
+
+  // Reloads the active theme when its name or its file's contents change,
+  // and re-themes the integrated tools (not on startup)
+  function _reloadTheme() {
+    const content = FileManager.read(_themeUrl(_themeName)) ?? "";
+    if (content === _themeContent)
+      return;
+    _themeContent = content;
+    _theme = _parseTheme(content, _themeName);
+    themeIntegrations(_themeName);
+  }
+
+  // --- Paths and Models ---
+  readonly property string _themesPath: "file://" + Config.themePath
+  readonly property string _generatedThemesPath: "file://" + Config.themePath + "generated"
+  readonly property string _pythonScriptPath: Config.scriptsPath + "generate_theme.py"
+  readonly property string _venvPythonPath: Config.venvPythonPath
+
   property ListModel _defaultThemesModel: ListModel {}
   property ListModel _generatedThemesModel: ListModel {}
 
-  property bool _defaultThemesLoaded: false
-  property bool _generatedThemesLoaded: false
-
-  // --- Processes ---
+  // --- Integration processes ---
   property Process _k9sProcess: Process {
-    id: k9sProcess
     stderr: StdioCollector {}
     stdout: StdioCollector {}
   }
   property Process _cavaProcess: Process {
-    id: cavaProcess
     stderr: StdioCollector {}
     stdout: StdioCollector {}
   }
   property Process _kittyProcess: Process {
-    id: kittyProcess
     stderr: StdioCollector {}
     stdout: StdioCollector {}
   }
@@ -201,7 +254,6 @@ QtObject {
 
   property Process _generationProcess: Process {
     id: generationProcess
-    onRunningChanged: root.generationStatusChanged()
     stdout: StdioCollector {
       id: stdoutCollector
     }
@@ -222,9 +274,6 @@ QtObject {
    */
   function _reloadAllThemes() {
     console.log("[ThemeManager] Reloading all theme models...");
-    _defaultThemesLoaded = false;
-    _generatedThemesLoaded = false;
-    _allThemesModel.clear();
     _defaultThemesModel.clear();
     _generatedThemesModel.clear();
 
@@ -256,13 +305,7 @@ QtObject {
             filePath: get(i, "filePath"),
             isGenerated: false
           });
-          root._allThemesModel.append({
-            name: get(i, "fileBaseName"),
-            filePath: get(i, "filePath"),
-            isGenerated: false
-          });
         }
-        root._defaultThemesLoaded = true;
         console.log("[ThemeManager] Default themes loaded:", root._defaultThemesModel.count);
       }
     }
@@ -283,13 +326,7 @@ QtObject {
             filePath: get(i, "filePath"),
             isGenerated: true
           });
-          root._allThemesModel.append({
-            name: fileName,
-            filePath: get(i, "filePath"),
-            isGenerated: true
-          });
         }
-        root._generatedThemesLoaded = true;
         console.log("[ThemeManager] Generated themes loaded:", root._generatedThemesModel.count);
       }
     }

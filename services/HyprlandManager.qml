@@ -7,6 +7,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 
+import qs.config
+
 /* Provides access to some Hyprland data not available in Quickshell.Hyprland. */
 Singleton {
   id: root
@@ -17,6 +19,41 @@ Singleton {
   // so they are coalesced into one fetch.
   function updateAll() {
     _debounce.restart();
+  }
+
+  // --- Actions ---
+
+  function moveWindowToWorkspace(windowAddress, targetWorkspace) {
+    Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${targetWorkspace}, follow = false, address = ${windowAddress} })`);
+  }
+
+  function closeWindow(windowAddress) {
+    Hyprland.dispatch(`hl.dsp.window.close{ address = ${windowAddress}}`);
+  }
+
+  function focusWindow(windowAddress) {
+    Hyprland.dispatch(`hl.dsp.focus({ address = ${windowAddress}})`);
+  }
+
+  // Through the user's Hyprland script (it maps grid positions to
+  // workspaces); detached, so quick successive clicks all go through
+  function focusWorkspace(index) {
+    Quickshell.execDetached([Config.hyprlandPath + "scripts/gotoWorkspace.sh", String(index)]);
+  }
+
+  // --- Queries ---
+
+  function activeWorkspaceId() {
+    return Hyprland.focusedMonitor?.activeWorkspace?.id ?? 1;
+  }
+
+  // The Wayland toplevel for a hyprctl window address ("0x…")
+  function toplevelForAddress(address) {
+    for (const toplevel of Hyprland.toplevels.values) {
+      if ("0x" + toplevel.address === address)
+        return toplevel.wayland;
+    }
+    return null;
   }
 
   function biggestWindowForWorkspace(workspaceId) {

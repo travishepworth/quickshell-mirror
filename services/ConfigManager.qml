@@ -4,7 +4,6 @@ import QtQuick
 import Quickshell.Io
 
 import qs.components.methods
-import qs.config
 
 /* ConfigManager handles loading, saving, and monitoring the configuration file */
 QtObject {
@@ -12,7 +11,6 @@ QtObject {
 
   // --- Public ---
   readonly property var config: _config
-  readonly property var theme: _theme
   readonly property var configSchema: _configSchema
   readonly property string configDir: "../config/user/"
   readonly property string configFile: "config.json"
@@ -48,7 +46,6 @@ QtObject {
       return;
     console.log("[ConfigManager] Setting wallpaper to", wallpaperUrl);
     _config.Appearance.wallpaper = wallpaperUrl;
-    Utils.executeWallpaperScript(wallpaperUrl);
     saveConfig();
   }
 
@@ -103,38 +100,6 @@ QtObject {
   }
 
   /**
-   * @brief Applies a theme to enabled integrated tools
-   */
-  function themeIntegrations(themeName = Appearance.theme) {
-    var scriptPath = Config.scriptsPath;
-    var themePath = Config.themePath + themeName + ".json";
-    const integrations = [
-      {
-        enabled: ThemeIntegrations.kitty,
-        process: _kittyProcess,
-        script: "theme_kitty.sh"
-      },
-      {
-        enabled: ThemeIntegrations.cava,
-        process: _cavaProcess,
-        script: "theme_cava.sh"
-      },
-      {
-        enabled: ThemeIntegrations.k9s,
-        process: _k9sProcess,
-        script: "theme_k9s.sh"
-      }
-    ];
-    for (const integration of integrations) {
-      // A busy integration only skips itself, not the ones after it
-      if (!integration.enabled || integration.process.running)
-        continue;
-      integration.process.command = [scriptPath + integration.script, themePath];
-      integration.process.running = true;
-    }
-  }
-
-  /**
    * @brief Replaces the whole config with a parsed config object (e.g. a
    * saved configuration), running it through the same migrate/prune/
    * defaults/validate pipeline as config.json, then saves it. This is an
@@ -181,7 +146,6 @@ QtObject {
   // very first evaluation.
   property var _configSchema: _loadSchema()
   property var _config: _initialConfig(_loadSchema())
-  property var _theme: ({})
   property bool _savesBlocked: false
   // Whether the running config came from config.json (vs schema defaults)
   property bool _haveFileConfig: false
@@ -199,9 +163,8 @@ QtObject {
     }
   }
 
-  // Change notification for the config and active theme files. The slow
-  // poll is only a safety net in case a watch is lost (e.g. to an editor's
-  // atomic rename).
+  // Change notification for config.json. The slow poll is only a safety
+  // net in case the watch is lost (e.g. to an editor's atomic rename).
   property FileView _configWatch: FileView {
     path: Qt.resolvedUrl(configManager._configPath)
     watchChanges: true
@@ -212,19 +175,7 @@ QtObject {
     }
   }
 
-  property FileView _themeWatch: FileView {
-    path: Qt.resolvedUrl("../config/themes/" + configManager._config.Appearance.theme + ".json")
-    watchChanges: true
-    printErrors: false
-    onFileChanged: {
-      reload();
-      configManager._checkForChanges();
-    }
-  }
-
   property var _fileHashes: ({})
-  // "name:hash" of the theme the integrations were last run for
-  property string _integratedTheme: ""
 
   property Timer _pollTimer: Timer {
     interval: 5000
@@ -246,7 +197,7 @@ QtObject {
   }
 
   function _getFileContent(filepath) {
-    return Utils.getFileContent(Qt.resolvedUrl(filepath));
+    return FileManager.read(Qt.resolvedUrl(filepath));
   }
 
   function _loadSchema() {
@@ -429,94 +380,7 @@ QtObject {
     return true;
   }
 
-  function _loadTheme(themeName) {
-    var path = "../config/themes/" + themeName + ".json";
-    var content = _getFileContent(path);
-    if (content) {
-      try {
-        content = JSON.parse(content);
-        _config.Appearance.darkMode = content.variant === "dark";
-        if (_config.Appearance.darkMode !== Appearance.darkMode) {
-          saveConfig();
-        }
-        return content;
-      } catch (e) {
-        console.error("[ConfigManager] Failed to load theme:", themeName, e);
-      }
-    }
-    console.error("[ConfigManager] Theme not found, Falling back to default theme.");
-    return {
-      name: "Default (fallback)",
-      variant: "dark",
-      colors: Utils.getDefaultColors(),
-      semantic: Utils.getDefaultSemanticColors()
-    };
-  }
-
   function _checkForChanges() {
-    const currentThemeName = configManager._config.Appearance.theme;
-    const hasConfigChanged = _checkConfigFile();
-
-    const newThemeName = configManager._config.Appearance.theme;
-    const themeContent = _getFileContent("../config/themes/" + newThemeName + ".json");
-    if (themeContent) {
-      const themeHash = _hashString(themeContent);
-      const themeKey = "theme_" + newThemeName;
-
-      // Reload theme if its content changed OR if the config itself changed (which might mean the theme *name* changed)
-      if (_fileHashes[themeKey] !== themeHash || hasConfigChanged) {
-        if (_fileHashes[themeKey] !== undefined && !hasConfigChanged)
-          console.log("[ConfigManager] Theme file '" + newThemeName + "' changed, reloading...");
-        _fileHashes[themeKey] = themeHash;
-        configManager._theme = _loadTheme(newThemeName);
-      }
-
-      // Re-theme integrated tools only when the theme itself changed (not
-      // on every save), and not for the theme already active at startup
-      const integrated = newThemeName + ":" + themeHash;
-      if (_integratedTheme !== "" && _integratedTheme !== integrated)
-        themeIntegrations(newThemeName);
-      _integratedTheme = integrated;
-    }
-
-    // Clear old theme hashes if theme name changed in config
-    if (currentThemeName !== newThemeName) {
-      for (var key in _fileHashes) {
-        if (key.startsWith("theme_") && key !== "theme_" + newThemeName) {
-          delete _fileHashes[key];
-        }
-      }
-    }
-  }
-
-  // --- Process Launchers for Integrated Tools ---
-  property Process _k9sProcess: Process {
-    id: k9sProcess
-    stderr: StdioCollector {
-      id: k9sStderr
-    }
-    stdout: StdioCollector {
-      id: k9sStdout
-    }
-  }
-
-  property Process _cavaProcess: Process {
-    id: cavaProcess
-    stderr: StdioCollector {
-      id: cavaStderr
-    }
-    stdout: StdioCollector {
-      id: cavaStdout
-    }
-  }
-
-  property Process _kittyProcess: Process {
-    id: kittyProcess
-    stderr: StdioCollector {
-      id: kittyStderr
-    }
-    stdout: StdioCollector {
-      id: kittyStdout
-    }
+    _checkConfigFile();
   }
 }

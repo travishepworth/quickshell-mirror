@@ -3,7 +3,6 @@ import QtQuick
 import Qt.labs.folderlistmodel
 import Quickshell.Io
 
-import qs.components.methods
 import qs.config
 import qs.services
 
@@ -48,7 +47,7 @@ QtObject {
 
   function restore(name) {
     const path = savedDir + name + ".json";
-    const content = Utils.getFileContent("file://" + path);
+    const content = FileManager.read("file://" + path);
     // JSON.parse(null) is null, which would restore pure defaults
     if (!content) {
       console.error("[SavedConfigsManager] Could not read", path);

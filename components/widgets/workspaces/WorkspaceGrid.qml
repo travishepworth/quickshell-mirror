@@ -34,7 +34,7 @@ Rectangle {
   property int workspaceOffset: monitorIndex * 25
 
   // Computed properties
-  property var activeWorkspace: WorkspaceUtils.getActiveWorkspaceId()
+  property var activeWorkspace: HyprlandManager.activeWorkspaceId()
 
   property real workspaceWidth: ((screen?.width ?? Hyprland.focusedMonitor?.width ?? 1920) * overviewScale)
   property real workspaceHeight: ((screen?.height ?? Hyprland.focusedMonitor?.height ?? 1080) * overviewScale)
@@ -114,14 +114,14 @@ Rectangle {
         property var windowMonitor: Hyprland.monitors.values[modelData?.monitor ?? 0]
         property var gridPos: WindowUtils.getWorkspacePosition(localWsId, root.gridSize)
 
-        visible: WorkspaceUtils.isWorkspaceVisible(localWsId) && (windowMonitor?.name === root.monitorName)
+        visible: WindowUtils.isWorkspaceVisible(localWsId) && (windowMonitor?.name === root.monitorName)
 
         offsetX: gridPos.col * (root.workspaceWidth + root.workspaceSpacing)
         offsetY: gridPos.row * (root.workspaceHeight + root.workspaceSpacing)
 
         onWindowDropped: targetWorkspace => {
           if (modelData?.workspace?.id && targetWorkspace !== modelData.workspace.id) {
-            WindowUtils.moveWindowToWorkspace(modelData.address, targetWorkspace);
+            HyprlandManager.moveWindowToWorkspace(modelData.address, targetWorkspace);
             HyprlandManager.updateAll();
           }
         }
@@ -134,7 +134,7 @@ Rectangle {
 
         onWindowClosed: {
           if (modelData?.address) {
-            WindowUtils.closeWindow(modelData.address);
+            HyprlandManager.closeWindow(modelData.address);
             HyprlandManager.updateAll();
           }
         }

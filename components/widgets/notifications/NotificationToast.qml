@@ -5,7 +5,6 @@ import Quickshell
 
 import qs.config
 import qs.services
-import qs.components.methods
 import qs.components.reusable
 
 PopupWindow {

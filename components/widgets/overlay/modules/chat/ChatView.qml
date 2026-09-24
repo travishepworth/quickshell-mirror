@@ -4,7 +4,6 @@ import QtQuick.Controls
 import qs.services
 import qs.config
 import qs.components.reusable
-import qs.components.methods
 
 StyledContainer {
   id: chatView

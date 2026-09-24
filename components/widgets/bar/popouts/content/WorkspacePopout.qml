@@ -123,7 +123,7 @@ Item {
             cursorShape: containsMouse ? Qt.PointingHandCursor : Qt.ArrowCursor
             onClicked: {
               console.log("Click ws", parent.wsId);
-              WorkspaceUtils.focusWorkspace(parent.wsId);
+              HyprlandManager.focusWorkspace(parent.wsId);
             }
 
             onContainsMouseChanged:

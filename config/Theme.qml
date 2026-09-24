@@ -4,16 +4,15 @@ import QtQuick
 
 import qs.config
 import qs.services
-import qs.components.methods
 
 QtObject {
   id: root
 
-  property var _themeData: ConfigManager.theme
+  property var _themeData: ThemeManager.currentTheme
 
   // Defaults for what a theme leaves out (config/json/theme-defaults.json)
-  readonly property var _defaultColors: Utils.getDefaultColors()
-  readonly property var _defaultSemantic: Utils.getDefaultSemanticColors(_themeData.variant === "light" ? "light" : "dark")
+  readonly property var _defaultColors: ThemeManager.defaults.colors
+  readonly property var _defaultSemantic: ThemeManager.defaults.semantic[_themeData.variant === "light" ? "light" : "dark"]
 
   // A semantic color: the base16 key (or color) the theme maps it to, else
   // the default mapping

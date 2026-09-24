@@ -39,7 +39,7 @@ Item {
   property real monitorActualHeight: 0
 
   // Computed properties
-  property var toplevel: WindowUtils.getToplevelFromAddress(windowData?.address)
+  property var toplevel: HyprlandManager.toplevelForAddress(windowData?.address)
   property string iconPath: IconResolver.resolveWindowIcon(windowData?.class, windowData?.title)
   property string windowTitle: windowData?.title ?? windowData?.class ?? "Unknown"
   property bool isFloating: windowData?.floating ?? false
@@ -53,12 +53,9 @@ Item {
 
   // Calculate position and size
   // property var constraints: WindowUtils.calculateWindowConstraints(windowData, overviewScale, workspaceWidth, workspaceHeight)
-  property var constraints: WindowUtils.calculateWindowConstraints(
-  windowData, 
-  overviewScale, 
-  monitorActualWidth * overviewScale,  // Use actual monitor width scaled
+  property var constraints: WindowUtils.calculateWindowConstraints(windowData, overviewScale, monitorActualWidth * overviewScale,  // Use actual monitor width scaled
   monitorActualHeight * overviewScale  // Use actual monitor height scaled
-)
+  )
 
   x: offsetX + constraints.x
   y: offsetY + constraints.y
@@ -134,11 +131,8 @@ Item {
     onActiveChanged: {
       if (!active) {
         // Get local workspace ID (1-25)
-        let localTargetWorkspace = WindowUtils.getTargetWorkspaceFromPosition(
-          root.x, root.y, root.width, root.height, 
-          workspaceWidth, workspaceHeight, workspaceSpacing, gridSize
-        );
-        
+        let localTargetWorkspace = WindowUtils.getTargetWorkspaceFromPosition(root.x, root.y, root.width, root.height, workspaceWidth, workspaceHeight, workspaceSpacing, gridSize);
+
         // Convert to global workspace ID by adding offset
         let globalTargetWorkspace = localTargetWorkspace + root.workspaceOffset;
 

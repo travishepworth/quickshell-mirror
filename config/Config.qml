@@ -2,13 +2,9 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-import qs.config
-
-// Derived, non-configurable values: filesystem paths and layout helpers.
+// Derived, non-configurable filesystem paths (from the environment, not config).
 QtObject {
   id: root
-
-  readonly property int orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
 
   // --- Paths (from the environment, not from any config value) ---
   readonly property string homeDirectory: Quickshell.env("HOME") + "/"
@@ -20,7 +16,5 @@ QtObject {
   readonly property string configPath: root.axiomPath + "config/"
   readonly property string statePath: root.configPath + "state/"
 
-  readonly property string walCachePath: root.homeDirectory + ".cache/wal/schemes/"
-  readonly property string cachePath: root.homeDirectory + ".cache/quickshell/axiom/generated/"
   readonly property string hyprlandPath: root.homeDirectory + ".config/hypr/"
 }
