@@ -78,12 +78,11 @@ PopoutWrapperBase {
 
   onCurrentDataChanged: updateAnchorRect()
 
-  // On a pill bar: the pill the anchor sits in ({ index, start, length }
-  // along the bar), if any
+  // On a pill bar: its pills ({ start, length, joinStart, joinEnd } along
+  // the bar), and the one the anchor sits in, if any
+  readonly property var pills: root.barConfig.pills ? (root.layoutSource?.pillRects ?? []) : []
   readonly property var anchorPill: {
-    if (!root.barConfig.pills)
-      return null;
-    const rects = root.layoutSource?.pillRects ?? [];
+    const rects = root.pills;
     const center = root.barConfig.vertical ? root.anchorRect.y + root.anchorRect.height / 2 : root.anchorRect.x + root.anchorRect.width / 2;
     for (let i = 0; i < rects.length; i++) {
       if (center >= rects[i].start && center <= rects[i].start + rects[i].length)
@@ -99,14 +98,22 @@ PopoutWrapperBase {
   }
   // A popout not wholly within its pill merges around it: it grows from
   // the bar's outer edge, its box deeper by the pill so the content clears
-  // it, with the pill left showing through a notch. Where the pill carries
-  // on past the box, that side stands on the pill's far stroke instead.
+  // it, with the pill left showing through a notch. Every other pill it
+  // reaches along the bar shows through a notch of its own. Where a pill
+  // carries on past the box, that side stands on its far stroke instead.
   readonly property bool mergeWithPill: anchorPill !== null && (mainPopup.boxStart < anchorPill.start || mainPopup.boxEnd > anchorPill.start + anchorPill.length)
-  // Where a side wall's fillet lands: on the pill when it carries on at
+  // The pills a merged popout's surface overlaps, the anchor's included
+  readonly property var mergedPills: {
+    if (!mergeWithPill)
+      return [];
+    const from = mainPopup.alongPos, to = mainPopup.alongPos + surface.implicitLength;
+    return root.pills.filter(p => p.start < to && p.start + p.length > from);
+  }
+  // Where a side wall's fillet lands: on a pill when one carries on at
   // least a fillet's width past that side, else down on the edge
   readonly property real pillFoot: root.barConfig.pillDepth - Appearance.borderWidth
-  readonly property real startFoot: mergeWithPill && !mainPopup.joinStart && anchorPill.start <= mainPopup.boxStart - Appearance.borderRadius ? pillFoot : 0
-  readonly property real endFoot: mergeWithPill && !mainPopup.joinEnd && anchorPill.start + anchorPill.length >= mainPopup.boxEnd + Appearance.borderRadius ? pillFoot : 0
+  readonly property real startFoot: mergeWithPill && !mainPopup.joinStart && root.pills.some(p => p.start <= mainPopup.boxStart - Appearance.borderRadius && p.start + p.length >= mainPopup.boxStart) ? pillFoot : 0
+  readonly property real endFoot: mergeWithPill && !mainPopup.joinEnd && root.pills.some(p => p.start <= mainPopup.boxEnd && p.start + p.length >= mainPopup.boxEnd + Appearance.borderRadius) ? pillFoot : 0
   // How far past the pill the merged popout's content starts: its far
   // stroke, where an unmerged popout attaches, with the border on or off
   readonly property real pillClearance: mergeWithPill ? root.pillFoot : 0
@@ -226,17 +233,10 @@ PopoutWrapperBase {
       return root.panelThickness - near - (root.barConfig.vertical ? surface.boxWidth : surface.boxHeight);
     }
 
-    // The merged pill stays hoverable and clickable through the notch
+    // The merged pills stay hoverable and clickable through the notches
     mask: Region {
       item: surface
-
-      Region {
-        intersection: Intersection.Subtract
-        x: surface.notchRect.x
-        y: surface.notchRect.y
-        width: surface.notchRect.width
-        height: surface.notchRect.height
-      }
+      regions: notchRegions.instances
     }
 
     // Size comes from the shared attached shape: the content box wraps
@@ -310,16 +310,34 @@ PopoutWrapperBase {
       startFoot: root.startFoot
       endFoot: root.endFoot
 
-      // The pill's interior, left showing; the popout covers the pill's
-      // strokes where they overlap, so the two read as one shape
-      readonly property real notchFrom: root.mergeWithPill ? root.anchorPill.start + (root.anchorPill.joinStart ? 0 : root.notchInset) : 0
-      readonly property real notchTo: root.mergeWithPill ? root.anchorPill.start + root.anchorPill.length - (root.anchorPill.joinEnd ? 0 : root.notchInset) : 0
-      notchStart: notchFrom - mainPopup.alongPos
-      notchLength: Math.max(0, notchTo - notchFrom)
+      // The pills' interiors, left showing; the popout covers their
+      // strokes where they overlap, so they read as one shape
+      notches: root.mergedPills.map(p => {
+        const from = p.start + (p.joinStart ? 0 : root.notchInset);
+        const to = p.start + p.length - (p.joinEnd ? 0 : root.notchInset);
+        return {
+          "start": from - mainPopup.alongPos,
+          "length": Math.max(0, to - from),
+          "roundStart": !p.joinStart && from > mainPopup.alongPos,
+          "roundEnd": !p.joinEnd && to < mainPopup.alongPos + implicitLength
+        };
+      })
       notchDepth: root.pillFoot - 1
-      notchRoundStart: root.mergeWithPill && !root.anchorPill.joinStart && notchFrom > mainPopup.alongPos
-      notchRoundEnd: root.mergeWithPill && !root.anchorPill.joinEnd && notchTo < mainPopup.alongPos + implicitLength
       readonly property real implicitLength: root.barConfig.vertical ? implicitHeight : implicitWidth
+
+      Variants {
+        id: notchRegions
+        model: surface.notchRects
+
+        Region {
+          required property rect modelData
+          intersection: Intersection.Subtract
+          x: modelData.x
+          y: modelData.y
+          width: modelData.width
+          height: modelData.height
+        }
+      }
 
       Loader {
         id: loader

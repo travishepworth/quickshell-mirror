@@ -29,7 +29,7 @@ import qs.config
  * - startFoot/endFoot: where a side wall's fillet lands (v); above 0 it
  *   stands on something drawn under the surface (a pill's far stroke) and
  *   follows it to that end
- * - notch*: a region at the attach edge left unpainted (a merged pill)
+ * - notches: regions at the attach edge left unpainted (merged pills)
  * - detached: a plain rounded box, not joined to anything
  * - straight/straightJoins: the attach edge, or the edges a join meets, are
  *   bare screen edges, so the walls run straight off them
@@ -64,20 +64,17 @@ Item {
   // their content add this on each side (see bar Popouts, tray submenus).
   readonly property int contentInset: Widget.spacing + Appearance.borderWidth + Math.round(Appearance.borderRadius / 4)
 
-  // A rectangle at the attach edge left unpainted (edge-local: from u =
-  // notchStart for notchLength, v = 0 to notchDepth), so what's under it
-  // shows through: a bar popout merged around the pill it opens from.
-  // notchRoundStart/End round its far corners at that end, to follow the
-  // pill's inner edge. It's a mask fixed to this item rather than part of
-  // the sliding outline, so the surface slides out from behind what shows
-  // through instead of over it.
-  property real notchStart: 0
-  property real notchLength: 0
+  // Rectangles at the attach edge left unpainted, so what's under them
+  // shows through: the pills a bar popout merges around. Each is
+  // { start, length, roundStart, roundEnd } (edge-local: from u = start
+  // for length, v = 0 to notchDepth); roundStart/End round its far corners
+  // at that end, to follow a pill's inner edge. They're a mask fixed to
+  // this item rather than part of the sliding outline, so the surface
+  // slides out from behind what shows through instead of over it.
+  property var notches: []
   property real notchDepth: 0
-  property bool notchRoundStart: false
-  property bool notchRoundEnd: false
-  // The notch in this item's coordinates, for input masks
-  readonly property rect notchRect: root._rectFrom(_notchU, 0, _notchEnd - _notchU, _notchV)
+  // The notches in this item's coordinates, for input masks
+  readonly property var notchRects: root._notches.map(n => root._rectFrom(n.u, 0, n.end - n.u, root.notchDepth))
 
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
@@ -133,11 +130,22 @@ Item {
   // line their own stroke up with it.
   readonly property rect boxRect: root._rectFrom(startMargin, connectorGap / 2, boxAlong, boxDepth)
 
-  // The notch clamped to the surface, edge-local (0 depth when there's none)
-  readonly property real _notchU: Math.max(0, Math.min(notchStart, alongLength))
-  readonly property real _notchEnd: Math.max(_notchU, Math.min(notchStart + notchLength, alongLength))
-  readonly property real _notchV: notchLength > 0 ? notchDepth : 0
-  readonly property real _notchRadius: Math.max(0, Math.min(Appearance.borderRadius - strokeWidth, (_notchEnd - _notchU) / 2, _notchV))
+  // The notches clamped to the surface, edge-local (none without depth)
+  readonly property var _notches: {
+    if (notchDepth <= 0)
+      return [];
+    return notches.map(n => {
+      const u = Math.max(0, Math.min(n.start, alongLength));
+      const end = Math.max(u, Math.min(n.start + n.length, alongLength));
+      return {
+        "u": u,
+        "end": end,
+        "radius": Math.max(0, Math.min(Appearance.borderRadius - strokeWidth, (end - u) / 2, notchDepth)),
+        "roundStart": n.roundStart,
+        "roundEnd": n.roundEnd
+      };
+    }).filter(n => n.end > n.u);
+  }
 
   // Reflections flip the sweep direction of arcs; rotations don't
   readonly property bool mirrored: edge === Bar.Bottom || edge === Bar.Left
@@ -252,25 +260,37 @@ Item {
   // ends, whose ends sit exactly on the strokes they continue
   readonly property string strokePath: width > 0 && height > 0 ? root._outline((u, v) => _move(u, v)) : ""
 
-  // The notch as a mask shape: square ends reach past the notch so only
-  // the rounded ones curve, and it overhangs the attach edge likewise
+  // The notches as a mask shape: square ends reach past a notch so only
+  // the rounded ones curve, and each overhangs the attach edge likewise
   Item {
     id: notchMask
     anchors.fill: parent
     visible: false
-    layer.enabled: root._notchV > 0
+    layer.enabled: root._notches.length > 0
 
-    Rectangle {
-      readonly property real r: root._notchRadius
-      readonly property real u0: root._notchU - (root.notchRoundStart ? 0 : r)
-      readonly property real u1: root._notchEnd + (root.notchRoundEnd ? 0 : r)
-      readonly property rect area: root._rectFrom(u0, -r, u1 - u0, root._notchV + r)
-      x: area.x
-      y: area.y
-      width: area.width
-      height: area.height
-      radius: r
-      color: "black"
+    Repeater {
+      model: root._notches.length
+
+      Rectangle {
+        required property int index
+        readonly property var notch: root._notches[index] ?? {
+          "u": 0,
+          "end": 0,
+          "radius": 0,
+          "roundStart": false,
+          "roundEnd": false
+        }
+        readonly property real r: notch.radius
+        readonly property real u0: notch.u - (notch.roundStart ? 0 : r)
+        readonly property real u1: notch.end + (notch.roundEnd ? 0 : r)
+        readonly property rect area: root._rectFrom(u0, -r, u1 - u0, root.notchDepth + r)
+        x: area.x
+        y: area.y
+        width: area.width
+        height: area.height
+        radius: r
+        color: "black"
+      }
     }
   }
 
@@ -278,7 +298,7 @@ Item {
     id: slideContainer
     anchors.fill: parent
 
-    layer.enabled: root._notchV > 0
+    layer.enabled: root._notches.length > 0
     layer.effect: MultiEffect {
       maskEnabled: true
       maskInverted: true
