@@ -26,12 +26,12 @@ k9s:
     menu:
       fgColor: ${FOREGROUND}
       keyColor: ${BASE09}
-      numKeyColor: ${ACCENT_SECONDARY}
+      numKeyColor: ${ACCENT_ALT}
 
     # CrumbView attributes for history navigation
     crumbs:
       fgColor: ${BACKGROUND}
-      bgColor: ${BACKGROUND_ALT2}
+      bgColor: ${BACKGROUND_HIGHLIGHT}
       activeColor: ${FOREGROUND}
 
     # Resource status and update styles
@@ -49,7 +49,7 @@ k9s:
       fgColor: ${FOREGROUND}
       bgColor: ${BACKGROUND_ALT}
       highlightColor: ${ACCENT}
-      counterColor: ${ACCENT_SECONDARY}
+      counterColor: ${ACCENT_ALT}
       filterColor: ${BASE09}
 
   # Views

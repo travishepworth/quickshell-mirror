@@ -1,41 +1,33 @@
 #!/usr/bin/env bash
 #
-# Quickshell theme -> Neovim palette file (read by ~/.config/nvim/lua/axiom_theme.lua),
-# then reloads every running Neovim instance over its RPC socket.
+# Quickshell theme -> Neovim palette file, read by ~/.config/nvim/lua/axiom_theme.lua.
 #
-# Usage: theme_nvim.sh <input_file.json> [output_file.json]
-#   output defaults to $XDG_STATE_HOME/axiom/nvim-theme.json
+# Usage: theme_nvim.sh <theme.json> [output.json]
+#   output: $XDG_STATE_HOME/axiom/nvim-theme.json
+#   hookup: the axiom_theme module in your Neovim config
+#   reload: every running Neovim over its RPC socket
 #
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/theme_env.sh"
-
-if [[ $# -eq 0 || "$1" == "-h" || "$1" == "--help" ]]; then
-    sed -n '3,7p' "$0" | sed 's/^# \{0,1\}//'
-    exit 1
-fi
+usage_or_help 3 8 "$@"
 require_cmds jq nvim
 
 INPUT_FILE="$1"
 OUTPUT_FILE="${2:-${XDG_STATE_HOME:-$HOME/.local/state}/axiom/nvim-theme.json}"
 load_theme "$INPUT_FILE"
-mkdir -p "$(dirname "$OUTPUT_FILE")"
 
 # The file stem picks a native colorscheme on the nvim side; the palette is
 # the mini.base16 fallback for themes it doesn't map
 STEM="$(basename "$INPUT_FILE" .json)"
-echo "📝 Writing Neovim palette..."
-TMP_FILE="$(mktemp "$OUTPUT_FILE.XXXXXX")"
 jq --arg stem "$STEM" --arg variant "$THEME_VARIANT" '{
     stem: $stem,
     name: (.name // $stem),
     variant: (if $variant == "light" then "light" else "dark" end),
     colors: (.colors // {})
-}' "$INPUT_FILE" > "$TMP_FILE"
-mv "$TMP_FILE" "$OUTPUT_FILE"
-echo "✅ Palette written to '$OUTPUT_FILE'"
+}' "$INPUT_FILE" | write_atomic "$OUTPUT_FILE"
+echo "✅ Written to '$OUTPUT_FILE'"
 
-echo "🚀 Reloading all running Neovim instances..."
 RELOADED=0
 for SOCKET in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*.0; do
     [ -S "$SOCKET" ] || continue
@@ -46,8 +38,4 @@ for SOCKET in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*.0; do
         RELOADED=$((RELOADED + 1))
     fi
 done
-if [ "$RELOADED" -eq 0 ]; then
-    echo "⚠️  No running Neovim instance was reloaded (none open, or axiom_theme isn't in their config)." >&2
-else
-    echo "✅ Reloaded $RELOADED Neovim instance(s)."
-fi
+echo "🚀 Reloaded $RELOADED Neovim instance(s) (the others lack axiom_theme)."

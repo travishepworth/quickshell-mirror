@@ -26,7 +26,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 - Base16 themes, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Solarized, Tokyo Night/Day and Submarine Sonar.
 - Generate a theme from your wallpaper. pywal backends pick the candidate colors, then the palette is built in OKLCH to match the contrast of the hand-made themes.
 - Wallpapers can be set per monitor, with transitions through [awww](https://github.com/LGFae/awww).
-- The active theme is applied to kitty, cava, k9s, Neovim and hyprlock.
+- The active theme is applied to other apps too (each one is a switch under Settings → Theme integrations): GTK and Qt apps, the kitty, Alacritty, foot, WezTerm and Ghostty terminals, Neovim, Helix and VS Code, and k9s, cava, btop, fzf, lazygit, bat/delta and Yazi, plus hyprlock. Each app gets its own `axiom` theme file, and the switch's description gives the one line to add to its config. Your own config files are never edited.
 
 **The rest**
 - Notification toasts and a notification center.
@@ -59,7 +59,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 | Launcher calculator | `qalc` (libqalculate), `wl-copy` |
 | NVIDIA GPU stats | `nvidia-smi` (AMD is read from sysfs) |
 | hyprlock mode | `hyprlock`, and `hypridle` to lock on idle |
-| Theme integrations | `kitty`, `cava`, `k9s`, `nvim` |
+| Theme integrations | The app itself (`kitty`, `alacritty`, `foot`, `wezterm`, `ghostty`, `nvim`, `helix`/`hx`, VS Code or VSCodium, `k9s`, `cava`, `btop`, `fzf` 0.49+, `lazygit`, `bat`, `yazi` 25.5+); `qt5ct`/`qt6ct` for Qt; `adw-gtk-theme` for GTK3 apps |
 
 ## Installation
 

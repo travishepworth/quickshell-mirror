@@ -98,39 +98,20 @@ QtObject {
     setLightMode(Appearance.darkMode);
   }
 
-  // Runs the enabled integrations (kitty, cava, k9s, nvim) for a theme
+  // Runs the enabled integrations (scripts/theme_<key>.sh, one per
+  // ThemeIntegrations switch) for a theme
   function themeIntegrations(themeName = Appearance.theme) {
     const themePath = Paths.themePath + themeName + ".json";
-    const integrations = [
-      {
-        enabled: ThemeIntegrations.kitty,
-        process: _kittyProcess,
-        script: "theme_kitty.sh"
-      },
-      {
-        enabled: ThemeIntegrations.cava,
-        process: _cavaProcess,
-        script: "theme_cava.sh"
-      },
-      {
-        enabled: ThemeIntegrations.k9s,
-        process: _k9sProcess,
-        script: "theme_k9s.sh"
-      },
-      {
-        enabled: ThemeIntegrations.nvim,
-        process: _nvimProcess,
-        script: "theme_nvim.sh"
-      }
-    ];
     if (LockscreenConfig.mode === "hyprlock")
       root.generateHyprlockConfig();
-    for (const integration of integrations) {
+    for (let i = 0; i < root._integrations.length; i++) {
+      const key = root._integrations[i];
+      const process = root._integrationRunner.objectAt(i);
       // A busy integration only skips itself, not the ones after it
-      if (!integration.enabled || integration.process.running)
+      if (!ThemeIntegrations[key] || !process || process.running)
         continue;
-      integration.process.command = [Paths.scriptsPath + integration.script, themePath];
-      integration.process.running = true;
+      process.command = [Paths.scriptsPath + "theme_" + key + ".sh", themePath];
+      process.running = true;
     }
   }
 
@@ -237,14 +218,47 @@ QtObject {
   property var _families: []
 
   // --- Integration processes ---
-  property Process _k9sProcess: Process {
-    stderr: StdioCollector {}
-    stdout: StdioCollector {}
+  // One per ThemeIntegrations key, each running scripts/theme_<key>.sh
+  readonly property var _integrations: ["gtk", "qt", "kitty", "alacritty", "foot", "wezterm", "ghostty", "nvim", "helix", "vscode", "k9s", "cava", "btop", "fzf", "lazygit", "bat", "yazi"]
+  property Instantiator _integrationRunner: Instantiator {
+    model: root._integrations
+    delegate: Process {
+      id: integration
+      required property string modelData
+      // Reported once both the exit and the end of stderr are in, in
+      // whichever order they come
+      property int _exitCode: -1
+      property bool _stderrDone: false
+
+      function _report() {
+        if (_exitCode < 0 || !_stderrDone)
+          return;
+        // A failure logs all of stderr; a success only its "Warning:" lines
+        const text = errors.text.trim();
+        const shown = _exitCode === 0 ? text.split("\n").filter(line => line.startsWith("Warning:")).join("\n") : text || "exited with " + _exitCode;
+        if (shown)
+          console.warn("[ThemeManager] theme_" + modelData + ".sh:", shown);
+      }
+
+      onRunningChanged: if (running) {
+        _exitCode = -1;
+        _stderrDone = false;
+      }
+      onExited: exitCode => {
+        _exitCode = exitCode;
+        _report();
+      }
+      stdout: StdioCollector {}
+      stderr: StdioCollector {
+        id: errors
+        onStreamFinished: {
+          integration._stderrDone = true;
+          integration._report();
+        }
+      }
+    }
   }
-  property Process _cavaProcess: Process {
-    stderr: StdioCollector {}
-    stdout: StdioCollector {}
-  }
+
   // Everything besides the theme that goes into the hyprlock config
   readonly property string _hyprlockInputs: [Appearance.fontFamily, Appearance.wallpaper, LockscreenConfig.blurWallpaper, I18n.language, General.displayName].join("|")
   on_HyprlockInputsChanged: if (LockscreenConfig.mode === "hyprlock")
@@ -269,15 +283,6 @@ QtObject {
       if (exitCode === 0)
         callbacks.forEach(then => then());
     }
-  }
-
-  property Process _kittyProcess: Process {
-    stderr: StdioCollector {}
-    stdout: StdioCollector {}
-  }
-  property Process _nvimProcess: Process {
-    stderr: StdioCollector {}
-    stdout: StdioCollector {}
   }
 
   // --- Generation Logic ---
