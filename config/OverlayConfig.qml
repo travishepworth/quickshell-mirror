@@ -25,12 +25,21 @@ QtObject {
         "label": type.description || type.const,
         "propertiesSchema": def.properties?.properties?.properties ?? null,
         // Slot shapes a module fits (`x-shapes`); views don't declare any
-        "shapes": def["x-shapes"] ?? ["square", "horizontal", "vertical"]
+        "shapes": def["x-shapes"] ?? ["square", "horizontal", "vertical"],
+        // Nerd Font glyph (`x-icon`, a hex codepoint)
+        "icon": String.fromCodePoint(parseInt(def["x-icon"] ?? "F0431", 16))
       };
     }).filter(t => t !== null);
   }
   readonly property var availableModuleTypes: _oneOfTypes("OverlayModule")
   readonly property var availableViewTypes: _oneOfTypes("OverlayView")
+
+  function moduleInfo(type) {
+    return availableModuleTypes.find(t => t.type === type) ?? null;
+  }
+  function viewInfo(type) {
+    return availableViewTypes.find(t => t.type === type) ?? null;
+  }
 
   // Card grid layout — internal design constants, not user settings.
   // Card radius/border follow Appearance so the overlay matches the shell.
@@ -65,13 +74,19 @@ QtObject {
 
   // Whether a module type may sit in a slot of the given rect
   function fits(type, rect) {
-    const info = availableModuleTypes.find(t => t.type === type);
+    const info = moduleInfo(type);
     return !info || info.shapes.includes(slotShape(rect));
   }
 
+  // The one-slot layout a module gets a cell of its own in: a card if it
+  // fits a square, else Tall or Wide
+  function bestLayoutFor(type) {
+    return ["Single", "Tall", "Wide", "Large"].find(name => fits(type, layouts[name].slots.main)) ?? "Single";
+  }
+
   // How a column flows its cells: left to right, wrapping at the widest
-  // cell. Returns the unscaled size and the number of rows, matching the
-  // Flow in OverlayColumn.
+  // cell. Returns the unscaled size, the number of rows and each cell's
+  // { x, y, width, height, row }, matching the Flow in OverlayColumn.
   function columnFlow(cells, unit) {
     const sizes = (cells ?? []).map(cell => {
       const layout = layouts[cell.layout] ?? layouts.Single;
@@ -79,6 +94,7 @@ QtObject {
     });
     const width = Math.max(0, ...sizes.map(size => size[0]));
     let x = 0, rowHeight = 0, height = 0, rows = 0;
+    const rects = [];
     sizes.forEach(([w, h]) => {
       if (x > 0 && x + w > width + 0.5) {
         height += rowHeight + cardSpacing;
@@ -87,13 +103,21 @@ QtObject {
       }
       if (x === 0)
         rows++;
+      rects.push({
+        "x": x,
+        "y": height,
+        "width": w,
+        "height": h,
+        "row": rows - 1
+      });
       x += w + cardSpacing;
       rowHeight = Math.max(rowHeight, h);
     });
     return {
       "width": width,
       "height": height + rowHeight,
-      "rows": rows
+      "rows": rows,
+      "rects": rects
     };
   }
 

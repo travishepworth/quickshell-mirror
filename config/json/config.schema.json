@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatBackends\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches. `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-shapes` on an overlay module definition lists the slot shapes it fits (\"square\", \"horizontal\", \"vertical\"; a slot's shape comes from its span in OverlayConfig.layouts), and is enforced by the overlay editor. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatBackends\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches. `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-shapes` on an overlay module definition lists the slot shapes it fits (\"square\", \"horizontal\", \"vertical\"; a slot's shape comes from its span in OverlayConfig.layouts), and is enforced by the overlay editor; `x-icon` on a module or view definition is its Nerd Font codepoint (hex) in the editor. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -632,6 +632,7 @@
     },
     "CustomOverlayView": {
       "type": "object",
+      "x-icon": "F056E",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -643,6 +644,7 @@
     },
     "KeybindsOverlayView": {
       "type": "object",
+      "x-icon": "F030C",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -652,6 +654,7 @@
     },
     "SettingsOverlayView": {
       "type": "object",
+      "x-icon": "F0493",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -661,6 +664,7 @@
     },
     "BarEditorOverlayView": {
       "type": "object",
+      "x-icon": "F1513",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -734,6 +738,7 @@
     },
     "ThemeEditorOverlayModule": {
       "type": "object",
+      "x-icon": "F03D8",
       "x-shapes": ["vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -743,6 +748,7 @@
     },
     "NowPlayingOverlayModule": {
       "type": "object",
+      "x-icon": "F075A",
       "x-shapes": ["square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
@@ -752,6 +758,7 @@
     },
     "AudioMixerOverlayModule": {
       "type": "object",
+      "x-icon": "F066A",
       "x-shapes": ["vertical", "square"],
       "required": ["type"],
       "additionalProperties": false,
@@ -768,6 +775,7 @@
     },
     "VolumeDialsOverlayModule": {
       "type": "object",
+      "x-icon": "F057E",
       "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -777,6 +785,7 @@
     },
     "SystemGraphsOverlayModule": {
       "type": "object",
+      "x-icon": "F012A",
       "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -793,6 +802,7 @@
     },
     "DisksOverlayModule": {
       "type": "object",
+      "x-icon": "F02CA",
       "x-shapes": ["horizontal", "square", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -809,6 +819,7 @@
     },
     "TopProcessesOverlayModule": {
       "type": "object",
+      "x-icon": "F0279",
       "x-shapes": ["vertical", "square"],
       "required": ["type"],
       "additionalProperties": false,
@@ -826,6 +837,7 @@
     },
     "UpdatesOverlayModule": {
       "type": "object",
+      "x-icon": "F03D5",
       "x-shapes": ["square", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -844,6 +856,7 @@
     },
     "QuickTogglesOverlayModule": {
       "type": "object",
+      "x-icon": "F0521",
       "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -860,6 +873,7 @@
     },
     "WorkspacesMapOverlayModule": {
       "type": "object",
+      "x-icon": "F0570",
       "x-shapes": ["horizontal", "square", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -877,6 +891,7 @@
     },
     "NotificationsOverlayModule": {
       "type": "object",
+      "x-icon": "F009A",
       "x-shapes": ["vertical", "square"],
       "required": ["type"],
       "additionalProperties": false,
@@ -886,6 +901,7 @@
     },
     "BluetoothDevicesOverlayModule": {
       "type": "object",
+      "x-icon": "F00AF",
       "x-shapes": ["vertical", "square"],
       "required": ["type"],
       "additionalProperties": false,
@@ -895,6 +911,7 @@
     },
     "SessionOverlayModule": {
       "type": "object",
+      "x-icon": "F0425",
       "x-shapes": ["horizontal", "square", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -911,6 +928,7 @@
     },
     "ScreenshotOverlayModule": {
       "type": "object",
+      "x-icon": "F0100",
       "x-shapes": ["square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
@@ -927,6 +945,7 @@
     },
     "ClockCalendarOverlayModule": {
       "type": "object",
+      "x-icon": "F00F0",
       "x-shapes": ["square", "vertical", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
@@ -944,6 +963,7 @@
     },
     "WeatherOverlayModule": {
       "type": "object",
+      "x-icon": "F0595",
       "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -963,6 +983,7 @@
     },
     "BatteryOverlayModule": {
       "type": "object",
+      "x-icon": "F0079",
       "x-shapes": ["square", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -972,6 +993,7 @@
     },
     "NetworkOverlayModule": {
       "type": "object",
+      "x-icon": "F05A9",
       "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -981,6 +1003,7 @@
     },
     "FavouritesOverlayModule": {
       "type": "object",
+      "x-icon": "F04CE",
       "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -998,6 +1021,7 @@
     },
     "ChatOverlayModule": {
       "type": "object",
+      "x-icon": "F06A9",
       "x-shapes": ["vertical", "square"],
       "required": ["type"],
       "additionalProperties": false,
@@ -1007,6 +1031,7 @@
     },
     "NotesOverlayModule": {
       "type": "object",
+      "x-icon": "F039E",
       "x-shapes": ["vertical", "square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
@@ -1023,6 +1048,7 @@
     },
     "WallpaperPickerOverlayModule": {
       "type": "object",
+      "x-icon": "F02F9",
       "x-shapes": ["horizontal", "square", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
@@ -1032,6 +1058,7 @@
     },
     "ColorSwatchOverlayModule": {
       "type": "object",
+      "x-icon": "F08B5",
       "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,

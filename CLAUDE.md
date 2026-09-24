@@ -31,7 +31,7 @@ shell.qml       entrypoint — instantiates one top-level Item per module (Bar, 
 shell/          top-level pieces instantiated by shell.qml (one per surface)
 components/     UI building blocks
   methods/      pure singleton helpers (Utils, IconResolver, SchemaValidation, SchemaLayout, ConfigMigration, WorkspaceGeometry)
-  reusable/     generic styled widgets (StyledRectButton, StyledTextEntry, BaseWidget, TabBar, ...) with no feature-specific logic
+  reusable/     generic styled widgets (StyledRectButton, StyledTextEntry, BaseWidget, TabBar, DragArea, FieldGroup, ...) with no feature-specific logic
   forms/        the schema-driven form widgets (SchemaField, SchemaPropertiesForm, ...)
   content/      every loadable panel, loaded by name: overlay module types and bar popouts (see Content below)
     base/       content roots: Card (free-form card), Panel (column; popout or card), TitledCard, CardHeader
@@ -140,9 +140,10 @@ Views and modules are `oneOf`s discriminated by `type`, like `BarWidget`.
 
 **Overlay editor:**
 - `views/OverlayEditor.qml` with its pieces in `views/overlayEditor/`. It's not in config: `OverlayPages` adds it as a persistent page after the Repeater (and the Themes page), so it's always last, can't be removed, and survives the page rebuild that every `Overlay.views` change causes (pages are keyed by the views' JSON, so other config edits don't rebuild them).
-- All edits go through `services/OverlayManager.qml`, a draft copy of `Overlay.views` like `BarManager`: `problems` blocks Save, and Save merges onto the latest config.
-- The preview draws `PlaceholderTile`s from `OverlayConfig.layouts` at a computed scale, not with `Item.scale`.
-- Module and view pickers read `OverlayConfig.availableModuleTypes` / `availableViewTypes`, which come from the schema's `oneOf`s, so new types show up there automatically. The slot panel generates property rows from each module's `properties` schema.
+- Layout, as in the bar editor: `PagesPanel` (pages, dragged to reorder; Save/Reset; the selected page's name; problems) on the left, and `PageCanvas` above `EditorInspector` on the right. `PageCanvas` draws the selected page at a scale it computes itself (not `Item.scale`): `CanvasColumn`s (header grip, cells placed from `OverlayConfig.columnFlow(...).rects`) with `ColumnGap`s between them, `CanvasCell`s (hover grip) and `SlotTile`s. The inspector shows a selected module's options plus its cell's layout thumbnails, or else the `ModuleLibrary` (modules and cell layouts to drag or click).
+- `EditorDragLayer` covers the whole page. It owns the one drag in progress and its ghost, like the bar editor's `DragLayer`. Drop targets register themselves with a `targetKind` (`slot` > `gap` > `column` / `pages`, most specific first). Draggables use `reusable/DragArea` (press, a 6 px threshold, then begin/move/end) and pass `{ kind, icon, label, ... }` payloads: `module-add`/`module-move`, `cell-add`/`cell-move`, `column-move`, `page-move`.
+- All edits go through `services/OverlayManager.qml`, a draft copy of `Overlay.views` like `BarManager`. `problems` blocks Save, and Save merges onto the latest config. Drop places are `{ kind: "column", column, index }` or `{ kind: "gap", index }` (a new column), with indices counted as if the moved item were still in place. `_restructure` tracks cells by identity, so the selection follows what moved, and it removes any column a move empties. Dropping a module on an occupied slot swaps the two (`canMoveModule`: both must fit). Dropping one between cells gives it its own cell (`OverlayConfig.bestLayoutFor`).
+- Module and view pickers read `OverlayConfig.availableModuleTypes` / `availableViewTypes`. These come from the schema's `oneOf`s, including `x-shapes` and `x-icon` (a hex Nerd Font codepoint), so new types show up there automatically. The inspector generates property rows from each module's `properties` schema.
 - `TypePickerPopup` (overlay root) is the shared "pick a type" popup used by both the bar editor and the overlay editor.
 
 ### Popouts (bar + screen edge)

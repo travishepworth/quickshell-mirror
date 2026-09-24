@@ -69,48 +69,14 @@ Rectangle {
     }
   }
 
-  MouseArea {
+  DragArea {
     id: area
-
-    property real pressX: 0
-    property real pressY: 0
-    property bool dragged: false
-
     anchors.fill: parent
-    hoverEnabled: true
-    // Keep the pointer while carrying it over a scrolling lane
-    preventStealing: true
-    cursorShape: area.dragged ? Qt.ClosedHandCursor : (root.payload ? Qt.OpenHandCursor : Qt.PointingHandCursor)
-
-    onPressed: mouse => {
-      area.pressX = mouse.x;
-      area.pressY = mouse.y;
-      area.dragged = false;
-    }
-    onPositionChanged: mouse => {
-      if (!area.pressed || !root.payload)
-        return;
-      if (!area.dragged && Math.hypot(mouse.x - area.pressX, mouse.y - area.pressY) > 6) {
-        area.dragged = true;
-        root.dragLayer.begin(root.payload, root, area.pressX, area.pressY);
-      }
-      if (area.dragged)
-        root.dragLayer.move(root, mouse.x, mouse.y);
-    }
-    // `dragged` stays set until the next press, so the click that follows
-    // a drop is ignored
-    onReleased: {
-      if (area.dragged)
-        root.dragLayer.end();
-    }
-    onCanceled: {
-      if (area.dragged)
-        root.dragLayer.cancel();
-      area.dragged = false;
-    }
-    onClicked: {
-      if (!area.dragged)
-        root.clicked();
-    }
+    dragEnabled: root.payload !== null
+    onDragStarted: (x, y) => root.dragLayer.begin(root.payload, root, x, y)
+    onDragMoved: (x, y) => root.dragLayer.move(root, x, y)
+    onDropped: root.dragLayer.end()
+    onDragCanceled: root.dragLayer.cancel()
+    onTapped: root.clicked()
   }
 }
