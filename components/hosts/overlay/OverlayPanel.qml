@@ -28,7 +28,7 @@ PanelWindow {
 
   // Normal exclusion with no zone of its own places the window inside the
   // border's and bars' reserved area, wherever the bars are, so pages
-  // center in the free space and clicks on the bars reach them; the
+  // center in the free space and the bars stay reachable; the
   // -borderWidth margin lines it up with their inner stroke (as EdgePopout).
   // The window itself is transparent: ScreenBackdrop dims the whole
   // monitor under it. A bare screen edge (no border, no bar) has no stroke
@@ -74,9 +74,9 @@ PanelWindow {
     hideTimer.start();
   }
 
-  // When the overlay last closed from a click outside it: a click on the
-  // bar's overlay button clears the grab (closing it) before the button
-  // toggles, which must not reopen it
+  // When the overlay last closed from a click outside it: a click on a
+  // button outside the grab (e.g. another monitor's bar) clears the grab
+  // (closing it) before the button toggles, which must not reopen it
   property real _outsideCloseTime: 0
 
   function toggle() {
@@ -139,7 +139,8 @@ PanelWindow {
   HyprlandFocusGrab {
     id: grab
     active: root.visible
-    windows: [root]
+    // This screen's bars and their popouts stay usable while it's open
+    windows: [root].concat(ShellManager.grabPartnersFor(root.screen))
     onCleared: {
       if (!root.isOpen) {
         grab.active = true;

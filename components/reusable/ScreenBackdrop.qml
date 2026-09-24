@@ -10,7 +10,8 @@ import qs.config
 // above them, so HyprlandManager gives this namespace a higher layer
 // order, which stacks it under them. It takes no input: clicks go to the
 // surface above it, or to the bars and border (which clears the
-// surface's focus grab).
+// surface's focus grab, unless the surface lets its screen's bars
+// through: see ShellManager.grabPartners).
 PanelWindow {
   id: root
 

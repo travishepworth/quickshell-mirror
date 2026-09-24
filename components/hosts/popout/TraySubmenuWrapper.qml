@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import qs.config
+import qs.services
 import qs.components.content.parts
 
 /**
@@ -103,6 +104,12 @@ Item {
       }
     }
   }
+
+  // The overlay's focus grab lets input through to the submenu (see
+  // ShellManager.grabPartners)
+  Component.onCompleted: ShellManager.registerGrabPartner(submenuPopup, outer.screen?.name)
+  onScreenChanged: ShellManager.registerGrabPartner(submenuPopup, outer.screen?.name)
+  Component.onDestruction: ShellManager.unregisterGrabPartner(submenuPopup)
 
   // Thin forwarding so external callers (SystemTray, TraySubmenu)
   // keep using `submenuWrapper.safeOpenPopout(...)` / `closePopout()` /

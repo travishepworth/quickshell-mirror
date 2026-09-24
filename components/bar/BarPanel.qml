@@ -79,7 +79,12 @@ PanelWindow {
     console.log("  > Visible:", visible);
     console.log("  > implicitWidth:", implicitWidth, "implicitHeight:", implicitHeight);
     console.log("================================");
+    ShellManager.registerGrabPartner(root, root.screen?.name);
   }
+  // The overlay's focus grab lets input through to the bar (see
+  // ShellManager.grabPartners)
+  onScreenChanged: ShellManager.registerGrabPartner(root, root.screen?.name)
+  Component.onDestruction: ShellManager.unregisterGrabPartner(root)
 
   BarPopouts {
     id: popouts

@@ -151,7 +151,13 @@ PopoutWrapperBase {
     if (currentData?.anchorItem) {
       currentData.anchorItem.popoutOpen = false;
     }
+    ShellManager.unregisterGrabPartner(mainPopup);
   }
+
+  // The overlay's focus grab lets input through to the popout (see
+  // ShellManager.grabPartners)
+  Component.onCompleted: ShellManager.registerGrabPartner(mainPopup, root.screen?.name)
+  onScreenChanged: ShellManager.registerGrabPartner(mainPopup, root.screen?.name)
 
   PopupWindow {
     id: mainPopup

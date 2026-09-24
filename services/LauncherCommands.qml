@@ -121,7 +121,7 @@ QtObject {
           url = walls.length > 0 ? walls[Math.floor(Math.random() * walls.length)].value : "";
         }
         if (url)
-          ThemeManager.setWallpaper(url, "");
+          ThemeManager.setWallpaperAndGenerate(url, "");
         return false;
       }
     },

@@ -36,6 +36,28 @@ QtObject {
     return !!screen && screen.name === (mode ? targetFor(mode) : targetScreen);
   }
 
+  // Windows a full-screen surface's focus grab lets input through to on
+  // their screen: the bars and their popouts, so they stay usable while the
+  // overlay is open. `{ window, screen }` (a screen name)
+  property var grabPartners: []
+
+  function registerGrabPartner(window, screenName) {
+    grabPartners = grabPartners.filter(p => p.window !== window).concat([
+      {
+        window,
+        screen: screenName ?? ""
+      }
+    ]);
+  }
+
+  function unregisterGrabPartner(window) {
+    grabPartners = grabPartners.filter(p => p.window !== window);
+  }
+
+  function grabPartnersFor(screen) {
+    return grabPartners.filter(p => !!screen && p.screen === screen.name).map(p => p.window);
+  }
+
   // Session actions, shared by the power menu and the overlay's Session
   // module. The destructive ones ask for a second click first.
   readonly property var destructiveActions: ["logout", "reboot", "poweroff"]
