@@ -13,6 +13,44 @@
       "x-settings": false
     },
 
+    "Lockscreen": {
+      "type": "object",
+      "title": "Lockscreen",
+      "description": "Which locker locks the session. Point your idle daemon's lock command at `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "title": "Locker",
+          "enum": ["quickshell", "hyprlock", "none"],
+          "x-enumLabels": { "quickshell": "Built-in (Quickshell)", "hyprlock": "hyprlock, themed by axiom", "none": "None (bring your own)" },
+          "default": "quickshell",
+          "description": "Built-in uses the Wayland session-lock protocol with PAM, like hyprlock. hyprlock mode runs hyprlock with a config generated from the axiom theme. None leaves locking to your own locker."
+        },
+        "lockCommand": {
+          "type": "string",
+          "title": "Lock command",
+          "default": "loginctl lock-session",
+          "description": "What axiom's lock buttons run when the locker is your own.",
+          "x-showIf": { "mode": "none" }
+        },
+        "showMedia": {
+          "type": "boolean",
+          "title": "Media controls",
+          "default": true,
+          "description": "Show the playing track and its controls on the lock screen.",
+          "x-showIf": { "mode": "quickshell" }
+        },
+        "blurWallpaper": {
+          "type": "boolean",
+          "title": "Blur wallpaper",
+          "default": true,
+          "description": "Blur the wallpaper behind the hyprlock screen.",
+          "x-showIf": { "mode": "hyprlock" }
+        }
+      }
+    },
+
     "General": {
       "type": "object",
       "title": "General",

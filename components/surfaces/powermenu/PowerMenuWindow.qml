@@ -53,8 +53,12 @@ PanelWindow {
       if (ShellManager.isTarget(root.screen))
         root.toggle();
     }
-    // Locking from anywhere closes the menu, so it isn't still up on unlock
-    function onLockScreen() {
+  }
+
+  // Locking from anywhere closes the menu, so it isn't still up on unlock
+  Connections {
+    target: LockManager
+    function onLockStarted() {
       root.shown = false;
     }
   }

@@ -47,7 +47,7 @@ BarIconWidget {
       ShellManager.toggleWorkspaceOverlay();
       break;
     case "lock":
-      ShellManager.lockScreen();
+      ShellManager.sessionAction("lock");
       break;
     case "command":
       runCommand(properties.command);

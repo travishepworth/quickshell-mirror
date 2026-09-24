@@ -17,4 +17,7 @@ QtObject {
   readonly property string statePath: root.configPath + "state/"
 
   readonly property string hyprlandPath: root.homeDirectory + ".config/hypr/"
+  // Per-user state outside the repo ($XDG_STATE_HOME/axiom/): secrets,
+  // the generated hyprlock config
+  readonly property string userStatePath: (Quickshell.env("XDG_STATE_HOME") || root.homeDirectory + ".local/state") + "/axiom/"
 }

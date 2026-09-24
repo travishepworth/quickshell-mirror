@@ -47,7 +47,7 @@ ToolButton {
   LazyLoader {
     active: root.hovered && root.tooltipText !== ""
     StyledToolTip {
-      target: component
+      target: root
       text: root.tooltipText
     }
   }

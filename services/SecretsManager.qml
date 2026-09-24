@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import qs.config
 
 /**
  * Secrets (chat API keys) live outside the repo and outside config.json.
@@ -13,10 +14,7 @@ import Quickshell.Io
 QtObject {
   id: root
 
-  readonly property string stateDir: {
-    const xdg = Quickshell.env("XDG_STATE_HOME");
-    return (xdg ? xdg : Quickshell.env("HOME") + "/.local/state") + "/axiom";
-  }
+  readonly property string stateDir: Paths.userStatePath.replace(/\/$/, "")
   readonly property string secretsPath: stateDir + "/secrets.json"
 
   property var _secrets: _read()

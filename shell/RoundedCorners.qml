@@ -9,8 +9,7 @@ Scope {
   Variants {
     model: Quickshell.screens
     delegate: RoundedBorders {
-      id: lockScreen
-      property var modelData: modelData
+      required property ShellScreen modelData
       screen: modelData
     }
   }

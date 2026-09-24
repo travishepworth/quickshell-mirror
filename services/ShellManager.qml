@@ -9,7 +9,6 @@ import qs.config
 QtObject {
   signal toggleDarkMode
 
-  signal lockScreen
   signal openPowerMenu
   signal toggleAppLauncher
   signal toggleOverlay
@@ -31,7 +30,7 @@ QtObject {
   function sessionAction(action) {
     switch (action) {
     case "lock":
-      lockScreen();
+      LockManager.lock();
       break;
     case "suspend":
       Quickshell.execDetached(["systemctl", "suspend"]);

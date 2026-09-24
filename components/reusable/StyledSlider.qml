@@ -30,7 +30,7 @@ Item {
 
   // -- Implementation --
   Binding {
-    target: component
+    target: root
     property: "_internalValue"
     value: root.targetValue
     when: !mouseArea.isDragging && root.smoothUpdate

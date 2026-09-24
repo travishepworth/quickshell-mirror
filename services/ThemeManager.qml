@@ -100,6 +100,8 @@ QtObject {
         script: "theme_k9s.sh"
       }
     ];
+    if (LockscreenConfig.mode === "hyprlock")
+      root.generateHyprlockConfig();
     for (const integration of integrations) {
       // A busy integration only skips itself, not the ones after it
       if (!integration.enabled || integration.process.running)
@@ -107,6 +109,20 @@ QtObject {
       integration.process.command = [Paths.scriptsPath + integration.script, themePath];
       integration.process.running = true;
     }
+  }
+
+  // The themed hyprlock config (Lockscreen.mode "hyprlock"): the theme's
+  // colors plus the font, wallpaper and a translated greeting. `then` runs
+  // once it's written (LockManager locks with it).
+  function generateHyprlockConfig(then) {
+    if (then)
+      root._hyprlockThen.push(then);
+    if (root._hyprlockProcess.running) {
+      root._hyprlockAgain = true;
+      return;
+    }
+    root._hyprlockProcess.command = [Paths.scriptsPath + "theme_hyprlock.sh", Paths.themePath + Appearance.theme + ".json", LockManager.hyprlockConfigPath, Appearance.fontFamily, Appearance.wallpaper, LockscreenConfig.blurWallpaper ? "1" : "0", I18n.tr("Hey {0}", General.displayName), I18n.tr("Enter password...")];
+    root._hyprlockProcess.running = true;
   }
 
   //=========================================================================
@@ -204,6 +220,32 @@ QtObject {
     stderr: StdioCollector {}
     stdout: StdioCollector {}
   }
+  // Everything besides the theme that goes into the hyprlock config
+  readonly property string _hyprlockInputs: [Appearance.fontFamily, Appearance.wallpaper, LockscreenConfig.blurWallpaper, I18n.language, General.displayName].join("|")
+  on_HyprlockInputsChanged: if (LockscreenConfig.mode === "hyprlock")
+    root.generateHyprlockConfig()
+
+  property var _hyprlockThen: []
+  property bool _hyprlockAgain: false
+  property Process _hyprlockProcess: Process {
+    stdout: StdioCollector {}
+    stderr: StdioCollector {
+      onStreamFinished: if (text.trim())
+        console.warn("[ThemeManager] theme_hyprlock.sh:", text.trim())
+    }
+    onExited: exitCode => {
+      if (root._hyprlockAgain) {
+        root._hyprlockAgain = false;
+        root.generateHyprlockConfig();
+        return;
+      }
+      const callbacks = root._hyprlockThen;
+      root._hyprlockThen = [];
+      if (exitCode === 0)
+        callbacks.forEach(then => then());
+    }
+  }
+
   property Process _kittyProcess: Process {
     stderr: StdioCollector {}
     stdout: StdioCollector {}
