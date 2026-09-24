@@ -268,6 +268,16 @@ Rectangle {
     onAllocationUpdated: section.bar.layoutUpdated()
   }
 
+  // With the border off nothing else draws a solid bar's inner stroke
+  Rectangle {
+    visible: root.barConfig.innerStroke ?? false
+    color: Theme.foreground
+    width: root.isVertical ? Appearance.borderWidth : root.width
+    height: root.isVertical ? root.height : Appearance.borderWidth
+    x: root.barConfig.left ? root.width - width : 0
+    y: root.barConfig.top ? root.height - height : 0
+  }
+
   // Pills: each grows out of the bar's outer edge (the border, or the
   // screen edge with the border off) like a popout does, covering the
   // border's stroke where it joins. Modelled by count, so a clock changing

@@ -37,6 +37,9 @@ QtObject {
       "pills": background === "pills",
       // Transparent and pill bars sit inside the screen border, not under it
       "floating": background !== "solid" && Appearance.screenBorder,
+      // A solid bar's inner stroke is the border strip's; with the border
+      // off it draws its own, on its innermost pixels
+      "innerStroke": background === "solid" && !Appearance.screenBorder,
       "overlap": overlap,
       "pillPad": pillPad,
       "pillMerge": barConfig.pillMerge ?? 0,

@@ -111,9 +111,10 @@ PopoutWrapperBase {
   // stroke, where an unmerged popout attaches, with the border on or off
   readonly property real pillClearance: mergeWithPill ? root.pillFoot : 0
   // Where the popout attaches, measured from the bar's outer edge: the
-  // outer edge itself when merged, a pill's far stroke, or the bar's
-  // inner edge
-  readonly property real attachAt: mergeWithPill ? 0 : anchorPill !== null ? pillFoot : root.barConfig.extent
+  // outer edge itself when merged, a pill's far stroke, the bar's own
+  // inner stroke (solid, border off), or the bar's inner edge (where the
+  // border strip's stroke starts)
+  readonly property real attachAt: mergeWithPill ? 0 : anchorPill !== null ? pillFoot : root.barConfig.extent - (root.barConfig.innerStroke ? Appearance.borderWidth : 0)
   // How far inside a pill's ends the notch stops: its stroke, plus a pixel
   // so the stroke's anti-aliased edge stays covered too
   readonly property real notchInset: Appearance.borderWidth + 1
