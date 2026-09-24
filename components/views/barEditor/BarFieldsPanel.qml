@@ -7,8 +7,7 @@ import qs.components.content.base
 
 // Bar editor: bar tabs and the selected bar's own settings
 Item {
-  implicitWidth: OverlayConfig.cardUnit
-  implicitHeight: OverlayConfig.span(4)
+  // Sized by BarEditor from the overlay's card grid
 
   TitledCard {
     title: I18n.tr("Bar Editor")

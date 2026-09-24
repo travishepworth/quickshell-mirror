@@ -36,8 +36,14 @@ BaseView {
       BarPreview {
         Layout.fillHeight: true
       }
-      BarFieldsPanel {}
-      BarWidgetsPanel {}
+      BarFieldsPanel {
+        implicitWidth: root.grid.unit
+        implicitHeight: root.grid.span(4)
+      }
+      BarWidgetsPanel {
+        implicitWidth: root.grid.unit
+        implicitHeight: root.grid.span(4)
+      }
     }
   }
 
@@ -45,8 +51,14 @@ BaseView {
     id: rightLayout
     RowLayout {
       spacing: OverlayConfig.cardSpacing
-      BarFieldsPanel {}
-      BarWidgetsPanel {}
+      BarFieldsPanel {
+        implicitWidth: root.grid.unit
+        implicitHeight: root.grid.span(4)
+      }
+      BarWidgetsPanel {
+        implicitWidth: root.grid.unit
+        implicitHeight: root.grid.span(4)
+      }
       BarPreview {
         Layout.fillHeight: true
       }
@@ -62,8 +74,14 @@ BaseView {
       }
       RowLayout {
         spacing: OverlayConfig.cardSpacing
-        BarFieldsPanel {}
-        BarWidgetsPanel {}
+        BarFieldsPanel {
+          implicitWidth: root.grid.unit
+          implicitHeight: root.grid.span(4)
+        }
+        BarWidgetsPanel {
+          implicitWidth: root.grid.unit
+          implicitHeight: root.grid.span(4)
+        }
       }
     }
   }
@@ -74,8 +92,14 @@ BaseView {
       spacing: OverlayConfig.cardSpacing
       RowLayout {
         spacing: OverlayConfig.cardSpacing
-        BarFieldsPanel {}
-        BarWidgetsPanel {}
+        BarFieldsPanel {
+          implicitWidth: root.grid.unit
+          implicitHeight: root.grid.span(4)
+        }
+        BarWidgetsPanel {
+          implicitWidth: root.grid.unit
+          implicitHeight: root.grid.span(4)
+        }
       }
       BarPreview {
         Layout.fillWidth: true

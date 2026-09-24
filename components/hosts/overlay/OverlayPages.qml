@@ -7,6 +7,12 @@ import qs.components.views
 Item {
   id: wrapper
   required property var screen
+  // This screen's card grid (OverlayGrid), handed to every view
+  required property OverlayGrid grid
+  // The most room a page's box may take; a page bigger than that is
+  // shrunk (fitScale) so any config fits any screen
+  property real maxWidth: 0
+  property real maxHeight: 0
   // Whether the overlay window is showing; pages unload when it isn't
   property bool open: false
   property var viewsConfig: OverlayConfig.views || []
@@ -35,12 +41,29 @@ Item {
       wrapper.currentIndex = Math.min(wrapper.currentIndex, wrapper.editorIndex);
   }
 
-  implicitWidth: currentViewWidth + OverlayConfig.cardSpacing * 2
-  implicitHeight: currentViewHeight + OverlayConfig.cardSpacing * 2
+  implicitWidth: currentViewWidth * fitScale + OverlayConfig.cardSpacing * 2
+  implicitHeight: currentViewHeight * fitScale + OverlayConfig.cardSpacing * 2
 
   // Store current view dimensions to avoid binding loops
   property real currentViewWidth: wrapper.currentPage ? wrapper.currentPage.implicitWidth : 0
   property real currentViewHeight: wrapper.currentPage ? wrapper.currentPage.implicitHeight : 0
+
+  // The grid already sizes cards to the screen; this is the last resort
+  // for a page that still doesn't fit (many columns, a large Overlay size).
+  // Item.scale doesn't feed back into implicit sizes, so no binding loop.
+  readonly property real fitScale: {
+    const room = OverlayConfig.cardSpacing * 2;
+    const scaleW = wrapper.currentViewWidth > 0 && wrapper.maxWidth > room ? (wrapper.maxWidth - room) / wrapper.currentViewWidth : 1;
+    const scaleH = wrapper.currentViewHeight > 0 && wrapper.maxHeight > room ? (wrapper.maxHeight - room) / wrapper.currentViewHeight : 1;
+    return Math.min(1, scaleW, scaleH);
+  }
+  onFitScaleChanged: console.log(`Overlay page ${wrapper.currentIndex} scaled to ${wrapper.fitScale.toFixed(3)} (card unit ${wrapper.grid.unit})`)
+  Connections {
+    target: wrapper.grid
+    function onUnitChanged() {
+      console.log(`Overlay card unit ${wrapper.grid.unit} for ${wrapper.maxWidth}x${wrapper.maxHeight}`);
+    }
+  }
 
   // Only the current page and its neighbours (navigation wraps around) are
   // loaded, and only while the overlay is open, so hidden pages don't keep
@@ -69,8 +92,8 @@ Item {
       left: parent.left
       right: parent.right
     }
-    height: wrapper.currentViewHeight + OverlayConfig.cardSpacing * 2
-    width: wrapper.currentViewWidth + OverlayConfig.cardSpacing * 2
+    height: wrapper.implicitHeight
+    width: wrapper.implicitWidth
     clip: true
 
     Behavior on height {
@@ -97,10 +120,14 @@ Item {
       border.color: Theme.foreground
       border.width: Appearance.borderWidth
 
+      // Laid out at full size and scaled as a whole, so the box's own
+      // border and radius stay crisp
       Item {
         id: viewsContainer
-        anchors.fill: parent
-        anchors.margins: OverlayConfig.cardSpacing
+        anchors.centerIn: parent
+        width: wrapper.currentViewWidth
+        height: wrapper.currentViewHeight
+        scale: wrapper.fitScale
 
         Repeater {
           id: viewsRepeater
@@ -117,6 +144,7 @@ Item {
             OverlayView {
               anchors.centerIn: parent
               screen: wrapper.screen
+              grid: wrapper.grid
               viewModel: viewPage.modelData
             }
           }
@@ -131,6 +159,7 @@ Item {
           OverlayEditor {
             anchors.centerIn: parent
             screen: wrapper.screen
+            grid: wrapper.grid
           }
         }
       }

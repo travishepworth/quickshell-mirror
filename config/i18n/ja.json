@@ -669,6 +669,8 @@
     "Pill padding": "ピルの余白",
     "Space between a pill's edge and its widgets (px).": "ピルの端とウィジェットの間隔（px）。",
     "Merge distance": "結合距離",
-    "Groups closer than this share one pill (px).": "この距離より近いグループは1つのピルにまとめます（px）。"
+    "Groups closer than this share one pill (px).": "この距離より近いグループは1つのピルにまとめます（px）。",
+    "Overlay size (%)": "オーバーレイのサイズ（%）",
+    "Size of the overlay's cards, relative to what fits the screen. Pages that would still overflow are shrunk to fit.": "画面に収まるサイズを基準にしたオーバーレイのカードの大きさ。それでもはみ出すページは収まるように縮小されます。"
   }
 }

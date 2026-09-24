@@ -6,6 +6,8 @@ import qs.services
 // (Named OverlayConfig because `Overlay` is the module type.)
 QtObject {
   readonly property var views: ConfigManager.config.Overlay.views
+  // Card size as a percentage of what fits the screen (see OverlayGrid)
+  readonly property int size: ConfigManager.config.Overlay.size
 
   // What the overlay editor offers, read from the schema's oneOfs so new
   // module/view types show up there automatically
@@ -30,16 +32,28 @@ QtObject {
 
   // Card grid layout — internal design constants, not user settings.
   // Card radius/border follow Appearance so the overlay matches the shell.
+  // cardUnit is the reference card size: the largest a card gets at 100%
+  // (each overlay's OverlayGrid sizes its cards to its screen, up to this).
   readonly property int cardUnit: 500
   readonly property int cardSpacing: 20
   readonly property int cardPadding: 12
+  // A screen fits this many cards across its free height / width; the
+  // smaller of the two sizes the cards, so height decides on landscape
+  // screens and width on portrait ones. Cards never go below minCardUnit.
+  readonly property real fitCardsHigh: 2.5
+  readonly property real fitCardsWide: 4.5
+  readonly property int minCardUnit: 280
 
   // Cells are laid out on a grid of half cards: a span of n half units is
   // n halves plus the n - 1 gaps between them, so span(2) is one card and
-  // span(4) is two cards plus the gap between them.
-  readonly property real halfUnit: (cardUnit - cardSpacing) / 2
-  function span(n) {
-    return n * halfUnit + (n - 1) * cardSpacing;
+  // span(4) is two cards plus the gap between them. `unit` is the card
+  // size (the reference cardUnit unless given).
+  function halfUnitOf(unit) {
+    return ((unit ?? cardUnit) - cardSpacing) / 2;
+  }
+  readonly property real halfUnit: halfUnitOf(cardUnit)
+  function span(n, unit) {
+    return n * halfUnitOf(unit) + (n - 1) * cardSpacing;
   }
 
   // A slot's shape, from its [col, row, colSpan, rowSpan] rect
@@ -56,10 +70,10 @@ QtObject {
   // How a column flows its cells: left to right, wrapping at the widest
   // cell. Returns the unscaled size and the number of rows, matching the
   // Flow in OverlayColumn.
-  function columnFlow(cells) {
+  function columnFlow(cells, unit) {
     const sizes = (cells ?? []).map(cell => {
       const layout = layouts[cell.layout] ?? layouts.Single;
-      return [span(layout.cols), span(layout.rows)];
+      return [span(layout.cols, unit), span(layout.rows, unit)];
     });
     const width = Math.max(0, ...sizes.map(size => size[0]));
     let x = 0, rowHeight = 0, height = 0, rows = 0;

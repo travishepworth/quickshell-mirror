@@ -6,8 +6,7 @@ import qs.components.content.base
 
 // Bar editor: the selected bar's widgets, per section
 Item {
-  implicitWidth: OverlayConfig.cardUnit
-  implicitHeight: OverlayConfig.span(4)
+  // Sized by BarEditor from the overlay's card grid
 
   TitledCard {
     title: I18n.tr("Modules")

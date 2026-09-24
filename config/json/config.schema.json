@@ -399,11 +399,19 @@
     "Overlay": {
       "type": "object",
       "title": "Overlay",
-      "x-settings": false,
       "additionalProperties": false,
       "properties": {
+        "size": {
+          "type": "integer",
+          "title": "Overlay size (%)",
+          "default": 100,
+          "minimum": 50,
+          "maximum": 150,
+          "description": "Size of the overlay's cards, relative to what fits the screen. Pages that would still overflow are shrunk to fit."
+        },
         "views": {
           "type": "array",
+          "x-settings": false,
           "description": "Pages shown in the overlay, in order. A Custom view lays out columns side by side; a Cells column stacks cell layouts, whose slots each hold one module.",
           "default": [
             { "type": "Custom", "name": "Overview", "columns": [

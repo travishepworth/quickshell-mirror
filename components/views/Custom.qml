@@ -14,6 +14,7 @@ BaseView {
     OverlayColumn {
       required property var modelData
       columnConfig: modelData
+      grid: root.grid
     }
   }
 }

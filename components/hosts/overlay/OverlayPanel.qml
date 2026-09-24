@@ -156,14 +156,40 @@ PanelWindow {
       opacity: 0.85
     }
 
-    OverlayPages {
-      id: tabWrapper
-      anchors.centerIn: parent
-      screen: root.screen
-      open: root.visible
+    // Where pages go: everything above the navigator, so a page never
+    // sits under its dots
+    Item {
+      id: pageArea
+      anchors {
+        top: parent.top
+        left: parent.left
+        right: parent.right
+        bottom: navigator.top
+        bottomMargin: Widget.padding * 2
+      }
+
+      OverlayPages {
+        id: tabWrapper
+        anchors.centerIn: parent
+        screen: root.screen
+        open: root.visible
+        grid: grid
+        // The window has no size until it's first mapped: until then,
+        // estimate from the screen so the first page is built to fit
+        maxWidth: (pageArea.width > 0 ? pageArea.width : root.screen.width) - OverlayConfig.cardSpacing * 2
+        maxHeight: (pageArea.height > 0 ? pageArea.height : root.screen.height - navigator.height - Widget.padding * 4) - OverlayConfig.cardSpacing * 2
+      }
+    }
+
+    // This screen's card size: what fits the space the pages get
+    OverlayGrid {
+      id: grid
+      availableWidth: tabWrapper.maxWidth - OverlayConfig.cardSpacing * 2
+      availableHeight: tabWrapper.maxHeight - OverlayConfig.cardSpacing * 2
     }
 
     OverlayPageNavigator {
+      id: navigator
       anchors {
         bottom: parent.bottom
         bottomMargin: Widget.padding * 2

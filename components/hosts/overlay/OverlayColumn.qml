@@ -10,8 +10,9 @@ Item {
 
   // { cells: [...] }
   required property var columnConfig
+  required property OverlayGrid grid
 
-  implicitWidth: OverlayConfig.columnFlow(root.columnConfig.cells).width
+  implicitWidth: root.grid.columnFlow(root.columnConfig.cells).width
   implicitHeight: flow.implicitHeight
 
   Flow {
@@ -25,6 +26,7 @@ Item {
       OverlayCell {
         required property var modelData
         cellConfig: modelData
+        grid: root.grid
       }
     }
   }

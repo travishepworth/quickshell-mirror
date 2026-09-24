@@ -8,6 +8,7 @@ BaseView {
 
   KeybindDisplay {
     keybinds: KeybindManager.keybindings
-    screen: root.screen
+    cardWidth: root.grid.unit
+    maxHeight: root.grid.availableHeight
   }
 }

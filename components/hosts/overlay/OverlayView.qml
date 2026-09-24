@@ -4,6 +4,7 @@ import QtQuick
 Item {
   id: root
   required property var screen
+  required property OverlayGrid grid
   // { component, viewConfig } from OverlayPages.buildViewsModel
   required property var viewModel
 
@@ -14,6 +15,7 @@ Item {
   function _load() {
     viewLoader.setSource(root.viewModel.component, {
       "screen": root.screen,
+      "grid": root.grid,
       "viewConfig": root.viewModel.viewConfig
     });
   }
@@ -24,6 +26,7 @@ Item {
     anchors.centerIn: parent
     onLoaded: {
       item.screen = Qt.binding(() => root.screen);
+      item.grid = Qt.binding(() => root.grid);
       item.viewConfig = Qt.binding(() => root.viewModel.viewConfig);
     }
   }

@@ -8,8 +8,8 @@ import qs.components.views.overlayEditor
 BaseView {
   id: root
 
-  readonly property real panelWidth: OverlayConfig.cardUnit * 0.9
-  readonly property real editorHeight: OverlayConfig.span(3.5)
+  readonly property real panelWidth: root.grid.unit * 0.9
+  readonly property real editorHeight: root.grid.span(3.5)
 
   StructurePanel {
     implicitWidth: root.panelWidth
@@ -21,8 +21,8 @@ BaseView {
   }
   EditorPreview {
     minWidth: root.panelWidth
-    // Grows with the view being edited, up to what's left of the screen
-    maxWidth: Math.max(root.panelWidth, (root.screen?.width ?? 1920) - root.panelWidth * 2 - OverlayConfig.cardSpacing * 8)
+    // Grows with the view being edited, up to what's left of the page
+    maxWidth: Math.max(root.panelWidth, root.grid.availableWidth - root.panelWidth * 2 - OverlayConfig.cardSpacing * 2)
     implicitHeight: root.editorHeight
   }
 }

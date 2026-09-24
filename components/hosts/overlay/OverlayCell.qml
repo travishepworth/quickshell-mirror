@@ -9,6 +9,7 @@ Item {
 
   // { layout, slots: { <slotName>: { type, properties } } }
   required property var cellConfig
+  required property OverlayGrid grid
 
   readonly property var layout: {
     const layout = OverlayConfig.layouts[root.cellConfig.layout];
@@ -33,8 +34,8 @@ Item {
     });
   }
 
-  implicitWidth: OverlayConfig.span(root.layout.cols)
-  implicitHeight: OverlayConfig.span(root.layout.rows)
+  implicitWidth: root.grid.span(root.layout.cols)
+  implicitHeight: root.grid.span(root.layout.rows)
 
   Repeater {
     model: Object.keys(root.layout.slots)
@@ -44,10 +45,10 @@ Item {
       required property string modelData
       readonly property var rect: root.layout.slots[slot.modelData]
 
-      x: slot.rect[0] * (OverlayConfig.halfUnit + OverlayConfig.cardSpacing)
-      y: slot.rect[1] * (OverlayConfig.halfUnit + OverlayConfig.cardSpacing)
-      width: OverlayConfig.span(slot.rect[2])
-      height: OverlayConfig.span(slot.rect[3])
+      x: slot.rect[0] * (root.grid.halfUnit + OverlayConfig.cardSpacing)
+      y: slot.rect[1] * (root.grid.halfUnit + OverlayConfig.cardSpacing)
+      width: root.grid.span(slot.rect[2])
+      height: root.grid.span(slot.rect[3])
       clip: true
 
       OverlaySlot {

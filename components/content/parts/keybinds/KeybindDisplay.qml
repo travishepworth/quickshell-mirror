@@ -12,7 +12,10 @@ Rectangle {
 
   // Ordered sections from HyprConfigManager: [{ title, binds: [{ label, combos }] }]
   required property var keybinds
-  required property var screen
+  // One column's width, and the most height the display may take (the
+  // overlay's card size and free height): the columns wrap to fit it
+  required property real cardWidth
+  required property real maxHeight
 
   // A flat list model that will be built from the 'keybinds' object.
   // This is used by the Repeater to create a continuous flow.
@@ -22,9 +25,7 @@ Rectangle {
 
   radius: Appearance.borderRadius
   color: Theme.background
-  // highly likely to break
-  // kind illegal to access this here (kinda abusing qml context properties)
-  implicitHeight: screen.height - 300 // TODO: magix num
+  implicitHeight: root.maxHeight
   implicitWidth: flow.implicitWidth + (OverlayConfig.cardSpacing * 2)
 
   border.color: Theme.border
@@ -66,7 +67,7 @@ Rectangle {
       model: root.displayModel
       delegate: Loader {
         id: itemLoader
-        width: OverlayConfig.cardUnit
+        width: root.cardWidth
         required property var modelData
 
         sourceComponent: {
@@ -95,7 +96,7 @@ Rectangle {
     StyledContainer {
       id: header
       property var itemData
-      width: OverlayConfig.cardUnit
+      width: root.cardWidth
       color: Theme.backgroundHighlight
       height: 32
       StyledText {
@@ -121,7 +122,7 @@ Rectangle {
   Component {
     id: separatorComponent
     StyledContainer {
-      width: OverlayConfig.cardUnit - (OverlayConfig.cardPadding * 2)
+      width: root.cardWidth - (OverlayConfig.cardPadding * 2)
       height: 1
       color: Theme.border
       anchors.bottomMargin: 8
@@ -131,7 +132,7 @@ Rectangle {
   Component {
     id: keybindComponent
     KeybindPreview {
-      width: OverlayConfig.cardUnit
+      width: root.cardWidth
       anchors.topMargin: 4
       anchors.bottomMargin: 4
     }
