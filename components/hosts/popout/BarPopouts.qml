@@ -90,22 +90,31 @@ PopoutWrapperBase {
         return {
           "index": i,
           "start": rects[i].start,
-          "length": rects[i].length
+          "length": rects[i].length,
+          "joinStart": rects[i].joinStart,
+          "joinEnd": rects[i].joinEnd
         };
     }
     return null;
   }
-  // A popout wider than its pill merges around it: it grows from the
-  // bar's outer edge, its box deeper by the pill so the content clears it,
-  // with the pill left showing through a notch
-  readonly property bool mergeWithPill: anchorPill !== null && (root.barConfig.vertical ? surface.boxHeight : surface.boxWidth) > anchorPill.length
-  readonly property int mergedPill: root.occupied && mergeWithPill ? anchorPill.index : -1
+  // A popout not wholly within its pill merges around it: it grows from
+  // the bar's outer edge, its box deeper by the pill so the content clears
+  // it, with the pill left showing through a notch. Where the pill carries
+  // on past the box, that side stands on the pill's far stroke instead.
+  readonly property bool mergeWithPill: anchorPill !== null && (mainPopup.boxStart < anchorPill.start || mainPopup.boxEnd > anchorPill.start + anchorPill.length)
+  // Where a side wall's fillet lands: on the pill when it carries on at
+  // least a fillet's width past that side, else down on the edge
+  readonly property real pillFoot: root.barConfig.pillDepth - Appearance.borderWidth
+  readonly property real startFoot: mergeWithPill && !mainPopup.joinStart && anchorPill.start <= mainPopup.boxStart - Appearance.borderRadius ? pillFoot : 0
+  readonly property real endFoot: mergeWithPill && !mainPopup.joinEnd && anchorPill.start + anchorPill.length >= mainPopup.boxEnd + Appearance.borderRadius ? pillFoot : 0
   // How far past the pill the merged popout's content starts
   readonly property real pillClearance: mergeWithPill ? root.barConfig.pillDepth - root.barConfig.overlap : 0
   // Where the popout attaches, measured from the bar's outer edge: the
   // outer edge itself when merged, a pill's far stroke, or the bar's
   // inner edge
-  readonly property real attachAt: mergeWithPill ? 0 : anchorPill !== null ? root.barConfig.pillDepth - Appearance.borderWidth : root.barConfig.extent
+  readonly property real attachAt: mergeWithPill ? 0 : anchorPill !== null ? pillFoot : root.barConfig.extent
+  // The bar window's thickness (more than the bar's extent with pills)
+  readonly property real panelThickness: root.panel?.thickness ?? root.barConfig.extent
 
   Connections {
     target: root.layoutSource
@@ -152,29 +161,43 @@ PopoutWrapperBase {
       const mapped = root.barConfig.vertical ? root.panel.height : root.panel.width;
       return mapped > 0 ? mapped : (root.barConfig.vertical ? root.screen.height : root.screen.width);
     }
-    readonly property real borderInset: Appearance.screenMargin - ((root.barConfig.vertical ? root.screen.height : root.screen.width) - panelLength) / 2
+    readonly property real frameWidth: Appearance.screenBorder ? Appearance.screenMargin : 0
+    readonly property real borderInset: frameWidth - ((root.barConfig.vertical ? root.screen.height : root.screen.width) - panelLength) / 2
     readonly property real minAlong: borderInset + Appearance.screenMargin
     readonly property real maxAlong: panelLength - borderInset - Appearance.screenMargin
+    // Outer edges of the perpendicular border strokes (the screen edges
+    // with the border off), where a popout pushed to an end joins
+    readonly property real strokeStart: borderInset - (Appearance.screenBorder ? Appearance.borderWidth : 0)
+    readonly property real strokeEnd: panelLength - strokeStart
 
-    // Where the popup starts along the bar so its content box sits at
-    // `align` against the anchor: 0 lines the box's start edge up with the
-    // anchor's, 1 its end edge, 0.5 centers it. The fillets hang outside
-    // the box, hence the inset.
-    function alignedStart(anchorStart, anchorLength, popupLength, boxLength) {
-      const align = root.currentData?.align ?? 0.5;
-      const inset = (popupLength - boxLength) / 2;
-      return anchorStart + (anchorLength - boxLength) * align - inset;
-    }
-
-    // Where the popup starts along the bar, in bar-window coordinates
-    readonly property real alongPos: {
+    // Along the bar, in bar-window coordinates: the box as aligned to the
+    // anchor (`align` 0 lines its start edge up with the anchor's, 1 its end
+    // edge, 0.5 centers it), and the surface around it with a fillet margin
+    // each side.
+    // One that would be pushed back from an end instead joins it: flush on
+    // the perpendicular stroke, merging into that edge.
+    readonly property real boxLength: (root.barConfig.vertical ? mainPopup.contentHeight : mainPopup.contentWidth) + surface.contentInset * 2
+    readonly property real filletMargin: root.connectorGap - Appearance.borderWidth
+    readonly property real alignedBoxStart: {
       if (!root.currentData)
         return 0;
-      const vertical = root.barConfig.vertical;
-      const length = vertical ? mainPopup.implicitHeight : mainPopup.implicitWidth;
-      const target = vertical ? mainPopup.alignedStart(root.anchorRect.y, root.anchorRect.height, length, surface.boxRect.height) : mainPopup.alignedStart(root.anchorRect.x, root.anchorRect.width, length, surface.boxRect.width);
-      return Math.max(mainPopup.minAlong, Math.min(target, mainPopup.maxAlong - length));
+      const align = root.currentData?.align ?? 0.5;
+      const start = root.barConfig.vertical ? root.anchorRect.y : root.anchorRect.x;
+      const length = root.barConfig.vertical ? root.anchorRect.height : root.anchorRect.width;
+      return start + (length - mainPopup.boxLength) * align;
     }
+    readonly property bool joinStart: alignedBoxStart - filletMargin < minAlong
+    readonly property bool joinEnd: !joinStart && alignedBoxStart + boxLength + filletMargin > maxAlong
+    readonly property real boxStart: {
+      if (joinStart)
+        return strokeStart;
+      if (joinEnd)
+        return strokeEnd - boxLength;
+      return Math.max(minAlong + filletMargin, Math.min(alignedBoxStart, maxAlong - filletMargin - boxLength));
+    }
+    readonly property real boxEnd: boxStart + boxLength
+    // Where the popup (the surface) starts along the bar
+    readonly property real alongPos: boxStart - (joinStart ? 0 : filletMargin)
 
     // The merged pill stays hoverable and clickable through the notch
     mask: Region {
@@ -207,7 +230,7 @@ PopoutWrapperBase {
           } else if (root.barConfig.right) {
             // Mirror of the left case: measured from the bar's outer edge,
             // not relative to the anchor (tray icons are narrower than modules)
-            return root.barConfig.extent - root.attachAt - mainPopup.implicitWidth;
+            return root.panelThickness - root.attachAt - mainPopup.implicitWidth;
           } else {
             return mainPopup.alongPos;
           }
@@ -220,7 +243,7 @@ PopoutWrapperBase {
           if (root.barConfig.top) {
             return root.attachAt;
           } else if (root.barConfig.bottom) {
-            return root.barConfig.extent - root.attachAt - mainPopup.implicitHeight;
+            return root.panelThickness - root.attachAt - mainPopup.implicitHeight;
           } else {
             return mainPopup.alongPos;
           }
@@ -241,10 +264,23 @@ PopoutWrapperBase {
       boxWidth: mainPopup.contentWidth + contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : 0)
       boxHeight: mainPopup.contentHeight + contentInset * 2 + (root.barConfig.vertical ? 0 : root.pillClearance)
 
-      // The pill, left showing (up to its far stroke, which the popout covers)
-      notchStart: root.mergeWithPill ? root.anchorPill.start - mainPopup.alongPos : 0
-      notchLength: root.mergeWithPill ? root.anchorPill.length : 0
-      notchDepth: root.mergeWithPill ? root.barConfig.pillDepth - Appearance.borderWidth : 0
+      // A transparent bar has nothing to join onto
+      detached: root.barConfig.background === "transparent"
+      joinStart: mainPopup.joinStart
+      joinEnd: mainPopup.joinEnd
+      startFoot: root.startFoot
+      endFoot: root.endFoot
+
+      // The pill's interior, left showing; the popout covers the pill's
+      // strokes where they overlap, so the two read as one shape
+      readonly property real notchFrom: root.mergeWithPill ? root.anchorPill.start + (root.anchorPill.joinStart ? 0 : Appearance.borderWidth) : 0
+      readonly property real notchTo: root.mergeWithPill ? root.anchorPill.start + root.anchorPill.length - (root.anchorPill.joinEnd ? 0 : Appearance.borderWidth) : 0
+      notchStart: notchFrom - mainPopup.alongPos
+      notchLength: Math.max(0, notchTo - notchFrom)
+      notchDepth: root.pillFoot
+      notchRoundStart: root.mergeWithPill && !root.anchorPill.joinStart && notchFrom > mainPopup.alongPos
+      notchRoundEnd: root.mergeWithPill && !root.anchorPill.joinEnd && notchTo < mainPopup.alongPos + implicitLength
+      readonly property real implicitLength: root.barConfig.vertical ? implicitHeight : implicitWidth
 
       Loader {
         id: loader

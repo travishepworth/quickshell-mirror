@@ -36,16 +36,15 @@ Rectangle {
   readonly property bool pills: barConfig.pills
   // Fillet room each side of a pill, as for popouts (AttachedSurface)
   readonly property int pillConnector: Appearance.borderRadius * 2
-  // Kept clear at both ends; pills also need room for their fillets and
-  // the border's corner
-  readonly property real endMargin: pills ? barConfig.pillPad + pillConnector + Appearance.borderRadius : Appearance.screenMargin
-  // Pill whose widget has a popout merged around it (see BarPopouts); it
-  // drops its stroke so the two read as one shape
-  readonly property int mergedPill: root.popouts?.mergedPill ?? -1
+  // Kept clear at both ends. A pill at an end instead sits flush on the
+  // perpendicular edge's stroke (bar-window 0 along a floating bar) and
+  // joins it, so its widgets only need the stroke and the padding.
+  readonly property real endMargin: pills ? barConfig.overlap + barConfig.pillPad : Appearance.screenMargin
 
-  // One { start, length } per pill along the bar: each non-empty section,
-  // merged with its neighbour when they're at most pillMerge apart, grown
-  // by the pill padding
+  // One { start, length, joinStart, joinEnd } per pill along the bar: each
+  // non-empty section, merged with its neighbour when they're at most
+  // pillMerge apart, grown by the pill padding. Pills reaching an end are
+  // stretched onto it and join it.
   readonly property var pillRects: {
     if (!pills)
       return [];
@@ -62,10 +61,19 @@ Rectangle {
         merged.push(span);
     });
     const pad = root.barConfig.pillPad;
-    return merged.map(m => ({
-          "start": m.start - pad,
-          "length": m.end - m.start + pad * 2
-        }));
+    const reach = root.barConfig.overlap + 0.5;
+    return merged.map(m => {
+      const joinStart = m.start - pad <= reach;
+      const joinEnd = m.end + pad >= root.length - reach;
+      const start = joinStart ? 0 : m.start - pad;
+      const end = joinEnd ? root.length : m.end + pad;
+      return {
+        "start": start,
+        "length": end - start,
+        "joinStart": joinStart,
+        "joinEnd": joinEnd
+      };
+    });
   }
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
@@ -272,9 +280,11 @@ Rectangle {
       required property int index
       readonly property var span: root.pillRects[index] ?? {
         "start": 0,
-        "length": 0
+        "length": 0,
+        "joinStart": false,
+        "joinEnd": false
       }
-      readonly property real alongStart: span.start - (connectorGap - Appearance.borderWidth)
+      readonly property real alongStart: span.start - startMargin
       // Depth reached from the outer edge; the surface's far half-gap is empty
       readonly property real depthBox: Math.max(0, root.barConfig.pillDepth - connectorGap / 2)
 
@@ -283,7 +293,8 @@ Rectangle {
       connectorGap: root.pillConnector
       boxWidth: root.isVertical ? depthBox : span.length
       boxHeight: root.isVertical ? span.length : depthBox
-      strokeColor: pill.index === root.mergedPill ? "transparent" : Theme.foreground
+      joinStart: span.joinStart
+      joinEnd: span.joinEnd
 
       width: implicitWidth
       height: implicitHeight

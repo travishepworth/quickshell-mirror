@@ -5,8 +5,8 @@ import QtQuick.Shapes
 import qs.config
 
 /**
- * The shared "grows out of an edge" shape used by both bar popouts and
- * screen-edge popouts: a content box joined to the attach edge by two
+ * The shared "grows out of an edge" shape used by bar popouts, screen-edge
+ * popouts and bar pills: a content box joined to the attach edge by two
  * concave fillets, with the bar/border stroke cut open where it joins.
  * The whole thing slides in/out from the attach edge.
  *
@@ -21,6 +21,16 @@ import qs.config
  * `boxWidth`/`boxHeight` are the size of the content box; the implicit
  * size adds the connector and fillet margins around it.
  *
+ * Variations, all off by default:
+ * - joinStart/joinEnd: that end sits flush on the perpendicular edge's
+ *   stroke (u = 0 is its outer edge): no side wall, and the far edge meets
+ *   that stroke with a concave fillet instead
+ * - startFoot/endFoot: where a side wall's fillet lands (v); above 0 it
+ *   stands on something drawn under the surface (a pill's far stroke) and
+ *   follows it to that end
+ * - notch*: a region at the attach edge left unpainted (a merged pill)
+ * - detached: a plain rounded box, not joined to anything
+ *
  * Place this at the attach edge of its window: for a Top edge, y = 0 of
  * this item should sit on the top of the bar/border stroke line.
  */
@@ -34,6 +44,12 @@ Item {
   property int connectorGap: Appearance.borderRadius * 2
   property int animationDuration: Appearance.animNormal
 
+  property bool joinStart: false
+  property bool joinEnd: false
+  property real startFoot: 0
+  property real endFoot: 0
+  property bool detached: false
+
   // Breathing room between the box edge and its content: clears the
   // stroke, plus a share of the corner radius so content keeps away from
   // the curve as corners get rounder. Callers that size the box from
@@ -42,26 +58,16 @@ Item {
 
   // A rectangle at the attach edge left unpainted (edge-local: from u =
   // notchStart for notchLength, v = 0 to notchDepth), so what's under it
-  // shows through: a bar popout merged around the pill it opens from
+  // shows through: a bar popout merged around the pill it opens from.
+  // notchRoundStart/End round its far corners at that end, to follow the
+  // pill's inner edge.
   property real notchStart: 0
   property real notchLength: 0
   property real notchDepth: 0
+  property bool notchRoundStart: false
+  property bool notchRoundEnd: false
   // The notch in this item's coordinates, for input masks
-  readonly property rect notchRect: {
-    const u = _notchU;
-    const len = _notchEnd - _notchU;
-    const d = _notchV;
-    switch (edge) {
-    case Bar.Left:
-      return Qt.rect(0, u, d, len);
-    case Bar.Right:
-      return Qt.rect(width - d, u, d, len);
-    case Bar.Bottom:
-      return Qt.rect(u, height - d, len, d);
-    default:
-      return Qt.rect(u, 0, len, d);
-    }
-  }
+  readonly property rect notchRect: root._rectFrom(_notchU, 0, _notchEnd - _notchU, _notchV)
 
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
@@ -74,41 +80,49 @@ Item {
   readonly property bool attachTop: edge === Bar.Top
   readonly property bool attachBottom: edge === Bar.Bottom
 
-  // Along the edge: box + one fillet square on each side, minus the
-  // stroke overlap. Away from the edge: box + connector gap.
-  implicitWidth: vertical ? boxWidth + connectorGap : boxWidth + connectorGap * 2 - Appearance.borderWidth * 2
-  implicitHeight: vertical ? boxHeight + connectorGap * 2 - Appearance.borderWidth * 2 : boxHeight + connectorGap
+  // ---- Geometry, in edge-local coordinates ----
+  // u runs along the attach edge, v away from it (v = 0 is the attach
+  // edge). Everything below is laid out as if attached to the Top edge,
+  // then mapped onto the real edge by px()/py().
+  readonly property real strokeWidth: Appearance.borderWidth
+  // Stroke centre line offset, so the full stroke lies inside the shape
+  readonly property real half: strokeWidth / 2
+  // Concave fillet radius (where the box meets an edge) and convex corner
+  // radius at the far side, matching a Rectangle's radius
+  readonly property real filletRadius: Appearance.borderRadius
+  readonly property real cornerRadius: Math.max(0, Appearance.borderRadius - half)
+
+  readonly property real boxAlong: vertical ? boxHeight : boxWidth
+  readonly property real boxDepth: vertical ? boxWidth : boxHeight
+  // Room each end for a fillet square, minus the stroke overlap; none
+  // where the end is joined to the perpendicular edge
+  readonly property real startMargin: joinStart ? 0 : connectorGap - strokeWidth
+  readonly property real endMargin: joinEnd ? 0 : connectorGap - strokeWidth
+  readonly property real alongLength: startMargin + boxAlong + endMargin
+  // Box + connector gap, plus room for a join's fillet past the far edge
+  readonly property real depth: boxDepth + connectorGap + (joinStart || joinEnd ? filletRadius : 0)
+
+  // Along the edge: box + fillet squares. Away from the edge: box +
+  // connector gap.
+  implicitWidth: vertical ? depth : alongLength
+  implicitHeight: vertical ? alongLength : depth
+
+  // Box sides and far edge (stroke centre line)
+  readonly property real sideU: startMargin + half
+  readonly property real farSideU: startMargin + boxAlong - half
+  readonly property real farV: connectorGap / 2 + boxDepth - half
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of
   // the stroke, so things attaching to this surface (tray submenus) can
   // line their own stroke up with it.
-  readonly property rect boxRect: Qt.rect((width - boxWidth) / 2, (height - boxHeight) / 2, boxWidth, boxHeight)
-
-  // ---- Outline geometry, in edge-local coordinates ----
-  // u runs along the attach edge, v away from it (v = 0 is the attach
-  // edge). Everything below is laid out as if attached to the Top edge,
-  // then mapped onto the real edge by px()/py().
-  readonly property real alongLength: vertical ? height : width
-  readonly property real depth: vertical ? width : height
-
-  readonly property real strokeWidth: Appearance.borderWidth
-  // Stroke centre line offset, so the full stroke lies inside the shape
-  readonly property real half: strokeWidth / 2
-  // Box sides (stroke centre line)
-  readonly property real sideU: connectorGap - half
-  readonly property real farSideU: alongLength - sideU
-  // Far edge of the box (stroke centre line)
-  readonly property real farV: depth - connectorGap / 2 - half
-  // Concave fillet radius (where the box meets the attach edge) and
-  // convex corner radius at the far side, matching a Rectangle's radius
-  readonly property real filletRadius: Appearance.borderRadius
-  readonly property real cornerRadius: Math.max(0, Appearance.borderRadius - half)
+  readonly property rect boxRect: root._rectFrom(startMargin, connectorGap / 2, boxAlong, boxDepth)
 
   // The notch clamped to the surface, edge-local (0 depth when there's none)
   readonly property real _notchU: Math.max(0, Math.min(notchStart, alongLength))
   readonly property real _notchEnd: Math.max(_notchU, Math.min(notchStart + notchLength, alongLength))
   readonly property real _notchV: notchLength > 0 ? notchDepth : 0
+  readonly property real _notchRadius: Math.max(0, Math.min(Appearance.borderRadius - strokeWidth, (_notchEnd - _notchU) / 2, _notchV))
 
   // Reflections flip the sweep direction of arcs; rotations don't
   readonly property bool mirrored: edge === Bar.Bottom || edge === Bar.Left
@@ -136,10 +150,86 @@ Item {
     }
   }
 
-  // Sweep direction of an arc as drawn in Top-edge coordinates
-  function sweep(clockwise) {
-    return clockwise !== mirrored ? PathArc.Clockwise : PathArc.Counterclockwise;
+  // An edge-local rectangle (u, v, along, deep) in item coordinates
+  function _rectFrom(u, v, along, deep) {
+    const xs = [px(u, v), px(u + along, v + deep)];
+    const ys = [py(u, v), py(u + along, v + deep)];
+    return Qt.rect(Math.min(xs[0], xs[1]), Math.min(ys[0], ys[1]), Math.abs(xs[1] - xs[0]), Math.abs(ys[1] - ys[0]));
   }
+
+  // SVG path pieces from edge-local points. The sweep flag is for the arc
+  // as drawn attached to the Top edge (y down); reflections flip it.
+  function _pt(u, v) {
+    return px(u, v) + " " + py(u, v);
+  }
+  function _move(u, v) {
+    return "M " + _pt(u, v) + " ";
+  }
+  function _line(u, v) {
+    return "L " + _pt(u, v) + " ";
+  }
+  function _arc(r, clockwise, u, v) {
+    return "A " + r + " " + r + " 0 0 " + ((clockwise !== mirrored) ? 1 : 0) + " " + _pt(u, v) + " ";
+  }
+
+  // The outline from the start end to the end end: side walls (or joins)
+  // and the far edge. Shared by the fill and the stroke.
+  function _outline(startWith) {
+    const R = filletRadius, cr = cornerRadius, h = half;
+    const fs = startFoot, fe = endFoot;
+    let d = "";
+    if (joinStart) {
+      d += startWith(h, farV + R);
+      d += _arc(R, true, h + R, farV);
+    } else {
+      d += startWith(0, fs + h);
+      d += _line(sideU - R, fs + h);
+      d += _arc(R, true, sideU, fs + h + R);
+      d += _line(sideU, farV - cr);
+      d += _arc(cr, false, sideU + cr, farV);
+    }
+    if (joinEnd) {
+      d += _line(alongLength - h - R, farV);
+      d += _arc(R, true, alongLength - h, farV + R);
+    } else {
+      d += _line(farSideU - cr, farV);
+      d += _arc(cr, false, farSideU, farV - cr);
+      d += _line(farSideU, fe + h + R);
+      d += _arc(R, true, farSideU + R, fe + h);
+      d += _line(alongLength, fe + h);
+    }
+    return d;
+  }
+
+  // Fill: the outline, closed back along the attach edge around the notch.
+  // Joined ends also cover the perpendicular stroke up to the fillet.
+  readonly property string fillPath: {
+    if (width <= 0 || height <= 0)
+      return "";
+    const R = filletRadius, h = half;
+    const nU = _notchU, nE = _notchEnd, nV = _notchV, nr = _notchRadius;
+    let d = joinStart ? _move(0, 0) + _line(0, farV + R) + root._outline((u, v) => _line(u, v)) : root._outline((u, v) => _move(0, startFoot) + _line(u, v));
+    if (joinEnd)
+      d += _line(alongLength, farV + R);
+    else
+      d += _line(alongLength, endFoot);
+    d += _line(alongLength, 0) + _line(nE, 0);
+    if (nV > 0) {
+      const re = notchRoundEnd && nr > 0, rs = notchRoundStart && nr > 0;
+      d += _line(nE, nV - (re ? nr : 0));
+      if (re)
+        d += _arc(nr, true, nE - nr, nV);
+      d += _line(nU + (rs ? nr : 0), nV);
+      if (rs)
+        d += _arc(nr, true, nU, nV - nr);
+      d += _line(nU, 0);
+    }
+    return d + _line(0, 0) + "Z";
+  }
+
+  // Stroke: the outline alone, open along the attach edge and on joined
+  // ends, whose ends sit exactly on the strokes they continue
+  readonly property string strokePath: width > 0 && height > 0 ? root._outline((u, v) => _move(u, v)) : ""
 
   SlideAnimation {
     id: slideContainer
@@ -159,100 +249,19 @@ Item {
     Shape {
       id: outline
       anchors.fill: parent
+      visible: !root.detached
       preferredRendererType: Shape.CurveRenderer
 
-      // Fill: the outline closed along v = 0, so it also covers the
-      // bar/border stroke between the fillets (the "cut open" join)
       ShapePath {
         fillColor: root.fillColor
         strokeColor: "transparent"
         strokeWidth: 0
 
-        startX: root.px(0, 0)
-        startY: root.py(0, 0)
-
-        PathLine {
-          x: root.px(0, root.half)
-          y: root.py(0, root.half)
-        }
-        PathLine {
-          x: root.px(root.sideU - root.filletRadius, root.half)
-          y: root.py(root.sideU - root.filletRadius, root.half)
-        }
-        PathArc {
-          x: root.px(root.sideU, root.half + root.filletRadius)
-          y: root.py(root.sideU, root.half + root.filletRadius)
-          radiusX: root.filletRadius
-          radiusY: root.filletRadius
-          direction: root.sweep(true)
-        }
-        PathLine {
-          x: root.px(root.sideU, root.farV - root.cornerRadius)
-          y: root.py(root.sideU, root.farV - root.cornerRadius)
-        }
-        PathArc {
-          x: root.px(root.sideU + root.cornerRadius, root.farV)
-          y: root.py(root.sideU + root.cornerRadius, root.farV)
-          radiusX: root.cornerRadius
-          radiusY: root.cornerRadius
-          direction: root.sweep(false)
-        }
-        PathLine {
-          x: root.px(root.farSideU - root.cornerRadius, root.farV)
-          y: root.py(root.farSideU - root.cornerRadius, root.farV)
-        }
-        PathArc {
-          x: root.px(root.farSideU, root.farV - root.cornerRadius)
-          y: root.py(root.farSideU, root.farV - root.cornerRadius)
-          radiusX: root.cornerRadius
-          radiusY: root.cornerRadius
-          direction: root.sweep(false)
-        }
-        PathLine {
-          x: root.px(root.farSideU, root.half + root.filletRadius)
-          y: root.py(root.farSideU, root.half + root.filletRadius)
-        }
-        PathArc {
-          x: root.px(root.farSideU + root.filletRadius, root.half)
-          y: root.py(root.farSideU + root.filletRadius, root.half)
-          radiusX: root.filletRadius
-          radiusY: root.filletRadius
-          direction: root.sweep(true)
-        }
-        PathLine {
-          x: root.px(root.alongLength, root.half)
-          y: root.py(root.alongLength, root.half)
-        }
-        PathLine {
-          x: root.px(root.alongLength, 0)
-          y: root.py(root.alongLength, 0)
-        }
-        // Back along the attach edge, around the notch (degenerate points
-        // at the origin when there is none)
-        PathLine {
-          x: root.px(root._notchEnd, 0)
-          y: root.py(root._notchEnd, 0)
-        }
-        PathLine {
-          x: root.px(root._notchEnd, root._notchV)
-          y: root.py(root._notchEnd, root._notchV)
-        }
-        PathLine {
-          x: root.px(root._notchU, root._notchV)
-          y: root.py(root._notchU, root._notchV)
-        }
-        PathLine {
-          x: root.px(root._notchU, 0)
-          y: root.py(root._notchU, 0)
-        }
-        PathLine {
-          x: root.px(0, 0)
-          y: root.py(0, 0)
+        PathSvg {
+          path: root.fillPath
         }
       }
 
-      // Stroke: the same outline left open at the attach edge. The two
-      // end segments sit exactly on the bar/border stroke they continue.
       ShapePath {
         fillColor: "transparent"
         strokeColor: root.strokeColor
@@ -260,65 +269,31 @@ Item {
         capStyle: ShapePath.FlatCap
         joinStyle: ShapePath.MiterJoin
 
-        startX: root.px(0, root.half)
-        startY: root.py(0, root.half)
-
-        PathLine {
-          x: root.px(root.sideU - root.filletRadius, root.half)
-          y: root.py(root.sideU - root.filletRadius, root.half)
-        }
-        PathArc {
-          x: root.px(root.sideU, root.half + root.filletRadius)
-          y: root.py(root.sideU, root.half + root.filletRadius)
-          radiusX: root.filletRadius
-          radiusY: root.filletRadius
-          direction: root.sweep(true)
-        }
-        PathLine {
-          x: root.px(root.sideU, root.farV - root.cornerRadius)
-          y: root.py(root.sideU, root.farV - root.cornerRadius)
-        }
-        PathArc {
-          x: root.px(root.sideU + root.cornerRadius, root.farV)
-          y: root.py(root.sideU + root.cornerRadius, root.farV)
-          radiusX: root.cornerRadius
-          radiusY: root.cornerRadius
-          direction: root.sweep(false)
-        }
-        PathLine {
-          x: root.px(root.farSideU - root.cornerRadius, root.farV)
-          y: root.py(root.farSideU - root.cornerRadius, root.farV)
-        }
-        PathArc {
-          x: root.px(root.farSideU, root.farV - root.cornerRadius)
-          y: root.py(root.farSideU, root.farV - root.cornerRadius)
-          radiusX: root.cornerRadius
-          radiusY: root.cornerRadius
-          direction: root.sweep(false)
-        }
-        PathLine {
-          x: root.px(root.farSideU, root.half + root.filletRadius)
-          y: root.py(root.farSideU, root.half + root.filletRadius)
-        }
-        PathArc {
-          x: root.px(root.farSideU + root.filletRadius, root.half)
-          y: root.py(root.farSideU + root.filletRadius, root.half)
-          radiusX: root.filletRadius
-          radiusY: root.filletRadius
-          direction: root.sweep(true)
-        }
-        PathLine {
-          x: root.px(root.alongLength, root.half)
-          y: root.py(root.alongLength, root.half)
+        PathSvg {
+          path: root.strokePath
         }
       }
+    }
+
+    // Detached: a box of its own, not joined to anything
+    Rectangle {
+      visible: root.detached
+      x: root.boxRect.x
+      y: root.boxRect.y
+      width: root.boxRect.width
+      height: root.boxRect.height
+      radius: Appearance.borderRadius
+      color: root.fillColor
+      border.color: root.strokeColor
+      border.width: root.strokeWidth
     }
 
     // Content box: same placement the old bordered Rectangle had, so
     // popout content is laid out exactly as before
     Item {
       id: contentContainer
-      anchors.centerIn: parent
+      x: root.boxRect.x
+      y: root.boxRect.y
       width: root.boxWidth
       height: root.boxHeight
     }

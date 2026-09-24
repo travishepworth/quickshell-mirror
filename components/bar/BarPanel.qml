@@ -43,19 +43,29 @@ PanelWindow {
     right: (barConfig.right || !barConfig.vertical)
   }
 
+  // A floating bar reaches onto the border's strokes: its own edge (so
+  // pills cover it) and both ends (so a pill at an end can join the
+  // perpendicular edge). Margins on the unanchored side are ignored.
   margins {
-    top: root.barConfig.floating && root.barConfig.top ? -Appearance.borderWidth : 0
-    bottom: root.barConfig.floating && root.barConfig.bottom ? -Appearance.borderWidth : 0
-    left: root.barConfig.floating && root.barConfig.left ? -Appearance.borderWidth : 0
-    right: root.barConfig.floating && root.barConfig.right ? -Appearance.borderWidth : 0
+    top: root.barConfig.floating ? -Appearance.borderWidth : 0
+    bottom: root.barConfig.floating ? -Appearance.borderWidth : 0
+    left: root.barConfig.floating ? -Appearance.borderWidth : 0
+    right: root.barConfig.floating ? -Appearance.borderWidth : 0
   }
 
   readonly property bool fullscreenBelow: Hyprland.monitorFor(root.screen)?.activeWorkspace?.hasFullscreen ?? false
 
   visible: barConfig.enabled && !(barConfig.floating && fullscreenBelow)
 
-  implicitHeight: barConfig.vertical ? 0 : barConfig.extent
-  implicitWidth: barConfig.vertical ? barConfig.extent : 0
+  // With pills, room past the bar for the fillet where an end pill meets
+  // the perpendicular edge; click-through (see mask), and not reserved
+  readonly property int thickness: barConfig.extent + (barConfig.pills ? Appearance.borderRadius : 0)
+  implicitHeight: barConfig.vertical ? 0 : thickness
+  implicitWidth: barConfig.vertical ? thickness : 0
+
+  mask: Region {
+    item: bar
+  }
 
   Component.onCompleted: {
     console.log("========== BAR PANEL ==========");
@@ -75,9 +85,15 @@ PanelWindow {
   }
 
   // Use the standalone Bar component
+  // The bar's own extent, at its outer edge
   StandaloneBar {
     id: bar
-    anchors.fill: parent
+    anchors.top: root.barConfig.left || root.barConfig.right || root.barConfig.top ? parent.top : undefined
+    anchors.bottom: root.barConfig.left || root.barConfig.right || root.barConfig.bottom ? parent.bottom : undefined
+    anchors.left: root.barConfig.top || root.barConfig.bottom || root.barConfig.left ? parent.left : undefined
+    anchors.right: root.barConfig.top || root.barConfig.bottom || root.barConfig.right ? parent.right : undefined
+    width: root.barConfig.vertical ? root.barConfig.extent : undefined
+    height: root.barConfig.vertical ? undefined : root.barConfig.extent
     barConfig: root.barConfig
     popouts: popouts
     panel: root
