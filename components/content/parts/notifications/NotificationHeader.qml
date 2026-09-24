@@ -1,0 +1,77 @@
+import QtQuick
+import QtQuick.Layouts
+
+import qs.services
+import qs.config
+import qs.components.reusable
+
+// The notification menu's title row: bell, title, count pill, then the do
+// not disturb toggle and clear all
+RowLayout {
+  id: root
+
+  signal clearAll
+
+  Layout.fillWidth: true
+  spacing: Widget.spacing
+
+  StyledText {
+    text: NotificationManager.dnd ? "\u{F00A0}" : "\u{F009A}"
+    textColor: Theme.accent
+    textSize: Appearance.fontSize + 2
+  }
+
+  StyledText {
+    text: I18n.tr("Notifications")
+    font.bold: true
+    textColor: Theme.accent
+  }
+
+  Rectangle {
+    visible: NotificationManager.count > 0
+    implicitWidth: Math.max(implicitHeight, countLabel.implicitWidth + 12)
+    implicitHeight: countLabel.implicitHeight + 4
+    radius: height / 2
+    color: Theme.accent
+
+    StyledText {
+      id: countLabel
+      anchors.centerIn: parent
+      text: NotificationManager.count > 99 ? "99+" : String(NotificationManager.count)
+      textSize: Appearance.fontSize - 3
+      textColor: Theme.background
+      font.bold: true
+    }
+  }
+
+  Item {
+    Layout.fillWidth: true
+  }
+
+  StyledRectButton {
+    Layout.fillWidth: false
+    Layout.fillHeight: false
+    Layout.preferredWidth: 28
+    Layout.preferredHeight: 28
+    iconText: NotificationManager.dnd ? "\u{F00A0}" : "\u{F009B}"
+    iconColor: NotificationManager.dnd ? Theme.background : Theme.foreground
+    backgroundColor: NotificationManager.dnd ? Theme.accent : "transparent"
+    borderHoverColor: Theme.accent
+    tooltipText: I18n.tr(NotificationManager.dnd ? "Do not disturb is on" : "Do not disturb")
+    onClicked: NotificationManager.dnd = !NotificationManager.dnd
+  }
+
+  StyledRectButton {
+    Layout.fillWidth: false
+    Layout.fillHeight: false
+    Layout.preferredWidth: 28
+    Layout.preferredHeight: 28
+    enabled: NotificationManager.count > 0
+    opacity: enabled ? 1 : 0.4
+    iconText: "\u{F039F}"
+    backgroundColor: "transparent"
+    borderHoverColor: Theme.error
+    tooltipText: I18n.tr("Clear all")
+    onClicked: root.clearAll()
+  }
+}

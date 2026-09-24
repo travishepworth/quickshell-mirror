@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
+import Quickshell.Services.Notifications
 
 import qs.services
 import qs.config
@@ -9,6 +11,9 @@ import qs.components.content.base
 import qs.components.content.parts
 import qs.components.content.parts.notifications
 
+// The notification menu (the Notifications widget's popout, or an overlay
+// card): a header with do not disturb and clear all, then one card per app,
+// newest first.
 Panel {
   id: root
 
@@ -18,121 +23,187 @@ Panel {
     valueColor: NotificationManager.count > 0 ? Theme.accent : Theme.foreground
   }
 
-  margins: 20
-  clip: true
-  readonly property int headerHeight: 28
-  readonly property int listHeight: 380
+  margins: 16
+  readonly property int maxListHeight: 440
 
   implicitWidth: 400
-  implicitHeight: margins * 2 + headerHeight + Widget.spacing + listHeight
 
-  // Rebuilt whenever the tracked-notifications model changes; grouped by
-  // appName, newest group first.
-  property var groupedNotifications: []
+  // Groups by key, and their keys newest first. The Repeater is keyed by
+  // the key strings, so a group's card (and whether it's expanded) survives
+  // notifications coming and going.
+  property var groups: ({})
+  property var groupKeys: []
+
+  // Refreshes relative times
+  property real now: Date.now()
 
   function rebuildGroups() {
-    const byApp = {};
-    const order = [];
-    for (const notif of NotificationManager.notifications.values) {
-      if (!notif)
-        continue;
-      const key = notif.appName || "";
-      if (!byApp[key]) {
-        byApp[key] = {
-          appName: notif.appName || I18n.tr("Unknown"),
-          appIcon: notif.appIcon || "",
-          notifications: [],
-          newestTime: 0
+    const byKey = {};
+    const keys = [];
+    // Entries are newest first, so groups and their entries come out sorted
+    for (const entry of NotificationManager.entries) {
+      const key = entry.appName || entry.desktopEntry || "";
+      if (!byKey[key]) {
+        byKey[key] = {
+          key: key,
+          appName: entry.appName || entry.desktopEntry || I18n.tr("Unknown"),
+          appIcon: entry.appIcon,
+          desktopEntry: entry.desktopEntry,
+          entries: [],
+          newestTime: entry.time,
+          critical: false
         };
-        order.push(key);
+        keys.push(key);
       }
-      byApp[key].notifications.push(notif);
-      const t = NotificationManager.receivedAtFor(notif);
-      if (t > byApp[key].newestTime)
-        byApp[key].newestTime = t;
+      const group = byKey[key];
+      group.entries.push(entry);
+      if (entry.urgency === NotificationUrgency.Critical)
+        group.critical = true;
+      if (!group.appIcon && entry.appIcon)
+        group.appIcon = entry.appIcon;
+      if (!group.desktopEntry && entry.desktopEntry)
+        group.desktopEntry = entry.desktopEntry;
     }
-    const groups = order.map(key => byApp[key]);
-    groups.sort((a, b) => b.newestTime - a.newestTime);
-    root.groupedNotifications = groups;
+    root.groups = byKey;
+    root.groupKeys = keys;
+    root.now = Date.now();
+  }
+
+  function clearAll() {
+    if (!clearOut.running)
+      clearOut.start();
   }
 
   Connections {
-    target: NotificationManager.notifications
-    function onValuesChanged() {
+    target: NotificationManager
+    function onEntriesChanged() {
       root.rebuildGroups();
     }
   }
 
   Component.onCompleted: rebuildGroups()
 
-  RowLayout {
-    Layout.fillWidth: true
-    Layout.preferredHeight: root.headerHeight
-    spacing: Widget.spacing
+  Timer {
+    interval: 30000
+    repeat: true
+    running: true
+    onTriggered: root.now = Date.now()
+  }
 
-    StyledText {
-      text: NotificationManager.count > 0 ? I18n.tr("Notifications ({0})", NotificationManager.count) : I18n.tr("Notifications")
-      textSize: Appearance.fontSize * 1.05
-      font.bold: true
-      textColor: Theme.accent
+  // Everything slides out together, then goes
+  SequentialAnimation {
+    id: clearOut
+    ParallelAnimation {
+      NumberAnimation {
+        target: listShift
+        property: "x"
+        to: scroll.width
+        duration: Appearance.animNormal
+        easing.type: Easing.InCubic
+      }
+      NumberAnimation {
+        target: scroll
+        property: "opacity"
+        to: 0
+        duration: Appearance.animNormal
+      }
     }
+    ScriptAction {
+      script: NotificationManager.clearAll()
+    }
+    PropertyAction {
+      target: listShift
+      property: "x"
+      value: 0
+    }
+    PropertyAction {
+      target: scroll
+      property: "opacity"
+      value: 1
+    }
+  }
 
-    Item {
-      Layout.fillWidth: true
-    }
-
-    StyledText {
-      text: I18n.tr("DND")
-      textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 1
-    }
-
-    StyledSwitch {
-      checked: NotificationManager.dnd
-      onToggled: NotificationManager.dnd = checked
-    }
-
-    StyledTextButton {
-      text: I18n.tr("Clear All")
-      textPadding: 6
-      enabled: NotificationManager.count > 0
-      opacity: enabled ? 1.0 : 0.5
-      onClicked: NotificationManager.clearAll()
-    }
+  NotificationHeader {
+    onClearAll: root.clearAll()
   }
 
   StyledSeparator {
     Layout.fillWidth: true
+    separatorColor: Theme.backgroundHighlight
   }
 
   StyledScrollView {
-    id: scrollView
+    id: scroll
+    visible: root.groupKeys.length > 0
     Layout.fillWidth: true
-    Layout.fillHeight: true
-    showScrollBar: true
+    Layout.preferredHeight: root.embedded ? -1 : Math.min(root.maxListHeight, list.implicitHeight)
+    Layout.fillHeight: root.embedded
     contentPadding: 0
+    showScrollBar: list.implicitHeight > (root.embedded ? scroll.height : root.maxListHeight)
+    rightPadding: showScrollBar ? 12 : 0
+    clip: true
 
     ColumnLayout {
-      width: scrollView.availableWidth
+      id: list
+      width: scroll.availableWidth
       spacing: Widget.spacing
 
+      transform: Translate {
+        id: listShift
+      }
+
       Repeater {
-        model: root.groupedNotifications
+        model: ScriptModel {
+          values: root.groupKeys
+        }
 
         NotificationGroupDelegate {
-          required property var modelData
-          groupData: modelData
+          required property string modelData
+          group: root.groups[modelData] ?? null
+          now: root.now
         }
+      }
+    }
+  }
+
+  // Empty: centred in whatever room is left (the card's slot, or a fixed
+  // height in a popout)
+  Item {
+    visible: root.groupKeys.length === 0
+    Layout.fillWidth: true
+    Layout.fillHeight: root.embedded
+    Layout.preferredHeight: root.embedded ? -1 : emptyState.implicitHeight + Widget.padding * 6
+
+    ColumnLayout {
+      id: emptyState
+      anchors.centerIn: parent
+      width: parent.width
+      spacing: Widget.spacing / 2
+
+      StyledText {
+        Layout.fillWidth: true
+        horizontalAlignment: Text.AlignHCenter
+        text: NotificationManager.dnd ? "\u{F00A0}" : "\u{F11E6}"
+        textColor: Theme.foregroundAlt
+        textSize: Appearance.fontSize * 3
+        opacity: 0.4
       }
 
       StyledText {
-        visible: root.groupedNotifications.length === 0
         Layout.fillWidth: true
-        Layout.topMargin: Widget.padding * 2
         horizontalAlignment: Text.AlignHCenter
-        text: I18n.tr("No notifications")
+        text: I18n.tr("All caught up")
         textColor: Theme.foregroundAlt
-        opacity: 0.6
+      }
+
+      StyledText {
+        visible: NotificationManager.dnd
+        Layout.fillWidth: true
+        horizontalAlignment: Text.AlignHCenter
+        text: I18n.tr("Do not disturb is on")
+        textColor: Theme.foregroundAlt
+        textSize: Appearance.fontSize - 2
+        opacity: 0.7
       }
     }
   }

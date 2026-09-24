@@ -5,8 +5,8 @@ import QtQuick.Layouts
 import qs.config
 import qs.components.reusable
 
-// A notification's action buttons (all but the default one), scrolling
-// sideways when they don't fit; emits invoked after running one
+// A notification's action buttons (all but the default one) as pills,
+// scrolling sideways when they don't fit; emits invoked after running one
 Flickable {
   id: root
 
@@ -14,7 +14,7 @@ Flickable {
 
   signal invoked
 
-  readonly property var actions: (notification.actions ?? []).filter(a => a.identifier !== "default")
+  readonly property var actions: (notification?.actions ?? []).filter(a => a.identifier !== "default")
 
   Layout.fillWidth: true
   visible: root.actions.length > 0
@@ -26,18 +26,49 @@ Flickable {
 
   RowLayout {
     id: actionRow
-    spacing: Widget.spacing
+    spacing: Widget.spacing / 2
 
     Repeater {
       model: root.actions
 
-      StyledTextButton {
+      Rectangle {
+        id: pill
         required property var modelData
-        text: modelData.text
-        textPadding: 6
-        onClicked: {
-          modelData.invoke();
-          root.invoked();
+
+        implicitWidth: label.implicitWidth + 20
+        implicitHeight: label.implicitHeight + 10
+        radius: height / 2
+        color: area.containsMouse ? Theme.accent : Theme.backgroundHighlight
+        scale: area.pressed ? 0.95 : 1
+
+        Behavior on color {
+          ColorAnimation {
+            duration: Appearance.animFast
+          }
+        }
+        Behavior on scale {
+          NumberAnimation {
+            duration: Appearance.animFast
+          }
+        }
+
+        StyledText {
+          id: label
+          anchors.centerIn: parent
+          text: pill.modelData.text
+          textSize: Appearance.fontSize - 2
+          textColor: area.containsMouse ? Theme.background : Theme.foreground
+        }
+
+        MouseArea {
+          id: area
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: {
+            pill.modelData.invoke();
+            root.invoked();
+          }
         }
       }
     }

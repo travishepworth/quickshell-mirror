@@ -39,6 +39,13 @@ Scope {
     color: "transparent"
     focusable: false
     exclusionMode: ExclusionMode.Ignore
+
+    // Where NotificationManager renders images to cache them: grabbing
+    // needs an item in a window (items may lie outside this 1x1 one)
+    Item {
+      id: imageHost
+      x: 1
+    }
   }
 
   Component {
@@ -59,6 +66,7 @@ Scope {
   Component.onCompleted: {
     if (typeof NotificationManager !== "undefined") {
       NotificationManager.showPopup.connect(createToast);
+      NotificationManager.imageHost = imageHost;
     }
   }
 

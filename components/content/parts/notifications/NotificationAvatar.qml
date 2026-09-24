@@ -6,74 +6,87 @@ import Quickshell
 import qs.config
 import qs.components.reusable
 
-Rectangle {
+// A notification's picture: its image (rounded, cropped) when it has one,
+// else the app's icon (the notification's own, else its desktop entry's),
+// else a bell. `badge` puts the app icon in a corner of an image.
+Item {
   id: root
 
   property string appIcon: ""
+  property string desktopEntry: ""
   property string image: ""
-  property int baseSize: 32
+  property int size: 32
+  property real radius: Appearance.borderRadius
+  property bool badge: false
 
-  implicitWidth: baseSize
-  implicitHeight: baseSize
-  radius: width / 2
-  color: Theme.accentAlt
-  clip: true
-
-  Loader {
-    active: root.image === ""
-    anchors.centerIn: parent
-    sourceComponent: root.appIcon !== "" ? appIconComponent : fallbackGlyphComponent
+  // An icon name, a path or a URL, resolved to a source ("" if none)
+  function iconSource(icon) {
+    if (!icon)
+      return "";
+    if (icon.startsWith("/"))
+      return "file://" + icon;
+    if (icon.includes("://"))
+      return icon;
+    return Quickshell.iconPath(icon, true);
   }
 
-  Component {
-    id: appIconComponent
-    Image {
-      width: root.baseSize * 0.8
-      height: root.baseSize * 0.8
-      asynchronous: true
-      source: Quickshell.iconPath(root.appIcon, "image-missing")
-    }
+  readonly property string appIconSource: {
+    const own = iconSource(root.appIcon);
+    if (own !== "")
+      return own;
+    const entry = root.desktopEntry !== "" ? DesktopEntries.byId(root.desktopEntry) : null;
+    return entry ? iconSource(entry.icon) : "";
   }
+  readonly property bool showImage: root.image !== "" && picture.status !== Image.Error
 
-  Component {
-    id: fallbackGlyphComponent
-    StyledText {
-      text: "󰂚"
-      textColor: Theme.base00
-      textSize: root.baseSize * 0.5
-    }
-  }
+  implicitWidth: size
+  implicitHeight: size
 
-  Loader {
-    active: root.image !== ""
+  Image {
+    id: picture
     anchors.fill: parent
-    sourceComponent: Item {
-      anchors.fill: parent
-      Image {
-        id: notifImage
-        anchors.fill: parent
-        source: root.image
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        layer.enabled: true
-        layer.effect: OpacityMask {
-          maskSource: Rectangle {
-            width: notifImage.width
-            height: notifImage.height
-            radius: notifImage.width / 2
-          }
-        }
-      }
-
-      Image {
-        visible: root.appIcon !== ""
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        width: root.baseSize * 0.5
-        height: root.baseSize * 0.5
-        asynchronous: true
-        source: root.appIcon !== "" ? Quickshell.iconPath(root.appIcon, "image-missing") : ""
+    visible: root.showImage
+    source: root.image
+    sourceSize: Qt.size(root.size * 2, root.size * 2)
+    fillMode: Image.PreserveAspectCrop
+    asynchronous: true
+    layer.enabled: true
+    layer.effect: OpacityMask {
+      maskSource: Rectangle {
+        width: picture.width
+        height: picture.height
+        radius: root.radius
       }
     }
+  }
+
+  Image {
+    id: icon
+    visible: !root.showImage && root.appIconSource !== "" && status !== Image.Error
+    anchors.fill: parent
+    source: root.showImage ? "" : root.appIconSource
+    sourceSize: Qt.size(root.size * 2, root.size * 2)
+    fillMode: Image.PreserveAspectFit
+    asynchronous: true
+  }
+
+  StyledText {
+    visible: !root.showImage && !icon.visible
+    anchors.centerIn: parent
+    text: "\u{F009A}"
+    textColor: Theme.accent
+    textSize: root.size * 0.8
+  }
+
+  Image {
+    visible: root.badge && root.showImage && root.appIconSource !== ""
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    anchors.margins: -2
+    width: root.size * 0.42
+    height: width
+    source: visible ? root.appIconSource : ""
+    sourceSize: Qt.size(width * 2, height * 2)
+    asynchronous: true
   }
 }

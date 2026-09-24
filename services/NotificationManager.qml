@@ -1,42 +1,94 @@
 pragma Singleton
+pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Notifications
 
-/* NotificationManager handles system notifications via DBus */
+import qs.config
+
+/*
+ * NotificationManager is the DBus notification server and the notification
+ * history. Every notification (bar transient ones) becomes an entry that
+ * stays until the user removes it (dismiss, swipe, clear all), even if its
+ * app withdraws it, and survives restarts: entries are saved to
+ * $XDG_STATE_HOME/axiom/notifications.json, their images cached as small
+ * PNGs beside it (raw image data is gone once the notification is).
+ *
+ * An entry is a plain object:
+ *   { uid, nid, appName, appIcon, desktopEntry, summary, body, image,
+ *     urgency, time, live }
+ * `live` while its Notification is still around (liveNotification(uid)),
+ * so its actions work; restored or withdrawn entries have none.
+ */
 Singleton {
   id: root
 
-  readonly property alias notifications: server.trackedNotifications
-
-  readonly property int count: notifications.values.length
+  // Newest first
+  property var entries: []
+  readonly property int count: entries.length
+  readonly property int maxEntries: 100
 
   /**
      * A "Do Not Disturb" flag. When true, new notification popups will be suppressed,
-     * except for those marked with 'Critical' urgency. Notifications will still be
-     * added to the `notifications` list.
+     * except for those marked with 'Critical' urgency. Notifications are still
+     * added to the history.
      */
   property bool dnd: false
 
+  // An item in a window, set by the toast host (shell/Notifications):
+  // caching an image renders it there
+  property Item imageHost: null
+
+  readonly property string historyPath: Paths.userStatePath + "notifications.json"
+  readonly property string imageDir: Paths.userStatePath + "notifications/"
+
   /**
-     * This signal is emitted when a new notification is received that should be
-     * displayed as a popup. The UI layer should connect to this signal.
+     * Emitted when a new notification should show as a popup; the UI layer
+     * connects to it.
      */
   signal showPopup(variant notification)
 
-  /**
-     * Dismisses all currently tracked notifications.
-     */
+  // The live Notification behind an entry, or null
+  function liveNotification(uid) {
+    return root._live[uid] ?? null;
+  }
+
+  // Removes an entry (and closes its notification, if it's still open)
+  function dismiss(uid) {
+    const entry = root.entries.find(e => e.uid === uid);
+    if (!entry)
+      return;
+    root.entries = root.entries.filter(e => e.uid !== uid);
+    root._forget(entry);
+    root._save();
+  }
+
   function clearAll() {
-    // Snapshot first: dismissing mutates the live tracked-notifications
-    // model out from under us as we iterate.
-    const values = notifications.values;
-    for (var i = values.length - 1; i >= 0; i--) {
-      const notif = values[i];
-      if (notif) {
-        notif.dismiss();
-      }
+    const old = root.entries;
+    root.entries = [];
+    old.forEach(e => root._forget(e));
+    Quickshell.execDetached(["sh", "-c", "rm -f \"$1\"*.png", "sh", root.imageDir]);
+    root._save();
+  }
+
+  // Focuses the entry's app if it has a window, else launches it; false if
+  // its app isn't known
+  function openApp(entry) {
+    const id = entry?.desktopEntry || "";
+    if (!id)
+      return false;
+    const lower = id.toLowerCase();
+    const window = HyprlandManager.windowList.find(w => (w.class || "").toLowerCase() === lower || (w.initialClass || "").toLowerCase() === lower);
+    if (window) {
+      HyprlandManager.focusWindow(window.address);
+      return true;
     }
+    const app = DesktopEntries.byId(id) ?? DesktopEntries.heuristicLookup(id);
+    if (!app)
+      return false;
+    app.execute();
+    return true;
   }
 
   // NotificationServer can't create notifications itself, so send one over
@@ -45,30 +97,279 @@ Singleton {
     Quickshell.execDetached(["notify-send", "-a", appName, summary, body]);
   }
 
-  // MARK: - Received-time tracking
-  //
-  // Notification exposes no timestamp of its own, so we stamp arrival
-  // time ourselves, keyed by id, and clean up once the notification closes.
-  property var _receivedAt: ({})
+  // -- Private --
 
-  function receivedAtFor(notification) {
-    if (!notification)
-      return Date.now();
-    if (root._receivedAt[notification.id] === undefined) {
-      root._receivedAt[notification.id] = Date.now();
-    }
-    return root._receivedAt[notification.id];
+  // uid -> Notification, for live entries
+  property var _live: ({})
+  property int _serial: 0
+
+  function _newUid() {
+    root._serial += 1;
+    return Date.now().toString(36) + "-" + root._serial;
   }
 
-  // MARK: - Internal Implementation
+  function _entryFrom(notif, uid, time) {
+    return {
+      uid: uid,
+      nid: notif.id,
+      appName: notif.appName || "",
+      appIcon: notif.appIcon || "",
+      desktopEntry: notif.desktopEntry || "",
+      summary: notif.summary || "",
+      body: notif.body || "",
+      image: notif.image || "",
+      urgency: notif.urgency,
+      time: time,
+      live: true
+    };
+  }
 
-  /**
-     * The core NotificationServer that listens for DBus notifications.
-     */
+  function _uidOf(notif) {
+    for (const uid in root._live) {
+      if (root._live[uid] === notif)
+        return uid;
+    }
+    return "";
+  }
+
+  // Replaces an entry's object (so bindings see the change), newest first
+  function _put(entry) {
+    const rest = root.entries.filter(e => e.uid !== entry.uid);
+    const all = [entry].concat(rest).sort((a, b) => b.time - a.time);
+    const dropped = all.slice(root.maxEntries);
+    root.entries = all.slice(0, root.maxEntries);
+    dropped.forEach(e => root._forget(e));
+    root._save();
+  }
+
+  function _update(uid, changes) {
+    const entry = root.entries.find(e => e.uid === uid);
+    if (!entry)
+      return;
+    root.entries = root.entries.map(e => e.uid === uid ? Object.assign({}, e, changes) : e);
+    root._save();
+  }
+
+  // Watches a live notification: an app replacing it updates its entry,
+  // and withdrawing it keeps the entry without its actions. A Connections
+  // owned by this singleton, so a reload's old instance lets go.
+  function _link(notif, uid) {
+    const live = Object.assign({}, root._live);
+    live[uid] = notif;
+    root._live = live;
+    root._watchers[uid] = watcher.createObject(root, {
+      target: notif,
+      uid: uid
+    });
+  }
+
+  function _unlink(uid) {
+    root._watchers[uid]?.destroy();
+    delete root._watchers[uid];
+    const rest = Object.assign({}, root._live);
+    delete rest[uid];
+    root._live = rest;
+  }
+
+  // Qt.callLater collapses calls by function, so pending uids are kept here
+  property var _pendingRefresh: ({})
+  function _queueRefresh(uid) {
+    root._pendingRefresh[uid] = true;
+    Qt.callLater(root._flushRefresh);
+  }
+  function _flushRefresh() {
+    const uids = Object.keys(root._pendingRefresh);
+    root._pendingRefresh = {};
+    uids.forEach(uid => root._refresh(uid));
+  }
+
+  function _refresh(uid) {
+    const notif = root._live[uid];
+    const entry = root.entries.find(e => e.uid === uid);
+    if (!notif || !entry)
+      return;
+    const fresh = root._entryFrom(notif, uid, Date.now());
+    if (fresh.image !== root._sources[uid])
+      root._cacheImage(uid, fresh.image);
+    else
+      fresh.image = entry.image;
+    root._put(fresh);
+  }
+
+  property var _watchers: ({})
+  // uid -> the image source an entry's cached image came from
+  property var _sources: ({})
+
+  property Component _watcher: Component {
+    id: watcher
+    Connections {
+      property string uid
+      function onSummaryChanged() {
+        root._queueRefresh(uid);
+      }
+      function onBodyChanged() {
+        root._queueRefresh(uid);
+      }
+      function onImageChanged() {
+        root._queueRefresh(uid);
+      }
+      function onClosed(reason) {
+        root._unlink(uid);
+        root._update(uid, {
+          live: false
+        });
+      }
+    }
+  }
+
+  function _forget(entry) {
+    const notif = root._live[entry.uid];
+    root._unlink(entry.uid);
+    delete root._sources[entry.uid];
+    notif?.dismiss();
+    if (entry.image.startsWith("file://" + root.imageDir))
+      Quickshell.execDetached(["rm", "-f", entry.image.slice(7).split("?")[0]]);
+  }
+
+  // Copies a notification's image to disk (scaled down: the UI only shows
+  // thumbnails), then points the entry at the copy. If that fails the entry
+  // keeps the original, which lasts as long as the notification does.
+  function _cacheImage(uid, source) {
+    root._sources[uid] = source;
+    if (!source)
+      return;
+    if (!root.imageHost) {
+      console.warn("[NotificationManager] No image host yet, not caching", source);
+      return;
+    }
+    const img = imageGrabber.createObject(root.imageHost, {
+      source: source
+    });
+    const done = ok => {
+      if (!ok)
+        console.warn("[NotificationManager] Could not cache image", source);
+      img.destroy();
+    };
+    const grab = () => {
+      if (img.status === Image.Error)
+        return done(false);
+      if (img.status !== Image.Ready)
+        return;
+      const scale = Math.min(1, 160 / Math.max(img.implicitWidth, img.implicitHeight, 1));
+      img.width = Math.max(1, Math.round(img.implicitWidth * scale));
+      img.height = Math.max(1, Math.round(img.implicitHeight * scale));
+      const path = root.imageDir + uid + ".png";
+      const ok = img.grabToImage(result => {
+        if (!result.saveToFile(path))
+          return done(false);
+        root._update(uid, {
+          image: "file://" + path + "?" + Date.now()
+        });
+        done(true);
+      });
+      if (!ok)
+        done(false);
+    };
+    img.statusChanged.connect(grab);
+    grab();
+  }
+
+  property Component _imageGrabber: Component {
+    id: imageGrabber
+    Image {
+      asynchronous: false
+      cache: false
+      sourceSize: Qt.size(160, 160)
+      fillMode: Image.PreserveAspectFit
+    }
+  }
+
+  function _load() {
+    const content = FileManager.read("file://" + root.historyPath);
+    let saved = [];
+    if (content) {
+      try {
+        saved = JSON.parse(content);
+      } catch (e) {
+        console.warn("[NotificationManager] Could not parse", root.historyPath, e);
+      }
+    }
+    if (!Array.isArray(saved))
+      saved = [];
+    // Nothing from the last run is live, and an uncached image's data is gone
+    const entries = saved.filter(e => e && e.uid).map(e => Object.assign({}, e, {
+        live: false,
+        image: (e.image || "").startsWith("image://") ? "" : (e.image || "")
+      }));
+    // Notifications kept across a QML reload are still live
+    for (const notif of server.trackedNotifications.values) {
+      const entry = entries.find(e => !e.live && e.nid === notif.id && e.summary === (notif.summary || ""));
+      if (entry) {
+        entry.live = true;
+        if (!entry.image)
+          entry.image = notif.image || "";
+        root._sources[entry.uid] = notif.image || "";
+        root._link(notif, entry.uid);
+      } else {
+        const uid = root._newUid();
+        entries.push(root._entryFrom(notif, uid, Date.now()));
+        root._link(notif, uid);
+        root._cacheImage(uid, notif.image || "");
+      }
+    }
+    root.entries = entries.sort((a, b) => b.time - a.time).slice(0, root.maxEntries);
+  }
+
+  function _save() {
+    saveTimer.restart();
+  }
+
+  function _writeNow() {
+    saveTimer.stop();
+    historyFile.setText(JSON.stringify(root.entries.map(e => Object.assign({}, e, {
+        live: undefined
+      })), null, 2));
+  }
+
+  property Timer _saveTimer: Timer {
+    id: saveTimer
+    interval: 500
+    onTriggered: root._writeNow()
+  }
+
+  property FileView _historyFile: FileView {
+    id: historyFile
+    path: root.historyPath
+    printErrors: false
+    blockWrites: true
+    atomicWrites: true
+    onSaveFailed: error => console.warn("[NotificationManager] Could not save history:", FileViewError.toString(error))
+  }
+
+  Component.onCompleted: {
+    Quickshell.execDetached(["mkdir", "-p", root.imageDir]);
+    root._load();
+  }
+
+  Component.onDestruction: {
+    if (saveTimer.running)
+      root._writeNow();
+  }
+
+  // qs -c axiom ipc call notifications clear | toggleDnd
+  property IpcHandler _ipc: IpcHandler {
+    target: "notifications"
+    function clear(): void {
+      root.clearAll();
+    }
+    function toggleDnd(): void {
+      root.dnd = !root.dnd;
+    }
+  }
+
   NotificationServer {
     id: server
 
-    // Set all capabilities to true to be a fully-featured server
     actionsSupported: true
     actionIconsSupported: true
     bodySupported: true
@@ -76,47 +377,25 @@ Singleton {
     bodyMarkupSupported: true
     imageSupported: true
     persistenceSupported: true
-    // Optional, set to false if you don't want the server to outlive a QML reload
-    keepOnReload: false
+    // Live notifications (and so their actions) survive a QML reload
+    keepOnReload: true
 
-    Component.onCompleted: {
-      // This log is the most important for debugging.
-      // It should now print "true".
-      console.log("========== Notification Server ==========");
-      console.log("  > Registered:", server.registered);
-      console.log("  > Capabilities:");
-      console.log("    - Actions:", server.actionsSupported);
-      console.log("    - Action Icons:", server.actionIconsSupported);
-      console.log("    - Body:", server.bodySupported);
-      console.log("    - Body Hyperlinks:", server.bodyHyperlinksSupported);
-      console.log("    - Body Markup:", server.bodyMarkupSupported);
-      console.log("    - Image:", server.imageSupported);
-      console.log("    - Persistence:", server.persistenceSupported);
-      console.log("  > Tracked Notifications:", server.trackedNotifications.values.length);
-      console.log("=========================================");
-    }
-
-    /**
-     * This signal handler is the entry point for all new notifications.
-     */
     onNotification: notification => {
-      // The 'tracked' property adds the notification to the `trackedNotifications` model.
-      // We don't track 'transient' notifications (e.g., volume changes).
+      // Tracked, so the object outlives this handler; transient ones
+      // (e.g. volume changes) only pop up
       if (!notification.transient) {
         notification.tracked = true;
+        const uid = root._newUid();
+        const entry = root._entryFrom(notification, uid, Date.now());
+        root._put(entry);
+        root._link(notification, uid);
+        root._cacheImage(uid, entry.image);
       }
-      root.receivedAtFor(notification);
 
       // Suppress popups if Do Not Disturb is on, unless the notification is critical.
       if (!root.dnd || notification.urgency === NotificationUrgency.Critical) {
         root.showPopup(notification);
       }
-
-      // You can connect to the closed signal if you need to know when a
-      // notification is dismissed by the client or times out.
-      notification.closed.connect(reason => {
-        delete root._receivedAt[notification.id];
-      });
     }
   }
 }

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Services.Notifications
 
 import qs.config
 import qs.services
@@ -109,6 +110,7 @@ PopupWindow {
 
   // expireTimeout === 0 is the freedesktop-spec signal for "never expire".
   readonly property bool neverExpires: notification.expireTimeout === 0
+  readonly property bool critical: notification.urgency === NotificationUrgency.Critical
 
   Timer {
     id: dismissTimer
@@ -130,10 +132,22 @@ PopupWindow {
       id: content
       anchors.fill: parent
       backgroundColor: Theme.background
-      borderColor: Theme.backgroundAlt
+      borderColor: root.critical ? Theme.error : Theme.backgroundAlt
       borderWidth: Appearance.borderWidth
       borderRadius: Appearance.borderRadius + 2
       clip: true
+
+      // Critical urgency
+      Rectangle {
+        visible: root.critical
+        x: 4
+        width: 3
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.margins: Widget.padding
+        radius: 1.5
+        color: Theme.error
+      }
 
       MouseArea {
         id: dragArea
@@ -180,9 +194,12 @@ PopupWindow {
             spacing: Widget.spacing
 
             NotificationAvatar {
+              Layout.alignment: Qt.AlignTop
               appIcon: root.notification.appIcon ?? ""
+              desktopEntry: root.notification.desktopEntry ?? ""
               image: root.notification.image ?? ""
-              baseSize: 30
+              size: 40
+              badge: true
             }
 
             ColumnLayout {
@@ -194,6 +211,7 @@ PopupWindow {
                 text: root.notification.appName || ""
                 textColor: Theme.foregroundAlt
                 textSize: Appearance.fontSize - 2
+                font.bold: true
                 elide: Text.ElideRight
               }
 

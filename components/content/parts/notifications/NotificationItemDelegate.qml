@@ -6,61 +6,210 @@ import qs.config
 import qs.services
 import qs.components.reusable
 
-StyledContainer {
+// One history entry inside a group card: image, summary and body, its time
+// (or a dismiss button while hovered) and, while its notification is live,
+// its actions. Clicking runs the default action, or else opens the app.
+// Swipe sideways or press the button to dismiss; it slides out first.
+Item {
   id: root
 
-  required property var notification
+  // A NotificationManager entry
+  required property var entry
+  readonly property var live: root.entry?.live ? NotificationManager.liveNotification(root.entry.uid) : null
+  // The card's clock, so relative times refresh
+  property real now: Date.now()
+  // A lone entry leaves the time and dismiss button to its group's header
+  property bool showMeta: true
+  // Collapsed, the header's time is already this one's
+  property bool showTime: true
+  property real swipeThreshold: 120
 
-  signal dismissed
+  readonly property bool hovered: hover.hovered
+
+  function dismiss() {
+    if (!slideOut.running)
+      slideOut.start();
+  }
 
   Layout.fillWidth: true
-  implicitHeight: layout.implicitHeight + Widget.padding * 2
-  backgroundColor: Theme.backgroundHighlight
-  borderRadius: Appearance.borderRadius
+  implicitHeight: layout.implicitHeight
+  opacity: 0
 
-  ColumnLayout {
-    id: layout
-    anchors.left: parent.left
-    anchors.right: parent.right
-    anchors.top: parent.top
-    anchors.margins: Widget.padding
-    spacing: Widget.spacing / 2
+  Component.onCompleted: appear.start()
 
-    RowLayout {
-      Layout.fillWidth: true
-      spacing: Widget.spacing
+  transform: Translate {
+    id: shift
+  }
 
-      NotificationText {
-        notification: root.notification
+  HoverHandler {
+    id: hover
+  }
+
+  DragHandler {
+    id: swipe
+    target: null
+    yAxis.enabled: false
+    onTranslationChanged: {
+      if (!active || slideOut.running)
+        return;
+      shift.x = translation.x;
+      root.opacity = 1 - Math.min(1, Math.abs(translation.x) / (root.swipeThreshold * 2));
+    }
+    onActiveChanged: {
+      if (active || slideOut.running)
+        return;
+      if (Math.abs(shift.x) > root.swipeThreshold)
+        root.dismiss();
+      else
+        snapBack.start();
+    }
+  }
+
+  ParallelAnimation {
+    id: appear
+    NumberAnimation {
+      target: root
+      property: "opacity"
+      from: 0
+      to: 1
+      duration: Appearance.animNormal
+      easing.type: Easing.OutCubic
+    }
+    NumberAnimation {
+      target: shift
+      property: "y"
+      from: -8
+      to: 0
+      duration: Appearance.animNormal
+      easing.type: Easing.OutCubic
+    }
+  }
+
+  ParallelAnimation {
+    id: snapBack
+    NumberAnimation {
+      target: shift
+      property: "x"
+      to: 0
+      duration: Appearance.animFast
+      easing.type: Easing.OutCubic
+    }
+    NumberAnimation {
+      target: root
+      property: "opacity"
+      to: 1
+      duration: Appearance.animFast
+    }
+  }
+
+  SequentialAnimation {
+    id: slideOut
+    ParallelAnimation {
+      NumberAnimation {
+        target: shift
+        property: "x"
+        to: shift.x < 0 ? -root.width : root.width
+        duration: Appearance.animNormal
+        easing.type: Easing.InCubic
       }
-
-      StyledText {
-        Layout.alignment: Qt.AlignTop
-        text: I18n.formatRelative(NotificationManager.receivedAtFor(root.notification))
-        textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
-        opacity: 0.7
-      }
-
-      StyledIconButton {
-        Layout.fillWidth: false
-        Layout.fillHeight: false
-        Layout.preferredWidth: 22
-        Layout.preferredHeight: 22
-        Layout.alignment: Qt.AlignTop
-
-        iconText: "󰅖"
-        iconSize: 12
-        borderRadius: 11
-        iconColor: Theme.foregroundAlt
-        hoverColor: Theme.background
-
-        onClicked: root.dismissed()
+      NumberAnimation {
+        target: root
+        property: "opacity"
+        to: 0
+        duration: Appearance.animNormal
       }
     }
+    ScriptAction {
+      script: NotificationManager.dismiss(root.entry?.uid ?? "")
+    }
+  }
 
-    NotificationActions {
-      notification: root.notification
+  RowLayout {
+    id: layout
+    width: parent.width
+    spacing: Widget.padding
+
+    NotificationAvatar {
+      id: thumb
+      visible: thumb.showImage
+      Layout.alignment: Qt.AlignTop
+      image: root.entry?.image ?? ""
+      size: 44
+    }
+
+    ColumnLayout {
+      Layout.fillWidth: true
+      spacing: Widget.spacing / 2
+
+      RowLayout {
+        Layout.fillWidth: true
+        spacing: Widget.spacing
+
+        NotificationText {
+          notification: root.entry
+          live: root.live
+          clickable: !!defaultAction || (root.entry?.desktopEntry ?? "") !== ""
+          onActivated: ranAction => {
+            if (!ranAction)
+              NotificationManager.openApp(root.entry);
+          }
+          summaryLines: 2
+          bodyLines: 3
+        }
+
+        Item {
+          visible: root.showMeta
+          Layout.alignment: Qt.AlignTop
+          implicitWidth: Math.max(time.implicitWidth, 20)
+          implicitHeight: 20
+
+          StyledText {
+            id: time
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            opacity: root.hovered || !root.showTime ? 0 : 0.7
+            text: {
+              root.now;
+              return I18n.formatRelative(root.entry?.time ?? Date.now());
+            }
+            textColor: Theme.foregroundAlt
+            textSize: Appearance.fontSize - 3
+
+            Behavior on opacity {
+              NumberAnimation {
+                duration: Appearance.animFast
+              }
+            }
+          }
+
+          StyledIconButton {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            width: 20
+            height: 20
+            visible: opacity > 0
+            opacity: root.hovered ? 1 : 0
+            iconText: "\u{F0156}"
+            iconSize: 12
+            borderRadius: 10
+            iconColor: Theme.foregroundAlt
+            hoverColor: Theme.background
+            tooltipText: I18n.tr("Dismiss")
+            onClicked: root.dismiss()
+
+            Behavior on opacity {
+              NumberAnimation {
+                duration: Appearance.animFast
+              }
+            }
+          }
+        }
+      }
+
+      NotificationActions {
+        Layout.topMargin: 2
+        notification: root.live
+      }
     }
   }
 }

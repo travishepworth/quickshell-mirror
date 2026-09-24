@@ -5,26 +5,38 @@ import QtQuick.Layouts
 import qs.config
 import qs.components.reusable
 
-// A notification's summary and body; clicking runs its default action
-// (then emits activated)
-MouseArea {
+// A notification's summary and body (from a Notification or a history
+// entry); clicking runs the live notification's default action. With
+// `clickable` it also takes clicks without one (the caller handles them).
+// Emits activated either way. A TapHandler rather than a MouseArea, so a
+// swipe handler around it still sees the press.
+Item {
   id: root
 
   required property var notification
+  // Whose actions to use: a live Notification, or null
+  property var live: notification
   property int summaryLines: 1
   property int bodyLines: 4
+  property bool clickable: !!defaultAction
 
-  signal activated
+  signal activated(bool ranAction)
 
-  readonly property var defaultAction: (notification.actions ?? []).find(a => a.identifier === "default")
+  readonly property var defaultAction: (live?.actions ?? []).find(a => a.identifier === "default")
 
   Layout.fillWidth: true
   implicitHeight: textColumn.implicitHeight
-  cursorShape: root.defaultAction ? Qt.PointingHandCursor : Qt.ArrowCursor
-  onClicked: {
-    if (root.defaultAction) {
-      root.defaultAction.invoke();
-      root.activated();
+
+  HoverHandler {
+    cursorShape: root.clickable ? Qt.PointingHandCursor : Qt.ArrowCursor
+  }
+
+  TapHandler {
+    enabled: root.clickable
+    onTapped: {
+      const action = root.defaultAction;
+      action?.invoke();
+      root.activated(!!action);
     }
   }
 
@@ -35,7 +47,7 @@ MouseArea {
 
     StyledText {
       Layout.fillWidth: true
-      text: root.notification.summary || ""
+      text: root.notification?.summary || ""
       font.bold: true
       elide: Text.ElideRight
       maximumLineCount: root.summaryLines
@@ -43,9 +55,9 @@ MouseArea {
     }
 
     StyledText {
-      visible: (root.notification.body ?? "") !== ""
+      visible: (root.notification?.body ?? "") !== ""
       Layout.fillWidth: true
-      text: root.notification.body ?? ""
+      text: root.notification?.body ?? ""
       textColor: Theme.foregroundAlt
       textSize: Appearance.fontSize - 1
       wrapMode: Text.Wrap

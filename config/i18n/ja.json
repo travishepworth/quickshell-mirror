@@ -86,7 +86,6 @@
     "City name to look up. Empty uses your IP location.": "検索する都市名。空欄の場合は IP アドレスから推定した場所を使います。",
     "City name; empty uses your IP's location.": "都市名。空欄の場合は IP アドレスから推定した場所を使います。",
     "Clear": "晴れ",
-    "Clear All": "すべて消去",
     "Click action": "クリック時の動作",
     "Clock": "時計",
     "Clock & calendar": "時計とカレンダー",
@@ -107,7 +106,6 @@
     "Custom": "カスタム",
     "Custom Qt date format (e.g. ddd d MMM). Empty uses the language's format.": "Qt の日付書式（例：ddd d MMM）。空欄の場合は言語の書式を使います。",
     "Custom Qt time format (e.g. HH:mm). Empty uses the language's format.": "Qt の時刻書式（例：HH:mm）。空欄の場合は言語の書式を使います。",
-    "DND": "おやすみモード",
     "Dark mode": "ダークモード",
     "Date": "日付",
     "Date format": "日付の書式",
@@ -240,7 +238,6 @@
     "No devices found": "デバイスが見つかりません",
     "No items - click + to add": "項目がありません。＋で追加してください",
     "No menu items": "メニュー項目がありません",
-    "No notifications": "通知はありません",
     "No saved configurations yet.": "保存された設定はまだありません。",
     "No submenu items": "サブメニュー項目がありません",
     "No track playing": "再生中の曲はありません",
@@ -493,7 +490,6 @@
     "{0} (copied to clipboard)": "{0}（クリップボードにコピーしました）",
     "{0} devices": "{0} 台のデバイス",
     "{0} left": "残り {0}",
-    "{0} notifications": "{0} 件の通知",
     "{0} updates": "{0} 件の更新",
     "{0} · feels {1}°": "{0} · 体感 {1}°",
     "{0} · muted": "{0} · ミュート",
@@ -529,7 +525,6 @@
     "{0}: {1}%": "{0}: {1}%",
     "Awake": "スリープ防止",
     "Idle": "通常",
-    "Notifications ({0})": "通知 ({0})",
     "Disconnect": "切断",
     "Connect": "接続",
     "Pair and connect": "ペアリングして接続",
@@ -771,6 +766,10 @@
     "How much of the screen the grid may take.": "グリッドが使える画面の割合。",
     "Theme color": "テーマの色",
     "wallpaper": "壁紙",
-    "color": "色"
+    "color": "色",
+    "All caught up": "すべて確認済み",
+    "Do not disturb is on": "おやすみモードがオンです",
+    "Clear all": "すべて消去",
+    "Dismiss": "閉じる"
   }
 }
