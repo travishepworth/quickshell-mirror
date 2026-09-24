@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 3,
+      "default": 4,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -82,7 +82,7 @@
           "enum": ["primary", "all"],
           "x-enumLabels": { "primary": "Primary monitor only", "all": "Every monitor" },
           "default": "primary",
-          "description": "Where the overlay, launcher, power menu, workspace overlay and OSD appear (the OSD and overlay can override this). On every monitor, shortcuts open them on the focused one. The theme selector is on every monitor, and sets that monitor's wallpaper."
+          "description": "Where the overlay, launcher, power menu, workspace overlay and OSD appear (the OSD and overlay can override this). On every monitor, shortcuts open them on the focused one."
         }
       }
     },
@@ -95,19 +95,19 @@
         "theme": {
           "type": "string",
           "default": "gruvbox-dark",
-          "description": "Active theme (set by the theme selector).",
+          "description": "Active theme (set on the overlay's Themes page).",
           "x-settings": false
         },
         "wallpaper": {
           "type": "string",
           "default": "",
-          "description": "The primary monitor's wallpaper file URL, used by the lockscreen (set by the theme selector).",
+          "description": "The primary monitor's wallpaper file URL, used by the lockscreen (set on the overlay's Themes page).",
           "x-settings": false
         },
         "wallpapers": {
           "type": "object",
           "default": {},
-          "description": "Monitor name → wallpaper file URL (set by the theme selector). A monitor with no entry shows `wallpaper`.",
+          "description": "Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.",
           "additionalProperties": { "type": "string" },
           "x-settings": false
         },
@@ -117,12 +117,6 @@
           "default": "~/Pictures/wallpapers",
           "pattern": "\\S",
           "description": "Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder."
-        },
-        "autoThemeSwitch": {
-          "type": "boolean",
-          "title": "Auto theme switch",
-          "default": true,
-          "description": "Allow toggling between a theme and its paired light/dark variant."
         },
         "font": {
           "type": "object",
@@ -242,7 +236,7 @@
     "Popouts": {
       "type": "object",
       "title": "Popouts",
-      "description": "Behaviour shared by bar popouts and screen-edge popouts (side panel, OSD, theme selector).",
+      "description": "Behaviour shared by bar popouts and screen-edge popouts (side panel, OSD).",
       "additionalProperties": false,
       "properties": {
         "openDelay": {
@@ -472,39 +466,6 @@
               { "cells": [
                 { "layout": "Tall", "slots": {
                   "main": { "type": "Settings" }
-                } }
-              ] },
-              { "cells": [
-                { "layout": "Tall", "slots": {
-                  "main": { "type": "ThemeEditor" }
-                } }
-              ] },
-              { "cells": [
-                { "layout": "Grid2x2", "slots": {
-                  "topLeft": { "type": "ColorSwatch", "properties": { "color": "base00", "label": "bg0" } },
-                  "topRight": { "type": "ColorSwatch", "properties": { "color": "base01", "label": "bg1" } },
-                  "bottomLeft": { "type": "ColorSwatch", "properties": { "color": "base02", "label": "bg2" } },
-                  "bottomRight": { "type": "ColorSwatch", "properties": { "color": "base03", "label": "bg3" } }
-                } },
-                { "layout": "Grid2x2", "slots": {
-                  "topLeft": { "type": "ColorSwatch", "properties": { "color": "base04", "label": "fg4" } },
-                  "topRight": { "type": "ColorSwatch", "properties": { "color": "base05", "label": "fg3" } },
-                  "bottomLeft": { "type": "ColorSwatch", "properties": { "color": "base06", "label": "fg2" } },
-                  "bottomRight": { "type": "ColorSwatch", "properties": { "color": "base07", "label": "fg1" } }
-                } }
-              ] },
-              { "cells": [
-                { "layout": "Grid2x2", "slots": {
-                  "topLeft": { "type": "ColorSwatch", "properties": { "color": "base08", "label": "error" } },
-                  "topRight": { "type": "ColorSwatch", "properties": { "color": "base09", "label": "warning" } },
-                  "bottomLeft": { "type": "ColorSwatch", "properties": { "color": "base0A", "label": "info" } },
-                  "bottomRight": { "type": "ColorSwatch", "properties": { "color": "base0B", "label": "success" } }
-                } },
-                { "layout": "Grid2x2", "slots": {
-                  "topLeft": { "type": "ColorSwatch", "properties": { "color": "base0C", "label": "accentAlt" } },
-                  "topRight": { "type": "ColorSwatch", "properties": { "color": "base0D", "label": "accentHighlight" } },
-                  "bottomLeft": { "type": "ColorSwatch", "properties": { "color": "base0E", "label": "accent" } },
-                  "bottomRight": { "type": "ColorSwatch", "properties": { "color": "base0F", "label": "decorative" } }
                 } }
               ] }
             ] },
@@ -1057,7 +1018,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "type": { "const": "WallpaperPicker", "description": "Wallpapers" }
+        "type": { "const": "WallpaperPicker", "description": "Wallpapers (a Tall cell adds a monitor picker and a preview)" }
       }
     },
     "ColorSwatchOverlayModule": {

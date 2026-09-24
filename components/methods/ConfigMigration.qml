@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 3
+  readonly property int currentVersion: 4
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -33,6 +33,8 @@ QtObject {
       result = _v1ToV2(result, changes);
     if (version < 3)
       result = _v2ToV3(result, changes);
+    if (version < 4)
+      result = _v3ToV4(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -70,6 +72,16 @@ QtObject {
       bar.inset = Math.max(0, Math.floor(((bar.extent ?? 30) - widgetHeight) / 2));
       changes.push(`Bars[${barIndex}].inset = ${bar.inset}`);
     });
+    return config;
+  }
+
+  // v4 lists a dark/light pair as one theme with a light mode switch, so
+  // the setting that allowed switching between them is gone
+  function _v3ToV4(config, changes) {
+    if (config.Appearance?.autoThemeSwitch !== undefined) {
+      delete config.Appearance.autoThemeSwitch;
+      changes.push("Appearance.autoThemeSwitch removed");
+    }
     return config;
   }
 }

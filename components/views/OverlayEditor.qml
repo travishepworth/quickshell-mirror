@@ -3,8 +3,8 @@ import QtQuick
 import qs.config
 import qs.components.views.overlayEditor
 
-// The overlay editor: always the last page (pinned by OverlayPages,
-// not part of config). Edits go through OverlayManager's sandbox.
+// The overlay editor: always the last page (pinned by OverlayPages, after
+// the Themes page; not part of config). Edits go through OverlayManager's sandbox.
 BaseView {
   id: root
 

@@ -37,10 +37,6 @@ ShellRoot {
     id: osd
   }
 
-  ThemeSelector {
-    id: themeSelector
-  }
-
   AppLauncher {
     id: appLauncher
   }

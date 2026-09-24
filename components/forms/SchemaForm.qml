@@ -13,7 +13,7 @@ import qs.config
  * objects become an add/remove/reorder list of those fields. Labels and
  * help text come from `title` and `description`. Keys marked
  * `x-settings: false` are skipped (edited elsewhere, e.g. bars in the bar
- * editor, or owned by the theme selector).
+ * editor, or owned by the overlay's Themes page).
  *
  * Adding a setting to the schema is all it takes for it to appear here.
  */

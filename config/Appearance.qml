@@ -10,13 +10,13 @@ QtObject {
 
   readonly property var _c: ConfigManager.config.Appearance
 
-  // --- Theme (UI-owned, set by the theme selector) ---
+  // --- Theme (UI-owned, set on the overlay's Themes page) ---
   readonly property string theme: _c.theme
   // From the active theme, not config: a theme is dark or light
   readonly property bool darkMode: ThemeManager.currentTheme.variant !== "light"
   // The primary monitor's wallpaper (the lockscreen's)
   readonly property string wallpaper: _c.wallpaper
-  // Monitor name -> wallpaper URL, set per monitor by the theme selector
+  // Monitor name -> wallpaper URL, set per monitor on the Themes page
   readonly property var wallpapers: _c.wallpapers
   function wallpaperFor(monitor) {
     return root.wallpapers[monitor] || root.wallpaper;
@@ -24,7 +24,6 @@ QtObject {
   // As configured (for display), and with ~ expanded, no trailing slash
   readonly property string wallpaperFolder: _c.wallpaperFolder
   readonly property string wallpaperPath: _c.wallpaperFolder.trim().replace(/^~(?=\/|$)/, Quickshell.env("HOME")).replace(/\/+$/, "")
-  readonly property bool autoThemeSwitch: _c.autoThemeSwitch
 
   // --- Font ---
   readonly property string fontFamily: _c.font.family

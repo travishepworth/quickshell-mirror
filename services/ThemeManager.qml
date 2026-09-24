@@ -24,8 +24,12 @@ QtObject {
     nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.bmp"]
     showDirs: false
   }
-  readonly property ListModel generatedThemes: _generatedThemesModel
-  readonly property ListModel defaultThemes: _defaultThemesModel
+  // One entry per theme, a dark/light pair being one theme:
+  // [{ label, dark, light, generated }], where dark/light are Appearance.theme
+  // names ("" for a variant the theme doesn't have). Stock themes first.
+  readonly property var themeFamilies: _families
+  // The family Appearance.theme belongs to, or null
+  readonly property var currentFamily: themeFamilies.find(family => family.dark === Appearance.theme || family.light === Appearance.theme) ?? null
   readonly property bool isGenerating: generationProcess.running
 
   // The active theme's JSON ({ name, variant, paired, colors, semantic }),
@@ -36,16 +40,22 @@ QtObject {
   readonly property var defaults: _defaults
 
   signal generationFailed(string errorText)
+  onGenerationFailed: errorText => NotificationManager.sendNotification(I18n.tr("Theme Generation"), I18n.tr("Failed to generate themes"), I18n.tr("There was an error while processing the wallpaper. Details: {0}", errorText), {})
 
   //=========================================================================
   // Public Functions
   //=========================================================================
 
-  function applyTheme(themeName, isGenerated) {
-    const fullThemeName = isGenerated ? "generated/" + themeName : themeName;
-    if (Appearance.theme === fullThemeName)
+  // `themeName` as Appearance.theme names it (generated ones "generated/…")
+  function applyTheme(themeName) {
+    if (!themeName || Appearance.theme === themeName)
       return;
-    ConfigManager.setTheme(fullThemeName);
+    ConfigManager.setTheme(themeName);
+  }
+
+  // A family's variant for the current light/dark mode, or the one it has
+  function applyFamily(family) {
+    applyTheme(Appearance.darkMode ? (family.dark || family.light) : (family.light || family.dark));
   }
 
   // Sets the wallpaper, then generates themes from it
@@ -74,14 +84,18 @@ QtObject {
     generationProcess.start(wallpaperUrl);
   }
 
-  // Switches to the current theme's dark/light pair, if it has one
-  function toggleDarkMode() {
-    const paired = currentTheme.paired;
-    if (!Appearance.autoThemeSwitch || !paired) {
-      console.log("[ThemeManager] No dark/light switch:", !Appearance.autoThemeSwitch ? "auto theme switching is off" : "the theme has no pair");
+  // Switches to the current theme's light (or dark) variant, if it has one
+  function setLightMode(light) {
+    const target = light ? currentFamily?.light : currentFamily?.dark;
+    if (!target) {
+      console.log("[ThemeManager] No", light ? "light" : "dark", "variant of", Appearance.theme);
       return;
     }
-    applyTheme(paired, Appearance.theme.startsWith("generated/"));
+    applyTheme(target);
+  }
+
+  function toggleDarkMode() {
+    setLightMode(Appearance.darkMode);
   }
 
   // Runs the enabled integrations (kitty, cava, k9s) for a theme
@@ -211,8 +225,11 @@ QtObject {
   readonly property string _generatedThemesPath: "file://" + Paths.themePath + "generated"
   readonly property string _pythonScriptPath: Paths.scriptsPath + "generate_theme.py"
 
-  property ListModel _defaultThemesModel: ListModel {}
-  property ListModel _generatedThemesModel: ListModel {}
+  // Each folder's themes, [{ name, label, variant, paired }], combined
+  // into _families once either folder has been scanned
+  property var _stockThemes: []
+  property var _generatedThemes: []
+  property var _families: []
 
   // --- Integration processes ---
   property Process _k9sProcess: Process {
@@ -293,67 +310,98 @@ QtObject {
 
   // --- Theme List Loading ---
 
-  /**
-   * @brief Clears all theme models and re-triggers the FolderListModels to scan their directories.
-   * This is the central function for refreshing the UI lists of themes.
-   */
+  // Rescans both theme folders; each rebuilds the families when it's read
   function _reloadAllThemes() {
-    console.log("[ThemeManager] Reloading all theme models...");
-    _defaultThemesModel.clear();
-    _generatedThemesModel.clear();
-
     _defaultThemeLoader.folder = "";
     _generatedThemeLoader.folder = "";
-
     _defaultThemeLoader.folder = _themesPath;
     _generatedThemeLoader.folder = _generatedThemesPath;
   }
 
+  // A scanned folder's themes, parsed for their name, variant and pair.
+  // `prefix` makes each name what Appearance.theme calls it.
+  function _readThemes(loader, prefix) {
+    const themes = [];
+    for (let i = 0; i < loader.count; i++) {
+      const fileName = loader.get(i, "fileName");
+      if (fileName === "theme.schema.json")
+        continue;
+      try {
+        const json = JSON.parse(FileManager.read("file://" + loader.get(i, "filePath")));
+        themes.push({
+          "name": prefix + loader.get(i, "fileBaseName"),
+          "label": json.name || loader.get(i, "fileBaseName"),
+          "variant": json.variant === "light" ? "light" : "dark",
+          "paired": json.paired ? prefix + json.paired : ""
+        });
+      } catch (e) {
+        console.warn("[ThemeManager] Skipping unreadable theme", fileName, e);
+      }
+    }
+    return themes;
+  }
+
+  // Groups themes with the pair they name, when that pair names them back
+  // with the other variant. A pair is labelled by the words its themes'
+  // names share ("Tokyo Night" + "Tokyo Day" = "Tokyo").
+  function _buildFamilies(themes, generated) {
+    const byName = themes.reduce((map, theme) => {
+      map[theme.name] = theme;
+      return map;
+    }, {});
+    const seen = {};
+    const families = [];
+    for (const theme of themes) {
+      if (seen[theme.name])
+        continue;
+      seen[theme.name] = true;
+      const pair = byName[theme.paired];
+      const paired = pair && !seen[pair.name] && pair.paired === theme.name && pair.variant !== theme.variant;
+      if (paired)
+        seen[pair.name] = true;
+      const dark = theme.variant === "dark" ? theme : (paired ? pair : null);
+      const light = theme.variant === "light" ? theme : (paired ? pair : null);
+      families.push({
+        "label": paired ? _commonLabel(dark.label, light.label) : theme.label,
+        "dark": dark?.name ?? "",
+        "light": light?.name ?? "",
+        "generated": generated
+      });
+    }
+    return families.sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  function _commonLabel(a, b) {
+    const wordsA = a.split(" ");
+    const wordsB = b.split(" ");
+    let n = 0;
+    while (n < wordsA.length && n < wordsB.length && wordsA[n] === wordsB[n])
+      n++;
+    return n > 0 ? wordsA.slice(0, n).join(" ") : a;
+  }
+
+  function _rebuildFamilies() {
+    root._families = _buildFamilies(root._stockThemes, false).concat(_buildFamilies(root._generatedThemes, true));
+    console.log("[ThemeManager] Themes:", root._families.map(family => family.label).join(", "));
+  }
+
+  // Ready is reported once before the rows arrive, then again with them.
+  // Directories are hidden (showDirs), so "generated" isn't listed.
   property FolderListModel _defaultThemeLoader: FolderListModel {
     nameFilters: ["*.json"]
     showDirs: false
-    onStatusChanged: {
-      // Ready is reported once before the rows arrive, then again with them
-      if (status === FolderListModel.Ready && count > 0) {
-        for (let i = 0; i < count; i++) {
-          // TODO: should be within the theme's json
-          // idk why tf I did it like this
-          // Should read filecontent here and parse variant and generated
-          const filename = get(i, "fileName");
-          if (filename === "generated")
-            continue;
-          if (filename === "theme.schema.json")
-            continue;
-
-          root._defaultThemesModel.append({
-            name: get(i, "fileBaseName"),
-            filePath: get(i, "filePath"),
-            isGenerated: false
-          });
-        }
-        console.log("[ThemeManager] Default themes loaded:", root._defaultThemesModel.count);
-      }
+    onStatusChanged: if (status === FolderListModel.Ready && count > 0) {
+      root._stockThemes = root._readThemes(root._defaultThemeLoader, "");
+      root._rebuildFamilies();
     }
   }
 
   property FolderListModel _generatedThemeLoader: FolderListModel {
     nameFilters: ["*.json"]
     showDirs: false
-    onStatusChanged: {
-      // Ready is reported once before the rows arrive, then again with them
-      if (status === FolderListModel.Ready && count > 0) {
-        for (let i = 0; i < count; i++) {
-          const fileName = get(i, "fileBaseName");
-          if (fileName === "pywal-dark")
-            continue;
-          root._generatedThemesModel.append({
-            name: fileName,
-            filePath: get(i, "filePath"),
-            isGenerated: true
-          });
-        }
-        console.log("[ThemeManager] Generated themes loaded:", root._generatedThemesModel.count);
-      }
+    onStatusChanged: if (status === FolderListModel.Ready && count > 0) {
+      root._generatedThemes = root._readThemes(root._generatedThemeLoader, "generated/");
+      root._rebuildFamilies();
     }
   }
 }
