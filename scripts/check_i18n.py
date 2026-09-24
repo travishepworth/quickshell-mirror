@@ -57,6 +57,8 @@ def schema_strings(node, out):
         for key in ("title", "description"):
             if isinstance(node.get(key), str):
                 out.add(node[key])
+        if isinstance(node.get("x-enumLabels"), dict):
+            out.update(v for v in node["x-enumLabels"].values() if isinstance(v, str))
         if node.get("type") == "string" and isinstance(node.get("enum"), list):
             out.update(v for v in node["enum"] if isinstance(v, str))
         for value in node.values():

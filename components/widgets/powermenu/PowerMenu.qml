@@ -50,7 +50,8 @@ PanelWindow {
   Connections {
     target: ShellManager
     function onOpenPowerMenu() {
-      rootWindow.toggle();
+      if (ShellManager.isTarget(rootWindow.screen))
+        rootWindow.toggle();
     }
     // Locking from anywhere closes the menu, so it isn't still up on unlock
     function onLockScreen() {
@@ -80,6 +81,7 @@ PanelWindow {
 
   IpcHandler {
     target: "powermenu"
+    enabled: ShellManager.isTarget(rootWindow.screen)
     function toggle() {
       rootWindow.toggle();
     }

@@ -47,7 +47,12 @@ Loader {
         labels[l.code] = l.name;
         return labels;
       }, {});
-    return fieldSchema["x-enumLabels"] ?? {};
+    // Schema labels are English, translated like titles
+    const labels = fieldSchema["x-enumLabels"] ?? {};
+    return Object.keys(labels).reduce((out, value) => {
+      out[value] = I18n.tr(labels[value]);
+      return out;
+    }, {});
   }
 
   // `x-showIf: { sibling: value | [values] | { not: value } }`, checked

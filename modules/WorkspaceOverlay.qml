@@ -24,6 +24,12 @@ Scope {
 
   // Shared visibility state
   property bool overlayVisible: false
+  // Screen it opens on, fixed when it opens
+  property string openScreen: ""
+  onOverlayVisibleChanged: {
+    if (overlayVisible)
+      openScreen = ShellManager.targetScreen;
+  }
 
   Connections {
     target: ShellManager
@@ -69,7 +75,7 @@ Scope {
 
   // Create a PanelWindow for each screen
   Variants {
-    model: Quickshell.screens
+    model: General.screens
 
     delegate: PanelWindow {
       id: overlayWindow
@@ -84,7 +90,8 @@ Scope {
         right: true
       }
 
-      visible: root.overlayVisible
+      // Only the screen it was opened on
+      visible: root.overlayVisible && modelData.name === root.openScreen
       focusable: visible
       color: "transparent"
 

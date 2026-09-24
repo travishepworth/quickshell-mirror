@@ -76,12 +76,15 @@ PanelWindow {
   Connections {
     target: ShellManager
     function onToggleOverlay() {
-      overlay.toggle();
+      if (ShellManager.isTarget(overlay.screen))
+        overlay.toggle();
     }
   }
 
   IpcHandler {
     target: "overlay"
+    // One handler per target name: the target screen's
+    enabled: ShellManager.isTarget(overlay.screen)
 
     function open() {
       overlay.open();

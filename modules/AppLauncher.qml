@@ -10,10 +10,10 @@ import qs.config
 
 Scope {
   Variants {
-    model: Quickshell.screens
+    model: General.screens
     delegate: Launcher {
-      property var modelData: modelData
       id: appLauncher
+      property var modelData: modelData
       screen: modelData
     }
   }

@@ -14,4 +14,14 @@ QtObject {
   // Language for the shell's text, dates and clock (see I18n): "en" | "ja"
   readonly property string language: _c.language
   readonly property string primaryMonitor: _c.primaryMonitor || (Quickshell.screens[0]?.name ?? "")
+  // "primary" | "all": the screens the overlay, launcher, power menu,
+  // workspace overlay, OSD and theme selector are built on
+  readonly property string monitors: _c.monitors
+  readonly property var screens: {
+    const all = Array.from(Quickshell.screens);
+    if (root.monitors === "all")
+      return all;
+    const primary = all.filter(s => s.name === root.primaryMonitor);
+    return primary.length > 0 ? primary : all.slice(0, 1);
+  }
 }

@@ -4,10 +4,10 @@ import Quickshell
 import qs.config
 import qs.components.widgets.powermenu
 
-// One power menu, on the primary monitor (one per screen all opened at once)
+// A power menu per screen in General.screens; the target screen's opens
 Scope {
   Variants {
-    model: Array.from(Quickshell.screens).filter(s => s.name === General.primaryMonitor)
+    model: General.screens
     delegate: PowerMenu {
       required property ShellScreen modelData
       screen: modelData

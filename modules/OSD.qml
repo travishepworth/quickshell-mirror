@@ -29,9 +29,10 @@ Item {
   readonly property int barSpacing: 20
 
   Variants {
-    model: OSDConfig.enabled ? Quickshell.screens : []
+    model: OSDConfig.enabled ? General.screens : []
 
-    // One OSD per screen; volume changes only show it on the focused one.
+    // One OSD per screen in General.screens; volume changes show it on the
+    // target screen (the focused one when on every monitor).
     // Hiding is the popout's own hover-aware dismiss timer.
     delegate: EdgePopout {
       id: root
@@ -50,7 +51,7 @@ Item {
       function poke(force) {
         if (root.isOpen)
           root.updateDismissTimer();
-        else if (force && root.isFocusedScreen)
+        else if (force && ShellManager.isTarget(root.screen))
           root.show();
       }
 

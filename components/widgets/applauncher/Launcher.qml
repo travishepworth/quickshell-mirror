@@ -37,7 +37,7 @@ PanelWindow {
 
   Connections {
     target: ShellManager
-    enabled: rootWindow.screen.name === General.primaryMonitor
+    enabled: ShellManager.isTarget(rootWindow.screen)
     function onToggleAppLauncher() {
       rootWindow.toggle();
     }
@@ -45,7 +45,7 @@ PanelWindow {
 
   IpcHandler {
     target: "appLauncher"
-    enabled: rootWindow.screen.name === General.primaryMonitor
+    enabled: ShellManager.isTarget(rootWindow.screen)
 
     function toggle() {
       rootWindow.toggle();

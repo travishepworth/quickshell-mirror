@@ -4,11 +4,11 @@ import Quickshell
 import qs.config
 import qs.components.widgets.overlay
 
-// One overlay, on the primary monitor: every page's pollers and graphs run
-// per instance, so a disabled copy per extra screen is pure cost
+// One overlay per screen in General.screens (the primary monitor unless
+// surfaces are on every monitor); pages only load while it's open
 Scope {
   Variants {
-    model: Array.from(Quickshell.screens).filter(s => s.name === General.primaryMonitor)
+    model: General.screens
     delegate: OverlayPanel {
       required property ShellScreen modelData
       screen: modelData

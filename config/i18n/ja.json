@@ -243,7 +243,6 @@
     "Module": "モジュール",
     "Modules": "モジュール",
     "Monitor": "モニター",
-    "Monitor that hosts the lockscreen input, launcher, power menu and overlay. Empty uses the first screen.": "ロック画面の入力、ランチャー、電源メニュー、オーバーレイを表示するモニター。空欄の場合は最初の画面を使います。",
     "Monitor this bar is shown on. Empty uses the first screen.": "このバーを表示するモニター。空欄の場合は最初の画面を使います。",
     "Motion": "動き",
     "Mount points": "マウントポイント",
@@ -607,6 +606,13 @@
     "Restored \"{0}\"": "「{0}」を復元しました",
     "Deleted \"{0}\"": "「{0}」を削除しました",
     "Failed to delete \"{0}\"": "「{0}」を削除できませんでした",
-    "Busy, try again": "処理中です。もう一度お試しください"
+    "Busy, try again": "処理中です。もう一度お試しください",
+    "Monitors": "モニター",
+    "Every monitor": "すべてのモニター",
+    "Primary monitor only": "プライマリモニターのみ",
+    "primary": "プライマリ",
+    "all": "すべて",
+    "Monitor that hosts the lockscreen input, and the surfaces below when they're on one monitor. Empty uses the first screen.": "ロック画面の入力と、1台のモニターに表示するときの下記の画面を置くモニター。空欄の場合は最初の画面を使います。",
+    "Where the overlay, launcher, power menu, workspace overlay, OSD and theme selector appear. On every monitor, shortcuts open them on the focused one.": "オーバーレイ、ランチャー、電源メニュー、ワークスペース一覧、OSD、テーマ選択を表示する場所。すべてのモニターの場合、ショートカットはフォーカス中のモニターで開きます。"
   }
 }

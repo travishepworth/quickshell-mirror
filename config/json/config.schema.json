@@ -35,8 +35,16 @@
           "type": "string",
           "title": "Primary monitor",
           "default": "",
-          "description": "Monitor that hosts the lockscreen input, launcher, power menu and overlay. Empty uses the first screen.",
+          "description": "Monitor that hosts the lockscreen input, and the surfaces below when they're on one monitor. Empty uses the first screen.",
           "x-options": "screens"
+        },
+        "monitors": {
+          "type": "string",
+          "title": "Monitors",
+          "enum": ["primary", "all"],
+          "x-enumLabels": { "primary": "Primary monitor only", "all": "Every monitor" },
+          "default": "primary",
+          "description": "Where the overlay, launcher, power menu, workspace overlay, OSD and theme selector appear. On every monitor, shortcuts open them on the focused one."
         }
       }
     },

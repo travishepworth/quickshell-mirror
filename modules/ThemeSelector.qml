@@ -27,7 +27,7 @@ Item {
   }
 
   Variants {
-    model: Quickshell.screens
+    model: General.screens
 
     delegate: EdgePopout {
       id: root
