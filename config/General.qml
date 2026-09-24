@@ -15,7 +15,7 @@ QtObject {
   readonly property string language: _c.language
   readonly property string primaryMonitor: _c.primaryMonitor || (Quickshell.screens[0]?.name ?? "")
   // "primary" | "all": the screens the overlay, launcher, power menu,
-  // workspace overlay, OSD and theme selector are built on
+  // workspace overlay and OSD are built on
   readonly property string monitors: _c.monitors
   readonly property var screens: {
     const all = Array.from(Quickshell.screens);
@@ -23,5 +23,19 @@ QtObject {
       return all;
     const primary = all.filter(s => s.name === root.primaryMonitor);
     return primary.length > 0 ? primary : all.slice(0, 1);
+  }
+
+  // The screens a surface with its own `monitors` setting is built on:
+  // "general" (the above) | "primaryBar" (the primary bar's monitor) |
+  // "focused" (every screen, opening on the focused one)
+  function screensFor(mode) {
+    const all = Array.from(Quickshell.screens);
+    if (mode === "focused")
+      return all;
+    if (mode === "primaryBar") {
+      const primary = all.filter(s => s.name === Bar.primaryMonitor);
+      return primary.length > 0 ? primary : all.slice(0, 1);
+    }
+    return root.screens;
   }
 }

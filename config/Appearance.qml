@@ -14,7 +14,13 @@ QtObject {
   readonly property string theme: _c.theme
   // From the active theme, not config: a theme is dark or light
   readonly property bool darkMode: ThemeManager.currentTheme.variant !== "light"
+  // The primary monitor's wallpaper (the lockscreen's)
   readonly property string wallpaper: _c.wallpaper
+  // Monitor name -> wallpaper URL, set per monitor by the theme selector
+  readonly property var wallpapers: _c.wallpapers
+  function wallpaperFor(monitor) {
+    return root.wallpapers[monitor] || root.wallpaper;
+  }
   // As configured (for display), and with ~ expanded, no trailing slash
   readonly property string wallpaperFolder: _c.wallpaperFolder
   readonly property string wallpaperPath: _c.wallpaperFolder.trim().replace(/^~(?=\/|$)/, Quickshell.env("HOME")).replace(/\/+$/, "")

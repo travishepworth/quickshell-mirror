@@ -8,6 +8,8 @@ QtObject {
   readonly property var views: ConfigManager.config.Overlay.views
   // Card size as a percentage of what fits the screen (see OverlayGrid)
   readonly property int size: ConfigManager.config.Overlay.size
+  // "general" | "primaryBar" | "focused" (see General.screensFor)
+  readonly property string monitors: ConfigManager.config.Overlay.monitors
 
   // What the overlay editor offers, read from the schema's oneOfs so new
   // module/view types show up there automatically

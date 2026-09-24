@@ -43,7 +43,7 @@ Rectangle {
 
   // One { start, length, joinStart, joinEnd } per pill along the bar: each
   // non-empty section, merged with its neighbour when they're at most
-  // pillMerge apart, grown by the pill padding. Pills reaching an end are
+  // pillMerge apart, grown by the pill gap. Pills reaching an end are
   // stretched onto it and join it.
   readonly property var pillRects: {
     if (!pills)
@@ -60,13 +60,16 @@ Rectangle {
       else
         merged.push(span);
     });
-    const pad = root.barConfig.pillPad;
+    // A free end sits the pill gap out from its widgets. An end that would
+    // reach the frame (the end sections, which sit endMargin in) joins it,
+    // the frame standing in for the gap.
+    const gap = root.barConfig.pillGap;
     const reach = root.barConfig.overlap + 0.5;
     return merged.map(m => {
-      const joinStart = m.start - pad <= reach;
-      const joinEnd = m.end + pad >= root.length - reach;
-      const start = joinStart ? 0 : m.start - pad;
-      const end = joinEnd ? root.length : m.end + pad;
+      const joinStart = m.start - gap <= reach;
+      const joinEnd = m.end + gap >= root.length - reach;
+      const start = joinStart ? 0 : m.start - gap;
+      const end = joinEnd ? root.length : m.end + gap;
       return {
         "start": start,
         "length": end - start,

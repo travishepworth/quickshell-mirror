@@ -1,15 +1,19 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import qs.config
 import qs.services
 import qs.components.reusable
 import qs.components.content.base
 
 // Wallpapers from Appearance.wallpaperFolder as a scrolling strip (a grid in
-// taller slots); clicking one sets it and regenerates the theme from it.
+// taller slots); clicking one sets it on this overlay's screen and
+// regenerates the theme from it.
 Card {
   id: root
+
+  readonly property string monitor: root.QsWindow.window?.screen?.name ?? ""
 
   readonly property bool grid: root.rows >= 3
 
@@ -35,7 +39,8 @@ Card {
       id: thumb
       required property url fileUrl
       required property string filePath
-      readonly property bool current: Appearance.wallpaper !== "" && thumb.filePath.endsWith(Appearance.wallpaper.replace("file://", ""))
+      readonly property string wallpaper: Appearance.wallpaperFor(root.monitor)
+      readonly property bool current: thumb.wallpaper !== "" && thumb.filePath.endsWith(thumb.wallpaper.replace("file://", ""))
       width: view.cellWidth
       height: view.cellHeight
 
@@ -64,7 +69,7 @@ Card {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: ThemeManager.setWallpaperAndGenerate(thumb.fileUrl)
+        onClicked: ThemeManager.setWallpaperAndGenerate(thumb.fileUrl, root.monitor)
       }
     }
   }

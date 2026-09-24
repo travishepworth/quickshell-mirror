@@ -19,8 +19,18 @@ QtObject {
   // they're built on
   readonly property string targetScreen: General.monitors === "all" ? (Hyprland.focusedMonitor?.name ?? General.primaryMonitor) : (General.screens[0]?.name ?? "")
 
-  function isTarget(screen) {
-    return !!screen && screen.name === targetScreen;
+  // The target for a surface with its own `monitors` setting (see
+  // General.screensFor); "general" is targetScreen
+  function targetFor(mode) {
+    if (mode === "primaryBar")
+      return Bar.primaryMonitor;
+    if (mode === "focused")
+      return Hyprland.focusedMonitor?.name ?? General.primaryMonitor;
+    return targetScreen;
+  }
+
+  function isTarget(screen, mode) {
+    return !!screen && screen.name === (mode ? targetFor(mode) : targetScreen);
   }
 
   // Session actions, shared by the power menu and the overlay's Session

@@ -4,6 +4,7 @@ import QtQuick
 import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 
 import qs.config
 
@@ -48,16 +49,20 @@ QtObject {
   }
 
   // Sets the wallpaper, then generates themes from it
-  function setWallpaperAndGenerate(wallpaperUrl) {
-    setWallpaper(wallpaperUrl.toString());
+  function setWallpaperAndGenerate(wallpaperUrl, monitor) {
+    setWallpaper(wallpaperUrl.toString(), monitor);
     generateThemesFromWallpaper(wallpaperUrl);
   }
 
-  function setWallpaper(wallpaperUrl) {
+  // Sets `monitor`'s wallpaper (the focused monitor's without one). The
+  // primary monitor's is also Appearance.wallpaper, the lockscreen's.
+  function setWallpaper(wallpaperUrl, monitor) {
     if (!wallpaperUrl)
       return;
-    Quickshell.execDetached([Paths.scriptsPath + "setWallpaper.sh", wallpaperUrl.replace("file://", "")]);
-    ConfigManager.setWallpaper(wallpaperUrl);
+    const target = monitor || (Hyprland.focusedMonitor?.name ?? General.primaryMonitor);
+    const primary = target === General.primaryMonitor;
+    Quickshell.execDetached([Paths.scriptsPath + "setWallpaper.sh", wallpaperUrl.replace("file://", ""), target, primary ? "1" : "0"]);
+    ConfigManager.setWallpaper(wallpaperUrl, target, primary);
   }
 
   function generateThemesFromWallpaper(wallpaperUrl) {

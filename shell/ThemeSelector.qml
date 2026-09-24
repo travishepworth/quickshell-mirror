@@ -26,8 +26,10 @@ Item {
     }
   }
 
+  // On every screen, whatever General.monitors says: each sets its own
+  // screen's wallpaper
   Variants {
-    model: General.screens
+    model: Quickshell.screens
 
     delegate: EdgePopout {
       id: root
@@ -75,7 +77,7 @@ Item {
                   width: wallpaperGrid.cellWidth
                   height: wallpaperGrid.cellHeight
 
-                  property bool isActive: Appearance.wallpaper === modelData.fileUrl
+                  property bool isActive: Appearance.wallpaperFor(root.modelData.name) === modelData.fileUrl.toString()
                   property bool isHovered: wallpaperMouseArea.hovered
                   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
@@ -107,7 +109,7 @@ Item {
                       hoverEnabled: true
                       property bool hovered: false
                       cursorShape: Qt.PointingHandCursor
-                      onClicked: ThemeManager.setWallpaperAndGenerate(modelData.fileUrl)
+                      onClicked: ThemeManager.setWallpaperAndGenerate(modelData.fileUrl, root.modelData.name)
                       onEntered: hovered = true
                       onExited: hovered = false
                     }

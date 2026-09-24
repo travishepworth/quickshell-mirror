@@ -38,14 +38,20 @@ QtObject {
   }
 
   /**
-     * @brief Requests a change to the wallpaper path in the config.
+     * @brief Requests a change to a monitor's wallpaper in the config.
      * @param wallpaperUrl The full file URL of the wallpaper.
+     * @param monitor The monitor it's set on.
+     * @param primary Whether that's the primary monitor, whose wallpaper is
+     *        also Appearance.wallpaper.
      */
-  function setWallpaper(wallpaperUrl) {
-    if (_config.Appearance.wallpaper === wallpaperUrl)
+  function setWallpaper(wallpaperUrl, monitor, primary) {
+    const appearance = _config.Appearance;
+    if (appearance.wallpapers[monitor] === wallpaperUrl && (!primary || appearance.wallpaper === wallpaperUrl))
       return;
-    console.log("[ConfigManager] Setting wallpaper to", wallpaperUrl);
-    _config.Appearance.wallpaper = wallpaperUrl;
+    console.log("[ConfigManager] Setting wallpaper on", monitor, "to", wallpaperUrl);
+    appearance.wallpapers[monitor] = wallpaperUrl;
+    if (primary)
+      appearance.wallpaper = wallpaperUrl;
     saveConfig();
   }
 

@@ -82,7 +82,7 @@
           "enum": ["primary", "all"],
           "x-enumLabels": { "primary": "Primary monitor only", "all": "Every monitor" },
           "default": "primary",
-          "description": "Where the overlay, launcher, power menu, workspace overlay, OSD and theme selector appear. On every monitor, shortcuts open them on the focused one."
+          "description": "Where the overlay, launcher, power menu, workspace overlay and OSD appear (the OSD and overlay can override this). On every monitor, shortcuts open them on the focused one. The theme selector is on every monitor, and sets that monitor's wallpaper."
         }
       }
     },
@@ -101,7 +101,14 @@
         "wallpaper": {
           "type": "string",
           "default": "",
-          "description": "Current wallpaper file URL (set by the theme selector).",
+          "description": "The primary monitor's wallpaper file URL, used by the lockscreen (set by the theme selector).",
+          "x-settings": false
+        },
+        "wallpapers": {
+          "type": "object",
+          "default": {},
+          "description": "Monitor name → wallpaper file URL (set by the theme selector). A monitor with no entry shows `wallpaper`.",
+          "additionalProperties": { "type": "string" },
           "x-settings": false
         },
         "wallpaperFolder": {
@@ -322,6 +329,14 @@
           "default": true,
           "description": "Show the OSD when a tracked volume changes."
         },
+        "monitors": {
+          "type": "string",
+          "title": "Monitors",
+          "enum": ["general", "primaryBar", "focused"],
+          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor" },
+          "default": "general",
+          "description": "Where the OSD appears. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse)."
+        },
         "edge": {
           "type": "string",
           "title": "Screen edge",
@@ -405,6 +420,14 @@
       "title": "Overlay",
       "additionalProperties": false,
       "properties": {
+        "monitors": {
+          "type": "string",
+          "title": "Monitors",
+          "enum": ["general", "primaryBar", "focused"],
+          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor" },
+          "default": "general",
+          "description": "Where the overlay opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse)."
+        },
         "size": {
           "type": "integer",
           "title": "Overlay size (%)",
@@ -557,7 +580,7 @@
           "default": 30,
           "minimum": 10,
           "maximum": 200,
-          "description": "Thickness of the bar (px)."
+          "description": "Thickness of the bar (px). A pill bar is as thick as its pills: its widgets plus the pill padding."
         },
         "inset": {
           "type": "integer",
@@ -565,7 +588,7 @@
           "default": 0,
           "minimum": 0,
           "maximum": 50,
-          "description": "Gap between the widgets and the bar's edges (px). Widgets are the bar's thickness minus twice this."
+          "description": "Gap between the widgets and the bar's edges (px). Widgets are the bar's thickness minus twice this, whatever the background."
         },
         "background": {
           "type": "string",
@@ -582,7 +605,7 @@
           "minimum": 0,
           "maximum": 20,
           "x-showIf": { "background": "pills" },
-          "description": "Space between a pill's edge and its widgets (px)."
+          "description": "Extra space around a pill's widgets (px). They sit the screen margin plus this from the screen edge, and as far from the pill's other edges."
         },
         "pillMerge": {
           "type": "integer",
