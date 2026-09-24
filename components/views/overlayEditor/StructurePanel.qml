@@ -40,7 +40,7 @@ Item {
   }
   Component.onCompleted: root.syncName()
 
-  PanelCard {
+  TitledCard {
     title: I18n.tr("Overlay")
     dirty: OverlayManager.isDirty
     canSave: OverlayManager.problems.length === 0

@@ -7,8 +7,8 @@ import Quickshell.Wayland
 import qs.config
 
 StyledContainer {
-  id: control
-  
+  id: root
+
   // --- Public API ---
   property string text: ""
   property alias placeholderText: textField.placeholderText
@@ -16,27 +16,30 @@ StyledContainer {
   property alias acceptableInput: textField.validator
   property alias readOnly: textField.readOnly
   property alias wantsKeyboardFocus: textField.activeFocus
-  
+
   signal accepted
   signal boxClicked
-  
+
   implicitHeight: textField.implicitHeight + 20
   borderColor: textField.activeFocus ? Theme.accent : Theme.border
   backgroundColor: Theme.backgroundAlt
-  
+
   Behavior on borderColor {
-    ColorAnimation { duration: Appearance.animNormal; easing.type: Easing.InOutQuad }
+    ColorAnimation {
+      duration: Appearance.animNormal
+      easing.type: Easing.InOutQuad
+    }
   }
-  
+
   TextField {
     id: textField
     anchors.fill: parent
     anchors.leftMargin: 10
     anchors.rightMargin: 10
     verticalAlignment: TextInput.AlignVCenter
-    text: control.text
-    onTextChanged: control.text = text
-    
+    text: root.text
+    onTextChanged: root.text = text
+
     // --- Core Properties ---
     color: Theme.foreground
     font.family: Appearance.fontFamily
@@ -45,33 +48,34 @@ StyledContainer {
     selectedTextColor: Theme.background
     selectionColor: Theme.accent
     wrapMode: Text.Wrap
-    
+
     // --- Placeholder Properties ---
-    placeholderTextColor: Qt.rgba(
-      Theme.foreground.r,
-      Theme.foreground.g,
-      Theme.foreground.b,
-      0.5
-    )
-    
-    onAccepted: control.accepted()
-    
+    placeholderTextColor: Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.5)
+
+    onAccepted: root.accepted()
+
     background: Rectangle {
       color: "transparent"
     }
-    
+
     cursorDelegate: Rectangle {
       width: 2
       color: Theme.accent
       visible: textField.activeFocus
-      
+
       // Blinking animation
       SequentialAnimation on opacity {
         loops: Animation.Infinite
         running: textField.activeFocus
         // Cursor blink: a behaviour timing, not motion, so not scaled
-          PropertyAnimation { to: 1; duration: 500 }
-        PropertyAnimation { to: 0; duration: 500 }
+        PropertyAnimation {
+          to: 1
+          duration: 500
+        }
+        PropertyAnimation {
+          to: 0
+          duration: 500
+        }
       }
     }
   }

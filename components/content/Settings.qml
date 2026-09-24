@@ -8,7 +8,7 @@ import qs.components.content.parts.settings
 import qs.components.content.base
 
 // The full settings menu, generated from the config schema
-PanelCard {
+TitledCard {
   id: root
 
   // Local state management

@@ -4,10 +4,10 @@ import qs.services
 import qs.components.content.parts.keybinds
 
 BaseView {
-  id: view
+  id: root
 
   KeybindDisplay {
     keybinds: KeybindManager.keybindings
-    screen: view.screen
+    screen: root.screen
   }
 }

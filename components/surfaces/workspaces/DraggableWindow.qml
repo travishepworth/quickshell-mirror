@@ -52,8 +52,8 @@ Item {
   signal windowResized
 
   // Calculate position and size
-  // property var constraints: WindowUtils.calculateWindowConstraints(windowData, overviewScale, workspaceWidth, workspaceHeight)
-  property var constraints: WindowUtils.calculateWindowConstraints(windowData, overviewScale, monitorActualWidth * overviewScale,  // Use actual monitor width scaled
+  // property var constraints: WorkspaceGeometry.calculateWindowConstraints(windowData, overviewScale, workspaceWidth, workspaceHeight)
+  property var constraints: WorkspaceGeometry.calculateWindowConstraints(windowData, overviewScale, monitorActualWidth * overviewScale,  // Use actual monitor width scaled
   monitorActualHeight * overviewScale  // Use actual monitor height scaled
   )
 
@@ -131,7 +131,7 @@ Item {
     onActiveChanged: {
       if (!active) {
         // Get local workspace ID (1-25)
-        let localTargetWorkspace = WindowUtils.getTargetWorkspaceFromPosition(root.x, root.y, root.width, root.height, workspaceWidth, workspaceHeight, workspaceSpacing, gridSize);
+        let localTargetWorkspace = WorkspaceGeometry.getTargetWorkspaceFromPosition(root.x, root.y, root.width, root.height, workspaceWidth, workspaceHeight, workspaceSpacing, gridSize);
 
         // Convert to global workspace ID by adding offset
         let globalTargetWorkspace = localTargetWorkspace + root.workspaceOffset;

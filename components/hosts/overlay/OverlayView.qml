@@ -2,9 +2,9 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 Item {
-  id: viewWrapper
+  id: root
   required property var screen
-  // { component, viewConfig } from OverlayTabWrapper.buildViewsModel
+  // { component, viewConfig } from OverlayPages.buildViewsModel
   required property var viewModel
 
   implicitWidth: viewLoader.item ? viewLoader.item.implicitWidth : 0
@@ -12,9 +12,9 @@ Item {
 
   // Created with its inputs already set, then bound so config edits reach it
   function _load() {
-    viewLoader.setSource(viewWrapper.viewModel.component, {
-      "screen": viewWrapper.screen,
-      "viewConfig": viewWrapper.viewModel.viewConfig
+    viewLoader.setSource(root.viewModel.component, {
+      "screen": root.screen,
+      "viewConfig": root.viewModel.viewConfig
     });
   }
   Component.onCompleted: _load()
@@ -23,8 +23,8 @@ Item {
     id: viewLoader
     anchors.centerIn: parent
     onLoaded: {
-      item.screen = Qt.binding(() => viewWrapper.screen);
-      item.viewConfig = Qt.binding(() => viewWrapper.viewModel.viewConfig);
+      item.screen = Qt.binding(() => root.screen);
+      item.viewConfig = Qt.binding(() => root.viewModel.viewConfig);
     }
   }
 }

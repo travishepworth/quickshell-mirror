@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 
-// Title row of a PanelCard, with Save (shown while `dirty`) and Reset
+// Title row of a TitledCard, with Save (shown while `dirty`) and Reset
 // buttons for whichever service owns the panel's pending edits
 Rectangle {
   id: root

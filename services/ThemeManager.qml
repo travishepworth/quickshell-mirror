@@ -57,7 +57,7 @@ QtObject {
   function setWallpaper(wallpaperUrl) {
     if (!wallpaperUrl)
       return;
-    Quickshell.execDetached([Config.scriptsPath + "setWallpaper.sh", wallpaperUrl.replace("file://", "")]);
+    Quickshell.execDetached([Paths.scriptsPath + "setWallpaper.sh", wallpaperUrl.replace("file://", "")]);
     ConfigManager.setWallpaper(wallpaperUrl);
   }
 
@@ -82,7 +82,7 @@ QtObject {
 
   // Runs the enabled integrations (kitty, cava, k9s) for a theme
   function themeIntegrations(themeName = Appearance.theme) {
-    const themePath = Config.themePath + themeName + ".json";
+    const themePath = Paths.themePath + themeName + ".json";
     const integrations = [
       {
         enabled: ThemeIntegrations.kitty,
@@ -104,7 +104,7 @@ QtObject {
       // A busy integration only skips itself, not the ones after it
       if (!integration.enabled || integration.process.running)
         continue;
-      integration.process.command = [Config.scriptsPath + integration.script, themePath];
+      integration.process.command = [Paths.scriptsPath + integration.script, themePath];
       integration.process.running = true;
     }
   }
@@ -137,12 +137,12 @@ QtObject {
   }
 
   function _themeUrl(name) {
-    return "file://" + Config.themePath + name + ".json";
+    return "file://" + Paths.themePath + name + ".json";
   }
 
   function _readDefaults() {
     try {
-      return JSON.parse(FileManager.read("file://" + Config.configPath + "json/theme-defaults.json"));
+      return JSON.parse(FileManager.read("file://" + Paths.configPath + "json/theme-defaults.json"));
     } catch (e) {
       console.error("[ThemeManager] Could not read theme-defaults.json:", e);
       return {
@@ -187,10 +187,10 @@ QtObject {
   }
 
   // --- Paths and Models ---
-  readonly property string _themesPath: "file://" + Config.themePath
-  readonly property string _generatedThemesPath: "file://" + Config.themePath + "generated"
-  readonly property string _pythonScriptPath: Config.scriptsPath + "generate_theme.py"
-  readonly property string _venvPythonPath: Config.venvPythonPath
+  readonly property string _themesPath: "file://" + Paths.themePath
+  readonly property string _generatedThemesPath: "file://" + Paths.themePath + "generated"
+  readonly property string _pythonScriptPath: Paths.scriptsPath + "generate_theme.py"
+  readonly property string _venvPythonPath: Paths.venvPythonPath
 
   property ListModel _defaultThemesModel: ListModel {}
   property ListModel _generatedThemesModel: ListModel {}

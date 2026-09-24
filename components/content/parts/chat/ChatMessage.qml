@@ -5,7 +5,7 @@ import qs.services
 import qs.components.reusable
 
 RowLayout {
-  id: delegateRoot
+  id: root
   width: parent.width
 
   property string role: "user"
@@ -30,7 +30,7 @@ RowLayout {
 
   ColumnLayout {
     Layout.alignment: isUser ? Qt.AlignRight : Qt.AlignLeft
-    Layout.maximumWidth: delegateRoot.width * 0.75
+    Layout.maximumWidth: root.width * 0.75
     Layout.leftMargin: 10
     Layout.rightMargin: 10
 
@@ -41,15 +41,15 @@ RowLayout {
       Layout.alignment: isUser ? Qt.AlignRight : Qt.AlignLeft
 
       StyledText {
-        text: delegateRoot.senderIcon
+        text: root.senderIcon
         textSize: Appearance.fontSizeLarge
-        color: delegateRoot.senderIconColor
+        color: root.senderIconColor
         Layout.alignment: Qt.AlignVCenter
       }
 
       StyledText {
-        text: delegateRoot.senderName
-        textColor: delegateRoot.senderColor
+        text: root.senderName
+        textColor: root.senderColor
         textSize: Appearance.fontSizeLarge
         font.bold: true
         Layout.alignment: Qt.AlignVCenter
@@ -62,12 +62,12 @@ RowLayout {
       // Layout.fillWidth: true
       Layout.alignment: isUser ? Qt.AlignRight : Qt.AlignLeft
       Layout.preferredWidth: contentText.implicitWidth + 20
-      Layout.maximumWidth: delegateRoot.width * 0.75
+      Layout.maximumWidth: root.width * 0.75
       implicitHeight: contentText.implicitHeight + 20
 
       StyledText {
         id: contentText
-        text: delegateRoot.content
+        text: root.content
         wrapMode: Text.WordWrap
         color: isUser ? Theme.background : Theme.foreground
         font.pixelSize: Appearance.fontSize

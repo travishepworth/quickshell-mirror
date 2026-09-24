@@ -5,8 +5,8 @@ import QtQuick
 import qs.config
 
 Item {
-  id: component
-  
+  id: root
+
   // -- Signals --
   signal moved(real value)
   signal released(real value)
@@ -27,29 +27,29 @@ Item {
   property alias handleWidth: handleRect.width
   property alias handleHeight: handleRect.height
   property alias troughHeight: troughRect.height
-  
+
   // -- Implementation --
   Binding {
     target: component
     property: "_internalValue"
-    value: component.targetValue
-    when: !mouseArea.isDragging && component.smoothUpdate
+    value: root.targetValue
+    when: !mouseArea.isDragging && root.smoothUpdate
   }
-  
+
   onValueChanged: {
-    if (!mouseArea.isDragging && !component.smoothUpdate) {
-      _internalValue = value
+    if (!mouseArea.isDragging && !root.smoothUpdate) {
+      _internalValue = value;
     }
   }
-  
+
   Behavior on _internalValue {
-    enabled: !mouseArea.isDragging && component.smoothUpdate
+    enabled: !mouseArea.isDragging && root.smoothUpdate
     NumberAnimation {
       duration: Appearance.animNormal
       easing.type: Easing.OutQuad
     }
   }
-  
+
   Rectangle {
     id: troughRect
     anchors.verticalCenter: parent.verticalCenter
@@ -58,15 +58,15 @@ Item {
     radius: Appearance.borderRadius
     color: Theme.backgroundHighlight
   }
-  
+
   Rectangle {
     id: fillRect
     anchors.verticalCenter: parent.verticalCenter
-    width: parent.width * (mouseArea.isDragging ? component.value : component._internalValue)
+    width: parent.width * (mouseArea.isDragging ? root.value : root._internalValue)
     height: troughRect.height
     radius: height / 2
     color: Theme.foreground
-    
+
     Behavior on width {
       enabled: !mouseArea.isDragging
       NumberAnimation {
@@ -75,7 +75,7 @@ Item {
       }
     }
   }
-  
+
   Rectangle {
     id: handleRect
     x: fillRect.width - (width / 2)
@@ -85,55 +85,55 @@ Item {
     radius: Appearance.borderRadius
     color: Theme.backgroundAlt
     scale: mouseArea.isDragging ? 1.2 : (mouseArea.containsMouse ? 1.1 : 1.0)
-    
+
     Behavior on scale {
       NumberAnimation {
         duration: Appearance.animNormal
         easing.type: Easing.OutQuad
       }
     }
-    
+
     Behavior on opacity {
       NumberAnimation {
         duration: Appearance.animNormal
       }
     }
   }
-  
+
   MouseArea {
     id: mouseArea
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    
+
     property bool isDragging: false
-    
+
     function updatePosition(x) {
-      let ratio = Math.max(0, Math.min(1, x / component.width));
-      component.value = ratio;
-      component.moved(ratio);
+      let ratio = Math.max(0, Math.min(1, x / root.width));
+      root.value = ratio;
+      root.moved(ratio);
     }
-    
+
     onPressed: {
       isDragging = true;
       updatePosition(mouseX);
     }
-    
+
     onPositionChanged: {
       if (isDragging) {
         updatePosition(mouseX);
       }
     }
-    
+
     onReleased: {
       if (isDragging) {
         isDragging = false;
-        let ratio = Math.max(0, Math.min(1, mouseX / component.width));
-        component.value = ratio;
-        component.released(ratio);
+        let ratio = Math.max(0, Math.min(1, mouseX / root.width));
+        root.value = ratio;
+        root.released(ratio);
       }
     }
-    
+
     onCanceled: {
       isDragging = false;
     }

@@ -5,29 +5,29 @@ import QtQuick.Controls
 import qs.config
 
 Switch {
-  id: component
-  
+  id: root
+
   // -- Signals --
   // null
-  
+
   // -- Public API --
   // null
-  
+
   // -- Configurable Appearance --
   // null
-  
+
   // -- Implementation --
   implicitWidth: 50
   implicitHeight: 26
-  
+
   indicator: Rectangle {
-    x: component.checked ? component.width - width - 2 : 2
+    x: root.checked ? root.width - width - 2 : 2
     y: 2
-    width: component.height - 4
-    height: component.height - 4
-    radius: (component.height - 4) / 2
+    width: root.height - 4
+    height: root.height - 4
+    radius: (root.height - 4) / 2
     color: Theme.foreground
-    
+
     Behavior on x {
       NumberAnimation {
         duration: Appearance.animNormal
@@ -35,15 +35,15 @@ Switch {
       }
     }
   }
-  
+
   background: Rectangle {
     implicitWidth: 50
     implicitHeight: 26
     radius: height / 2
-    color: component.checked ? Theme.accent : Theme.backgroundHighlight
+    color: root.checked ? Theme.accent : Theme.backgroundHighlight
     border.color: Theme.border
     border.width: Appearance.borderWidth
-    
+
     Behavior on color {
       ColorAnimation {
         duration: Appearance.animNormal

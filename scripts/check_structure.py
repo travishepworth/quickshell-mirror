@@ -12,6 +12,7 @@ running anything:
   - every URL-loaded directory is imported by name somewhere (qs only makes
     sibling types visible to URL-loaded files in directories it scanned)
   - every `import qs.…` names a directory that exists
+  - no file instantiates a type that two of its visible directories define
   - every `SomethingManager.` names a service that exists, and nothing
     references a near-miss of a project singleton (a typo)
 and warns about files in the loaded directories that nothing registers or
@@ -27,7 +28,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = ROOT / "config" / "json" / "config.schema.json"
-QML_DIRS = ["components", "modules", "services", "config"]
+QML_DIRS = ["components", "shell", "services", "config"]
 
 # (schema oneOf definition, directory its types load from, import that must
 # exist somewhere so qs scans that directory)
@@ -141,6 +142,21 @@ def main():
             close = difflib.get_close_matches(name, singletons, n=1, cutoff=0.85)
             if close:
                 errors.append(f"{path}: {name} — did you mean {close[0]}?")
+
+    # A type instantiated from two directories a file can see would depend
+    # on import order (bar widgets and content share some names by design)
+    dir_types = {}
+    for f in qml_files():
+        if rel(f).startswith(("components/", "shell/")):
+            dir_types.setdefault("qs." + rel(f.parent).replace("/", "."), set()).add(f.stem)
+    for path, text in sources.items():
+        own = "qs." + str(Path(path).parent).replace("/", ".")
+        visible = [d for d in set(re.findall(r"^import (qs(?:\.\w+)+)", text, re.M)) | {own} if d in dir_types]
+        code = re.sub(r'"(?:[^"\\\n]|\\.)*"', '""', re.sub(r"//[^\n]*", "", text))
+        for name in sorted(set(re.findall(r"(?<![\w.])([A-Z]\w+)\s*\{", code)) - {Path(path).stem}):
+            sources_of = [d for d in visible if name in dir_types[d]]
+            if len(sources_of) > 1:
+                errors.append(f"{path}: {name} is defined in {' and '.join(sorted(sources_of))}; import only one")
 
     for e in errors:
         print(f"error    {e}")

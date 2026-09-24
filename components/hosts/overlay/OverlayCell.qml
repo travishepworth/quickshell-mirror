@@ -50,7 +50,7 @@ Item {
       height: OverlayConfig.span(slot.rect[3])
       clip: true
 
-      OverlayModule {
+      OverlaySlot {
         config: root.slots[slot.modelData]
         rect: slot.rect
       }

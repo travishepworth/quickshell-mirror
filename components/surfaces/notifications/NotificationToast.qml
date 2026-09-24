@@ -9,7 +9,7 @@ import qs.components.reusable
 import qs.components.content.parts.notifications
 
 PopupWindow {
-  id: popup
+  id: root
 
   required property var notification
   property var anchorWindow: null
@@ -83,8 +83,8 @@ PopupWindow {
     duration: Appearance.animFast
     easing.type: Easing.InQuad
     onFinished: {
-      popup.visible = false;
-      popup.dismissed();
+      root.visible = false;
+      root.dismissed();
     }
   }
 
@@ -112,9 +112,9 @@ PopupWindow {
 
   Timer {
     id: dismissTimer
-    interval: popup.dismissDuration
-    running: !popup.neverExpires && popup.visible && !dragArea.containsMouse
-    onTriggered: popup.dismiss()
+    interval: root.dismissDuration
+    running: !root.neverExpires && root.visible && !dragArea.containsMouse
+    onTriggered: root.dismiss()
   }
 
   Item {
@@ -159,13 +159,13 @@ PopupWindow {
             return;
           dragDelta = sceneX(mouse) - pressX;
           dragShift.x = dragDelta * 0.5;
-          card.opacity = 1 - Math.abs(dragDelta) / (popup.dragDismissThreshold * 2);
-          if (Math.abs(dragDelta) > popup.dragDismissThreshold)
-            popup.dismiss();
+          card.opacity = 1 - Math.abs(dragDelta) / (root.dragDismissThreshold * 2);
+          if (Math.abs(dragDelta) > root.dragDismissThreshold)
+            root.dismiss();
         }
 
         onReleased: {
-          if (Math.abs(dragDelta) < popup.dragDismissThreshold)
+          if (Math.abs(dragDelta) < root.dragDismissThreshold)
             snapBack.start();
         }
 
@@ -180,8 +180,8 @@ PopupWindow {
             spacing: Widget.spacing
 
             NotificationAvatar {
-              appIcon: popup.notification.appIcon ?? ""
-              image: popup.notification.image ?? ""
+              appIcon: root.notification.appIcon ?? ""
+              image: root.notification.image ?? ""
               baseSize: 30
             }
 
@@ -191,17 +191,17 @@ PopupWindow {
 
               StyledText {
                 Layout.fillWidth: true
-                text: popup.notification.appName || ""
+                text: root.notification.appName || ""
                 textColor: Theme.foregroundAlt
                 textSize: Appearance.fontSize - 2
                 elide: Text.ElideRight
               }
 
               NotificationText {
-                notification: popup.notification
+                notification: root.notification
                 summaryLines: 2
                 bodyLines: 3
-                onActivated: popup.dismiss()
+                onActivated: root.dismiss()
               }
             }
 
@@ -218,13 +218,13 @@ PopupWindow {
               iconColor: Theme.foregroundAlt
               hoverColor: Theme.backgroundHighlight
 
-              onClicked: popup.dismiss()
+              onClicked: root.dismiss()
             }
           }
 
           NotificationActions {
-            notification: popup.notification
-            onInvoked: popup.dismiss()
+            notification: root.notification
+            onInvoked: root.dismiss()
           }
         }
       }

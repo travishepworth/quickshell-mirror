@@ -5,18 +5,18 @@ import qs.components.content.base
 
 // properties: { color: base00-base0F (or any name Theme.resolveColor accepts), label }
 Card {
-  id: swatch
+  id: root
 
-  color: Theme.resolveColor(swatch.properties.color)
+  color: Theme.resolveColor(root.properties.color)
   border.width: Math.max(Appearance.borderWidth, 3)
 
   Text {
     id: label
-    text: swatch.properties.color
+    text: root.properties.color
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
     anchors.bottomMargin: OverlayConfig.cardSpacing / 2
-    color: (swatch.color === Theme.background || swatch.color === Theme.backgroundAlt) ? Theme.foreground : Theme.background
+    color: (root.color === Theme.background || root.color === Theme.backgroundAlt) ? Theme.foreground : Theme.background
     font.pixelSize: Appearance.fontSize - 4
     font.bold: true
     z: 1
@@ -25,11 +25,11 @@ Card {
 
   Text {
     id: semanticLabel
-    text: swatch.properties.label
+    text: root.properties.label
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.top: parent.top
     anchors.topMargin: OverlayConfig.cardSpacing / 2
-    color: (swatch.color === Theme.background || swatch.color === Theme.backgroundAlt) ? Theme.foreground : Theme.background
+    color: (root.color === Theme.background || root.color === Theme.backgroundAlt) ? Theme.foreground : Theme.background
     font.pixelSize: Appearance.fontSize - 4
     font.bold: true
     z: 1

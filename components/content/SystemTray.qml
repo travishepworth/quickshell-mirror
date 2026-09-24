@@ -61,7 +61,7 @@ Item {
     openToLeft: root.openToLeft
 
     // Just report state — root.hovered above folds this in, and the
-    // wrapper (Popout.qml) reacts to that automatically. No manual timer
+    // wrapper (BarPopouts) reacts to that automatically. No manual timer
     // poking needed here anymore.
     onOccupiedChanged: {
       root.submenuOpen = occupied;
@@ -133,8 +133,8 @@ Item {
         visible: menuOpener.children.values.length === 0
         text: I18n.tr("No menu items")
         color: Theme.accent
-        // font.family: Config.appearance.fontFamily
-        // font.pixelSize: Config.appearance.fontSize - 2
+        // font.family: Paths.appearance.fontFamily
+        // font.pixelSize: Paths.appearance.fontSize - 2
         opacity: 0.5
         Layout.fillWidth: true
         Layout.preferredHeight: root.itemHeight

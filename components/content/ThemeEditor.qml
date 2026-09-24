@@ -8,7 +8,7 @@ import qs.components.reusable
 import qs.components.forms
 import qs.components.content.base
 
-PanelCard {
+TitledCard {
   id: root
 
   property var localConfig: SettingsManager.localConfig

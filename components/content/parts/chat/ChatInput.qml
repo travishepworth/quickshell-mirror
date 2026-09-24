@@ -9,7 +9,7 @@ import qs.config
 import qs.components.reusable
 
 RowLayout {
-  id: control
+  id: root
   width: parent.width
   spacing: Widget.padding
 
@@ -25,12 +25,12 @@ RowLayout {
     expandable: true
     Layout.fillWidth: true
     placeholderText: I18n.tr("Type a message or use / for commands...")
-    onAccepted: control.submit()
+    onAccepted: root.submit()
     onTextChanged: {
       ChatManager.updateCommandState(text);
     }
     Component.onCompleted: {
-      control.wantsKeyboardFocus = true;
+      root.wantsKeyboardFocus = true;
     }
   }
 
@@ -38,13 +38,13 @@ RowLayout {
     id: submitButton
     text: "󰆨"
 
-    Layout.preferredHeight: control.desiredButtonHeight
-    Layout.preferredWidth: control.desiredButtonHeight
+    Layout.preferredHeight: root.desiredButtonHeight
+    Layout.preferredWidth: root.desiredButtonHeight
     Layout.alignment: Qt.AlignBottom
 
     enabled: !ChatManager.waitingForResponse && textEntry.text.trim().length > 0
     opacity: enabled ? 1.0 : 0.5
-    onClicked: control.submit()
+    onClicked: root.submit()
 
     Behavior on opacity {
       OpacityAnimator {

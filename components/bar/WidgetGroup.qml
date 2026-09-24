@@ -4,7 +4,7 @@ import QtQuick
 
 import qs.config
 
-// One bar section: a row (or column, on a vertical bar) of BarModules that
+// One bar section: a row (or column, on a vertical bar) of BarWidgetHosts that
 // fits itself into `maxExtent` along the main axis by shrinking elastic
 // modules. Which modules to drop when the whole bar overflows is decided
 // bar-wide by BarContainer (`hiddenIndices`); should the minimum sizes
@@ -120,7 +120,7 @@ Item {
       root._modules = root._modules.filter(m => m !== item);
     }
 
-    delegate: BarModule {
+    delegate: BarWidgetHost {
       id: module
       required property var modelData
       required property int index

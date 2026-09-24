@@ -10,7 +10,7 @@ Item {
   implicitWidth: OverlayConfig.cardUnit
   implicitHeight: OverlayConfig.span(4)
 
-  PanelCard {
+  TitledCard {
     title: I18n.tr("Bar Editor")
     dirty: BarManager.isDirty
     onSave: BarManager.saveChanges()

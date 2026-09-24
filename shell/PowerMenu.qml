@@ -8,7 +8,7 @@ import qs.components.surfaces.powermenu
 Scope {
   Variants {
     model: General.screens
-    delegate: PowerMenu {
+    delegate: PowerMenuWindow {
       required property ShellScreen modelData
       screen: modelData
     }

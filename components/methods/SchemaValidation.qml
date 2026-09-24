@@ -8,7 +8,7 @@ import QtQuick
  * ConfigManager (which lets ConfigManager load eagerly at startup).
  */
 QtObject {
-  id: jsonUtils
+  id: root
 
   // Root schema of the call in progress, for $ref resolution. Held in a
   // plain JS object (mutated, never reassigned) so setting it doesn't emit

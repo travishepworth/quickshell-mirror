@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import qs.config
 
 Item {
-  id: overlayColumn
+  id: root
   property var screen
   // This view's entry in Overlay.views
   property var viewConfig

@@ -6,7 +6,7 @@ import qs.config
 import qs.components.reusable
 
 StyledContainer {
-  id: chatView
+  id: root
 
   width: 400
   height: 600
@@ -26,16 +26,16 @@ StyledContainer {
     anchors.margins: contentPadding
     spacing: 0
 
-    TabBar {
+    StyledTabBar {
       Layout.fillWidth: true
-      Layout.preferredHeight: chatView.tabBarHeight
+      Layout.preferredHeight: root.tabBarHeight
       // Layout.rightMargin: Widget.padding
       // Layout.leftMargin: Widget.padding
-      currentTab: chatView.currentTab
+      currentTab: root.currentTab
       activeColor: Theme.accentAlt
-      tabs: chatView.tabs
+      tabs: root.tabs
       onTabClicked: index => {
-        ChatManager.currentBackend = chatView.backendNames[index];
+        ChatManager.currentBackend = root.backendNames[index];
       }
     }
 

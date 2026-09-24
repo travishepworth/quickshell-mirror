@@ -4,11 +4,11 @@ import QtQuick
 // scan them, so their own qs.* imports (e.g. modules.settings) resolve
 import qs.components.content
 
-// Hosts one overlay module in a cell slot: loads modules/<type>.qml and
+// Hosts one overlay module in a cell slot: loads content/<type>.qml and
 // hands it the entry's `properties` (defaults filled from the schema, as
 // for bar widgets). An empty slot renders nothing.
 Item {
-  id: host
+  id: root
 
   // A slot entry: { type, properties }, or undefined for an empty slot
   property var config
@@ -18,18 +18,18 @@ Item {
 
   anchors.fill: parent
 
-  readonly property string componentPath: host.config?.type ? Qt.resolvedUrl("../../content/" + host.config.type + ".qml") : ""
+  readonly property string componentPath: root.config?.type ? Qt.resolvedUrl("../../content/" + root.config.type + ".qml") : ""
 
   // Created with its properties already set, then bound so later config
-  // edits reach it (as BarModule does)
+  // edits reach it (as BarWidgetHost does)
   function _load() {
-    if (!host.componentPath) {
+    if (!root.componentPath) {
       loader.source = "";
       return;
     }
-    loader.setSource(host.componentPath, {
-      "properties": host.config.properties || {},
-      "slotRect": host.rect,
+    loader.setSource(root.componentPath, {
+      "properties": root.config.properties || {},
+      "slotRect": root.rect,
       "embedded": true
     });
   }
@@ -40,8 +40,8 @@ Item {
     id: loader
     anchors.fill: parent
     onLoaded: {
-      item.properties = Qt.binding(() => host.config?.properties || {});
-      item.slotRect = Qt.binding(() => host.rect);
+      item.properties = Qt.binding(() => root.config?.properties || {});
+      item.slotRect = Qt.binding(() => root.rect);
     }
   }
 }

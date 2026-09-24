@@ -32,7 +32,7 @@ PopoutWrapperBase {
   // Which side the tray's submenus open to
   readonly property bool openToLeft: root.barConfig.right || mainPopup.isOnRightHalfOfScreen
 
-  // content/<name>Popout.qml, loaded by URL like bar and overlay modules:
+  // content/<name>.qml, loaded by URL like bar widgets and overlay modules:
   // a new popout is just a file there plus a PopoutAnchor naming it
   function _loadContent() {
     if (loader.active && root.currentName !== "")

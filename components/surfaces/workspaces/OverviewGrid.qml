@@ -73,7 +73,7 @@ Rectangle {
         height: root.workspaceHeight
         isActive: workspaceId === root.activeWorkspace
 
-        property var gridPos: WindowUtils.getWorkspacePosition(index + 1, root.gridSize)
+        property var gridPos: WorkspaceGeometry.getWorkspacePosition(index + 1, root.gridSize)
         x: gridPos.col * (root.workspaceWidth + root.workspaceSpacing)
         y: gridPos.row * (root.workspaceHeight + root.workspaceSpacing)
 
@@ -112,9 +112,9 @@ Rectangle {
         property int wsId: modelData?.workspace?.id ?? 1
         property int localWsId: ((wsId - 1) % 25) + 1
         property var windowMonitor: Hyprland.monitors.values[modelData?.monitor ?? 0]
-        property var gridPos: WindowUtils.getWorkspacePosition(localWsId, root.gridSize)
+        property var gridPos: WorkspaceGeometry.getWorkspacePosition(localWsId, root.gridSize)
 
-        visible: WindowUtils.isWorkspaceVisible(localWsId) && (windowMonitor?.name === root.monitorName)
+        visible: WorkspaceGeometry.isWorkspaceVisible(localWsId) && (windowMonitor?.name === root.monitorName)
 
         offsetX: gridPos.col * (root.workspaceWidth + root.workspaceSpacing)
         offsetY: gridPos.row * (root.workspaceHeight + root.workspaceSpacing)

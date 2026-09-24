@@ -29,7 +29,7 @@ Card {
     anchors.margins: Widget.padding
     spacing: 0
 
-    PanelHeader {
+    CardHeader {
       id: header
       onSave: root.save()
       onReset: root.reset()

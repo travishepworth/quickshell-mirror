@@ -114,7 +114,7 @@ Item {
             currentIndex: wrapper.currentIndex
             loaded: wrapper.isLoaded(index)
 
-            OverlayViewWrapper {
+            OverlayView {
               anchors.centerIn: parent
               screen: wrapper.screen
               viewModel: viewPage.modelData

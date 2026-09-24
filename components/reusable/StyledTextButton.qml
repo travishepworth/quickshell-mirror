@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import qs.config
 
 Rectangle {
-  id: component
+  id: root
 
   // -- Signals --
   signal clicked
@@ -44,7 +44,7 @@ Rectangle {
   StyledText {
     id: label
     anchors.centerIn: parent
-    textColor: mouseArea.containsMouse ? component.textHoverColor : component.textColor
+    textColor: mouseArea.containsMouse ? root.textHoverColor : root.textColor
     textSize: Appearance.fontSize
     font.bold: true
 
@@ -61,6 +61,6 @@ Rectangle {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: component.clicked()
+    onClicked: root.clicked()
   }
 }

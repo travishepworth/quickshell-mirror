@@ -139,7 +139,7 @@ Scope {
         }
       }
 
-      WorkspaceGrid {
+      OverviewGrid {
         id: workspaceGrid
         anchors.centerIn: parent
         overviewScale: root.overviewScale

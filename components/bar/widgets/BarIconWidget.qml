@@ -5,7 +5,7 @@ import qs.config
 import qs.components.reusable
 
 // Base for icon + label bar modules: the inputs every module gets from
-// BarModule, orientation from the bar, and the configured colors (modules
+// BarWidgetHost, orientation from the bar, and the configured colors (modules
 // override backgroundColor for their states)
 IconTextWidget {
   property var barConfig

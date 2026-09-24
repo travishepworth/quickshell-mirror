@@ -5,7 +5,7 @@
 ### Structure
 ```bash
 shell.qml     # entrypoint: one top-level item per module
-modules/      # top-level pieces loaded directly into shell.qml
+shell/        # top-level pieces instantiated by shell.qml
 components/
   methods/    # pure singleton helpers
   reusable/   # generic styled widgets, no feature-specific logic

@@ -93,7 +93,7 @@ Panel {
 
       StyledText {
         Layout.fillWidth: true
-        // MprisController doesn't surface the album itself, but the
+        // MediaManager doesn't surface the album itself, but the
         // underlying Mpris player object does.
         text: (MediaManager.activePlayer?.trackAlbum ?? "") || " "
         textColor: Theme.foregroundAlt

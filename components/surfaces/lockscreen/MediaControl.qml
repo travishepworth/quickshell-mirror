@@ -82,7 +82,7 @@ StyledContainer {
           id: albumArt
           anchors.fill: parent
           fillMode: Image.PreserveAspectCrop
-          // The downloaded copy (see MprisController): the remote URL can
+          // The downloaded copy (see MediaManager): the remote URL can
           // fail to load, and artVersion changes whenever a new file lands
           source: MediaManager.artDownloaded && MediaManager.artVersion >= 0 ? "file://" + MediaManager.artFilePath : ""
           smooth: true

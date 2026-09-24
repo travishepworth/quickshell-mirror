@@ -2,11 +2,11 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
 
-// One page of the overlay: shown when it's the current page, sliding in
+// One page of the overlay: shown when it's the current root, sliding in
 // from the side it sits on relative to the current one. The content is
 // only instantiated while `loaded`.
 Item {
-  id: page
+  id: root
 
   required property int pageIndex
   required property int currentIndex
@@ -16,14 +16,14 @@ Item {
   anchors.centerIn: parent
   implicitWidth: contentLoader.item ? contentLoader.item.implicitWidth : 0
   implicitHeight: contentLoader.item ? contentLoader.item.implicitHeight : 0
-  visible: page.currentIndex === page.pageIndex
-  opacity: page.currentIndex === page.pageIndex ? 1 : 0
+  visible: root.currentIndex === root.pageIndex
+  opacity: root.currentIndex === root.pageIndex ? 1 : 0
 
   Loader {
     id: contentLoader
     anchors.centerIn: parent
-    active: page.loaded
-    sourceComponent: page.content
+    active: root.loaded
+    sourceComponent: root.content
   }
 
   transform: Translate {
@@ -41,7 +41,7 @@ Item {
   states: [
     State {
       name: "left"
-      when: page.pageIndex < page.currentIndex
+      when: root.pageIndex < root.currentIndex
       PropertyChanges {
         target: slideTransform
         x: -100
@@ -49,7 +49,7 @@ Item {
     },
     State {
       name: "center"
-      when: page.pageIndex === page.currentIndex
+      when: root.pageIndex === root.currentIndex
       PropertyChanges {
         target: slideTransform
         x: 0
@@ -57,7 +57,7 @@ Item {
     },
     State {
       name: "right"
-      when: page.pageIndex > page.currentIndex
+      when: root.pageIndex > root.currentIndex
       PropertyChanges {
         target: slideTransform
         x: 100

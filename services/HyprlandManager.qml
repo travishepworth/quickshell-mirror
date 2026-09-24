@@ -38,7 +38,7 @@ Singleton {
   // Through the user's Hyprland script (it maps grid positions to
   // workspaces); detached, so quick successive clicks all go through
   function focusWorkspace(index) {
-    Quickshell.execDetached([Config.hyprlandPath + "scripts/gotoWorkspace.sh", String(index)]);
+    Quickshell.execDetached([Paths.hyprlandPath + "scripts/gotoWorkspace.sh", String(index)]);
   }
 
   // --- Queries ---

@@ -17,7 +17,7 @@ Item {
   readonly property bool isVertical: barConfig.vertical
   readonly property color color: Theme.resolveColor(properties.color)
 
-  // BarModule sizing contract
+  // BarWidgetHost sizing contract
   readonly property string sizePolicy: "fixed"
   readonly property real preferredSize: properties.size
 

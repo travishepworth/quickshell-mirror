@@ -11,7 +11,7 @@ import qs.config
  * It also persists application launch times for recency-based sorting.
  */
 QtObject {
-  id: manager
+  id: root
 
   // --- Public Properties ---
   property var filteredApps: []

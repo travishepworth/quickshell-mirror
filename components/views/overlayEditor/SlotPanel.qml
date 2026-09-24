@@ -12,7 +12,7 @@ import qs.components.content.base
 // editor's WidgetItemDelegate)
 Item {
 
-  PanelCard {
+  TitledCard {
     title: I18n.tr("Slot")
     showActions: false
 

@@ -6,7 +6,7 @@ import qs.config
 import qs.components.hosts.popout
 
 Item {
-  id: tray
+  id: root
 
   property var barConfig
   property var popouts
@@ -32,8 +32,8 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    radius: tray.backgroundRadius
-    color: tray.backgroundColor
+    radius: root.backgroundRadius
+    color: root.backgroundColor
   }
 
   Loader {
@@ -44,9 +44,9 @@ Item {
     Component {
       id: rowComponent
       Row {
-        spacing: tray.spacing
-        leftPadding: tray.leftPadding
-        rightPadding: tray.rightPadding
+        spacing: root.spacing
+        leftPadding: root.leftPadding
+        rightPadding: root.rightPadding
 
         Repeater {
           model: SystemTray.items
@@ -58,9 +58,9 @@ Item {
     Component {
       id: columnComponent
       Column {
-        spacing: tray.spacing
-        topPadding: tray.topPadding
-        bottomPadding: tray.bottomPadding
+        spacing: root.spacing
+        topPadding: root.topPadding
+        bottomPadding: root.bottomPadding
 
         Repeater {
           model: SystemTray.items
@@ -77,9 +77,9 @@ Item {
       id: delegateRoot
       required property QtObject modelData
       readonly property QtObject ti: modelData
-      visible: ti && (tray.showPassive || ti.status !== Status.Passive)
-      width: visible ? tray.iconSize : 0
-      height: visible ? tray.iconSize : 0
+      visible: ti && (root.showPassive || ti.status !== Status.Passive)
+      width: visible ? root.iconSize : 0
+      height: visible ? root.iconSize : 0
 
       Image {
         id: iconImage
@@ -93,23 +93,23 @@ Item {
           }
           return delegateRoot.ti.icon || "";
         }
-        sourceSize.width: tray.iconSize
-        sourceSize.height: tray.iconSize
+        sourceSize.width: root.iconSize
+        sourceSize.height: root.iconSize
         fillMode: Image.PreserveAspectFit
         smooth: true
       }
 
       PopoutAnchor {
         id: anchor
-        popouts: tray.popouts
-        panel: tray.panel
+        popouts: root.popouts
+        panel: root.panel
         popoutName: "SystemTray"
         openDelay: 150
         active: !!(delegateRoot.ti && delegateRoot.ti.hasMenu)
         extraData: ({
             trayItem: delegateRoot.ti,
-            barConfig: tray.barConfig,
-            isVertical: tray.isVertical
+            barConfig: root.barConfig,
+            isVertical: root.isVertical
           })
       }
     }

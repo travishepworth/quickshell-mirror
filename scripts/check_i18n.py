@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 I18N = ROOT / "config" / "i18n"
 SCHEMA = ROOT / "config" / "json" / "config.schema.json"
-QML_DIRS = ["components", "modules", "services", "config"]
+QML_DIRS = ["components", "shell", "services", "config"]
 SKIP = []
 
 # "..." with escapes, as the first argument of I18n.tr(

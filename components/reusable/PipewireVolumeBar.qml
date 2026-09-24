@@ -5,7 +5,7 @@ import qs.services
 import Quickshell.Services.Pipewire
 
 Item {
-  id: component
+  id: root
 
   // -- Signals --
   signal visibilityChanged(real volume)
@@ -37,7 +37,7 @@ Item {
   readonly property var _audioStreams: Pipewire.nodes.values.filter(n => n.isStream && n.audio)
 
   PwObjectTracker {
-    objects: component._audioStreams.concat([component._targetNode])
+    objects: root._audioStreams.concat([root._targetNode])
   }
 
   // Re-run the search whenever any individual candidate node finishes
@@ -45,7 +45,7 @@ Item {
   // race: tracking a node only *requests* a bind, it doesn't complete
   // it synchronously.
   Instantiator {
-    model: component._audioStreams
+    model: root._audioStreams
     delegate: Item {
       id: streamWatcher
       required property var modelData
@@ -53,7 +53,7 @@ Item {
         target: streamWatcher.modelData
         function onReadyChanged() {
           if (streamWatcher.modelData.ready) {
-            component._updateTargetNode();
+            root._updateTargetNode();
           }
         }
       }
@@ -63,16 +63,16 @@ Item {
   StyledVolumeBar {
     id: bar
     anchors.fill: parent
-    volumeLevel: component.volume
-    isMuted: component.isMuted
-    enabled: component.nodeFound || component.useSystemVolume
-    onVolumeChanged: component.setVolume(newVolume)
+    volumeLevel: root.volume
+    isMuted: root.isMuted
+    enabled: root.nodeFound || root.useSystemVolume
+    onVolumeChanged: root.setVolume(newVolume)
     onVolumeLevelChanged: {
-      if (component._suppressNextVisibility) {
-        component._suppressNextVisibility = false;
+      if (root._suppressNextVisibility) {
+        root._suppressNextVisibility = false;
         return;
       }
-      component.visibilityChanged(component.volume);
+      root.visibilityChanged(root.volume);
     }
   }
 
@@ -109,12 +109,12 @@ Item {
     target: Pipewire.nodes
     function onObjectInsertedPost(object, index) {
       if (Pipewire.ready) {
-        component._updateTargetNode();
+        root._updateTargetNode();
       }
     }
     function onObjectRemovedPost(object, index) {
       if (Pipewire.ready) {
-        component._updateTargetNode();
+        root._updateTargetNode();
       }
     }
   }
@@ -123,7 +123,7 @@ Item {
     target: Pipewire
     function onReadyChanged() {
       if (Pipewire.ready) {
-        component._updateTargetNode();
+        root._updateTargetNode();
       }
     }
   }
@@ -145,7 +145,7 @@ Item {
     const searchString = targetApplication.toLowerCase();
 
     if (searchString === "master") {
-      const excluded = (component.excludedApps || []).map(a => a.toLowerCase());
+      const excluded = (root.excludedApps || []).map(a => a.toLowerCase());
       for (let i = 0; i < nodes.length; ++i) {
         const n = nodes[i];
         if (!n.isStream || !n.audio || !n.ready) {
@@ -158,7 +158,7 @@ Item {
         }
         const isExcluded = excluded.some(ex => (appBinary && appBinary.includes(ex)) || (appName && appName.includes(ex)));
         if (!isExcluded) {
-          component._setTargetNode(n);
+          root._setTargetNode(n);
           return;
         }
       }
@@ -175,7 +175,7 @@ Item {
         const appNickname = n.nickname?.toLowerCase();
         if ((appBinary && appBinary.includes(searchString)) || (appName && appName.includes(searchString)) || (appNickname && appNickname.includes(searchString))) {
           console.log("[PipewireVolumeBar] Found target node for", targetApplication, "->", appBinary || appName || appNickname);
-          component._setTargetNode(n);
+          root._setTargetNode(n);
           return;
         }
       }
@@ -183,7 +183,7 @@ Item {
 
     if (_targetNode !== null) {
       console.log("[PipewireVolumeBar] Lost target node for", targetApplication);
-      component._setTargetNode(null);
+      root._setTargetNode(null);
     }
   }
 }

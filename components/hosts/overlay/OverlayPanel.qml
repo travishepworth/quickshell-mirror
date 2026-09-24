@@ -13,7 +13,7 @@ import qs.components.views
 
 // TODO: build from a reusable fullscreen panel
 PanelWindow {
-  id: overlay
+  id: root
 
   required property var screen
 
@@ -68,42 +68,42 @@ PanelWindow {
     interval: Appearance.animSlow
     repeat: false
     onTriggered: {
-      overlay.visible = false;
+      root.visible = false;
     }
   }
 
   Connections {
     target: ShellManager
     function onToggleOverlay() {
-      if (ShellManager.isTarget(overlay.screen))
-        overlay.toggle();
+      if (ShellManager.isTarget(root.screen))
+        root.toggle();
     }
   }
 
   IpcHandler {
     target: "overlay"
     // One handler per target name: the target screen's
-    enabled: ShellManager.isTarget(overlay.screen)
+    enabled: ShellManager.isTarget(root.screen)
 
     function open() {
-      overlay.open();
+      root.open();
     }
 
     function close() {
-      overlay.close();
+      root.close();
     }
 
     function toggle() {
-      overlay.toggle();
+      root.toggle();
     }
   }
 
   HyprlandFocusGrab {
     id: grab
-    active: overlay.visible
-    windows: [overlay]
+    active: root.visible
+    windows: [root]
     onCleared: {
-      if (!overlay.isOpen) {
+      if (!root.isOpen) {
         grab.active = true;
       }
     }
@@ -114,7 +114,7 @@ PanelWindow {
     anchors.fill: parent
 
     transform: Translate {
-      y: overlay.slideOffset
+      y: root.slideOffset
       Behavior on y {
         NumberAnimation {
           duration: Appearance.animSlow
@@ -133,11 +133,11 @@ PanelWindow {
       opacity: 0.85
     }
 
-    OverlayTabWrapper {
+    OverlayPages {
       id: tabWrapper
       anchors.centerIn: parent
-      screen: overlay.screen
-      open: overlay.visible
+      screen: root.screen
+      open: root.visible
     }
 
     OverlayPageNavigator {

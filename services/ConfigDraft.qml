@@ -5,7 +5,7 @@ import QtQuick
 // changed(); nothing reaches the running config or disk until save().
 // Not a singleton: each editor service owns one.
 QtObject {
-  id: draft
+  id: root
 
   // Key path of the section in the config, e.g. ["Bars"]; [] is all of it
   property var path: []
@@ -24,16 +24,16 @@ QtObject {
 
   function _read() {
     let value = ConfigManager.config;
-    for (const key of draft.path)
+    for (const key of root.path)
       value = value?.[key];
     return value;
   }
 
   // Start over from the current config
   function load() {
-    draft.local = _clone(_read());
-    draft.saved = _clone(draft.local);
-    draft.isDirty = false;
+    root.local = _clone(_read());
+    root.saved = _clone(root.local);
+    root.isDirty = false;
   }
 
   // After mutating `local` in place: update isDirty, and re-assign it (next
@@ -41,26 +41,26 @@ QtObject {
   // notify. Deferred so it doesn't re-enter the binding of the control
   // that made the edit.
   function changed() {
-    draft.isDirty = JSON.stringify(draft.local) !== JSON.stringify(draft.saved);
-    Qt.callLater(() => draft.local = _clone(draft.local));
+    root.isDirty = JSON.stringify(root.local) !== JSON.stringify(root.saved);
+    Qt.callLater(() => root.local = _clone(root.local));
   }
 
   // Merges `local` onto the LATEST config (so settings edited elsewhere
   // meanwhile survive) and commits it. Returns false, staying dirty, if
   // ConfigManager rejects it.
   function save() {
-    let merged = _clone(draft.local);
-    if (draft.path.length > 0) {
+    let merged = _clone(root.local);
+    if (root.path.length > 0) {
       merged = _clone(ConfigManager.config);
       let cur = merged;
-      for (let i = 0; i < draft.path.length - 1; i++)
-        cur = cur[draft.path[i]];
-      cur[draft.path[draft.path.length - 1]] = _clone(draft.local);
+      for (let i = 0; i < root.path.length - 1; i++)
+        cur = cur[root.path[i]];
+      cur[root.path[root.path.length - 1]] = _clone(root.local);
     }
     if (!ConfigManager.commit(merged))
       return false;
-    draft.saved = _clone(draft.local);
-    draft.isDirty = false;
+    root.saved = _clone(root.local);
+    root.isDirty = false;
     return true;
   }
 }

@@ -27,7 +27,7 @@ Item {
     id: loader
     anchors.verticalCenter: parent.verticalCenter
     active: !!root.itemData?.type
-    sourceComponent: BarModule {
+    sourceComponent: BarWidgetHost {
       barConfig: root.previewBarConfig
       properties: root.itemData.properties || {}
       componentPath: "widgets/" + root.itemData.type + ".qml"

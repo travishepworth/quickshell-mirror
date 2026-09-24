@@ -5,7 +5,7 @@ import QtQuick
  * Edits are applied live (in memory) as they're made; saveChanges()
  * persists them, resetChanges() reloads from disk. */
 QtObject {
-  id: settingsMenu
+  id: root
 
   property ConfigDraft _draft: ConfigDraft {
     id: draft

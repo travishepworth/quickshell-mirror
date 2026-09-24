@@ -7,7 +7,7 @@ import Quickshell
 import qs.config
 
 ToolButton {
-  id: component
+  id: root
 
   // -- Signals --
   // null
@@ -32,7 +32,7 @@ ToolButton {
   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
   opacity: enabled ? 1.0 : 0.4
-  scale: component.pressed ? 0.92 : 1.0
+  scale: root.pressed ? 0.92 : 1.0
 
   Behavior on scale {
     NumberAnimation {
@@ -45,27 +45,27 @@ ToolButton {
   }
 
   LazyLoader {
-    active: component.hovered && component.tooltipText !== ""
+    active: root.hovered && root.tooltipText !== ""
     StyledToolTip {
       target: component
-      text: component.tooltipText
+      text: root.tooltipText
     }
   }
 
   contentItem: Text {
-    text: component.iconText
+    text: root.iconText
     font.family: Appearance.fontFamily
-    font.pixelSize: component.iconSize
-    color: component.iconColor
+    font.pixelSize: root.iconSize
+    color: root.iconColor
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
   }
 
   background: Rectangle {
-    color: component.pressed ? component.pressColor : (component.hovered ? component.hoverColor : component.backgroundColor)
-    border.color: component.borderColor
-    border.width: component.borderWidth
-    radius: component.borderRadius
+    color: root.pressed ? root.pressColor : (root.hovered ? root.hoverColor : root.backgroundColor)
+    border.color: root.borderColor
+    border.width: root.borderWidth
+    radius: root.borderRadius
 
     Behavior on color {
       ColorAnimation {

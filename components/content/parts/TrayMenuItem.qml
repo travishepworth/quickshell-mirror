@@ -11,7 +11,7 @@ import qs.config
  * Reusable tray menu item component
  */
 Rectangle {
-  id: menuItemDelegate
+  id: root
   required property var menuItem
   required property int itemHeight
   required property int itemPadding
@@ -39,15 +39,15 @@ Rectangle {
   RowLayout {
     id: contentRow
     anchors.fill: parent
-    anchors.leftMargin: menuItemDelegate.itemPadding
-    anchors.rightMargin: menuItemDelegate.itemPadding
+    anchors.leftMargin: root.itemPadding
+    anchors.rightMargin: root.itemPadding
     spacing: 8
-    visible: !menuItemDelegate.menuItem.isSeparator
-    layoutDirection: menuItemDelegate.openToLeft ? Qt.RightToLeft : Qt.LeftToRight
+    visible: !root.menuItem.isSeparator
+    layoutDirection: root.openToLeft ? Qt.RightToLeft : Qt.LeftToRight
 
     // Checkbox/Radio indicator
     Rectangle {
-      visible: menuItemDelegate.menuItem.buttonType !== QsMenuButtonType.None
+      visible: root.menuItem.buttonType !== QsMenuButtonType.None
       Layout.preferredWidth: 16
       Layout.maximumWidth: 16
       Layout.minimumWidth: 16
@@ -55,22 +55,22 @@ Rectangle {
       color: "transparent"
       border.color: Theme.foreground
       border.width: 1
-      radius: menuItemDelegate.menuItem.buttonType === QsMenuButtonType.RadioButton ? 8 : 2
+      radius: root.menuItem.buttonType === QsMenuButtonType.RadioButton ? 8 : 2
 
       Rectangle {
         anchors.centerIn: parent
         width: parent.width - 6
         height: parent.height - 6
-        radius: menuItemDelegate.menuItem.buttonType === QsMenuButtonType.RadioButton ? 5 : 1
+        radius: root.menuItem.buttonType === QsMenuButtonType.RadioButton ? 5 : 1
         color: Theme.accent
-        visible: menuItemDelegate.menuItem.checkState === Qt.Checked
+        visible: root.menuItem.checkState === Qt.Checked
       }
     }
 
     // Icon
     Image {
-      visible: menuItemDelegate.menuItem.icon !== ""
-      source: menuItemDelegate.menuItem.icon
+      visible: root.menuItem.icon !== ""
+      source: root.menuItem.icon
       sourceSize.width: 16
       sourceSize.height: 16
       Layout.preferredWidth: 16
@@ -83,20 +83,20 @@ Rectangle {
 
     // Label
     Text {
-      text: menuItemDelegate.menuItem.text
+      text: root.menuItem.text
       color: Theme.foreground
       Layout.fillWidth: true
       Layout.minimumWidth: 50
       elide: Text.ElideRight
       wrapMode: Text.NoWrap
       clip: true
-      horizontalAlignment: menuItemDelegate.openToLeft ? Text.AlignRight : Text.AlignLeft
+      horizontalAlignment: root.openToLeft ? Text.AlignRight : Text.AlignLeft
     }
 
     // Submenu indicator
     Text {
-      visible: menuItemDelegate.menuItem.hasChildren
-      text: menuItemDelegate.openToLeft ? "‹" : "›"
+      visible: root.menuItem.hasChildren
+      text: root.openToLeft ? "‹" : "›"
       color: Theme.accent
       font.pixelSize: 20
       Layout.preferredWidth: implicitWidth
@@ -108,11 +108,11 @@ Rectangle {
   // Separator line
   Rectangle {
     anchors.centerIn: parent
-    width: parent.width - (menuItemDelegate.itemPadding * 2)
+    width: parent.width - (root.itemPadding * 2)
     height: 1
     color: Theme.foreground
     opacity: 0.2
-    visible: menuItemDelegate.menuItem.isSeparator
+    visible: root.menuItem.isSeparator
   }
 
   // Hover timer for submenu opening
@@ -121,8 +121,8 @@ Rectangle {
     interval: 100
     repeat: false
     onTriggered: {
-      if (menuItemDelegate.menuItem.hasChildren && menuItemArea.containsMouse) {
-        menuItemDelegate.submenuRequested(menuItemDelegate);
+      if (root.menuItem.hasChildren && menuItemArea.containsMouse) {
+        root.submenuRequested(root);
       }
     }
   }
@@ -131,13 +131,13 @@ Rectangle {
     id: menuItemArea
     anchors.fill: parent
     hoverEnabled: true
-    enabled: menuItemDelegate.menuItem.enabled && !menuItemDelegate.menuItem.isSeparator
+    enabled: root.menuItem.enabled && !root.menuItem.isSeparator
 
     onEntered: {
-      if (menuItemDelegate.menuItem.hasChildren) {
+      if (root.menuItem.hasChildren) {
         submenuHoverTimer.restart();
       } else {
-        menuItemDelegate.plainItemHovered();
+        root.plainItemHovered();
       }
     }
 
@@ -146,11 +146,11 @@ Rectangle {
     }
 
     onClicked: {
-      if (menuItemDelegate.menuItem.hasChildren) {
-        menuItemDelegate.submenuRequested(menuItemDelegate);
+      if (root.menuItem.hasChildren) {
+        root.submenuRequested(root);
       } else {
-        menuItemDelegate.menuItem.triggered();
-        menuItemDelegate.itemClicked();
+        root.menuItem.triggered();
+        root.itemClicked();
       }
     }
   }

@@ -10,7 +10,7 @@ import qs.config
 import qs.services
 
 PanelWindow {
-  id: rootWindow
+  id: root
 
   required property var screen
   property int buttonSize: 200
@@ -44,22 +44,22 @@ PanelWindow {
   Timer {
     id: disarm
     interval: 3000
-    onTriggered: rootWindow.armed = ""
+    onTriggered: root.armed = ""
   }
 
   Connections {
     target: ShellManager
     function onOpenPowerMenu() {
-      if (ShellManager.isTarget(rootWindow.screen))
-        rootWindow.toggle();
+      if (ShellManager.isTarget(root.screen))
+        root.toggle();
     }
     // Locking from anywhere closes the menu, so it isn't still up on unlock
     function onLockScreen() {
-      rootWindow.shown = false;
+      root.shown = false;
     }
   }
 
-  screen: rootWindow.screen
+  screen: root.screen
   anchors {
     left: true
     right: true
@@ -81,26 +81,26 @@ PanelWindow {
 
   IpcHandler {
     target: "powermenu"
-    enabled: ShellManager.isTarget(rootWindow.screen)
+    enabled: ShellManager.isTarget(root.screen)
     function toggle() {
-      rootWindow.toggle();
+      root.toggle();
     }
     // Not "show": `qs ipc call <target> show` is taken by the CLI
     function open() {
-      if (!rootWindow.shown)
-        rootWindow.toggle();
+      if (!root.shown)
+        root.toggle();
     }
     function close() {
-      if (rootWindow.shown)
-        rootWindow.toggle();
+      if (root.shown)
+        root.toggle();
     }
   }
 
   HyprlandFocusGrab {
     id: grab
-    active: rootWindow.shown
-    windows: [rootWindow]
-    onCleared: rootWindow.shown = false
+    active: root.shown
+    windows: [root]
+    onCleared: root.shown = false
   }
 
   visible: shown
@@ -110,11 +110,11 @@ PanelWindow {
     anchors.fill: parent
     // Keys can't attach to the window itself
     focus: true
-    Keys.onEscapePressed: rootWindow.toggle()
-    color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, rootWindow.backgroundDim)
+    Keys.onEscapePressed: root.toggle()
+    color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, root.backgroundDim)
     MouseArea {
       anchors.fill: parent
-      onClicked: rootWindow.toggle()
+      onClicked: root.toggle()
     }
   }
 
@@ -137,16 +137,16 @@ PanelWindow {
       columnSpacing: gridSpacing
 
       Repeater {
-        model: rootWindow.actions
+        model: root.actions
 
         Rectangle {
           id: iconButton
           required property var modelData
           readonly property string action: modelData[0]
-          readonly property bool armed: rootWindow.armed === action
+          readonly property bool armed: root.armed === action
 
-          implicitWidth: rootWindow.buttonSize
-          implicitHeight: rootWindow.buttonSize
+          implicitWidth: root.buttonSize
+          implicitHeight: root.buttonSize
 
           color: armed ? Theme.error : buttonMouseArea.containsMouse ? Theme.accent : Theme.backgroundHighlight
           border.color: Theme.border
@@ -164,7 +164,7 @@ PanelWindow {
             anchors.centerIn: parent
             text: iconButton.modelData[1]
             textColor: iconButton.armed || buttonMouseArea.containsMouse ? Theme.background : Theme.foreground
-            textSize: rootWindow.iconSize
+            textSize: root.iconSize
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
           }
@@ -183,7 +183,7 @@ PanelWindow {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: rootWindow.run(iconButton.action)
+            onClicked: root.run(iconButton.action)
           }
         }
       }

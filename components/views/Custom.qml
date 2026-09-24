@@ -4,12 +4,12 @@ import qs.components.hosts.overlay
 
 // A view assembled from config: its columns laid out side by side
 BaseView {
-  id: view
+  id: root
 
   // viewConfig: { type: "Custom", name, columns: [...] }
 
   Repeater {
-    model: view.viewConfig?.columns ?? []
+    model: root.viewConfig?.columns ?? []
 
     OverlayColumn {
       required property var modelData

@@ -23,7 +23,7 @@ import qs.components.bar.widgets
 // their content to whatever size they're given and report their natural
 // size through implicitWidth/implicitHeight, independent of that size.
 Item {
-  id: component
+  id: root
 
   required property var barConfig
   property var popouts
@@ -79,12 +79,12 @@ Item {
   // never see them undefined; bound afterwards so later changes (e.g. edits
   // in the bar editor's preview) reach it
   function _load() {
-    contentLoader.setSource(component.componentPath, {
-      "barConfig": component.barConfig,
-      "popouts": component.popouts,
-      "panel": component.panel,
-      "screen": component.screen,
-      "properties": component.properties
+    contentLoader.setSource(root.componentPath, {
+      "barConfig": root.barConfig,
+      "popouts": root.popouts,
+      "panel": root.panel,
+      "screen": root.screen,
+      "properties": root.properties
     });
   }
   onComponentPathChanged: _load()
@@ -95,11 +95,11 @@ Item {
     anchors.fill: parent
     onLoaded: {
       if (item) {
-        item.barConfig = Qt.binding(() => component.barConfig);
-        item.popouts = Qt.binding(() => component.popouts);
-        item.panel = Qt.binding(() => component.panel);
-        item.screen = Qt.binding(() => component.screen);
-        item.properties = Qt.binding(() => component.properties);
+        item.barConfig = Qt.binding(() => root.barConfig);
+        item.popouts = Qt.binding(() => root.popouts);
+        item.panel = Qt.binding(() => root.panel);
+        item.screen = Qt.binding(() => root.screen);
+        item.properties = Qt.binding(() => root.properties);
       }
     }
   }

@@ -14,7 +14,7 @@ import qs.config
 QtObject {
   id: root
 
-  readonly property string savedDir: Config.configPath + "user/saved/"
+  readonly property string savedDir: Paths.configPath + "user/saved/"
   // Newest first; roles: fileBaseName, filePath, fileModified
   readonly property FolderListModel model: _model
   // Last save/restore/delete outcome, for the settings UI

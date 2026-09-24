@@ -7,7 +7,7 @@ import qs.components.methods
 
 /* ConfigManager handles loading, saving, and monitoring the configuration file */
 QtObject {
-  id: configManager
+  id: root
 
   // --- Public ---
   readonly property var config: _config
@@ -59,11 +59,11 @@ QtObject {
       return false;
     }
     try {
-      if (!_validateConfig(configManager._config)) {
+      if (!_validateConfig(root._config)) {
         console.error("[ConfigManager] Failed to validate config against schema. Aborting save.");
         return false;
       }
-      _write(configManager._config);
+      _write(root._config);
       console.log("[ConfigManager] Saved config.json.");
       forceReload();
       return true;
@@ -88,7 +88,7 @@ QtObject {
       console.error("[ConfigManager] Rejected config: it does not validate against the schema.");
       return false;
     }
-    configManager._config = prepared.config;
+    root._config = prepared.config;
     return saveConfig();
   }
 
@@ -112,8 +112,8 @@ QtObject {
       console.error("[ConfigManager] Restored config is invalid, keeping the current one.");
       return false;
     }
-    configManager._savesBlocked = false;
-    configManager._config = prepared.config;
+    root._savesBlocked = false;
+    root._config = prepared.config;
     return saveConfig();
   }
 
@@ -132,7 +132,7 @@ QtObject {
   function hardResetConfig() {
     const result = _readConfig();
     if (result.status === "ok")
-      configManager._config = result.config;
+      root._config = result.config;
   }
 
   // --- Private Implementation ---
@@ -151,11 +151,11 @@ QtObject {
   property bool _haveFileConfig: false
 
   property string _configSchemaPath: "../config/json/config.schema.json"
-  property string _configPath: configManager.configDir + configManager.configFile
+  property string _configPath: root.configDir + root.configFile
 
   // FileView only for writing the config
   property FileView _configFileView: FileView {
-    path: Qt.resolvedUrl(configManager.configDir + configManager.configFile)
+    path: Qt.resolvedUrl(root.configDir + root.configFile)
     blockWrites: true
     atomicWrites: true
     onSaveFailed: error => {
@@ -166,12 +166,12 @@ QtObject {
   // Change notification for config.json. The slow poll is only a safety
   // net in case the watch is lost (e.g. to an editor's atomic rename).
   property FileView _configWatch: FileView {
-    path: Qt.resolvedUrl(configManager._configPath)
+    path: Qt.resolvedUrl(root._configPath)
     watchChanges: true
     printErrors: false
     onFileChanged: {
       reload();
-      configManager._checkForChanges();
+      root._checkForChanges();
     }
   }
 
@@ -181,7 +181,7 @@ QtObject {
     interval: 5000
     running: true
     repeat: true
-    onTriggered: configManager._checkForChanges()
+    onTriggered: root._checkForChanges()
   }
 
   function _hashString(str) {
@@ -314,7 +314,7 @@ QtObject {
       // won't emit a change signal when the same localConfig object (mutated
       // in place across edits) is re-applied, and live updates after the
       // first change silently stop working.
-      configManager._config = JSON.parse(JSON.stringify(object));
+      root._config = JSON.parse(JSON.stringify(object));
     }
   }
 
@@ -328,15 +328,15 @@ QtObject {
   // An empty read is either a missing file (first run: write defaults) or a
   // file caught mid-write / unreadable. Only a real "missing" writes.
   property Process _existsCheck: Process {
-    command: ["test", "-e", decodeURIComponent(Qt.resolvedUrl(configManager._configPath).toString().replace("file://", ""))]
+    command: ["test", "-e", decodeURIComponent(Qt.resolvedUrl(root._configPath).toString().replace("file://", ""))]
     onExited: exitCode => {
       if (exitCode !== 0) {
         console.log("[ConfigManager] No config.json found, writing defaults.");
-        configManager._savesBlocked = false;
-        configManager._write(SchemaValidation.applyDefaults({}, configManager._configSchema));
-      } else if (!configManager._haveFileConfig) {
+        root._savesBlocked = false;
+        root._write(SchemaValidation.applyDefaults({}, root._configSchema));
+      } else if (!root._haveFileConfig) {
         // Never loaded a good file: running on defaults, so don't save them over it
-        configManager._blockSaves("empty or unreadable");
+        root._blockSaves("empty or unreadable");
       }
     }
   }
@@ -374,7 +374,7 @@ QtObject {
     delete _fileHashes.invalid;
     _haveFileConfig = true;
     _savesBlocked = false;
-    configManager._config = result.config;
+    root._config = result.config;
     if (result.migrated)
       Qt.callLater(() => _write(result.config));
     return true;

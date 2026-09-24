@@ -10,13 +10,13 @@ import qs.components.views.barEditor
 // to the left/right of them for a Left/Right bar, above/below them for a
 // Top/Bottom bar.
 BaseView {
-  id: view
+  id: root
 
   readonly property string location: BarManager.selectedBar()?.location || "Top"
 
   Loader {
     sourceComponent: {
-      switch (view.location) {
+      switch (root.location) {
       case "Left":
         return leftLayout;
       case "Right":
@@ -37,7 +37,7 @@ BaseView {
         Layout.fillHeight: true
       }
       BarFieldsPanel {}
-      BarModulesPanel {}
+      BarWidgetsPanel {}
     }
   }
 
@@ -46,7 +46,7 @@ BaseView {
     RowLayout {
       spacing: OverlayConfig.cardSpacing
       BarFieldsPanel {}
-      BarModulesPanel {}
+      BarWidgetsPanel {}
       BarPreview {
         Layout.fillHeight: true
       }
@@ -63,7 +63,7 @@ BaseView {
       RowLayout {
         spacing: OverlayConfig.cardSpacing
         BarFieldsPanel {}
-        BarModulesPanel {}
+        BarWidgetsPanel {}
       }
     }
   }
@@ -75,7 +75,7 @@ BaseView {
       RowLayout {
         spacing: OverlayConfig.cardSpacing
         BarFieldsPanel {}
-        BarModulesPanel {}
+        BarWidgetsPanel {}
       }
       BarPreview {
         Layout.fillWidth: true

@@ -170,7 +170,7 @@ Item {
               }
 
               // --- Theme Source Tabs ---
-              TabBar {
+              StyledTabBar {
                 id: themeSourceTabs
                 Layout.fillWidth: true
                 Layout.preferredHeight: 40

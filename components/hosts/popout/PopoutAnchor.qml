@@ -65,7 +65,7 @@ Item {
     root.popouts.safeOpenPopout(root.panel, payload);
   }
 
-  // The hosting BarModule's section alignment (0 start, 1 end, 0.5 center)
+  // The hosting BarWidgetHost's section alignment (0 start, 1 end, 0.5 center)
   function sectionAlign() {
     for (let p = root.parent; p; p = p.parent) {
       if (p.sectionAlign !== undefined)

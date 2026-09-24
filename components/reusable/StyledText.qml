@@ -4,14 +4,14 @@ import QtQuick
 import qs.config
 
 Text {
-  id: component
-  
+  id: root
+
   // -- Signals --
   // null
-  
+
   // -- Public API --
   property bool isVertical: false
-  
+
   // -- Configurable Appearance --
   property color textColor: Theme.foreground
   property string textFamily: Appearance.fontFamily

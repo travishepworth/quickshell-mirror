@@ -9,7 +9,7 @@ import qs.config
 import qs.services
 
 PanelWindow {
-  id: rootWindow
+  id: root
 
   required property var screen
   anchors {
@@ -37,29 +37,29 @@ PanelWindow {
 
   Connections {
     target: ShellManager
-    enabled: ShellManager.isTarget(rootWindow.screen)
+    enabled: ShellManager.isTarget(root.screen)
     function onToggleAppLauncher() {
-      rootWindow.toggle();
+      root.toggle();
     }
   }
 
   IpcHandler {
     target: "appLauncher"
-    enabled: ShellManager.isTarget(rootWindow.screen)
+    enabled: ShellManager.isTarget(root.screen)
 
     function toggle() {
-      rootWindow.toggle();
+      root.toggle();
     }
 
     function show() {
       console.log("Showing app launcher");
-      if (!rootWindow.shown)
-        rootWindow.toggle();
+      if (!root.shown)
+        root.toggle();
     }
 
     function hide() {
-      if (rootWindow.shown)
-        rootWindow.toggle();
+      if (root.shown)
+        root.toggle();
     }
   }
 
@@ -68,9 +68,9 @@ PanelWindow {
 
   HyprlandFocusGrab {
     id: grab
-    active: rootWindow.shown
-    windows: [rootWindow]
-    onCleared: rootWindow.shown = false
+    active: root.shown
+    windows: [root]
+    onCleared: root.shown = false
   }
 
   Rectangle {
@@ -101,9 +101,9 @@ PanelWindow {
           id: searchInput
           placeholderText: I18n.tr("Search Applications...")
           width: parent.width
-          focus: rootWindow.shown
+          focus: root.shown
 
-          Keys.onEscapePressed: rootWindow.toggle()
+          Keys.onEscapePressed: root.toggle()
           onAccepted: launchSelected()
 
           onTextChanged: {
@@ -153,7 +153,7 @@ PanelWindow {
                   launchSelected();
                   event.accepted = true;
                 } else if (event.key === Qt.Key_Escape) {
-                  rootWindow.toggle();
+                  root.toggle();
                   event.accepted = true;
                 }
               }
@@ -239,7 +239,7 @@ PanelWindow {
     if (apps.length > 0 && resultsView.currentIndex >= 0 && resultsView.currentIndex < apps.length) {
       const appEntry = apps[resultsView.currentIndex];
       if (LauncherManager.launchApp(appEntry)) {
-        rootWindow.toggle();
+        root.toggle();
       }
     }
   }

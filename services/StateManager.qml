@@ -3,11 +3,10 @@ import QtQuick
 import Quickshell.Io
 import qs.config
 
-
 QtObject {
-  id: stateManager
+  id: root
 
-  readonly property string stateDir: Config.statePath
+  readonly property string stateDir: Paths.statePath
 
   /**
      * @brief Creates a state handler for a specific service
@@ -20,7 +19,7 @@ QtObject {
     if (_handlers[serviceName])
       return _handlers[serviceName];
     const stateFile = serviceName + ".json";
-    const fileView = fileViewComponent.createObject(stateManager, {
+    const fileView = fileViewComponent.createObject(root, {
       path: Qt.resolvedUrl(stateDir + stateFile)
     });
 

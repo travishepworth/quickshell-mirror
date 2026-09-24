@@ -4,7 +4,7 @@ import Quickshell.Wayland
 import qs.config
 
 PanelWindow {
-  id: border
+  id: root
   required property string edge // "top", "bottom", "left", "right"
   required property int frameWidth
   required property int innerBorderRadius
@@ -36,28 +36,28 @@ PanelWindow {
 
   Rectangle {
     anchors.fill: parent
-    color: border.frameColor
+    color: root.frameColor
   }
 
   Rectangle {
-    color: border.innerStrokeColor
+    color: root.innerStrokeColor
 
     anchors {
-      left: border.isHorizontal ? parent.left : undefined
-      right: border.isHorizontal ? parent.right : undefined
-      leftMargin: border.isHorizontal ? (border.frameWidth + border.inset) : 0
-      rightMargin: border.isHorizontal ? (border.frameWidth + border.inset) : 0
+      left: root.isHorizontal ? parent.left : undefined
+      right: root.isHorizontal ? parent.right : undefined
+      leftMargin: root.isHorizontal ? (root.frameWidth + root.inset) : 0
+      rightMargin: root.isHorizontal ? (root.frameWidth + root.inset) : 0
 
-      top: border.isVertical ? parent.top : undefined
-      bottom: border.isVertical ? parent.bottom : undefined
-      topMargin: border.isVertical ? border.inset : 0
-      bottomMargin: border.isVertical ? border.inset : 0
+      top: root.isVertical ? parent.top : undefined
+      bottom: root.isVertical ? parent.bottom : undefined
+      topMargin: root.isVertical ? root.inset : 0
+      bottomMargin: root.isVertical ? root.inset : 0
     }
 
-    x: border.edge === "left" ? (border.frameWidth - border.strokeWidth) : (border.isVertical ? 0 : null)
-    y: border.edge === "top" ? (border.frameWidth - border.strokeWidth) : (border.isHorizontal ? 0 : null)
+    x: root.edge === "left" ? (root.frameWidth - root.strokeWidth) : (root.isVertical ? 0 : null)
+    y: root.edge === "top" ? (root.frameWidth - root.strokeWidth) : (root.isHorizontal ? 0 : null)
 
-    implicitWidth: border.isVertical ? border.strokeWidth : (parent.width - (border.frameWidth + border.inset))
-    implicitHeight: border.isHorizontal ? border.strokeWidth : (parent.height - border.inset)
+    implicitWidth: root.isVertical ? root.strokeWidth : (parent.width - (root.frameWidth + root.inset))
+    implicitHeight: root.isHorizontal ? root.strokeWidth : (parent.height - root.inset)
   }
 }
