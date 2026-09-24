@@ -72,10 +72,10 @@ Item {
     return result;
   }
 
-  // Pages the category links to: the pinned ones always exist, others
+  // Pages the category links to: the overlay editor always exists, others
   // only while they're in Overlay.views
   function _linkAvailable(type) {
-    return type === "Themes" || type === "OverlayEditor" || OverlayConfig.views.some(view => view.type === type && view.visible !== false);
+    return type === "OverlayEditor" || OverlayConfig.views.some(view => view.type === type && view.visible !== false);
   }
 
   function _linkLabel(type) {

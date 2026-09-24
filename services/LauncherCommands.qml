@@ -355,7 +355,7 @@ QtObject {
     return {
       name: name,
       aliases: aliases,
-      glyph: OverlayConfig.viewInfo(type)?.icon ?? (type === "Themes" ? "\u{F03D8}" : "\u{F056E}"),
+      glyph: OverlayConfig.viewInfo(type)?.icon ?? "\u{F056E}",
       // I18n.tr("Open the settings") I18n.tr("Open the themes page") I18n.tr("Open the bar editor")
       // I18n.tr("Show the keybinds") I18n.tr("Open the overlay editor")
       description: () => I18n.tr(description),
@@ -453,11 +453,6 @@ QtObject {
       };
     });
     return pages.concat([
-      {
-        title: I18n.tr("Themes"),
-        glyph: "\u{F03D8}",
-        value: "Themes"
-      },
       {
         title: I18n.tr("Overlay editor"),
         glyph: "\u{F056E}",

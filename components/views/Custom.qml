@@ -7,9 +7,10 @@ BaseView {
   id: root
 
   // viewConfig: { type: "Custom", name, columns: [...] }
+  property var columns: root.viewConfig?.columns ?? []
 
   Repeater {
-    model: root.viewConfig?.columns ?? []
+    model: root.columns
 
     OverlayColumn {
       required property var modelData

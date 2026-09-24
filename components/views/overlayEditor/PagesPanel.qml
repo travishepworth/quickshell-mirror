@@ -179,14 +179,10 @@ Item {
         }
       }
 
-      // The pages that aren't in config, always last
+      // The page that isn't in config, always last
       Repeater {
-        // Labels: I18n.tr("Themes") I18n.tr("Overlay editor")
+        // Labels: I18n.tr("Overlay editor")
         model: [
-          {
-            "label": "Themes",
-            "icon": 0xF03D8
-          },
           {
             "label": "Overlay editor",
             "icon": 0xF0574

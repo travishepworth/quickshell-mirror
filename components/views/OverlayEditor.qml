@@ -4,8 +4,8 @@ import qs.config
 import qs.services
 import qs.components.views.overlayEditor
 
-// The overlay editor: always the last page (pinned by OverlayPages, after
-// the Themes page; not part of config). The pages on the left; the
+// The overlay editor: always the last page (pinned by OverlayPages; not
+// part of config). The pages on the left; the
 // selected page drawn on a canvas (drag modules, cells and columns
 // around) above what's selected there, or the library to drag from.
 // Edits go through OverlayManager's draft until saved.

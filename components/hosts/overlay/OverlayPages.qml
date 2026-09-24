@@ -23,38 +23,34 @@ Item {
   readonly property string _viewsKey: JSON.stringify(viewsConfig)
   property var viewsModel: buildViewsModel(JSON.parse(_viewsKey))
   property int currentIndex: 0
-  // The configured views, then the pages that aren't in config: the Themes
-  // page and the overlay editor, always last and can't be removed
-  readonly property int themesIndex: viewsModel.length
-  readonly property int editorIndex: viewsModel.length + 1
-  readonly property int pageCount: viewsModel.length + 2
+  // The configured views, then the one page that isn't in config: the
+  // overlay editor, always last and can't be removed
+  readonly property int editorIndex: viewsModel.length
+  readonly property int pageCount: viewsModel.length + 1
   // itemAt() isn't a notifying read: `count` makes this re-evaluate once
   // the Repeater has created its pages (on launch they don't exist yet)
-  readonly property Item currentPage: wrapper.currentIndex === wrapper.editorIndex ? editorPage : wrapper.currentIndex === wrapper.themesIndex ? themesPage : (viewsRepeater.count > wrapper.currentIndex ? viewsRepeater.itemAt(wrapper.currentIndex) : null)
+  readonly property Item currentPage: wrapper.currentIndex === wrapper.editorIndex ? editorPage : (viewsRepeater.count > wrapper.currentIndex ? viewsRepeater.itemAt(wrapper.currentIndex) : null)
 
   // A new launch opens on the first page; closing and re-opening keeps the
   // page (this wrapper lives as long as the overlay window). The views
   // rebuild whenever Overlay.views changes, including saves from the
-  // overlay editor: stay on a pinned page if the user is on
-  // one, otherwise keep the index valid. Tracked from real navigation only:
-  // while the views are still loading the pinned pages briefly sit at the
-  // start, which isn't the user being on them.
-  // How many pages from the end the user's pinned page is, or -1
-  property int _pinnedFromEnd: -1
-  onCurrentIndexChanged: wrapper._pinnedFromEnd = wrapper.viewsModel.length > 0 && wrapper.currentIndex >= wrapper.themesIndex ? wrapper.pageCount - 1 - wrapper.currentIndex : -1
+  // overlay editor: stay on the editor if the user is on it, otherwise
+  // keep the index valid. Tracked from real navigation only: while the
+  // views are still loading the editor briefly sits at the start, which
+  // isn't the user being on it.
+  property bool _onEditor: false
+  onCurrentIndexChanged: wrapper._onEditor = wrapper.viewsModel.length > 0 && wrapper.currentIndex === wrapper.editorIndex
   onPageCountChanged: {
-    if (wrapper._pinnedFromEnd >= 0)
-      wrapper.currentIndex = wrapper.pageCount - 1 - wrapper._pinnedFromEnd;
+    if (wrapper._onEditor)
+      wrapper.currentIndex = wrapper.editorIndex;
     else
-      wrapper.currentIndex = Math.max(0, Math.min(wrapper.currentIndex, wrapper.themesIndex - 1));
+      wrapper.currentIndex = Math.max(0, Math.min(wrapper.currentIndex, wrapper.editorIndex - 1));
   }
 
   Connections {
     target: ShellManager
     function onShowOverlayPage(type) {
-      if (type === "Themes")
-        wrapper.currentIndex = wrapper.themesIndex;
-      else if (type === "OverlayEditor")
+      if (type === "OverlayEditor")
         wrapper.currentIndex = wrapper.editorIndex;
       else {
         const index = wrapper.viewsModel.findIndex(view => view.viewConfig.type === type || view.viewConfig.name === type);
@@ -170,19 +166,6 @@ Item {
               grid: wrapper.grid
               viewModel: viewPage.modelData
             }
-          }
-        }
-
-        OverlayPage {
-          id: themesPage
-          pageIndex: wrapper.themesIndex
-          currentIndex: wrapper.currentIndex
-          loaded: wrapper.isLoaded(wrapper.themesIndex)
-
-          Themes {
-            anchors.centerIn: parent
-            screen: wrapper.screen
-            grid: wrapper.grid
           }
         }
 

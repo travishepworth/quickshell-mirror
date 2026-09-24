@@ -2,8 +2,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 // The Themes page: wallpapers, the theme list and the palette's 16 colors.
-// Pinned by OverlayPages before the overlay editor, not part of config;
-// laid out by Custom from the fixed columns below.
+// A view type with nothing to configure: Custom lays out the fixed
+// columns below instead of the view's own.
 Custom {
   id: root
 
@@ -26,38 +26,36 @@ Custom {
     };
   }
 
-  viewConfig: ({
-      "columns": [
+  columns: [
+    {
+      "cells": [
         {
-          "cells": [
-            {
-              "layout": "Tall",
-              "slots": {
-                "main": {
-                  "type": "WallpaperPicker"
-                }
-              }
+          "layout": "Tall",
+          "slots": {
+            "main": {
+              "type": "WallpaperPicker"
             }
-          ]
-        },
-        {
-          "cells": [
-            {
-              "layout": "Tall",
-              "slots": {
-                "main": {
-                  "type": "ThemeEditor"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "cells": [root.swatches(0), root.swatches(4)]
-        },
-        {
-          "cells": [root.swatches(8), root.swatches(12)]
+          }
         }
       ]
-    })
+    },
+    {
+      "cells": [
+        {
+          "layout": "Tall",
+          "slots": {
+            "main": {
+              "type": "ThemeEditor"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cells": [root.swatches(0), root.swatches(4)]
+    },
+    {
+      "cells": [root.swatches(8), root.swatches(12)]
+    }
+  ]
 }

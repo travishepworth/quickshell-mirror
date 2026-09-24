@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 6,
+      "default": 7,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -559,7 +559,8 @@
             ] },
             { "type": "Settings" },
             { "type": "Keybinds" },
-            { "type": "BarEditor" }
+            { "type": "BarEditor" },
+            { "type": "Themes" }
           ],
           "items": { "$ref": "#/definitions/OverlayView" }
         }
@@ -775,7 +776,8 @@
         { "$ref": "#/definitions/CustomOverlayView" },
         { "$ref": "#/definitions/KeybindsOverlayView" },
         { "$ref": "#/definitions/BarEditorOverlayView" },
-        { "$ref": "#/definitions/SettingsOverlayView" }
+        { "$ref": "#/definitions/SettingsOverlayView" },
+        { "$ref": "#/definitions/ThemesOverlayView" }
       ]
     },
     "CustomOverlayView": {
@@ -817,6 +819,16 @@
       "additionalProperties": false,
       "properties": {
         "type": { "const": "BarEditor", "description": "Bar Editor" },
+        "visible": { "type": "boolean" }
+      }
+    },
+    "ThemesOverlayView": {
+      "type": "object",
+      "x-icon": "F03D8",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Themes", "description": "Themes" },
         "visible": { "type": "boolean" }
       }
     },

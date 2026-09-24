@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 6
+  readonly property int currentVersion: 7
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -39,6 +39,8 @@ QtObject {
       result = _v4ToV5(result, changes);
     if (version < 6)
       result = _v5ToV6(result, changes);
+    if (version < 7)
+      result = _v6ToV7(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -139,6 +141,19 @@ QtObject {
       config.General.monitors = "focused";
       changes.push("General.monitors: all -> focused");
     }
+    return config;
+  }
+
+  // v7 made Themes a view type instead of a page pinned before the overlay
+  // editor, so a config without one gets it last, where it used to be
+  function _v6ToV7(config, changes) {
+    const views = config.Overlay?.views;
+    if (!Array.isArray(views) || views.some(view => view?.type === "Themes"))
+      return config;
+    views.push({
+      "type": "Themes"
+    });
+    changes.push("Overlay.views: Themes view added");
     return config;
   }
 }
