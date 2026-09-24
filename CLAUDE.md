@@ -15,6 +15,7 @@ A [Quickshell](https://quickshell.org) desktop shell config (QML) for Hyprland, 
 - Files loaded by URL (bar modules, popout content, overlay views/modules) only see sibling types if some loaded file imports their directory by name: `BarModule` imports `qs.components.widgets.bar.modules`, `Popouts` imports `...bar.popouts.content`, `OverlayModule` imports `...overlay.modules`. Without that, a new shared type there (e.g. `BarIconWidget`) reads as "is not a type" even though its file exists.
 - Lockscreen can be triggered externally via `qs -c axiom ipc call lockscreen lock` (see hypridle.conf).
 - Do not simulate cursor movement (e.g. `hyprctl dispatch movecursor`) to verify UI behavior — check logs/code instead.
+- **Run `scripts/check_structure.py` after adding, renaming or moving QML files.** It statically checks the naming conventions the shell loads by: every schema type (`BarWidget`/`OverlayView`/`OverlayModule`) and `popoutName` has its file, URL-loaded directories are imported by name, every `import qs.…` resolves, and no singleton reference is a typo (`AudioManger.`). Exit 1 on errors.
 - No automated test suite exists. Verify QML changes by running `scripts/log.sh` after a save (which triggers reload), and by reasoning through property bindings — there's no headless QML test runner set up here.
 
 ## Formatting
