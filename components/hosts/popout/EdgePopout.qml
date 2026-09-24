@@ -70,6 +70,7 @@ PopoutWrapperBase {
   property int connectorGap: Appearance.borderRadius * 2
 
   readonly property bool vertical: edge === Bar.Left || edge === Bar.Right
+  readonly property bool straight: Bar.screenEdgeOpen(root.screen, root.edge)
   readonly property bool isOpen: occupied && !isClosing
   // For opens driven by global events (volume changes, IPC) rather than
   // hovering this screen's edge.
@@ -151,11 +152,14 @@ PopoutWrapperBase {
       right: root.edge === Bar.Right || !root.vertical
     }
 
+    // On a bare screen edge (no border, no bar) there's no stroke to land
+    // on: the surface sits at the edge and runs straight off it
+    readonly property real attachMargin: root.straight ? 0 : -Appearance.borderWidth
     margins {
-      top: root.edge === Bar.Top ? -Appearance.borderWidth : 0
-      bottom: root.edge === Bar.Bottom ? -Appearance.borderWidth : 0
-      left: root.edge === Bar.Left ? -Appearance.borderWidth : 0
-      right: root.edge === Bar.Right ? -Appearance.borderWidth : 0
+      top: root.edge === Bar.Top ? surfaceWindow.attachMargin : 0
+      bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : 0
+      left: root.edge === Bar.Left ? surfaceWindow.attachMargin : 0
+      right: root.edge === Bar.Right ? surfaceWindow.attachMargin : 0
     }
 
     implicitWidth: root.vertical ? surface.implicitWidth : 0
@@ -196,6 +200,7 @@ PopoutWrapperBase {
       height: implicitHeight
 
       edge: root.edge
+      straight: root.straight
       active: root.isOpen
       connectorGap: root.connectorGap
       boxWidth: (loader.item?.implicitWidth ?? 100) + Widget.spacing * 2

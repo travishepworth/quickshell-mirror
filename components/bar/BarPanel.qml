@@ -7,6 +7,7 @@ import Quickshell.Hyprland
 import QtQuick
 
 import qs.config
+import qs.services
 import qs.components.hosts.popout
 
 PanelWindow {
@@ -27,10 +28,14 @@ PanelWindow {
   WlrLayershell.exclusiveZone: {
     if (!barConfig.reserveSpace)
       return 0;
+    // Transparent bars have no inner edge to see: windows start where it
+    // would be, so the gap from the widgets to them (inset + Hyprland's own
+    // gaps_out, taken off here) matches the gap to the screen edge
+    const gap = barConfig.background === "transparent" ? (HyprlandManager.gapsOut[["top", "bottom", "left", "right"][barConfig.location]] ?? 0) : 0;
     // Hyprland counts the -borderWidth margin into the reserved space
     if (barConfig.floating)
-      return barConfig.extent;
-    return Appearance.screenBorder ? barConfig.extent - Appearance.screenMargin + Appearance.borderWidth : barConfig.extent;
+      return Math.max(0, barConfig.extent - gap);
+    return Math.max(0, (Appearance.screenBorder ? barConfig.extent - Appearance.screenMargin + Appearance.borderWidth : barConfig.extent) - gap);
   }
   WlrLayershell.namespace: "axiom-bar"
   // The bar container paints the background (or not, when transparent)

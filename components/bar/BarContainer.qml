@@ -295,6 +295,9 @@ Rectangle {
       boxHeight: root.isVertical ? span.length : depthBox
       joinStart: span.joinStart
       joinEnd: span.joinEnd
+      // Without the border, pills grow straight out of the screen edges
+      straight: !Appearance.screenBorder
+      straightJoins: !Appearance.screenBorder
 
       width: implicitWidth
       height: implicitHeight

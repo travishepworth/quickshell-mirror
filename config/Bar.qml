@@ -112,6 +112,15 @@ QtObject {
     return edges;
   }
 
+  // Whether a screen edge (a Bar.Location) is bare: no screen border and no
+  // bar on it, so surfaces there run straight off the screen
+  function screenEdgeOpen(screen, location) {
+    if (Appearance.screenBorder)
+      return false;
+    const name = ["top", "bottom", "left", "right"][location];
+    return !Bar.edgesFor(screen)[name];
+  }
+
   function getLocationFromString(locStr) {
     switch (locStr) {
     case "Top":

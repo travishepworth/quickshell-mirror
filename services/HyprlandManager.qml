@@ -70,7 +70,19 @@ Singleton {
     }, null);
   }
 
-  Component.onCompleted: _fetch()
+  // Hyprland's general:gaps_out per side, which it adds after every
+  // reserved zone (transparent bars subtract it, see BarPanel)
+  property var gapsOut: ({
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    })
+
+  Component.onCompleted: {
+    _fetch();
+    getGaps.running = true;
+  }
 
   Connections {
     target: Hyprland
@@ -79,6 +91,8 @@ Singleton {
       // Layer surfaces (including our own popouts) don't affect clients
       if (event.name === "openlayer" || event.name === "closelayer")
         return;
+      if (event.name === "configreloaded")
+        getGaps.running = true;
       root.updateAll();
     }
   }
@@ -114,6 +128,28 @@ Singleton {
     } catch (e) {
       console.warn("[HyprlandManager] Could not parse hyprctl " + what + ":", e);
       return undefined;
+    }
+  }
+
+  Process {
+    id: getGaps
+    command: ["hyprctl", "getoption", "general:gaps_out", "-j"]
+    stdout: StdioCollector {
+      id: gapsCollector
+      onStreamFinished: {
+        // css is "top right bottom left" (CSS shorthand, like gaps_out)
+        const option = root._parse(gapsCollector.text, "getoption");
+        const css = String(option?.css ?? "").trim().split(/\s+/).map(Number);
+        if (css.length === 0 || css.some(isNaN))
+          return;
+        const [top, right = top, bottom = top, left = right] = css;
+        root.gapsOut = {
+          "top": top,
+          "right": right,
+          "bottom": bottom,
+          "left": left
+        };
+      }
     }
   }
 

@@ -107,12 +107,16 @@ PopoutWrapperBase {
   readonly property real pillFoot: root.barConfig.pillDepth - Appearance.borderWidth
   readonly property real startFoot: mergeWithPill && !mainPopup.joinStart && anchorPill.start <= mainPopup.boxStart - Appearance.borderRadius ? pillFoot : 0
   readonly property real endFoot: mergeWithPill && !mainPopup.joinEnd && anchorPill.start + anchorPill.length >= mainPopup.boxEnd + Appearance.borderRadius ? pillFoot : 0
-  // How far past the pill the merged popout's content starts
-  readonly property real pillClearance: mergeWithPill ? root.barConfig.pillDepth - root.barConfig.overlap : 0
+  // How far past the pill the merged popout's content starts: its far
+  // stroke, where an unmerged popout attaches, with the border on or off
+  readonly property real pillClearance: mergeWithPill ? root.pillFoot : 0
   // Where the popout attaches, measured from the bar's outer edge: the
   // outer edge itself when merged, a pill's far stroke, or the bar's
   // inner edge
   readonly property real attachAt: mergeWithPill ? 0 : anchorPill !== null ? pillFoot : root.barConfig.extent
+  // How far inside a pill's ends the notch stops: its stroke, plus a pixel
+  // so the stroke's anti-aliased edge stays covered too
+  readonly property real notchInset: Appearance.borderWidth + 1
   // The bar window's thickness (more than the bar's extent with pills)
   readonly property real panelThickness: root.panel?.thickness ?? root.barConfig.extent
 
@@ -197,7 +201,8 @@ PopoutWrapperBase {
     }
     readonly property real boxEnd: boxStart + boxLength
     // Where the popup (the surface) starts along the bar
-    readonly property real alongPos: boxStart - (joinStart ? 0 : filletMargin)
+    // (the surface's own margin: none on a joined or straight side)
+    readonly property real alongPos: boxStart - surface.startMargin
 
     // The merged pill stays hoverable and clickable through the notch
     mask: Region {
@@ -219,6 +224,10 @@ PopoutWrapperBase {
 
     anchor {
       window: root.currentAnchor
+      // Placement is worked out here (clamped along the bar, flush on its
+      // edge), so the compositor mustn't slide it: flush against the screen
+      // edge it would nudge the popup inwards
+      adjustment: PopupAdjustment.None
 
       rect {
         x: {
@@ -268,16 +277,20 @@ PopoutWrapperBase {
       detached: root.barConfig.background === "transparent"
       joinStart: mainPopup.joinStart
       joinEnd: mainPopup.joinEnd
+      // Without the border, a popout merged around a pill runs straight off
+      // the screen edge, and one pushed to an end straight off that one
+      straight: root.mergeWithPill && !Appearance.screenBorder
+      straightJoins: !Appearance.screenBorder
       startFoot: root.startFoot
       endFoot: root.endFoot
 
       // The pill's interior, left showing; the popout covers the pill's
       // strokes where they overlap, so the two read as one shape
-      readonly property real notchFrom: root.mergeWithPill ? root.anchorPill.start + (root.anchorPill.joinStart ? 0 : Appearance.borderWidth) : 0
-      readonly property real notchTo: root.mergeWithPill ? root.anchorPill.start + root.anchorPill.length - (root.anchorPill.joinEnd ? 0 : Appearance.borderWidth) : 0
+      readonly property real notchFrom: root.mergeWithPill ? root.anchorPill.start + (root.anchorPill.joinStart ? 0 : root.notchInset) : 0
+      readonly property real notchTo: root.mergeWithPill ? root.anchorPill.start + root.anchorPill.length - (root.anchorPill.joinEnd ? 0 : root.notchInset) : 0
       notchStart: notchFrom - mainPopup.alongPos
       notchLength: Math.max(0, notchTo - notchFrom)
-      notchDepth: root.pillFoot
+      notchDepth: root.pillFoot - 1
       notchRoundStart: root.mergeWithPill && !root.anchorPill.joinStart && notchFrom > mainPopup.alongPos
       notchRoundEnd: root.mergeWithPill && !root.anchorPill.joinEnd && notchTo < mainPopup.alongPos + implicitLength
       readonly property real implicitLength: root.barConfig.vertical ? implicitHeight : implicitWidth

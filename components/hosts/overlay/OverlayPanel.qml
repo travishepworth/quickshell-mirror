@@ -30,11 +30,29 @@ PanelWindow {
   // Normal exclusion with no zone of its own places the window inside the
   // border's and bars' reserved area, wherever the bars are; the
   // -borderWidth margin lines it up with their inner stroke (as EdgePopout)
+  // A bare screen edge (no border, no bar) has no stroke to land on: the
+  // panel meets the edge and runs straight off it (its corners and stroke
+  // on that side pushed past the window, see background)
+  readonly property bool openTop: Bar.screenEdgeOpen(root.screen, Bar.Top)
+  readonly property bool openBottom: Bar.screenEdgeOpen(root.screen, Bar.Bottom)
+  readonly property bool openLeft: Bar.screenEdgeOpen(root.screen, Bar.Left)
+  readonly property bool openRight: Bar.screenEdgeOpen(root.screen, Bar.Right)
+  // A transparent bar reserves Hyprland's gaps_out less than its extent
+  // (see BarPanel) and has no stroke to land on: sit at its invisible
+  // inner edge instead, past the reserved space by that gap
+  readonly property var _edges: Bar.edgesFor(root.screen)
+  function _margin(side, open) {
+    if (open)
+      return 0;
+    if (root._edges[side]?.background === "transparent")
+      return HyprlandManager.gapsOut[side] ?? 0;
+    return -Appearance.borderWidth;
+  }
   margins {
-    left: -Appearance.borderWidth
-    right: -Appearance.borderWidth
-    top: -Appearance.borderWidth
-    bottom: -Appearance.borderWidth
+    left: root._margin("left", root.openLeft)
+    right: root._margin("right", root.openRight)
+    top: root._margin("top", root.openTop)
+    bottom: root._margin("bottom", root.openBottom)
   }
 
   color: "transparent"
@@ -125,7 +143,12 @@ PanelWindow {
 
     Rectangle {
       id: background
+      readonly property real offscreen: -(radius + border.width)
       anchors.fill: parent
+      anchors.leftMargin: root.openLeft ? offscreen : 0
+      anchors.rightMargin: root.openRight ? offscreen : 0
+      anchors.topMargin: root.openTop ? offscreen : 0
+      anchors.bottomMargin: root.openBottom ? offscreen : 0
       border.color: Theme.foreground
       border.width: Math.max(Appearance.borderWidth, 2)
       radius: Appearance.borderRadius

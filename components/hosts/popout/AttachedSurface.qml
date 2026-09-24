@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Shapes
+import QtQuick.Effects
 
 import qs.config
 
@@ -30,6 +31,8 @@ import qs.config
  *   follows it to that end
  * - notch*: a region at the attach edge left unpainted (a merged pill)
  * - detached: a plain rounded box, not joined to anything
+ * - straight/straightJoins: the attach edge, or the edges a join meets, are
+ *   bare screen edges, so the walls run straight off them
  *
  * Place this at the attach edge of its window: for a Top edge, y = 0 of
  * this item should sit on the top of the bar/border stroke line.
@@ -49,6 +52,11 @@ Item {
   property real startFoot: 0
   property real endFoot: 0
   property bool detached: false
+  // The attach edge / the perpendicular edges a join meets are bare screen
+  // edges (screen border off): the surface runs straight off them, with no
+  // fillet onto them
+  property bool straight: false
+  property bool straightJoins: false
 
   // Breathing room between the box edge and its content: clears the
   // stroke, plus a share of the corner radius so content keeps away from
@@ -60,7 +68,9 @@ Item {
   // notchStart for notchLength, v = 0 to notchDepth), so what's under it
   // shows through: a bar popout merged around the pill it opens from.
   // notchRoundStart/End round its far corners at that end, to follow the
-  // pill's inner edge.
+  // pill's inner edge. It's a mask fixed to this item rather than part of
+  // the sliding outline, so the surface slides out from behind what shows
+  // through instead of over it.
   property real notchStart: 0
   property real notchLength: 0
   property real notchDepth: 0
@@ -94,13 +104,18 @@ Item {
 
   readonly property real boxAlong: vertical ? boxHeight : boxWidth
   readonly property real boxDepth: vertical ? boxWidth : boxHeight
-  // Room each end for a fillet square, minus the stroke overlap; none
-  // where the end is joined to the perpendicular edge
-  readonly property real startMargin: joinStart ? 0 : connectorGap - strokeWidth
-  readonly property real endMargin: joinEnd ? 0 : connectorGap - strokeWidth
+  // Whether each side wall ends in a fillet: not where the end is joined,
+  // nor where it runs straight off a bare screen edge (unless it stands on
+  // a foot)
+  readonly property bool _filletStart: !joinStart && (!straight || startFoot > 0)
+  readonly property bool _filletEnd: !joinEnd && (!straight || endFoot > 0)
+  readonly property bool _joinFillet: (joinStart || joinEnd) && !straightJoins
+  // Room each end for a fillet square, minus the stroke overlap
+  readonly property real startMargin: _filletStart ? connectorGap - strokeWidth : 0
+  readonly property real endMargin: _filletEnd ? connectorGap - strokeWidth : 0
   readonly property real alongLength: startMargin + boxAlong + endMargin
   // Box + connector gap, plus room for a join's fillet past the far edge
-  readonly property real depth: boxDepth + connectorGap + (joinStart || joinEnd ? filletRadius : 0)
+  readonly property real depth: boxDepth + connectorGap + (_joinFillet ? filletRadius : 0)
 
   // Along the edge: box + fillet squares. Away from the edge: box +
   // connector gap.
@@ -178,9 +193,15 @@ Item {
     const R = filletRadius, cr = cornerRadius, h = half;
     const fs = startFoot, fe = endFoot;
     let d = "";
-    if (joinStart) {
+    if (joinStart && straightJoins) {
+      d += startWith(0, farV);
+    } else if (joinStart) {
       d += startWith(h, farV + R);
       d += _arc(R, true, h + R, farV);
+    } else if (!_filletStart) {
+      d += startWith(sideU, 0);
+      d += _line(sideU, farV - cr);
+      d += _arc(cr, false, sideU + cr, farV);
     } else {
       d += startWith(0, fs + h);
       d += _line(sideU - R, fs + h);
@@ -188,9 +209,15 @@ Item {
       d += _line(sideU, farV - cr);
       d += _arc(cr, false, sideU + cr, farV);
     }
-    if (joinEnd) {
+    if (joinEnd && straightJoins) {
+      d += _line(alongLength, farV);
+    } else if (joinEnd) {
       d += _line(alongLength - h - R, farV);
       d += _arc(R, true, alongLength - h, farV + R);
+    } else if (!_filletEnd) {
+      d += _line(farSideU - cr, farV);
+      d += _arc(cr, false, farSideU, farV - cr);
+      d += _line(farSideU, 0);
     } else {
       d += _line(farSideU - cr, farV);
       d += _arc(cr, false, farSideU, farV - cr);
@@ -201,39 +228,62 @@ Item {
     return d;
   }
 
-  // Fill: the outline, closed back along the attach edge around the notch.
+  // Fill: the outline, closed back along the attach edge.
   // Joined ends also cover the perpendicular stroke up to the fillet.
   readonly property string fillPath: {
     if (width <= 0 || height <= 0)
       return "";
-    const R = filletRadius, h = half;
-    const nU = _notchU, nE = _notchEnd, nV = _notchV, nr = _notchRadius;
-    let d = joinStart ? _move(0, 0) + _line(0, farV + R) + root._outline((u, v) => _line(u, v)) : root._outline((u, v) => _move(0, startFoot) + _line(u, v));
-    if (joinEnd)
-      d += _line(alongLength, farV + R);
+    const R = filletRadius;
+    let d;
+    if (joinStart)
+      d = _move(0, 0) + _line(0, straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
+    else if (!_filletStart)
+      d = root._outline((u, v) => _move(u, v));
     else
+      d = root._outline((u, v) => _move(0, startFoot) + _line(u, v));
+    if (joinEnd && !straightJoins)
+      d += _line(alongLength, farV + R);
+    else if (!joinEnd && _filletEnd)
       d += _line(alongLength, endFoot);
-    d += _line(alongLength, 0) + _line(nE, 0);
-    if (nV > 0) {
-      const re = notchRoundEnd && nr > 0, rs = notchRoundStart && nr > 0;
-      d += _line(nE, nV - (re ? nr : 0));
-      if (re)
-        d += _arc(nr, true, nE - nr, nV);
-      d += _line(nU + (rs ? nr : 0), nV);
-      if (rs)
-        d += _arc(nr, true, nU, nV - nr);
-      d += _line(nU, 0);
-    }
-    return d + _line(0, 0) + "Z";
+    return d + _line(alongLength, 0) + _line(0, 0) + "Z";
   }
 
   // Stroke: the outline alone, open along the attach edge and on joined
   // ends, whose ends sit exactly on the strokes they continue
   readonly property string strokePath: width > 0 && height > 0 ? root._outline((u, v) => _move(u, v)) : ""
 
+  // The notch as a mask shape: square ends reach past the notch so only
+  // the rounded ones curve, and it overhangs the attach edge likewise
+  Item {
+    id: notchMask
+    anchors.fill: parent
+    visible: false
+    layer.enabled: root._notchV > 0
+
+    Rectangle {
+      readonly property real r: root._notchRadius
+      readonly property real u0: root._notchU - (root.notchRoundStart ? 0 : r)
+      readonly property real u1: root._notchEnd + (root.notchRoundEnd ? 0 : r)
+      readonly property rect area: root._rectFrom(u0, -r, u1 - u0, root._notchV + r)
+      x: area.x
+      y: area.y
+      width: area.width
+      height: area.height
+      radius: r
+      color: "black"
+    }
+  }
+
   SlideAnimation {
     id: slideContainer
     anchors.fill: parent
+
+    layer.enabled: root._notchV > 0
+    layer.effect: MultiEffect {
+      maskEnabled: true
+      maskInverted: true
+      maskSource: notchMask
+    }
 
     active: root.active
     slideFromRight: root.attachRight
