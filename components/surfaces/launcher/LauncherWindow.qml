@@ -12,6 +12,10 @@ PanelWindow {
   id: root
 
   property bool shown: false
+  // Whether this instance holds the focus grab, and the windows it lets
+  // input through to (see SurfaceGroup)
+  property bool ownsGrab: true
+  property var grabWindows: [root]
 
   function open(text) {
     panel.reset(text);
@@ -38,8 +42,8 @@ PanelWindow {
   WlrLayershell.namespace: "axiom-launcher"
 
   HyprlandFocusGrab {
-    active: root.shown
-    windows: [root]
+    active: root.shown && root.ownsGrab
+    windows: root.grabWindows
     onCleared: root.close()
   }
 

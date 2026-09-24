@@ -19,6 +19,11 @@ FocusScope {
   property bool shown: true
   // The row kept selected when the rows are rebuilt for the same text
   property int selected: 0
+  // Whether the pointer picks rows. Typing and keys turn it off, and only a
+  // real move turns it back on: rows rebuilt under a still pointer get a
+  // synthetic hover, which would otherwise select and highlight them
+  property bool pointerActive: false
+  property point _pointer: Qt.point(-1, -1)
 
   // Esc, or a row that closes the launcher
   signal closeRequested
@@ -37,10 +42,59 @@ FocusScope {
     LauncherManager.query(input.text);
     root.selected = 0;
     list.currentIndex = 0;
+    root.pointerActive = false;
+    root._pointer = Qt.point(-1, -1);
     input.forceActiveFocus();
   }
 
+  // The search is shared: a launcher open on another monitor (see
+  // SurfaceGroup) shows what's typed in this one
+  Connections {
+    target: LauncherManager
+    function onTextChanged() {
+      if (input.text === LauncherManager.text)
+        return;
+      input.text = LauncherManager.text;
+      input.cursorPosition = input.text.length;
+    }
+  }
+
+  // A row reports the pointer's scene position; it only selects once the
+  // pointer has moved since the last report
+  function pointerAt(index, pos) {
+    const moved = root._pointer.x >= 0 && (pos.x !== root._pointer.x || pos.y !== root._pointer.y);
+    root._pointer = pos;
+    if (!moved)
+      return;
+    root.pointerActive = true;
+    root.selected = index;
+    list.currentIndex = index;
+  }
+
+  function _syncRows() {
+    const count = LauncherManager.results.length;
+    if (rowModel.count > count)
+      rowModel.remove(count, rowModel.count - count);
+    while (rowModel.count < count)
+      rowModel.append({
+        row: 0
+      });
+    // A rebuild for the same text (a command that keeps the launcher open)
+    // keeps the selection
+    list.currentIndex = Math.max(0, Math.min(root.selected, count - 1));
+  }
+
+  Connections {
+    target: LauncherManager
+    function onResultsChanged() {
+      root._syncRows();
+    }
+  }
+
+  Component.onCompleted: _syncRows()
+
   function select(index) {
+    root.pointerActive = false;
     if (list.count === 0)
       return;
     root.selected = (index + list.count) % list.count;
@@ -113,7 +167,9 @@ FocusScope {
 
       onTextChanged: {
         root.selected = 0;
-        LauncherManager.query(text);
+        root.pointerActive = false;
+        if (text !== LauncherManager.text)
+          LauncherManager.query(text);
       }
 
       Keys.onPressed: event => {
@@ -238,19 +294,20 @@ FocusScope {
       highlightMoveDuration: Appearance.animFast
       highlightFollowsCurrentItem: true
       currentIndex: 0
-      model: LauncherManager.results
-      // A rebuild for the same text (a command that keeps the launcher
-      // open) keeps the selection
-      onModelChanged: currentIndex = Math.max(0, Math.min(root.selected, count - 1))
+      // One entry per row, grown and shrunk at the end, so the rows survive
+      // each keystroke and only their contents change (a new model would
+      // rebuild every row and fade the selection back in)
+      model: ListModel {
+        id: rowModel
+      }
 
       delegate: LauncherRow {
+        modelData: LauncherManager.results[index] ?? ({})
         width: ListView.view.width
         height: root.rowHeight
         current: ListView.isCurrentItem
-        onHovered: {
-          root.selected = index;
-          list.currentIndex = index;
-        }
+        pointerActive: root.pointerActive
+        onHovered: pos => root.pointerAt(index, pos)
         onClicked: {
           list.currentIndex = index;
           root.activate(false);

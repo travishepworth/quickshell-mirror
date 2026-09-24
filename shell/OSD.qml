@@ -32,7 +32,7 @@ Item {
     model: OSDConfig.enabled ? General.screensFor(OSDConfig.monitors) : []
 
     // One OSD per screen OSD.monitors puts it on; volume changes show it on
-    // the target screen (the focused one when on every monitor).
+    // the target screen (the focused one), or on all of them in "all" mode.
     // Hiding is the popout's own hover-aware dismiss timer.
     delegate: EdgePopout {
       id: root
@@ -54,11 +54,12 @@ Item {
       // exist while the OSD is closed
       keepLoaded: true
 
-      // Open (or keep open) on the focused screen; restarts the countdown
+      // Open (or keep open) on the target screen, or on every screen in
+      // "all" mode; restarts the countdown
       function poke(force) {
         if (root.isOpen)
           root.updateDismissTimer();
-        else if (force && ShellManager.isTarget(root.screen, OSDConfig.monitors))
+        else if (force && ShellManager.showsOn(root.screen, OSDConfig.monitors))
           root.show();
       }
 

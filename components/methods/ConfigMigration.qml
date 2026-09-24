@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 5
+  readonly property int currentVersion: 6
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -37,6 +37,8 @@ QtObject {
       result = _v3ToV4(result, changes);
     if (version < 5)
       result = _v4ToV5(result, changes);
+    if (version < 6)
+      result = _v5ToV6(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -126,6 +128,16 @@ QtObject {
         "type": "Settings"
       });
       changes.push("Overlay.views: Settings view added");
+    }
+    return config;
+  }
+
+  // v6 split General.monitors "all" (every monitor, opening on the focused
+  // one) into "focused" (that) and "all" (open on every monitor at once)
+  function _v5ToV6(config, changes) {
+    if (config.General?.monitors === "all") {
+      config.General.monitors = "focused";
+      changes.push("General.monitors: all -> focused");
     }
     return config;
   }

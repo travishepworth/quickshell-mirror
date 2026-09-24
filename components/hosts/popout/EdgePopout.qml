@@ -66,6 +66,12 @@ PopoutWrapperBase {
 
   property bool wantsKeyboardFocus: false
   property bool closeOnClickOutside: false
+  // Off leaves the focus grab to another window (see SurfaceGroup)
+  property bool grabEnabled: true
+  // Other windows the grab lets input through to
+  property var grabWindows: []
+  // The surface's window
+  readonly property var window: surfaceWindow
 
   property int connectorGap: Appearance.borderRadius * 2
 
@@ -171,8 +177,8 @@ PopoutWrapperBase {
 
     HyprlandFocusGrab {
       id: focusGrab
-      windows: [surfaceWindow]
-      active: surfaceWindow.visible && (root.wantsKeyboardFocus || root.closeOnClickOutside)
+      windows: [surfaceWindow].concat(root.grabWindows)
+      active: surfaceWindow.visible && root.grabEnabled && (root.wantsKeyboardFocus || root.closeOnClickOutside)
 
       onActiveChanged: {
         if (active)

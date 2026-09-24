@@ -100,10 +100,20 @@ PanelWindow {
     }
   }
 
+  // On every monitor, the instances open and close together
+  SurfaceGroup {
+    id: group
+    kind: "powermenu"
+    screen: root.screen
+    window: root
+    shown: root.shown
+    onSyncRequested: shown => root.shown = shown
+  }
+
   HyprlandFocusGrab {
     id: grab
-    active: root.shown
-    windows: [root]
+    active: root.shown && group.ownsGrab
+    windows: group.windows
     onCleared: root.shown = false
   }
 

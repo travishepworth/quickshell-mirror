@@ -145,6 +145,23 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
 
   // --- Queries ---
 
+  // Calls back with the name of the screen under the cursor (the focused
+  // monitor if hyprctl can't say). Asynchronous: one hyprctl call.
+  function withHoveredScreen(callback) {
+    _hoveredCallbacks.push(callback);
+    getCursorPos.running = true;
+  }
+
+  property var _hoveredCallbacks: []
+
+  function _screenAt(x, y) {
+    for (const screen of Quickshell.screens) {
+      if (x >= screen.x && x < screen.x + screen.width && y >= screen.y && y < screen.y + screen.height)
+        return screen.name;
+    }
+    return "";
+  }
+
   function activeWorkspaceId() {
     return Hyprland.focusedMonitor?.activeWorkspace?.id ?? 1;
   }
@@ -287,6 +304,21 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     } catch (e) {
       console.warn("[HyprlandManager] Could not parse hyprctl " + what + ":", e);
       return undefined;
+    }
+  }
+
+  Process {
+    id: getCursorPos
+    command: ["hyprctl", "cursorpos", "-j"]
+    stdout: StdioCollector {
+      id: cursorCollector
+      onStreamFinished: {
+        const pos = root._parse(cursorCollector.text, "cursorpos");
+        const name = (pos ? root._screenAt(pos.x, pos.y) : "") || (Hyprland.focusedMonitor?.name ?? General.primaryMonitor);
+        const callbacks = root._hoveredCallbacks;
+        root._hoveredCallbacks = [];
+        callbacks.forEach(callback => callback(name));
+      }
     }
   }
 

@@ -23,6 +23,9 @@ Scope {
   property string _openText: ""
 
   function open(text) {
+    // Searched first, so instances this opens on other monitors (see
+    // SurfaceGroup) show the same text
+    LauncherManager.query(text ?? "");
     if (!LauncherConfig.attached) {
       windowLoader.item?.open(text);
       return;
@@ -50,9 +53,20 @@ Scope {
       open("");
   }
 
+  // On every monitor, the instances open and close together
+  SurfaceGroup {
+    id: group
+    kind: "launcher"
+    mode: LauncherConfig.monitors
+    screen: root.screen
+    window: LauncherConfig.attached ? (edgeLoader.item?.window ?? null) : (windowLoader.item ?? null)
+    shown: root.shown
+    onSyncRequested: shown => shown ? root.open(LauncherManager.text) : root.close()
+  }
+
   Connections {
     target: ShellManager
-    enabled: ShellManager.isTarget(root.screen)
+    enabled: ShellManager.isTarget(root.screen, LauncherConfig.monitors)
     function onToggleAppLauncher() {
       root.toggle();
     }
@@ -68,7 +82,7 @@ Scope {
 
   IpcHandler {
     target: "appLauncher"
-    enabled: ShellManager.isTarget(root.screen)
+    enabled: ShellManager.isTarget(root.screen, LauncherConfig.monitors)
 
     function toggle(): void {
       root.toggle();
@@ -101,6 +115,8 @@ Scope {
 
     LauncherWindow {
       screen: root.screen
+      ownsGrab: group.ownsGrab
+      grabWindows: group.windows
     }
   }
 
@@ -116,6 +132,8 @@ Scope {
       triggerEnabled: false
       wantsKeyboardFocus: true
       closeOnClickOutside: true
+      grabEnabled: group.ownsGrab
+      grabWindows: group.windows.filter(w => w !== popout.window)
 
       content: Component {
         LauncherPanel {

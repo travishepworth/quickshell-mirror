@@ -6,7 +6,7 @@ import qs.config
 
 Scope {
   Variants {
-    model: General.screens
+    model: General.screensFor(LauncherConfig.monitors)
     delegate: Launcher {
       required property var modelData
       screen: modelData

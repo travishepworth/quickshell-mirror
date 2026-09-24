@@ -8,6 +8,7 @@ import Quickshell.Hyprland
 
 import qs.config
 import qs.services
+import qs.components.reusable
 import qs.components.views
 
 // TODO: build from a reusable fullscreen panel
@@ -136,11 +137,23 @@ PanelWindow {
     }
   }
 
+  // On every monitor, the instances open and close together
+  SurfaceGroup {
+    id: group
+    kind: "overlay"
+    mode: OverlayConfig.monitors
+    screen: root.screen
+    window: root
+    shown: root.isOpen
+    onSyncRequested: shown => shown ? root.open() : root.close()
+  }
+
   HyprlandFocusGrab {
     id: grab
-    active: root.visible
+    active: root.visible && group.ownsGrab
     // This screen's bars and their popouts stay usable while it's open
-    windows: [root].concat(ShellManager.grabPartnersFor(root.screen))
+    // (every screen's, and the other instances, when it's on all of them)
+    windows: group.windows.concat(ShellManager.grabPartnersFor(group.everywhere ? null : root.screen))
     onCleared: {
       if (!root.isOpen) {
         grab.active = true;

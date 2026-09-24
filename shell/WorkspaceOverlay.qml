@@ -16,19 +16,30 @@ Scope {
   objectName: "workspaceOverlay"
 
   property bool overlayVisible: false
-  // Screen it opens on, fixed when it opens
+  // Screen it opens on: the one under the cursor, fixed when it opens
   property string openScreen: ""
-  onOverlayVisibleChanged: {
-    if (overlayVisible) {
-      openScreen = ShellManager.targetScreen;
+
+  function open() {
+    if (root.overlayVisible)
+      return;
+    HyprlandManager.withHoveredScreen(name => {
+      root.openScreen = name;
+      root.overlayVisible = true;
       HyprlandManager.updateAll();
-    }
+    });
+  }
+
+  function toggle() {
+    if (root.overlayVisible)
+      root.overlayVisible = false;
+    else
+      root.open();
   }
 
   Connections {
     target: ShellManager
     function onToggleWorkspaceOverlay() {
-      root.overlayVisible = !root.overlayVisible;
+      root.toggle();
     }
   }
 
@@ -36,11 +47,11 @@ Scope {
     target: "workspaceOverlay"
 
     function toggle(): void {
-      root.overlayVisible = !root.overlayVisible;
+      root.toggle();
     }
 
     function show(): void {
-      root.overlayVisible = true;
+      root.open();
     }
 
     function hide(): void {
@@ -48,8 +59,10 @@ Scope {
     }
   }
 
+  // On every monitor, whatever General > Monitors says: it opens on the
+  // hovered one
   Variants {
-    model: General.screens
+    model: Quickshell.screens
 
     delegate: PanelWindow {
       id: overlayWindow

@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 5,
+      "default": 6,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -81,10 +81,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["primary", "all"],
-          "x-enumLabels": { "primary": "Primary monitor only", "all": "Every monitor" },
+          "enum": ["primary", "focused", "all"],
+          "x-enumLabels": { "primary": "Primary monitor only", "focused": "Focused monitor only", "all": "Every monitor" },
           "default": "primary",
-          "description": "Where the overlay, launcher, power menu, workspace overlay and OSD appear (the OSD and overlay can override this). On every monitor, shortcuts open them on the focused one."
+          "description": "Where the overlay, launcher, power menu and OSD appear (the OSD, overlay and launcher can override this). Focused monitor opens them on the one with your active workspace (and mouse); every monitor opens them on all of them at once. The workspace overview always opens on the monitor under the mouse."
         }
       }
     },
@@ -96,6 +96,14 @@
       "description": "The search launcher: apps, open windows, a calculator, web search, running commands, and / commands that control the shell.",
       "additionalProperties": false,
       "properties": {
+        "monitors": {
+          "type": "string",
+          "title": "Monitors",
+          "enum": ["general", "primaryBar", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "default": "general",
+          "description": "Where the launcher opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+        },
         "position": {
           "type": "string",
           "title": "Position",
@@ -370,10 +378,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor" },
+          "enum": ["general", "primaryBar", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where the OSD appears. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse)."
+          "description": "Where the OSD appears. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "edge": {
           "type": "string",
@@ -492,10 +500,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor" },
+          "enum": ["general", "primaryBar", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where the overlay opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse)."
+          "description": "Where the overlay opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "size": {
           "type": "integer",

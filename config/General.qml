@@ -14,12 +14,15 @@ QtObject {
   // Language for the shell's text, dates and clock (see I18n): "en" | "ja"
   readonly property string language: _c.language
   readonly property string primaryMonitor: _c.primaryMonitor || (Quickshell.screens[0]?.name ?? "")
-  // "primary" | "all": the screens the overlay, launcher, power menu,
-  // workspace overlay and OSD are built on
+  // "primary" | "focused" | "all": where the power menu (and the overlay,
+  // launcher and OSD, unless their own `monitors` says otherwise) appear:
+  // the primary monitor, the focused one, or every monitor at once (see
+  // ShellManager.showsOn). The workspace overlay is on every screen.
   readonly property string monitors: _c.monitors
+  // The screens they're built on
   readonly property var screens: {
     const all = Array.from(Quickshell.screens);
-    if (root.monitors === "all")
+    if (root.monitors !== "primary")
       return all;
     const primary = all.filter(s => s.name === root.primaryMonitor);
     return primary.length > 0 ? primary : all.slice(0, 1);
@@ -27,10 +30,11 @@ QtObject {
 
   // The screens a surface with its own `monitors` setting is built on:
   // "general" (the above) | "primaryBar" (the primary bar's monitor) |
-  // "focused" (every screen, opening on the focused one)
+  // "focused" (every screen, opening on the focused one) | "all" (every
+  // screen, opening on all of them)
   function screensFor(mode) {
     const all = Array.from(Quickshell.screens);
-    if (mode === "focused")
+    if (mode === "focused" || mode === "all")
       return all;
     if (mode === "primaryBar") {
       const primary = all.filter(s => s.name === Bar.primaryMonitor);

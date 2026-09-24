@@ -17,23 +17,62 @@ QtObject {
   // Opens the target overlay on a page (a view type, or a view's name)
   signal openOverlayPage(string type)
 
-  // The screen whose instance of a surface answers a shortcut or IPC call:
-  // the focused monitor when surfaces are on every monitor, else the one
-  // they're built on
-  readonly property string targetScreen: General.monitors === "all" ? (Hyprland.focusedMonitor?.name ?? General.primaryMonitor) : (General.screens[0]?.name ?? "")
-
-  // The target for a surface with its own `monitors` setting (see
-  // General.screensFor); "general" is targetScreen
-  function targetFor(mode) {
-    if (mode === "primaryBar")
-      return Bar.primaryMonitor;
-    if (mode === "focused")
-      return Hyprland.focusedMonitor?.name ?? General.primaryMonitor;
-    return targetScreen;
+  // A surface's `monitors` mode with "general" resolved: "primary" |
+  // "primaryBar" | "focused" | "all" (no mode is General's)
+  function modeFor(mode) {
+    return !mode || mode === "general" ? General.monitors : mode;
   }
 
+  // The screen whose instance of a surface answers a shortcut or IPC call
+  // and holds the keyboard: the focused monitor when it opens there or
+  // everywhere, else the one it's built on
+  function targetFor(mode) {
+    const resolved = modeFor(mode);
+    if (resolved === "primaryBar")
+      return Bar.primaryMonitor;
+    if (resolved === "focused" || resolved === "all")
+      return Hyprland.focusedMonitor?.name ?? General.primaryMonitor;
+    return General.screens[0]?.name ?? "";
+  }
+
+  // targetFor with General's mode
+  readonly property string targetScreen: targetFor("general")
+
   function isTarget(screen, mode) {
-    return !!screen && screen.name === (mode ? targetFor(mode) : targetScreen);
+    return !!screen && screen.name === targetFor(mode);
+  }
+
+  // Opens on every monitor at once (SurfaceGroup keeps the instances in step)
+  function everywhere(mode) {
+    return modeFor(mode) === "all";
+  }
+
+  // Whether a surface opened for its target also shows on `screen`
+  function showsOn(screen, mode) {
+    return !!screen && (everywhere(mode) || isTarget(screen, mode));
+  }
+
+  // Surfaces on every monitor at once act as one: each SurfaceGroup
+  // reports its instance opening or closing, and the others follow
+  signal surfaceShown(string kind, bool shown)
+
+  // `{ group, kind, window }`: each instance's window, which the one holding
+  // the focus grab lets input through to
+  property var surfaceWindows: []
+
+  function registerSurfaceWindow(group, kind, window) {
+    const others = surfaceWindows.filter(e => e.group !== group);
+    surfaceWindows = window ? others.concat([
+      {
+        group,
+        kind,
+        window
+      }
+    ]) : others;
+  }
+
+  function unregisterSurfaceWindow(group) {
+    surfaceWindows = surfaceWindows.filter(e => e.group !== group);
   }
 
   // Windows a full-screen surface's focus grab lets input through to on
@@ -54,8 +93,9 @@ QtObject {
     grabPartners = grabPartners.filter(p => p.window !== window);
   }
 
+  // Every screen's with no screen given
   function grabPartnersFor(screen) {
-    return grabPartners.filter(p => !!screen && p.screen === screen.name).map(p => p.window);
+    return grabPartners.filter(p => !screen || p.screen === screen.name).map(p => p.window);
   }
 
   // Session actions, shared by the power menu and the overlay's Session

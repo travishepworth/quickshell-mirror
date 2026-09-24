@@ -8,7 +8,7 @@ QtObject {
   readonly property var _c: ConfigManager.config.OSD
 
   readonly property bool enabled: _c.enabled
-  // "general" | "primaryBar" | "focused" (see General.screensFor)
+  // "general" | "primaryBar" | "focused" | "all" (see General.screensFor)
   readonly property string monitors: _c.monitors
   // A Bar.Location
   readonly property int edge: Bar.getLocationFromString(_c.edge)

@@ -11,11 +11,15 @@ import qs.config
 Item {
   id: root
 
-  required property var modelData
+  // Set by the launcher from LauncherManager.results[index]
+  property var modelData: ({})
   required property int index
   property bool current: false
+  // Off until the pointer really moves (see LauncherPanel.pointerAt)
+  property bool pointerActive: true
 
-  signal hovered
+  // The pointer's scene position
+  signal hovered(point pos)
   signal clicked
 
   readonly property bool _image: !!modelData.image
@@ -27,7 +31,7 @@ Item {
     anchors.leftMargin: 6
     anchors.rightMargin: 6
     radius: Appearance.borderRadius
-    color: root.current ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.14) : area.containsMouse ? Theme.backgroundHighlight : "transparent"
+    color: root.current ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.14) : area.containsMouse && root.pointerActive ? Theme.backgroundHighlight : "transparent"
     Behavior on color {
       ColorAnimation {
         duration: Appearance.animFast
@@ -56,7 +60,7 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onPositionChanged: root.hovered()
+    onPositionChanged: mouse => root.hovered(mapToItem(null, mouse.x, mouse.y))
     onClicked: root.clicked()
   }
 
@@ -112,7 +116,7 @@ Item {
 
         StyledText {
           Layout.fillWidth: usage.text === ""
-          text: root.modelData.title
+          text: root.modelData.title ?? ""
           textColor: root._titleColor
           font.weight: Font.Medium
           elide: Text.ElideRight
