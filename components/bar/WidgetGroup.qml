@@ -18,7 +18,10 @@ Item {
   property var popouts
   property var panel
   property var screen
-  property alias model: repeater.model
+  // The section's widgets (BarContainer.widgetModel entries). Modelled by
+  // count, so edits to a widget's options reach it in place instead of
+  // rebuilding every widget in the section.
+  property var widgets: []
 
   property int spacing: root.barConfig.spacing
   // Room the bar's section layout gives this group along the main axis
@@ -110,6 +113,7 @@ Item {
 
   Repeater {
     id: repeater
+    model: root.widgets.length
 
     onItemAdded: (index, item) => {
       const modules = root._modules.slice();
@@ -122,8 +126,12 @@ Item {
 
     delegate: BarWidgetHost {
       id: module
-      required property var modelData
       required property int index
+      readonly property var modelData: root.widgets[index] ?? {
+        "component": "",
+        "properties": {},
+        "layout": {}
+      }
 
       barConfig: root.barConfig
       properties: module.modelData.properties || {}

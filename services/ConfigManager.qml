@@ -21,6 +21,25 @@ QtObject {
   // overwritten before it is fixed. Restoring a saved config clears it.
   readonly property bool savesBlocked: _savesBlocked
 
+  // Unsaved edits an editor shows live, by top-level section ({ Bars: [...] }).
+  // Readers of that section prefer them to `config`; they're never merged
+  // into it or saved, so other saves and reloads from disk leave them alone.
+  readonly property var previews: _previews
+
+  function setPreview(section, value) {
+    const previews = Object.assign({}, root._previews);
+    previews[section] = JSON.parse(JSON.stringify(value ?? null));
+    root._previews = previews;
+  }
+
+  function clearPreview(section) {
+    if (!(section in root._previews))
+      return;
+    const previews = Object.assign({}, root._previews);
+    delete previews[section];
+    root._previews = previews;
+  }
+
   /**
      * @brief Requests a change to the current theme.
      * This is the official way to change the theme. It updates the internal
@@ -153,6 +172,7 @@ QtObject {
   property var _configSchema: _loadSchema()
   property var _config: _initialConfig(_loadSchema())
   property bool _savesBlocked: false
+  property var _previews: ({})
   // Whether the running config came from config.json (vs schema defaults)
   property bool _haveFileConfig: false
 

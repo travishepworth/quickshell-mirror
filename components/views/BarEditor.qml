@@ -5,105 +5,42 @@ import qs.config
 import qs.services
 import qs.components.views.barEditor
 
-// Arranges the Bar Editor's 3 columns (settings, modules, preview) so the
-// preview sits where the real bar would sit relative to the other two:
-// to the left/right of them for a Left/Right bar, above/below them for a
-// Top/Bottom bar.
+// The bar editor page: the bars and the selected one's settings on the
+// left; its sections (drag widgets within and between them) above the
+// selected widget's options (or the widget library) on the right. Edits go
+// through BarManager's draft and show live on the running bars.
 BaseView {
   id: root
 
-  readonly property string location: BarManager.selectedBar()?.location || "Top"
+  readonly property real pageHeight: root.grid.span(4)
+  readonly property real halfHeight: (root.pageHeight - OverlayConfig.cardSpacing) / 2
 
-  Loader {
-    sourceComponent: {
-      switch (root.location) {
-      case "Left":
-        return leftLayout;
-      case "Right":
-        return rightLayout;
-      case "Bottom":
-        return bottomLayout;
-      default:
-        return topLayout;
-      }
-    }
+  Component.onCompleted: BarManager.ensureLoaded()
+
+  BarsPanel {
+    implicitWidth: root.grid.unit * 0.8
+    implicitHeight: root.pageHeight
   }
 
-  Component {
-    id: leftLayout
-    RowLayout {
-      spacing: OverlayConfig.cardSpacing
-      BarPreview {
-        Layout.fillHeight: true
-      }
-      BarFieldsPanel {
-        implicitWidth: root.grid.unit
-        implicitHeight: root.grid.span(4)
-      }
-      BarWidgetsPanel {
-        implicitWidth: root.grid.unit
-        implicitHeight: root.grid.span(4)
-      }
-    }
-  }
+  DragLayer {
+    id: dragLayer
+    implicitWidth: root.grid.unit * 1.8
+    implicitHeight: root.pageHeight
 
-  Component {
-    id: rightLayout
-    RowLayout {
-      spacing: OverlayConfig.cardSpacing
-      BarFieldsPanel {
-        implicitWidth: root.grid.unit
-        implicitHeight: root.grid.span(4)
-      }
-      BarWidgetsPanel {
-        implicitWidth: root.grid.unit
-        implicitHeight: root.grid.span(4)
-      }
-      BarPreview {
-        Layout.fillHeight: true
-      }
+    SectionsBoard {
+      x: 0
+      y: 0
+      width: dragLayer.width
+      height: root.halfHeight
+      dragLayer: dragLayer
     }
-  }
 
-  Component {
-    id: topLayout
-    ColumnLayout {
-      spacing: OverlayConfig.cardSpacing
-      BarPreview {
-        Layout.fillWidth: true
-      }
-      RowLayout {
-        spacing: OverlayConfig.cardSpacing
-        BarFieldsPanel {
-          implicitWidth: root.grid.unit
-          implicitHeight: root.grid.span(4)
-        }
-        BarWidgetsPanel {
-          implicitWidth: root.grid.unit
-          implicitHeight: root.grid.span(4)
-        }
-      }
-    }
-  }
-
-  Component {
-    id: bottomLayout
-    ColumnLayout {
-      spacing: OverlayConfig.cardSpacing
-      RowLayout {
-        spacing: OverlayConfig.cardSpacing
-        BarFieldsPanel {
-          implicitWidth: root.grid.unit
-          implicitHeight: root.grid.span(4)
-        }
-        BarWidgetsPanel {
-          implicitWidth: root.grid.unit
-          implicitHeight: root.grid.span(4)
-        }
-      }
-      BarPreview {
-        Layout.fillWidth: true
-      }
+    WidgetInspector {
+      x: 0
+      y: root.halfHeight + OverlayConfig.cardSpacing
+      width: dragLayer.width
+      height: root.halfHeight
+      dragLayer: dragLayer
     }
   }
 }

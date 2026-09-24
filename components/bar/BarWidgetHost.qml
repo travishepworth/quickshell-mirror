@@ -58,7 +58,7 @@ Item {
   }
   readonly property int priority: layoutOverrides?.priority ?? _item?.priority ?? 0
 
-  // Assigned by WidgetGroup; standalone hosts (e.g. editor previews) just
+  // Assigned by WidgetGroup; standalone hosts just
   // get their preferred size
   property real mainSize: preferredSize
 
@@ -77,7 +77,7 @@ Item {
 
   // Created with its inputs already set, so the module's own bindings
   // never see them undefined; bound afterwards so later changes (e.g. edits
-  // in the bar editor's preview) reach it
+  // live in the bar editor) reach it
   function _load() {
     contentLoader.setSource(root.componentPath, {
       "barConfig": root.barConfig,

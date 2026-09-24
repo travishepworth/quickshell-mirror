@@ -68,8 +68,9 @@ QtObject {
     };
   }
 
-  // The first entry in Bars is the primary bar
-  readonly property var bars: ConfigManager.config.Bars.map((bar, i) => Bar.enrichBarConfig(bar, i))
+  // The first entry in Bars is the primary bar. While the bar editor has
+  // unsaved edits, the running bars show those.
+  readonly property var bars: (ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map((bar, i) => Bar.enrichBarConfig(bar, i))
 
   readonly property var availableWidgetTypes: {
     const oneOf = ConfigManager.configSchema?.definitions?.BarWidget?.oneOf || [];

@@ -324,7 +324,7 @@ Rectangle {
     bar: root
     slotIndex: 0
     align: 0
-    model: root.widgetModel(root.barConfig.widgets?.left)
+    widgets: root.widgetModel(root.barConfig.widgets?.left)
   }
 
   Section {
@@ -332,7 +332,7 @@ Rectangle {
     bar: root
     slotIndex: 1
     align: 1
-    model: root.widgetModel(root.barConfig.widgets?.leftCenter)
+    widgets: root.widgetModel(root.barConfig.widgets?.leftCenter)
   }
 
   Section {
@@ -340,7 +340,7 @@ Rectangle {
     bar: root
     slotIndex: 2
     align: 0.5
-    model: root.widgetModel(root.barConfig.widgets?.center)
+    widgets: root.widgetModel(root.barConfig.widgets?.center)
   }
 
   Section {
@@ -348,7 +348,7 @@ Rectangle {
     bar: root
     slotIndex: 3
     align: 0
-    model: root.widgetModel(root.barConfig.widgets?.rightCenter)
+    widgets: root.widgetModel(root.barConfig.widgets?.rightCenter)
   }
 
   Section {
@@ -356,6 +356,6 @@ Rectangle {
     bar: root
     slotIndex: 4
     align: 1
-    model: root.widgetModel(root.barConfig.widgets?.right)
+    widgets: root.widgetModel(root.barConfig.widgets?.right)
   }
 }

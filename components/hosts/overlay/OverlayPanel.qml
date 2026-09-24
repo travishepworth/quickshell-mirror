@@ -114,6 +114,12 @@ PanelWindow {
     function toggle() {
       root.toggle();
     }
+
+    // Opens on a page by view type (e.g. "BarEditor", "Themes")
+    function page(type: string) {
+      root.open();
+      ShellManager.showOverlayPage(type);
+    }
   }
 
   HyprlandFocusGrab {
