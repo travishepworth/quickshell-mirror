@@ -744,6 +744,10 @@
     "Horiz 1x1": "横 1x1",
     "Horiz 1x2": "横 1x2",
     "Horiz 2x1": "横 2x1",
-    "Doesn't fit here": "ここには合いません"
+    "Doesn't fit here": "ここには合いません",
+    "Line up along the edge": "端に沿って並べる",
+    "Place the bars in one line along the screen edge instead of stacking them by orientation. Bars that run along the edge then sit end to end, so the OSD is longer but sticks out less.": "向きに応じて積み重ねる代わりに、バーを画面の端に沿って一列に並べます。端と平行なバーは一直線につながるため、OSD は長くなりますが、はみ出しは少なくなります。",
+    "Open on hover": "ホバーで開く",
+    "Also open the OSD when the mouse touches the screen edge where it appears.": "OSD が表示される画面の端にマウスが触れたときにも開きます。"
   }
 }

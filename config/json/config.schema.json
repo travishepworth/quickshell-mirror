@@ -362,6 +362,18 @@
           "enum": ["Vertical", "Horizontal"],
           "description": "Vertical bars sit side by side; horizontal bars stack as rows."
         },
+        "alongEdge": {
+          "type": "boolean",
+          "title": "Line up along the edge",
+          "default": false,
+          "description": "Place the bars in one line along the screen edge instead of stacking them by orientation. Bars that run along the edge then sit end to end, so the OSD is longer but sticks out less."
+        },
+        "openOnHover": {
+          "type": "boolean",
+          "title": "Open on hover",
+          "default": false,
+          "description": "Also open the OSD when the mouse touches the screen edge where it appears."
+        },
         "timeout": {
           "type": "integer",
           "title": "Timeout (ms)",

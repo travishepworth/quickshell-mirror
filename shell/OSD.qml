@@ -41,7 +41,14 @@ Item {
       screen: modelData
       edge: OSDConfig.edge
       position: OSDConfig.position
-      triggerEnabled: false
+      triggerEnabled: OSDConfig.openOnHover
+      // The strip spans the OSD's own length along the edge
+      triggerLength: {
+        const item = root.contentItem;
+        if (!item)
+          return 200;
+        return root.vertical ? item.implicitHeight : item.implicitWidth;
+      }
       dismissDelay: OSDConfig.timeout
       // The volume bars inside also report per-app changes, so they must
       // exist while the OSD is closed
@@ -79,8 +86,11 @@ Item {
             id: grid
             anchors.fill: parent
             anchors.margins: box.margin
-            // Vertical bars side by side, horizontal bars as rows
-            flow: OSDConfig.vertical ? GridLayout.LeftToRight : GridLayout.TopToBottom
+            // Vertical bars side by side, horizontal bars as rows; or,
+            // along the edge, one line parallel to it (end to end when the
+            // bars run along it too)
+            readonly property bool rowFlow: OSDConfig.alongEdge ? !root.vertical : OSDConfig.vertical
+            flow: rowFlow ? GridLayout.LeftToRight : GridLayout.TopToBottom
             columnSpacing: osdRoot.barSpacing
             rowSpacing: osdRoot.barSpacing
 

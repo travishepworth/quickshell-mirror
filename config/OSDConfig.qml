@@ -15,6 +15,10 @@ QtObject {
   // 0-1 along the edge, as EdgePopout.position expects
   readonly property real position: _c.position / 100
   readonly property bool vertical: _c.orientation === "Vertical"
+  // Bars in one line along the edge, whatever their orientation
+  readonly property bool alongEdge: _c.alongEdge
+  // The edge trigger strip also opens it
+  readonly property bool openOnHover: _c.openOnHover
   readonly property int timeout: _c.timeout
   // [{ app, icon, showOsd }]; see the schema for the "other"/"master"
   // sentinels. Goes through a string so a reload that leaves the list
