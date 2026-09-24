@@ -15,6 +15,7 @@ IconTextWidget {
   property var properties
 
   isVertical: barConfig.vertical
+  crossSize: barConfig.widgetSize
   backgroundColor: Theme.resolveColor(properties.backgroundColor)
   foregroundColor: Theme.resolveColor(properties.foregroundColor)
 }

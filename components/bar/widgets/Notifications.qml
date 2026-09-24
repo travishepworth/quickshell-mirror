@@ -17,8 +17,8 @@ Item {
   property var screen
   property var properties
 
-  implicitWidth: Widget.height
-  implicitHeight: Widget.height
+  implicitWidth: root.barConfig.widgetSize
+  implicitHeight: root.barConfig.widgetSize
 
   StyledRectButton {
     id: button

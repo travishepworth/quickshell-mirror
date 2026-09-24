@@ -6,12 +6,8 @@ import QtQuick
  * config/json/config.schema.json). Pure functions only: ConfigManager runs
  * migrate() on load, then writes the result back once.
  *
- * The version history was reset: the current layout is version 1, so there
- * are no steps yet. When the layout changes, bump currentVersion (and the
- * schema's version default) and add a step to migrate():
- *
- *   if (version < 2)
- *     result = _v1ToV2(result, secrets, changes);
+ * When the layout changes, bump currentVersion (and the schema's version
+ * default) and add a step to migrate(), like _v1ToV2.
  *
  * Secrets (chat API keys) found in a config belong in `secrets`, so they
  * never get written back into config.json.
@@ -19,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 1
+  readonly property int currentVersion: 3
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -33,11 +29,47 @@ QtObject {
     const changes = [];
     const version = result.version ?? 1;
 
+    if (version < 2)
+      result = _v1ToV2(result, changes);
+    if (version < 3)
+      result = _v2ToV3(result, changes);
+    result.version = Math.max(version, root.currentVersion);
+
     return {
       config: result,
       secrets: secrets,
       changes: changes,
       migrated: version < root.currentVersion
     };
+  }
+
+  // v2 added a standard "Workspaces" bar widget; until then that name was
+  // the 5x5 grid, now "WorkspaceGrid"
+  function _v1ToV2(config, changes) {
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      const widgets = bar?.widgets ?? {};
+      Object.keys(widgets).forEach(section => {
+        (widgets[section] ?? []).forEach(widget => {
+          if (widget?.type !== "Workspaces")
+            return;
+          widget.type = "WorkspaceGrid";
+          changes.push(`Bars[${barIndex}].widgets.${section}: Workspaces -> WorkspaceGrid`);
+        });
+      });
+    });
+    return config;
+  }
+
+  // v3 sizes bar widgets from their bar (extent minus 2 * inset) instead of
+  // Widget.height; each bar's inset keeps its widgets the size they were
+  function _v2ToV3(config, changes) {
+    const widgetHeight = config.Widget?.height ?? 30;
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      if (!bar || bar.inset !== undefined)
+        return;
+      bar.inset = Math.max(0, Math.floor(((bar.extent ?? 30) - widgetHeight) / 2));
+      changes.push(`Bars[${barIndex}].inset = ${bar.inset}`);
+    });
+    return config;
   }
 }

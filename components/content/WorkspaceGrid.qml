@@ -17,7 +17,8 @@ Item {
   property int workspaceBase: wrapper.currentData?.workspaceBase ?? 1
   property int activeWorkspaceId: wrapper.currentData?.activeId ?? 1
   property int currentColumn: ((activeWorkspaceId - workspaceBase) % 5)
-  readonly property int cell: (Widget.height && Widget.height > 0) ? Widget.height : 28
+  // Cells match the bar widget's, so the grid is the bar row expanded
+  readonly property int cell: wrapper.currentData?.cellSize ?? Widget.height
 
   property alias hovered: hoverHandler.hovered
 
@@ -37,8 +38,8 @@ Item {
     visible: true
 
     // 5 columns × widget height + spacing
-    width: 5 * Widget.height + 4 * 6
-    height: 5 * Widget.height + 4 * 6
+    width: 5 * root.cell + 4 * 6
+    height: 5 * root.cell + 4 * 6
 
     color: Theme.background
     border.color: Theme.backgroundAlt
@@ -74,8 +75,8 @@ Item {
           readonly property bool showIcons: PopoutConfig.workspaceIcons
           property bool hovered: false
 
-          Layout.preferredWidth: Widget.height
-          Layout.preferredHeight: Widget.height
+          Layout.preferredWidth: root.cell
+          Layout.preferredHeight: root.cell
 
           property var windowData: HyprlandManager.biggestWindowForWorkspace(wsId)
           property var iconPath: IconResolver.resolveWindowIcon(windowData?.class, windowData?.title)

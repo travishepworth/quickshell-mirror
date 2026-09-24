@@ -58,8 +58,8 @@ Item {
     }
   }
 
-  implicitWidth: isVertical ? Widget.height : usedLength
-  implicitHeight: isVertical ? usedLength : Widget.height
+  implicitWidth: isVertical ? root.barConfig.widgetSize : usedLength
+  implicitHeight: isVertical ? usedLength : root.barConfig.widgetSize
 
   // Total length of the given sizes laid end to end. Zero-sized entries
   // (hidden, or modules with nothing to show) take no spacing.

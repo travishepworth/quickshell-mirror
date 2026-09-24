@@ -21,14 +21,14 @@ Item {
   readonly property string sizePolicy: "fixed"
   readonly property real preferredSize: properties.size
 
-  implicitWidth: isVertical ? Widget.height : properties.size
-  implicitHeight: isVertical ? properties.size : Widget.height
+  implicitWidth: isVertical ? root.barConfig.widgetSize : properties.size
+  implicitHeight: isVertical ? properties.size : root.barConfig.widgetSize
 
   // Across the bar, so it divides the modules on either side
   Rectangle {
     visible: root.properties.style === "line"
     anchors.centerIn: parent
-    readonly property real span: Widget.height * root.properties.length / 100
+    readonly property real span: root.barConfig.widgetSize * root.properties.length / 100
     width: root.isVertical ? span : root.properties.thickness
     height: root.isVertical ? root.properties.thickness : span
     radius: root.properties.thickness / 2

@@ -28,8 +28,8 @@ Item {
 
   readonly property int priority: 5
 
-  implicitWidth: isVertical ? Widget.height : (layoutLoader.item ? layoutLoader.item.implicitWidth + Widget.padding * 2 : 0)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Widget.padding * 2 : 0) : Widget.height
+  implicitWidth: isVertical ? root.barConfig.widgetSize : (layoutLoader.item ? layoutLoader.item.implicitWidth + Widget.padding * 2 : 0)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Widget.padding * 2 : 0) : root.barConfig.widgetSize
 
   SystemClock {
     id: clock

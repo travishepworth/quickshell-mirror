@@ -30,8 +30,8 @@ BaseWidget {
   readonly property real _iconLength: _hasIcon ? (isVertical ? iconLabel.implicitHeight : iconLabel.implicitWidth) : 0
   readonly property real _naturalLength: _iconLength + _gap + (_hasText ? textLabel.implicitWidth : 0)
 
-  implicitWidth: isVertical ? Widget.height : _naturalLength + padding * 2
-  implicitHeight: isVertical ? _naturalLength + padding * 2 : Widget.height
+  implicitWidth: isVertical ? root.crossSize : _naturalLength + padding * 2
+  implicitHeight: isVertical ? _naturalLength + padding * 2 : root.crossSize
 
   // Centered run of icon + label, at most the space inside the padding
   Item {

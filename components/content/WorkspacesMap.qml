@@ -86,7 +86,7 @@ Card {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          onClicked: Hyprland.dispatch(`workspace ${tile.modelData}`)
+          onClicked: HyprlandManager.gotoWorkspace(tile.modelData)
         }
       }
     }

@@ -19,7 +19,7 @@ import qs.components.bar.widgets
 //
 // The widget's `layout` config (`layoutOverrides`) wins over the module's
 // own values. The host's main-axis size (`mainSize`) is assigned by
-// WidgetGroup; the cross axis is always Widget.height. Modules must fit
+// WidgetGroup; the cross axis is the bar's widgetSize. Modules must fit
 // their content to whatever size they're given and report their natural
 // size through implicitWidth/implicitHeight, independent of that size.
 Item {
@@ -70,10 +70,10 @@ Item {
   opacity: shown ? 1 : 0
   enabled: shown
 
-  implicitWidth: isVertical ? Widget.height : preferredSize
-  implicitHeight: isVertical ? preferredSize : Widget.height
-  width: isVertical ? Widget.height : mainSize
-  height: isVertical ? mainSize : Widget.height
+  implicitWidth: isVertical ? root.barConfig.widgetSize : preferredSize
+  implicitHeight: isVertical ? preferredSize : root.barConfig.widgetSize
+  width: isVertical ? root.barConfig.widgetSize : mainSize
+  height: isVertical ? mainSize : root.barConfig.widgetSize
 
   // Created with its inputs already set, so the module's own bindings
   // never see them undefined; bound afterwards so later changes (e.g. edits

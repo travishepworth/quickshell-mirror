@@ -21,6 +21,9 @@ QtObject {
       "enabled": barConfig.enabled,
       "monitor": barConfig.monitor,
       "extent": barConfig.extent,
+      "inset": barConfig.inset ?? 0,
+      // Thickness of the bar's widgets, so they always fit inside it
+      "widgetSize": Math.max(0, barConfig.extent - 2 * (barConfig.inset ?? 0)),
       "spacing": barConfig.spacing,
       "lockCenter": barConfig.lockCenter,
       "location": loc,

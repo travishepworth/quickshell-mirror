@@ -41,6 +41,11 @@ Singleton {
     Quickshell.execDetached([Paths.hyprlandPath + "scripts/gotoWorkspace.sh", String(index)]);
   }
 
+  // Plain switch to a workspace by id (the standard Workspaces widget)
+  function gotoWorkspace(id) {
+    Hyprland.dispatch(`hl.dsp.focus({ workspace = ${id} })`);
+  }
+
   // --- Queries ---
 
   function activeWorkspaceId() {

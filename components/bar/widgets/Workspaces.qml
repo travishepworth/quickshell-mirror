@@ -1,11 +1,15 @@
+pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import Quickshell.Hyprland
 
 import qs.services
 import qs.config
-import qs.components.hosts.popout
+import qs.components.methods
+import qs.components.reusable
 
+// Workspaces 1..count in a row (horizontal bar) or column (vertical bar);
+// click one to go there, scroll to step through them. The 5x5 grid
+// switcher is WorkspaceGrid.
 Item {
   id: root
   property var screen
@@ -14,65 +18,35 @@ Item {
   property var barConfig
   property var properties
 
-  property bool isVertical: barConfig.vertical
-
-  readonly property color activeColor: Theme.resolveColor(properties.activeColor)
-  readonly property color inactiveColor: Theme.resolveColor(properties.occupiedColor)
-  readonly property color emptyColor: Theme.resolveColor(properties.emptyColor)
-  readonly property color iconColor: Theme.resolveColor(properties.iconColor)
-
-  property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
-
-  // Base ID for this monitor's 25-workspace range - calculate from monitor index
-  readonly property int workspaceBase: {
-    if (!monitor)
-      return 1;
-
-    const monitors = Hyprland.monitors.values;
-    for (let i = 0; i < monitors.length; i++) {
-      if (monitors[i].id === monitor.id) {
-        return i * 25 + 1;
-      }
-    }
-    return 1;
-  }
-
-  // Get workspaces for THIS monitor only
-  readonly property var monitorWorkspaces: {
-    if (!monitor)
-      return [];
-
-    const all = Hyprland.workspaces.values;
-    const filtered = [];
-    for (let i = 0; i < all.length; i++) {
-      if (all[i].monitor && all[i].monitor.id === monitor.id) {
-        filtered.push(all[i].id);
-      }
-    }
-    filtered.sort((a, b) => a - b);
-    return filtered;
-  }
-
-  // Dynamic group calculation based on orientation
-  readonly property int groupBase: {
-    if (!monitor || !monitor.activeWorkspace)
-      return 1;
-
-    const id = monitor.activeWorkspace.id;
-    const relativeId = id - workspaceBase + 1;
-
-    if (isVertical) {
-      return ((relativeId - 1) % 5) + 1;
-    } else {
-      return Math.floor((relativeId - 1) / 5) * 5 + 1;
-    }
-  }
-
-  readonly property int groupSize: 5
+  readonly property bool isVertical: barConfig.vertical
   readonly property int priority: 10
 
-  implicitWidth: isVertical ? Widget.height : (groupSize * Widget.height + (groupSize - 1) * 6)
-  implicitHeight: isVertical ? (groupSize * Widget.height + (groupSize - 1) * 6) : Widget.height
+  readonly property color activeColor: Theme.resolveColor(properties.activeColor)
+  readonly property color occupiedColor: Theme.resolveColor(properties.occupiedColor)
+  readonly property color emptyColor: Theme.resolveColor(properties.emptyColor)
+  readonly property color textColor: Theme.resolveColor(properties.textColor)
+
+  readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
+  readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
+
+  // A string, so the cells are only rebuilt when the set of workspaces
+  // shown changes, not on every Hyprland event
+  readonly property string _idsKey: {
+    const ids = [];
+    for (let id = 1; id <= root.properties.count; id++) {
+      const ws = root.wsById(id);
+      if (root.properties.monitorOnly && ws?.monitor && root.monitor && ws.monitor.id !== root.monitor.id)
+        continue;
+      if (!root.properties.showEmpty && id !== root.activeId && !root.hasWindows(ws))
+        continue;
+      ids.push(id);
+    }
+    return ids.join(",");
+  }
+  readonly property var ids: root._idsKey === "" ? [] : root._idsKey.split(",").map(Number)
+
+  implicitWidth: cells.implicitWidth
+  implicitHeight: cells.implicitHeight
 
   function wsById(id) {
     const arr = Hyprland.workspaces.values;
@@ -83,130 +57,100 @@ Item {
     return null;
   }
 
-  function formatIconVertical(relativeIndex) {
-    const col = (relativeIndex - 1) % 5;
-    switch (col) {
-    case 0:
-      return "";
-    case 1:
-      return "";
-    case 2:
-      return "";
-    case 3:
-      return "";
-    case 4:
-      return "";
-    default:
-      return "";
+  function hasWindows(ws) {
+    return (ws?.toplevels?.values?.length ?? 0) > 0;
+  }
+
+  // Next/previous shown workspace, wrapping at the ends
+  function step(direction) {
+    if (root.ids.length === 0)
+      return;
+    const current = root.ids.indexOf(root.activeId);
+    const next = current < 0 ? (direction > 0 ? 0 : root.ids.length - 1) : (current + direction + root.ids.length) % root.ids.length;
+    HyprlandManager.gotoWorkspace(root.ids[next]);
+  }
+
+  WheelHandler {
+    enabled: root.properties.scrollToSwitch
+    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+    property real _accumulated: 0
+    onWheel: event => {
+      _accumulated += event.angleDelta.y !== 0 ? event.angleDelta.y : event.angleDelta.x;
+      if (Math.abs(_accumulated) < 120)
+        return;
+      root.step(_accumulated > 0 ? -1 : 1);
+      _accumulated = 0;
     }
   }
 
-  function formatIconHorizontal(relativeIndex) {
-    const row = Math.floor((relativeIndex - 1) / 5);
-    switch (row) {
-    case 0:
-      return "";
-    case 1:
-      return "";
-    case 2:
-      return "";
-    case 3:
-      return "";
-    case 4:
-      return "";
-    default:
-      return "";
-    }
-  }
+  Grid {
+    id: cells
+    anchors.centerIn: parent
+    flow: root.isVertical ? Grid.TopToBottom : Grid.LeftToRight
+    rows: root.isVertical ? Math.max(1, root.ids.length) : 1
+    columns: root.isVertical ? 1 : Math.max(1, root.ids.length)
+    spacing: Widget.spacing / 2
 
-  Item {
-    id: clippedContainer
-    anchors.fill: parent
-    clip: true
+    Repeater {
+      model: root.ids.length
 
-    GridLayout {
-      id: mainGrid
-      columns: 5
-      rows: 5
-      columnSpacing: 6
-      rowSpacing: 6
+      Rectangle {
+        id: cell
+        required property int index
+        readonly property int wsId: root.ids[index] ?? 0
+        readonly property HyprlandWorkspace ws: root.wsById(wsId)
+        readonly property bool isActive: wsId === root.activeId
+        readonly property bool occupied: root.hasWindows(ws)
+        readonly property real length: root.barConfig.widgetSize * (isActive && root.properties.wideActive ? 2 : 1)
+        readonly property var biggestWindow: root.properties.showAppIcons && occupied ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+        readonly property string iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
 
-      x: {
-        if (isVertical) {
-          const columnIndex = groupBase - 1;
-          return -(columnIndex * (Widget.height + 6));
+        width: root.isVertical ? root.barConfig.widgetSize : length
+        height: root.isVertical ? length : root.barConfig.widgetSize
+        radius: Appearance.borderRadius
+        color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : occupied ? root.occupiedColor : root.emptyColor
+
+        Image {
+          anchors.centerIn: parent
+          width: root.barConfig.widgetSize * 0.65
+          height: width
+          sourceSize: Qt.size(64, 64)
+          source: cell.iconPath
+          visible: cell.iconPath !== ""
         }
-        return 0;
-      }
 
-      y: {
-        if (!isVertical) {
-          const rowIndex = Math.floor((groupBase - 1) / 5);
-          return -(rowIndex * (Widget.height + 6));
+        StyledText {
+          anchors.centerIn: parent
+          visible: root.properties.labels === "numbers" && cell.iconPath === ""
+          text: cell.wsId
+          textColor: cell.isActive || cell.occupied ? root.textColor : Theme.foreground
+          textSize: Appearance.fontSize - 1
         }
-        return 0;
-      }
 
-      Repeater {
-        model: 25
-        delegate: workspaceDelegate
-      }
-    }
-  }
-
-  PopoutAnchor {
-    id: anchor
-    popouts: root.popouts
-    panel: root.panel
-    popoutName: "WorkspaceGrid"
-    active: root.properties.showPopout
-    extraData: ({
-        monitor: root.monitor,
-        workspaceBase: root.workspaceBase,
-        activeId: root.monitor?.activeWorkspace?.id ?? root.workspaceBase
-      })
-  }
-
-  Component {
-    id: workspaceDelegate
-    Rectangle {
-      readonly property int relativeIndex: index + 1
-      readonly property int realId: root.workspaceBase + index
-      readonly property HyprlandWorkspace ws: root.wsById(realId)
-      readonly property bool isActive: root.monitor && root.monitor.activeWorkspace && root.monitor.activeWorkspace.id === realId
-      readonly property bool hasWindows: ws && ws.toplevels && ws.toplevels.values.length > 0
-
-      Layout.preferredWidth: Widget.height
-      Layout.preferredHeight: Widget.height
-
-      radius: Appearance.borderRadius
-      color: isActive ? root.activeColor : hasWindows ? root.inactiveColor : root.emptyColor
-
-      Text {
-        anchors.centerIn: parent
-        text: root.isVertical ? root.formatIconVertical(relativeIndex) : root.formatIconHorizontal(relativeIndex)
-        font.family: Appearance.fontFamily
-        font.pixelSize: Appearance.fontSize * 1.2
-        visible: isActive && root.properties.showActiveIcon
-        color: root.iconColor
-      }
-
-      Behavior on color {
-        ColorAnimation {
-          duration: Appearance.animFast
+        MouseArea {
+          id: cellArea
+          anchors.fill: parent
+          enabled: root.properties.clickToSwitch
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: HyprlandManager.gotoWorkspace(cell.wsId)
         }
-      }
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Appearance.animNormal
-        }
-      }
 
-      MouseArea {
-        anchors.fill: parent
-        onClicked: {
-          if (Hyprland.dispatch) {
-            Hyprland.dispatch("workspace", realId.toString());
+        Behavior on width {
+          NumberAnimation {
+            duration: Appearance.animFast
+            easing.type: Easing.OutCubic
+          }
+        }
+        Behavior on height {
+          NumberAnimation {
+            duration: Appearance.animFast
+            easing.type: Easing.OutCubic
+          }
+        }
+        Behavior on color {
+          ColorAnimation {
+            duration: Appearance.animFast
           }
         }
       }

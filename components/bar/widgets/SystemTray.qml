@@ -27,8 +27,8 @@ Item {
   property color backgroundBorderColor: "transparent"
   property real backgroundBorderWidth: 0
 
-  implicitWidth: isVertical ? Widget.height : (layoutLoader.item ? layoutLoader.item.implicitWidth + leftPadding + rightPadding : 0)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + topPadding + bottomPadding : 0) : Widget.height
+  implicitWidth: isVertical ? root.barConfig.widgetSize : (layoutLoader.item ? layoutLoader.item.implicitWidth + leftPadding + rightPadding : 0)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + topPadding + bottomPadding : 0) : root.barConfig.widgetSize
 
   Rectangle {
     anchors.fill: parent

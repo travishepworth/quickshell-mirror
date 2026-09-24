@@ -33,6 +33,7 @@ Item {
     anchors.fill: parent
 
     isVertical: root.isVertical
+    crossSize: root.barConfig.widgetSize
 
     icon: MediaManager.isPlaying ? "♪" : "⏸"
     text: root.formatTrack()

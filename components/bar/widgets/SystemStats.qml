@@ -80,6 +80,7 @@ BaseWidget {
   readonly property color foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
   isVertical: barConfig.vertical
+  crossSize: barConfig.widgetSize
   padding: segments.length > 0 ? Widget.padding : 0
   backgroundColor: Theme.resolveColor(warning ? properties.warnColor : properties.backgroundColor)
 

@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 1,
+      "default": 3,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -189,16 +189,16 @@
     "Widget": {
       "type": "object",
       "title": "Widgets",
-      "description": "Shared sizing for bar widgets and form controls. A bar's own thickness is its `extent`.",
+      "description": "Shared sizing for widgets and form controls. Bar widgets are as thick as their bar, minus twice its widget inset.",
       "additionalProperties": false,
       "properties": {
         "height": {
           "type": "integer",
-          "title": "Height",
+          "title": "Control height",
           "default": 30,
           "minimum": 16,
           "maximum": 128,
-          "description": "Height of bar widgets and controls (px)."
+          "description": "Height of buttons, fields and other controls outside the bar (px). Bar widgets follow their bar's thickness."
         },
         "padding": {
           "type": "integer",
@@ -507,6 +507,14 @@
           "minimum": 10,
           "maximum": 200,
           "description": "Thickness of the bar (px)."
+        },
+        "inset": {
+          "type": "integer",
+          "title": "Widget inset",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 50,
+          "description": "Gap between the widgets and the bar's edges (px). Widgets are the bar's thickness minus twice this."
         },
         "spacing": {
           "type": "integer",
@@ -989,6 +997,7 @@
         { "$ref": "#/definitions/WindowWidget" },
         { "$ref": "#/definitions/MediaWidget" },
         { "$ref": "#/definitions/WorkspacesWidget" },
+        { "$ref": "#/definitions/WorkspaceGridWidget" },
         { "$ref": "#/definitions/TimeWidget" },
         { "$ref": "#/definitions/TailscaleWidget" },
         { "$ref": "#/definitions/NetworkWidget" },
@@ -1063,8 +1072,37 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "count": { "type": "integer", "title": "Workspaces", "default": 10, "minimum": 1, "maximum": 30, "description": "Workspaces 1 to this number are shown." },
+            "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "description": "Off: only workspaces with windows, plus the active one." },
+            "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "description": "Hide workspaces that are open on another monitor." },
+            "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers" },
+            "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces." },
+            "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "description": "Make the active workspace twice as long." },
+            "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace to go to it." },
+            "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to move between the shown workspaces." },
+            "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
+            "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
+            "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
+            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "WorkspaceGridWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "WorkspaceGrid", "description": "Workspace Grid (5×5)" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
             "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "description": "Show an arrow on the active workspace." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the workspace grid when hovered." },
+            "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace to go to it." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
