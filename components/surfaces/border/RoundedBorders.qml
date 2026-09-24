@@ -16,6 +16,15 @@ Item {
   property color centerColor: "transparent"
   property int strokeWidth: Appearance.borderWidth
 
+  // Corners sit in the space left once every edge is reserved, so a
+  // floating bar (inside the border, reserving its own space) would push
+  // them in past it. Pull them back out to the border's corners.
+  readonly property var edges: Bar.edgesFor(root.screen)
+  function cornerMargin(edge) {
+    const bar = root.edges[edge];
+    return bar?.floating && bar.reserveSpace ? -bar.extent : -root.strokeWidth;
+  }
+
   Component.onCompleted: {
     console.log("RoundedBorders initialized");
   }
@@ -77,8 +86,8 @@ Item {
       top: true
     }
     margins {
-      left: -strokeWidth
-      top: -strokeWidth
+      left: root.cornerMargin("left")
+      top: root.cornerMargin("top")
     }
     implicitWidth: curveSize + strokeWidth * 2
     implicitHeight: curveSize + strokeWidth * 2
@@ -106,8 +115,8 @@ Item {
       top: true
     }
     margins {
-      right: -strokeWidth
-      top: -strokeWidth
+      right: root.cornerMargin("right")
+      top: root.cornerMargin("top")
     }
     implicitWidth: curveSize + strokeWidth * 2
     implicitHeight: curveSize + strokeWidth * 2
@@ -135,8 +144,8 @@ Item {
       bottom: true
     }
     margins {
-      left: -strokeWidth
-      bottom: -strokeWidth
+      left: root.cornerMargin("left")
+      bottom: root.cornerMargin("bottom")
     }
     implicitWidth: curveSize + strokeWidth * 2
     implicitHeight: curveSize + strokeWidth * 2
@@ -163,8 +172,8 @@ Item {
       bottom: true
     }
     margins {
-      right: -strokeWidth
-      bottom: -strokeWidth
+      right: root.cornerMargin("right")
+      bottom: root.cornerMargin("bottom")
     }
     implicitWidth: curveSize + strokeWidth * 2
     implicitHeight: curveSize + strokeWidth * 2

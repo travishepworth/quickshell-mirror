@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
+import qs.components.hosts.popout
 
 // Lays out a bar's five widget sections along its main axis in one pass,
 // so they can never overlap: `left`/`right` hug the ends, `center` stays
@@ -30,12 +31,47 @@ Rectangle {
   // its anchor
   signal layoutUpdated
 
-  color: backgroundColor
+  color: barConfig.background === "solid" ? backgroundColor : "transparent"
+
+  readonly property bool pills: barConfig.pills
+  // Fillet room each side of a pill, as for popouts (AttachedSurface)
+  readonly property int pillConnector: Appearance.borderRadius * 2
+  // Kept clear at both ends; pills also need room for their fillets and
+  // the border's corner
+  readonly property real endMargin: pills ? barConfig.pillPad + pillConnector + Appearance.borderRadius : Appearance.screenMargin
+  // Pill whose widget has a popout merged around it (see BarPopouts); it
+  // drops its stroke so the two read as one shape
+  readonly property int mergedPill: root.popouts?.mergedPill ?? -1
+
+  // One { start, length } per pill along the bar: each non-empty section,
+  // merged with its neighbour when they're at most pillMerge apart, grown
+  // by the pill padding
+  readonly property var pillRects: {
+    if (!pills)
+      return [];
+    const spans = root._groups.filter(g => g.usedLength > 0).map(g => ({
+          "start": g.mainPos,
+          "end": g.mainPos + g.usedLength
+        })).sort((a, b) => a.start - b.start);
+    const merged = [];
+    spans.forEach(span => {
+      const last = merged[merged.length - 1];
+      if (last && span.start - last.end <= root.barConfig.pillMerge)
+        last.end = Math.max(last.end, span.end);
+      else
+        merged.push(span);
+    });
+    const pad = root.barConfig.pillPad;
+    return merged.map(m => ({
+          "start": m.start - pad,
+          "length": m.end - m.start + pad * 2
+        }));
+  }
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
   // Per section, the model indices hidden so the minimum sizes fit
-  readonly property var hidden: root.overflowHidden(root._groups.map(g => g.measures), root.length, Appearance.screenMargin, root.barConfig.spacing, root.barConfig.spacing, root.barConfig.lockCenter)
-  readonly property var slots: root.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, Appearance.screenMargin, root.barConfig.spacing, root.barConfig.lockCenter)
+  readonly property var hidden: root.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.spacing, root.barConfig.lockCenter)
+  readonly property var slots: root.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.lockCenter)
   // Bindings re-run on any module change; only signal real moves
   property string _slotsKey: ""
   onSlotsChanged: {
@@ -206,10 +242,54 @@ Rectangle {
     maxExtent: section.slot.extent
     hiddenIndices: section.bar.hidden[section.slotIndex]
 
-    x: section.bar.isVertical ? Math.round((section.bar.width - width) / 2) : section.mainPos
-    y: section.bar.isVertical ? section.mainPos : Math.round((section.bar.height - height) / 2)
+    // Centred across the bar, or with pills, the pill padding in from the
+    // bar's outer edge (past the border stroke the pill covers)
+    readonly property real crossInset: section.barConfig.overlap + section.barConfig.pillPad
+    readonly property real crossPos: {
+      const across = section.bar.isVertical ? section.bar.width : section.bar.height;
+      const size = section.bar.isVertical ? width : height;
+      if (!section.bar.pills)
+        return Math.round((across - size) / 2);
+      const farSide = section.barConfig.right || section.barConfig.bottom;
+      return farSide ? across - crossInset - size : crossInset;
+    }
+
+    x: section.bar.isVertical ? section.crossPos : section.mainPos
+    y: section.bar.isVertical ? section.mainPos : section.crossPos
 
     onAllocationUpdated: section.bar.layoutUpdated()
+  }
+
+  // Pills: each grows out of the bar's outer edge (the border, or the
+  // screen edge with the border off) like a popout does, covering the
+  // border's stroke where it joins. Modelled by count, so a clock changing
+  // width moves its pill without rebuilding it.
+  Repeater {
+    model: root.pillRects.length
+
+    AttachedSurface {
+      id: pill
+      required property int index
+      readonly property var span: root.pillRects[index] ?? {
+        "start": 0,
+        "length": 0
+      }
+      readonly property real alongStart: span.start - (connectorGap - Appearance.borderWidth)
+      // Depth reached from the outer edge; the surface's far half-gap is empty
+      readonly property real depthBox: Math.max(0, root.barConfig.pillDepth - connectorGap / 2)
+
+      edge: root.barConfig.location
+      active: true
+      connectorGap: root.pillConnector
+      boxWidth: root.isVertical ? depthBox : span.length
+      boxHeight: root.isVertical ? span.length : depthBox
+      strokeColor: pill.index === root.mergedPill ? "transparent" : Theme.foreground
+
+      width: implicitWidth
+      height: implicitHeight
+      x: root.isVertical ? (root.barConfig.right ? root.width - width : 0) : alongStart
+      y: root.isVertical ? alongStart : (root.barConfig.bottom ? root.height - height : 0)
+    }
   }
 
   Section {

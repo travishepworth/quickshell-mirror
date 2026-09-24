@@ -7,7 +7,8 @@ import qs.components.surfaces.border
 
 Scope {
   Variants {
-    model: Quickshell.screens
+    // Appearance.screenBorder switches the frame off entirely
+    model: Appearance.screenBorder ? Quickshell.screens : []
     delegate: RoundedBorders {
       required property ShellScreen modelData
       screen: modelData

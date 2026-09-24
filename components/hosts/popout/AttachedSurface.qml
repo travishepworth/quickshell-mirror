@@ -40,6 +40,29 @@ Item {
   // their content add this on each side (see bar Popouts, tray submenus).
   readonly property int contentInset: Widget.spacing + Appearance.borderWidth + Math.round(Appearance.borderRadius / 4)
 
+  // A rectangle at the attach edge left unpainted (edge-local: from u =
+  // notchStart for notchLength, v = 0 to notchDepth), so what's under it
+  // shows through: a bar popout merged around the pill it opens from
+  property real notchStart: 0
+  property real notchLength: 0
+  property real notchDepth: 0
+  // The notch in this item's coordinates, for input masks
+  readonly property rect notchRect: {
+    const u = _notchU;
+    const len = _notchEnd - _notchU;
+    const d = _notchV;
+    switch (edge) {
+    case Bar.Left:
+      return Qt.rect(0, u, d, len);
+    case Bar.Right:
+      return Qt.rect(width - d, u, d, len);
+    case Bar.Bottom:
+      return Qt.rect(u, height - d, len, d);
+    default:
+      return Qt.rect(u, 0, len, d);
+    }
+  }
+
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
 
@@ -81,6 +104,11 @@ Item {
   // convex corner radius at the far side, matching a Rectangle's radius
   readonly property real filletRadius: Appearance.borderRadius
   readonly property real cornerRadius: Math.max(0, Appearance.borderRadius - half)
+
+  // The notch clamped to the surface, edge-local (0 depth when there's none)
+  readonly property real _notchU: Math.max(0, Math.min(notchStart, alongLength))
+  readonly property real _notchEnd: Math.max(_notchU, Math.min(notchStart + notchLength, alongLength))
+  readonly property real _notchV: notchLength > 0 ? notchDepth : 0
 
   // Reflections flip the sweep direction of arcs; rotations don't
   readonly property bool mirrored: edge === Bar.Bottom || edge === Bar.Left
@@ -198,6 +226,24 @@ Item {
         PathLine {
           x: root.px(root.alongLength, 0)
           y: root.py(root.alongLength, 0)
+        }
+        // Back along the attach edge, around the notch (degenerate points
+        // at the origin when there is none)
+        PathLine {
+          x: root.px(root._notchEnd, 0)
+          y: root.py(root._notchEnd, 0)
+        }
+        PathLine {
+          x: root.px(root._notchEnd, root._notchV)
+          y: root.py(root._notchEnd, root._notchV)
+        }
+        PathLine {
+          x: root.px(root._notchU, root._notchV)
+          y: root.py(root._notchU, root._notchV)
+        }
+        PathLine {
+          x: root.px(root._notchU, 0)
+          y: root.py(root._notchU, 0)
         }
         PathLine {
           x: root.px(0, 0)

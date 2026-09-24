@@ -78,6 +78,35 @@ PopoutWrapperBase {
 
   onCurrentDataChanged: updateAnchorRect()
 
+  // On a pill bar: the pill the anchor sits in ({ index, start, length }
+  // along the bar), if any
+  readonly property var anchorPill: {
+    if (!root.barConfig.pills)
+      return null;
+    const rects = root.layoutSource?.pillRects ?? [];
+    const center = root.barConfig.vertical ? root.anchorRect.y + root.anchorRect.height / 2 : root.anchorRect.x + root.anchorRect.width / 2;
+    for (let i = 0; i < rects.length; i++) {
+      if (center >= rects[i].start && center <= rects[i].start + rects[i].length)
+        return {
+          "index": i,
+          "start": rects[i].start,
+          "length": rects[i].length
+        };
+    }
+    return null;
+  }
+  // A popout wider than its pill merges around it: it grows from the
+  // bar's outer edge, its box deeper by the pill so the content clears it,
+  // with the pill left showing through a notch
+  readonly property bool mergeWithPill: anchorPill !== null && (root.barConfig.vertical ? surface.boxHeight : surface.boxWidth) > anchorPill.length
+  readonly property int mergedPill: root.occupied && mergeWithPill ? anchorPill.index : -1
+  // How far past the pill the merged popout's content starts
+  readonly property real pillClearance: mergeWithPill ? root.barConfig.pillDepth - root.barConfig.overlap : 0
+  // Where the popout attaches, measured from the bar's outer edge: the
+  // outer edge itself when merged, a pill's far stroke, or the bar's
+  // inner edge
+  readonly property real attachAt: mergeWithPill ? 0 : anchorPill !== null ? root.barConfig.pillDepth - Appearance.borderWidth : root.barConfig.extent
+
   Connections {
     target: root.layoutSource
     // Positions settle through bindings after the signal, so read them once
@@ -137,6 +166,29 @@ PopoutWrapperBase {
       return anchorStart + (anchorLength - boxLength) * align - inset;
     }
 
+    // Where the popup starts along the bar, in bar-window coordinates
+    readonly property real alongPos: {
+      if (!root.currentData)
+        return 0;
+      const vertical = root.barConfig.vertical;
+      const length = vertical ? mainPopup.implicitHeight : mainPopup.implicitWidth;
+      const target = vertical ? mainPopup.alignedStart(root.anchorRect.y, root.anchorRect.height, length, surface.boxRect.height) : mainPopup.alignedStart(root.anchorRect.x, root.anchorRect.width, length, surface.boxRect.width);
+      return Math.max(mainPopup.minAlong, Math.min(target, mainPopup.maxAlong - length));
+    }
+
+    // The merged pill stays hoverable and clickable through the notch
+    mask: Region {
+      item: surface
+
+      Region {
+        intersection: Intersection.Subtract
+        x: surface.notchRect.x
+        y: surface.notchRect.y
+        width: surface.notchRect.width
+        height: surface.notchRect.height
+      }
+    }
+
     // Size comes from the shared attached shape: the content box wraps
     // the content plus the surface's inset on every side.
     implicitWidth: surface.implicitWidth
@@ -151,15 +203,13 @@ PopoutWrapperBase {
             return 0;
 
           if (root.barConfig.left) {
-            return root.barConfig.extent;
+            return root.attachAt;
           } else if (root.barConfig.right) {
-            // Mirror of the left case: end at the bar's inner edge, not
-            // relative to the anchor (tray icons are narrower than modules)
-            return -mainPopup.implicitWidth;
+            // Mirror of the left case: measured from the bar's outer edge,
+            // not relative to the anchor (tray icons are narrower than modules)
+            return root.barConfig.extent - root.attachAt - mainPopup.implicitWidth;
           } else {
-            const targetX = mainPopup.alignedStart(root.anchorRect.x, root.anchorRect.width, mainPopup.implicitWidth, surface.boxRect.width);
-
-            return Math.max(mainPopup.minAlong, Math.min(targetX, mainPopup.maxAlong - mainPopup.implicitWidth));
+            return mainPopup.alongPos;
           }
         }
 
@@ -168,13 +218,11 @@ PopoutWrapperBase {
             return 0;
 
           if (root.barConfig.top) {
-            return root.barConfig.extent;
+            return root.attachAt;
           } else if (root.barConfig.bottom) {
-            return -mainPopup.implicitHeight;
+            return root.barConfig.extent - root.attachAt - mainPopup.implicitHeight;
           } else {
-            const targetY = mainPopup.alignedStart(root.anchorRect.y, root.anchorRect.height, mainPopup.implicitHeight, surface.boxRect.height);
-
-            return Math.max(mainPopup.minAlong, Math.min(targetY, mainPopup.maxAlong - mainPopup.implicitHeight));
+            return mainPopup.alongPos;
           }
         }
 
@@ -190,13 +238,23 @@ PopoutWrapperBase {
       edge: root.barConfig.location
       active: root.occupied && !root.isClosing
       connectorGap: root.connectorGap
-      boxWidth: mainPopup.contentWidth + contentInset * 2
-      boxHeight: mainPopup.contentHeight + contentInset * 2
+      boxWidth: mainPopup.contentWidth + contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : 0)
+      boxHeight: mainPopup.contentHeight + contentInset * 2 + (root.barConfig.vertical ? 0 : root.pillClearance)
+
+      // The pill, left showing (up to its far stroke, which the popout covers)
+      notchStart: root.mergeWithPill ? root.anchorPill.start - mainPopup.alongPos : 0
+      notchLength: root.mergeWithPill ? root.anchorPill.length : 0
+      notchDepth: root.mergeWithPill ? root.barConfig.pillDepth - Appearance.borderWidth : 0
 
       Loader {
         id: loader
         anchors.fill: parent
         anchors.margins: surface.contentInset
+        // Merged around a pill, the content starts past it
+        anchors.leftMargin: surface.contentInset + (root.barConfig.left ? root.pillClearance : 0)
+        anchors.rightMargin: surface.contentInset + (root.barConfig.right ? root.pillClearance : 0)
+        anchors.topMargin: surface.contentInset + (root.barConfig.top ? root.pillClearance : 0)
+        anchors.bottomMargin: surface.contentInset + (root.barConfig.bottom ? root.pillClearance : 0)
 
         active: root.occupied
         asynchronous: false

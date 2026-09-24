@@ -24,6 +24,7 @@ QtObject {
   // --- Shape ---
   readonly property int borderRadius: _c.shape.radius
   readonly property int borderWidth: _c.shape.borderWidth
+  readonly property bool screenBorder: _c.shape.screenBorder
   readonly property int screenMargin: _c.shape.screenMargin
 
   // --- Motion ---

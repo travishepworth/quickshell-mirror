@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 
 import qs.services
 
@@ -14,6 +15,15 @@ QtObject {
   // (whose keys are always filled in from the schema defaults).
   function enrichBarConfig(barConfig, index = 0) {
     const loc = Bar.getLocationFromString(barConfig.location);
+    const extent = barConfig.extent;
+    // Thickness of the bar's widgets, so they always fit inside it
+    const widgetSize = Math.max(0, extent - 2 * (barConfig.inset ?? 0));
+    const background = barConfig.background ?? "solid";
+    // A pill covers the screen border's stroke where it joins it
+    const overlap = Appearance.screenBorder ? Appearance.borderWidth : 0;
+    // Padding around a pill's widgets, capped so the pill (and its far
+    // stroke) fits the bar
+    const pillPad = Math.min(barConfig.pillPadding ?? 0, Math.max(0, Math.floor((extent - widgetSize - overlap - Appearance.borderWidth) / 2)));
 
     return {
       "id": barConfig.id,
@@ -22,8 +32,18 @@ QtObject {
       "monitor": barConfig.monitor,
       "extent": barConfig.extent,
       "inset": barConfig.inset ?? 0,
-      // Thickness of the bar's widgets, so they always fit inside it
-      "widgetSize": Math.max(0, barConfig.extent - 2 * (barConfig.inset ?? 0)),
+      "widgetSize": widgetSize,
+      "background": background,
+      "pills": background === "pills",
+      // Transparent and pill bars sit inside the screen border, not under it
+      "floating": background !== "solid" && Appearance.screenBorder,
+      "overlap": overlap,
+      "pillPad": pillPad,
+      "pillMerge": barConfig.pillMerge ?? 0,
+      // How far a pill reaches in from the bar's outer edge: the border
+      // stroke it covers, the padding each side of its widgets, and its own
+      // far stroke
+      "pillDepth": overlap + 2 * pillPad + widgetSize + Appearance.borderWidth,
       "spacing": barConfig.spacing,
       "lockCenter": barConfig.lockCenter,
       "location": loc,
@@ -67,6 +87,30 @@ QtObject {
   readonly property bool right: location === Bar.Right
   readonly property bool top: location === Bar.Top
   readonly property bool bottom: location === Bar.Bottom
+
+  // The enabled bars on a screen by edge ({ top, bottom, left, right },
+  // null where there is none). A bar with no monitor is on the first screen,
+  // as in BarPanel.
+  function edgesFor(screen) {
+    const edges = {
+      "top": null,
+      "bottom": null,
+      "left": null,
+      "right": null
+    };
+    const first = Quickshell.screens[0]?.name ?? "";
+    Bar.bars.forEach(bar => {
+      if (!bar.enabled)
+        return;
+      const named = Quickshell.screens.some(s => s.name === bar.monitor);
+      if ((named ? bar.monitor : first) !== screen?.name)
+        return;
+      const edge = bar.top ? "top" : bar.bottom ? "bottom" : bar.left ? "left" : "right";
+      if (!edges[edge])
+        edges[edge] = bar;
+    });
+    return edges;
+  }
 
   function getLocationFromString(locStr) {
     switch (locStr) {

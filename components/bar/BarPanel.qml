@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import QtQuick
 
 import qs.config
@@ -15,9 +16,25 @@ PanelWindow {
 
   // An empty monitor means the first screen
   screen: Quickshell.screens.find(s => s.name === barConfig.monitor) ?? Quickshell.screens[0] ?? null
-  WlrLayershell.layer: WlrLayer.Top
-  WlrLayershell.exclusiveZone: !barConfig.reserveSpace ? 0 : barConfig.extent - Appearance.screenMargin + Appearance.borderWidth
+  // A solid bar sits at the screen edge, and the screen border's strip
+  // (arranged after it) overlaps its inner part, drawing the bar's inner
+  // stroke. A floating bar (transparent or pills, with the border on) sits
+  // inside the border instead: on the Overlay layer, whose exclusive zones
+  // are arranged after the border's, with its outer edge on the border's
+  // stroke so pills can cover it. Overlay draws over fullscreen windows, so
+  // it hides while its workspace has one.
+  WlrLayershell.layer: barConfig.floating ? WlrLayer.Overlay : WlrLayer.Top
+  WlrLayershell.exclusiveZone: {
+    if (!barConfig.reserveSpace)
+      return 0;
+    // Hyprland counts the -borderWidth margin into the reserved space
+    if (barConfig.floating)
+      return barConfig.extent;
+    return Appearance.screenBorder ? barConfig.extent - Appearance.screenMargin + Appearance.borderWidth : barConfig.extent;
+  }
   WlrLayershell.namespace: "axiom-bar"
+  // The bar container paints the background (or not, when transparent)
+  color: "transparent"
 
   anchors {
     top: (barConfig.top || barConfig.vertical)
@@ -26,7 +43,16 @@ PanelWindow {
     right: (barConfig.right || !barConfig.vertical)
   }
 
-  visible: barConfig.enabled
+  margins {
+    top: root.barConfig.floating && root.barConfig.top ? -Appearance.borderWidth : 0
+    bottom: root.barConfig.floating && root.barConfig.bottom ? -Appearance.borderWidth : 0
+    left: root.barConfig.floating && root.barConfig.left ? -Appearance.borderWidth : 0
+    right: root.barConfig.floating && root.barConfig.right ? -Appearance.borderWidth : 0
+  }
+
+  readonly property bool fullscreenBelow: Hyprland.monitorFor(root.screen)?.activeWorkspace?.hasFullscreen ?? false
+
+  visible: barConfig.enabled && !(barConfig.floating && fullscreenBelow)
 
   implicitHeight: barConfig.vertical ? 0 : barConfig.extent
   implicitWidth: barConfig.vertical ? barConfig.extent : 0

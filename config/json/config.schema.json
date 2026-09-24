@@ -152,13 +152,19 @@
               "maximum": 10,
               "description": "Thickness of every outline (px)."
             },
+            "screenBorder": {
+              "type": "boolean",
+              "title": "Screen border",
+              "default": true,
+              "description": "Draw a frame around the screen edges."
+            },
             "screenMargin": {
               "type": "integer",
-              "title": "Screen border",
+              "title": "Screen margin",
               "default": 8,
               "minimum": 0,
               "maximum": 100,
-              "description": "Width of the frame around the screen edges (px)."
+              "description": "Width of the screen frame, and the gap kept from the screen edges (px)."
             }
           }
         },
@@ -515,6 +521,32 @@
           "minimum": 0,
           "maximum": 50,
           "description": "Gap between the widgets and the bar's edges (px). Widgets are the bar's thickness minus twice this."
+        },
+        "background": {
+          "type": "string",
+          "title": "Background",
+          "default": "solid",
+          "enum": ["solid", "transparent", "pills"],
+          "x-enumLabels": { "solid": "Solid", "transparent": "Transparent", "pills": "Pill per group" },
+          "description": "Transparent and pill bars sit inside the screen border; pills grow out of it."
+        },
+        "pillPadding": {
+          "type": "integer",
+          "title": "Pill padding",
+          "default": 4,
+          "minimum": 0,
+          "maximum": 20,
+          "x-showIf": { "background": "pills" },
+          "description": "Space between a pill's edge and its widgets (px)."
+        },
+        "pillMerge": {
+          "type": "integer",
+          "title": "Merge distance",
+          "default": 12,
+          "minimum": 0,
+          "maximum": 200,
+          "x-showIf": { "background": "pills" },
+          "description": "Groups closer than this share one pill (px)."
         },
         "spacing": {
           "type": "integer",

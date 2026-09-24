@@ -468,7 +468,7 @@
     "Wi-Fi": "Wi-Fi",
     "Wide": "横長",
     "Widgets": "ウィジェット",
-    "Width of the frame around the screen edges (px).": "画面の周囲の枠の幅（px）。",
+    "Width of the screen frame, and the gap kept from the screen edges (px).": "画面の枠の幅と、画面の端から空ける間隔（px）。",
     "Window": "ウィンドウ",
     "Window Title": "ウィンドウタイトル",
     "Workspace Switcher": "ワークスペース切り替え",
@@ -656,6 +656,19 @@
     "Click to switch": "クリックで切り替え",
     "Click a workspace to go to it.": "ワークスペースをクリックして移動します。",
     "Widget inset": "ウィジェットの余白",
-    "Gap between the widgets and the bar's edges (px). Widgets are the bar's thickness minus twice this.": "ウィジェットとバーの端との間隔（px）。ウィジェットの太さはバーの太さからこの値の2倍を引いたものです。"
+    "Gap between the widgets and the bar's edges (px). Widgets are the bar's thickness minus twice this.": "ウィジェットとバーの端との間隔（px）。ウィジェットの太さはバーの太さからこの値の2倍を引いたものです。",
+    "Draw a frame around the screen edges.": "画面の端に枠を描きます。",
+    "Screen margin": "画面の余白",
+    "Solid": "塗りつぶし",
+    "solid": "塗りつぶし",
+    "Transparent": "透明",
+    "transparent": "透明",
+    "Pill per group": "グループごとのピル",
+    "pills": "ピル",
+    "Transparent and pill bars sit inside the screen border; pills grow out of it.": "透明とピルのバーは画面の枠の内側に配置され、ピルは枠から伸びます。",
+    "Pill padding": "ピルの余白",
+    "Space between a pill's edge and its widgets (px).": "ピルの端とウィジェットの間隔（px）。",
+    "Merge distance": "結合距離",
+    "Groups closer than this share one pill (px).": "この距離より近いグループは1つのピルにまとめます（px）。"
   }
 }
