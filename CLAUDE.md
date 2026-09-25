@@ -105,10 +105,10 @@ Also `pragma Singleton`, but these are typed config *readers*, not owners — on
 
 ### Content (loaded by name, shown by hosts)
 
-`components/content/<Name>.qml` holds every loadable panel. The name is the overlay module `type` (`OverlayModule.oneOf`) and/or a bar `popoutName`; one file can be both (AudioMixer, BluetoothDevices, Notifications, Updates). Hosts load it by URL and pass their context:
+`components/content/<Name>.qml` holds every loadable panel. The name is the overlay module `type` (`OverlayModule.oneOf`) and/or a bar `popoutName`; one file can be both (AudioMixer, BluetoothDevices, Notifications, NowPlaying, Updates). Hosts load it by URL and pass their context:
 - **Roots.** `Card` (`content/base/`) is a free-form card (box, `properties`, slot context); card-only content uses it. `Panel` lays its children out in a column and works in either host: in a bar popout it sizes to its content with the popout box (`wrapper` set, `hovered` read for dismissal); in a card the host passes `embedded: true`, it fills the slot with the card box, and `compactContent` (e.g. a `StatFigure`) replaces the column in a quarter slot. Both expose `properties`, `slotRect`, `cols`/`rows`, `shape`, `compact`, `pad`.
 - **Hosts.** `hosts/overlay/OverlaySlot` (card: `properties`, `slotRect`, `embedded: true`) and `hosts/popout/BarPopouts` (popout: `wrapper`, then the anchor's payload keys copied onto matching properties).
-- Pairs that look different by design stay separate files: `Weather` (card) / `WeatherForecast` (popout), `NowPlaying` / `Media`, `ClockCalendar` / `Calendar`.
+- Pairs that look different by design stay separate files: `Weather` (card) / `WeatherForecast` (popout), `ClockCalendar` / `Calendar`.
 
 ### Overlay composition (views → columns → cells → modules)
 

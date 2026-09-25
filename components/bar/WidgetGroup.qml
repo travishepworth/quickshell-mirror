@@ -137,7 +137,6 @@ Item {
       properties: module.modelData.properties || {}
       layoutOverrides: module.modelData.layout || {}
       componentPath: module.modelData.component
-      sectionAlign: root.align
       popouts: root.popouts
       panel: root.panel
       screen: root.screen

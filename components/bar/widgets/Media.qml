@@ -20,8 +20,9 @@ Item {
   property bool isVertical: barConfig.vertical
 
   // Sized to the track, shrinking (the label elides) down to just the icon
-  // when the bar is crowded. The popout pins to the widget's edge on its
-  // section's side, so a resize doesn't move it. `layout.size` caps it.
+  // when the bar is crowded. The popout centres on the widget when it
+  // opens and stays put while open, so a resize doesn't move it.
+  // `layout.size` caps it.
   readonly property string sizePolicy: "elastic"
   readonly property real minimumSize: iconText._iconLength + iconText.padding * 2
 
@@ -35,7 +36,7 @@ Item {
     isVertical: root.isVertical
     crossSize: root.barConfig.widgetSize
 
-    icon: MediaManager.isPlaying ? "♪" : "⏸"
+    icon: MediaManager.isPlaying ? "\u{F075A}" : "\u{F03E4}"
     text: root.formatTrack()
 
     backgroundColor: Theme.resolveColor(MediaManager.isPlaying ? root.properties.playingColor : root.properties.pausedColor)
@@ -55,9 +56,9 @@ Item {
     id: anchor
     popouts: root.popouts
     panel: root.panel
-    popoutName: "Media"
+    popoutName: "NowPlaying"
     active: root.properties.showPopout
     openDelay: 150
-    alignToSection: true
+    pinWhileOpen: true
   }
 }

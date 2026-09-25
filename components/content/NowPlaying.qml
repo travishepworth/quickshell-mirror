@@ -5,17 +5,30 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.content.parts
 import qs.components.content.base
 
-// The active media player: art over a blurred copy of itself, track info,
-// a seek bar and controls. Wide: art beside the info. Square/tall: stacked.
-// Compact: just the art and play/pause.
-Card {
+// The active media player over a blurred copy of its cover: art, track
+// info, a seek bar and controls. As the Media widget's popout: art beside
+// the track info, the controls beneath, at a fixed size so track changes
+// never resize it. As an overlay card: art beside everything when wide,
+// stacked when square; a quarter slot is just the art and play/pause.
+Panel {
   id: root
 
   readonly property bool hasPlayer: MediaManager.hasActivePlayer
   readonly property string artSource: MediaManager.artDownloaded && MediaManager.artVersion >= 0 ? "file://" + MediaManager.artFilePath : ""
-  readonly property bool wide: root.shape === "horizontal"
+  // Card only: the art beside the info and controls
+  readonly property bool sideBySide: root.embedded && root.shape === "horizontal"
+  readonly property real artSize: 96
+  // A seek bar is being dragged, so the popout mustn't dismiss
+  property bool seeking: false
+
+  hovered: pointerInside || root.seeking
+
+  margins: 16
+  spacing: Widget.spacing
+  implicitWidth: 380
 
   component MediaButton: Rectangle {
     id: button
@@ -25,8 +38,22 @@ Card {
     signal clicked
     implicitWidth: button.size
     implicitHeight: button.size
+    Layout.preferredWidth: button.size
+    Layout.preferredHeight: button.size
     radius: button.size / 2
-    color: button.primary ? Theme.accent : buttonArea.containsMouse ? Qt.rgba(1, 1, 1, 0.12) : "transparent"
+    opacity: button.enabled ? 1 : 0.4
+    color: button.primary ? (buttonArea.containsMouse ? Qt.lighter(Theme.accent, 1.15) : Theme.accent) : buttonArea.containsMouse ? Theme.backgroundHighlight : "transparent"
+    scale: buttonArea.pressed ? 0.92 : 1
+    Behavior on color {
+      ColorAnimation {
+        duration: Appearance.animFast
+      }
+    }
+    Behavior on scale {
+      NumberAnimation {
+        duration: Appearance.animFast
+      }
+    }
     StyledText {
       anchors.centerIn: parent
       text: button.icon
@@ -42,76 +69,207 @@ Card {
     }
   }
 
-  component Art: Rectangle {
-    radius: Appearance.borderRadius
-    color: Theme.backgroundAlt
-    clip: true
-    Image {
+  // The cover, rounded; a note when there's none
+  component Art: Item {
+    id: art
+    property real radius: Appearance.borderRadius
+    Item {
       anchors.fill: parent
-      source: root.artSource
-      fillMode: Image.PreserveAspectCrop
-      asynchronous: true
-      visible: status === Image.Ready
+      layer.enabled: true
+      layer.effect: MultiEffect {
+        maskEnabled: true
+        maskSource: artMask
+        maskThresholdMin: 0.5
+        maskSpreadAtMin: 1
+      }
+      Rectangle {
+        anchors.fill: parent
+        color: Theme.backgroundAlt
+      }
+      Image {
+        anchors.fill: parent
+        source: root.artSource
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        visible: status === Image.Ready
+      }
+      StyledText {
+        anchors.centerIn: parent
+        visible: root.artSource === ""
+        text: "\u{F075A}"
+        textSize: Math.min(art.width, art.height) * 0.4
+        opacity: 0.4
+      }
     }
-    StyledText {
-      anchors.centerIn: parent
-      visible: root.artSource === ""
-      text: "\u{F075A}"
-      textSize: Math.min(parent.width, parent.height) * 0.4
-      opacity: 0.4
+    Rectangle {
+      id: artMask
+      anchors.fill: parent
+      radius: art.radius
+      visible: false
+      layer.enabled: true
     }
   }
 
-  // Blurred, dimmed art behind everything
-  Image {
-    id: backdrop
-    anchors.fill: parent
-    source: root.artSource
-    fillMode: Image.PreserveAspectCrop
-    asynchronous: true
-    visible: false
-  }
-  MultiEffect {
-    anchors.fill: parent
-    anchors.margins: root.border.width
-    source: backdrop
-    visible: root.hasPlayer && backdrop.status === Image.Ready
-    blurEnabled: true
-    blur: 1
-    blurMax: 48
-    brightness: -0.35
-    saturation: 0.2
-  }
-
-  // --- No player ---
-  ColumnLayout {
-    anchors.centerIn: parent
-    visible: !root.hasPlayer
-    spacing: Widget.spacing
+  // Title, artist and album; the player's name above, click to cycle
+  // players when there are several
+  component TrackInfo: ColumnLayout {
+    spacing: 2
     StyledText {
-      Layout.alignment: Qt.AlignHCenter
-      text: "\u{F075A}"
-      textSize: Appearance.fontSize * 2.5
-      opacity: 0.4
+      Layout.fillWidth: true
+      elide: Text.ElideRight
+      text: MediaManager.identity + (MediaManager.players.length > 1 ? "  \u{F0450}" : "")
+      textSize: Appearance.fontSize - 2
+      opacity: 0.6
+      MouseArea {
+        anchors.fill: parent
+        enabled: MediaManager.players.length > 1
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+          const players = MediaManager.players;
+          MediaManager.selectPlayer(players[(players.indexOf(MediaManager.activePlayer) + 1) % players.length]);
+        }
+      }
+    }
+    Item {
+      Layout.fillHeight: true
     }
     StyledText {
-      visible: !root.compact
-      Layout.alignment: Qt.AlignHCenter
-      text: I18n.tr("Nothing playing")
+      Layout.fillWidth: true
+      elide: Text.ElideRight
+      text: MediaManager.trackTitle || I18n.tr("Unknown track")
+      textColor: Theme.accent
+      textSize: Appearance.fontSize + 3
+      font.bold: true
+    }
+    StyledText {
+      Layout.fillWidth: true
+      elide: Text.ElideRight
+      // Kept as a line when empty, so the popout's height never changes
+      text: MediaManager.trackArtist || " "
+    }
+    StyledText {
+      Layout.fillWidth: true
+      elide: Text.ElideRight
+      // MediaManager doesn't surface the album, but the Mpris player does
+      text: (MediaManager.activePlayer?.trackAlbum ?? "") || " "
+      textSize: Appearance.fontSize - 2
       opacity: 0.6
     }
   }
 
-  // --- Compact: art + play/pause ---
-  Item {
-    anchors.fill: parent
-    anchors.margins: root.pad
-    visible: root.hasPlayer && root.compact
+  // Seek bar with times, then previous / play-pause / next
+  component Transport: ColumnLayout {
+    spacing: Widget.spacing / 2
+    StyledSlider {
+      id: seek
+      Layout.fillWidth: true
+      Layout.preferredHeight: 16
+      enabled: MediaManager.canSeek
+      troughHeight: 6
+      handleWidth: 14
+      handleHeight: 14
+      handleRadius: 7
+      handleColor: Theme.foreground
+      fillColor: Theme.accent
+      // Not `value`: dragging assigns that, which would drop the binding
+      targetValue: Math.min(1, Math.max(0, MediaManager.progress))
+      onPressedChanged: root.seeking = pressed
+      onReleased: value => MediaManager.setPositionByRatio(value)
+    }
+    RowLayout {
+      Layout.fillWidth: true
+      StyledText {
+        text: MediaManager.formatTime(seek.pressed ? seek.value * MediaManager.length : MediaManager.position)
+        textSize: Appearance.fontSize - 3
+        opacity: 0.6
+      }
+      Item {
+        Layout.fillWidth: true
+      }
+      StyledText {
+        text: MediaManager.formatTime(MediaManager.length)
+        textSize: Appearance.fontSize - 3
+        opacity: 0.6
+      }
+    }
+    RowLayout {
+      Layout.alignment: Qt.AlignHCenter
+      spacing: Widget.spacing * 1.5
+      MediaButton {
+        icon: "\u{F04AE}"
+        enabled: MediaManager.canGoPrevious
+        onClicked: MediaManager.previous()
+      }
+      MediaButton {
+        primary: true
+        size: Widget.height * 1.4
+        icon: MediaManager.isPlaying ? "\u{F03E4}" : "\u{F040A}"
+        enabled: MediaManager.canTogglePlaying
+        onClicked: MediaManager.togglePlayPause()
+      }
+      MediaButton {
+        icon: "\u{F04AD}"
+        enabled: MediaManager.canGoNext
+        onClicked: MediaManager.next()
+      }
+    }
+  }
+
+  // The cover blurred, rounded to the box and tinted with the theme's
+  // background, so text reads on it in light and dark themes alike
+  background: Item {
+    visible: root.hasPlayer && root.artSource !== ""
+    Item {
+      anchors.fill: parent
+      anchors.margins: root.embedded ? Appearance.borderWidth : 0
+      layer.enabled: true
+      layer.effect: MultiEffect {
+        maskEnabled: true
+        maskSource: backdropMask
+        maskThresholdMin: 0.5
+        maskSpreadAtMin: 1
+      }
+      // Larger than the box, so the blur doesn't fade out at its edges
+      Image {
+        anchors.fill: parent
+        anchors.margins: -48
+        source: root.artSource
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        layer.enabled: true
+        layer.effect: MultiEffect {
+          blurEnabled: true
+          blur: 1
+          blurMax: 48
+          saturation: 0.2
+        }
+      }
+      Rectangle {
+        anchors.fill: parent
+        color: Theme.background
+        opacity: 0.6
+      }
+    }
+    Rectangle {
+      id: backdropMask
+      anchors.fill: parent
+      anchors.margins: root.embedded ? Appearance.borderWidth : 0
+      radius: Math.max(0, root.boxRadius - (root.embedded ? Appearance.borderWidth : 0))
+      visible: false
+      layer.enabled: true
+    }
+  }
+
+  // Quarter card: the art with play/pause over it
+  compactContent: Item {
+    implicitWidth: root.width - root.pad * 2
+    implicitHeight: root.height - root.pad * 2
     Art {
       anchors.fill: parent
     }
     MediaButton {
       anchors.centerIn: parent
+      visible: root.hasPlayer
       primary: true
       size: Math.min(parent.width, parent.height) * 0.4
       icon: MediaManager.isPlaying ? "\u{F03E4}" : "\u{F040A}"
@@ -119,126 +277,56 @@ Card {
     }
   }
 
-  // --- Full ---
+  // --- No player ---
+  Item {
+    visible: !root.hasPlayer
+    Layout.fillWidth: true
+    Layout.fillHeight: root.embedded
+    Layout.preferredHeight: root.embedded ? -1 : root.artSize
+    EmptyState {
+      anchors.centerIn: parent
+      icon: "\u{F075A}"
+      text: I18n.tr("Nothing playing")
+    }
+  }
+
+  // --- Art and info (and, wide, the controls) ---
   GridLayout {
-    anchors.fill: parent
-    anchors.margins: root.pad
-    visible: root.hasPlayer && !root.compact
-    columns: root.wide ? 2 : 1
-    columnSpacing: root.pad
+    visible: root.hasPlayer
+    Layout.fillWidth: true
+    Layout.fillHeight: root.embedded
+    columns: root.embedded && !root.sideBySide ? 1 : 2
+    columnSpacing: root.embedded ? root.pad : Widget.spacing * 1.5
     rowSpacing: Widget.spacing
 
     Art {
-      readonly property real side: root.wide ? parent.height : Math.min(parent.width, parent.height * 0.5)
+      // From the card's size, not the grid's: that depends on this
+      readonly property real innerWidth: root.width - root.pad * 2
+      readonly property real innerHeight: root.height - root.pad * 2
+      readonly property real side: !root.embedded ? root.artSize : root.sideBySide ? innerHeight : Math.min(innerWidth, innerHeight * 0.5)
       Layout.preferredWidth: side
       Layout.preferredHeight: side
-      Layout.alignment: Qt.AlignHCenter
+      Layout.alignment: root.embedded && !root.sideBySide ? Qt.AlignHCenter : Qt.AlignTop
     }
 
     ColumnLayout {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      spacing: Widget.spacing / 2
-
-      // Player name; click to switch when there are several
-      StyledText {
+      spacing: Widget.spacing
+      TrackInfo {
         Layout.fillWidth: true
-        elide: Text.ElideRight
-        text: MediaManager.identity + (MediaManager.players.length > 1 ? "  \u{F0450}" : "")
-        textSize: Appearance.fontSize - 2
-        opacity: 0.6
-        MouseArea {
-          anchors.fill: parent
-          enabled: MediaManager.players.length > 1
-          cursorShape: Qt.PointingHandCursor
-          onClicked: {
-            const players = MediaManager.players;
-            MediaManager.selectPlayer(players[(players.indexOf(MediaManager.activePlayer) + 1) % players.length]);
-          }
-        }
-      }
-
-      Item {
         Layout.fillHeight: true
       }
-
-      StyledText {
+      Transport {
+        visible: root.embedded
         Layout.fillWidth: true
-        elide: Text.ElideRight
-        text: MediaManager.trackTitle || I18n.tr("Unknown track")
-        textSize: Appearance.fontSize + 4
-        font.bold: true
-      }
-      StyledText {
-        Layout.fillWidth: true
-        elide: Text.ElideRight
-        text: MediaManager.trackArtist
-        opacity: 0.8
-      }
-
-      // Seek bar
-      Item {
-        Layout.fillWidth: true
-        Layout.preferredHeight: Widget.spacing * 2
-        Rectangle {
-          anchors.verticalCenter: parent.verticalCenter
-          width: parent.width
-          height: 4
-          radius: 2
-          color: Qt.rgba(1, 1, 1, 0.15)
-          Rectangle {
-            width: parent.width * Math.min(1, Math.max(0, MediaManager.progress))
-            height: parent.height
-            radius: 2
-            color: Theme.accent
-          }
-        }
-        MouseArea {
-          anchors.fill: parent
-          enabled: MediaManager.canSeek
-          cursorShape: Qt.PointingHandCursor
-          onClicked: mouse => MediaManager.setPositionByRatio(mouse.x / width)
-        }
-      }
-      RowLayout {
-        Layout.fillWidth: true
-        StyledText {
-          text: MediaManager.formatTime(MediaManager.position)
-          textSize: Appearance.fontSize - 3
-          opacity: 0.6
-        }
-        Item {
-          Layout.fillWidth: true
-        }
-        StyledText {
-          text: MediaManager.formatTime(MediaManager.length)
-          textSize: Appearance.fontSize - 3
-          opacity: 0.6
-        }
-      }
-
-      RowLayout {
-        Layout.alignment: Qt.AlignHCenter
-        spacing: Widget.spacing
-        MediaButton {
-          icon: "\u{F04AE}"
-          enabled: MediaManager.canGoPrevious
-          opacity: enabled ? 1 : 0.4
-          onClicked: MediaManager.previous()
-        }
-        MediaButton {
-          primary: true
-          size: Widget.height * 1.4
-          icon: MediaManager.isPlaying ? "\u{F03E4}" : "\u{F040A}"
-          onClicked: MediaManager.togglePlayPause()
-        }
-        MediaButton {
-          icon: "\u{F04AD}"
-          enabled: MediaManager.canGoNext
-          opacity: enabled ? 1 : 0.4
-          onClicked: MediaManager.next()
-        }
       }
     }
+  }
+
+  // --- Popout: the controls beneath ---
+  Transport {
+    visible: root.hasPlayer && !root.embedded
+    Layout.fillWidth: true
   }
 }

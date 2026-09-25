@@ -37,7 +37,12 @@ Item {
   // What a quarter-card slot shows instead of the column (e.g. a
   // CompactFigure); without one, a compact card shows the column as usual
   property Component compactContent: null
+  // Drawn under the content, filling the box (e.g. a blurred cover)
+  property Component background: null
   readonly property bool _showCompact: root.compact && root.compactContent !== null
+
+  // The box's corner radius, for backgrounds that follow its shape
+  readonly property real boxRadius: root.embedded ? Appearance.borderRadius : Appearance.borderRadius + 2
 
   property int margins: 16
   property alias spacing: column.spacing
@@ -55,11 +60,17 @@ Item {
     color: Theme.background
     border.color: root.embedded ? Theme.foreground : "transparent"
     border.width: root.embedded ? Appearance.borderWidth : 0
-    radius: root.embedded ? Appearance.borderRadius : Appearance.borderRadius + 2
+    radius: root.boxRadius
     clip: true
 
     HoverHandler {
       id: hoverHandler
+    }
+
+    Loader {
+      anchors.fill: parent
+      active: root.background !== null
+      sourceComponent: root.background
     }
 
     Loader {

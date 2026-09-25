@@ -31,10 +31,9 @@ Item {
   property var extraData: ({})
   property int openDelay: PopoutConfig.openDelay
   property bool active: true
-  // Line the popout up with the widget's edge that stays put when it
-  // resizes (the side its bar section is anchored to) instead of centering
-  // it, so a widget that changes size doesn't drag its popout around
-  property bool alignToSection: false
+  // Centre the popout on the widget as it is when opened, then keep it
+  // there while open: a widget that resizes doesn't drag its popout along
+  property bool pinWhileOpen: false
 
   property alias hovered: hoverHandler.hovered
   property bool popoutOpen: false
@@ -50,7 +49,7 @@ Item {
 
     let payload = {
       name: root.popoutName,
-      align: root.alignToSection ? root.sectionAlign() : 0.5,
+      pinned: root.pinWhileOpen,
       anchorX: parentPosition.x,
       anchorY: parentPosition.y,
       anchorWidth: root.width,
@@ -63,15 +62,6 @@ Item {
     }
 
     root.popouts.safeOpenPopout(root.panel, payload);
-  }
-
-  // The hosting BarWidgetHost's section alignment (0 start, 1 end, 0.5 center)
-  function sectionAlign() {
-    for (let p = root.parent; p; p = p.parent) {
-      if (p.sectionAlign !== undefined)
-        return p.sectionAlign;
-    }
-    return 0.5;
   }
 
   HoverHandler {

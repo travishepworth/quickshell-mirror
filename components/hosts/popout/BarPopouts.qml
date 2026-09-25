@@ -131,9 +131,9 @@ PopoutWrapperBase {
   Connections {
     target: root.layoutSource
     // Positions settle through bindings after the signal, so read them once
-    // they have
+    // they have. A pinned popout stays where it opened.
     function onLayoutUpdated() {
-      if (root.occupied)
+      if (root.occupied && !root.currentData?.pinned)
         Qt.callLater(root.updateAnchorRect);
     }
   }
@@ -188,10 +188,8 @@ PopoutWrapperBase {
     readonly property real strokeStart: borderInset - (Appearance.screenBorder ? Appearance.borderWidth : 0)
     readonly property real strokeEnd: panelLength - strokeStart
 
-    // Along the bar, in bar-window coordinates: the box as aligned to the
-    // anchor (`align` 0 lines its start edge up with the anchor's, 1 its end
-    // edge, 0.5 centers it), and the surface around it with a fillet margin
-    // each side.
+    // Along the bar, in bar-window coordinates: the box centred on the
+    // anchor, and the surface around it with a fillet margin each side.
     // One that would be pushed back from an end instead joins it: flush on
     // the perpendicular stroke, merging into that edge.
     readonly property real boxLength: (root.barConfig.vertical ? mainPopup.contentHeight : mainPopup.contentWidth) + surface.contentInset * 2
@@ -199,10 +197,9 @@ PopoutWrapperBase {
     readonly property real alignedBoxStart: {
       if (!root.currentData)
         return 0;
-      const align = root.currentData?.align ?? 0.5;
       const start = root.barConfig.vertical ? root.anchorRect.y : root.anchorRect.x;
       const length = root.barConfig.vertical ? root.anchorRect.height : root.anchorRect.width;
-      return start + (length - mainPopup.boxLength) * align;
+      return start + (length - mainPopup.boxLength) / 2;
     }
     readonly property bool joinStart: alignedBoxStart - filletMargin < minAlong
     readonly property bool joinEnd: !joinStart && alignedBoxStart + boxLength + filletMargin > maxAlong
