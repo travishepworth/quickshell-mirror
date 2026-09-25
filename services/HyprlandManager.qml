@@ -152,7 +152,8 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // focused window along) or "moveSilent" (sending it there, staying put).
   // In a grid only the monitor's own workspaces are reachable (`monitor`,
   // the focused one by default), and it goes by row, then column, sliding
-  // along each (WorkspacesConfig.animate).
+  // along each (WorkspacesConfig.animate). The standard layout is one row
+  // (columns = count), so it only ever slides sideways.
   function goToWorkspace(id, mode, monitor) {
     mode = mode || "go";
     monitor = monitor ?? Hyprland.focusedMonitor;

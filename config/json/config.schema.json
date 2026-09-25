@@ -750,8 +750,7 @@
           "type": "boolean",
           "title": "Directional slides",
           "default": true,
-          "description": "Slide sideways between columns and vertically between rows, going by row first, then column.",
-          "x-showIf": { "layout": "grid" }
+          "description": "Slide between workspaces whatever Hyprland's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column."
         }
       }
     },

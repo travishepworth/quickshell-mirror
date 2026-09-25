@@ -19,10 +19,23 @@ QtObject {
   // Workspaces a monitor shows
   readonly property int size: grid ? columns * rows : count
   readonly property bool wrap: _c.wrap
-  readonly property bool animate: grid && _c.animate
-  // The overview board's columns: the grid's, else near square
-  readonly property int boardColumns: grid ? columns : Math.ceil(Math.sqrt(count))
+  readonly property bool animate: _c.animate
+  // The overview board's columns: the grid's, else even rows where possible
+  readonly property int boardColumns: grid ? columns : _evenColumns(count)
   readonly property int boardRows: Math.ceil(size / boardColumns)
+
+  // Columns for n workspaces: one row up to 5, else the narrowest column
+  // count at least as wide as tall that divides n evenly (10 → 5 × 2), as
+  // long as that's at most 3:1; otherwise rows near square, the last short
+  function _evenColumns(n) {
+    if (n <= 5)
+      return Math.max(1, n);
+    for (let c = Math.ceil(Math.sqrt(n)); c <= n; c++) {
+      if (n % c === 0 && c / (n / c) <= 3)
+        return c;
+    }
+    return Math.ceil(n / Math.floor(Math.sqrt(n)));
+  }
 
   // First id of the monitor at `monitorIndex` (in Hyprland's order)
   function baseFor(monitorIndex) {

@@ -205,7 +205,9 @@ QtObject {
       return;
     _themeContent = content;
     _theme = _parseTheme(content, _themeName);
-    themeIntegrations(_themeName);
+    // Deferred: a restored config changes the theme and the integration
+    // switches at once, and ThemeIntegrations may not have caught up yet
+    Qt.callLater(root.themeIntegrations);
   }
 
   // --- Paths and Models ---
