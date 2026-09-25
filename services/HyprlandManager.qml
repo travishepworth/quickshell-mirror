@@ -132,15 +132,138 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     evalProcess.running = true;
   }
 
-  // Through the user's Hyprland script (it maps grid positions to
-  // workspaces); detached, so quick successive clicks all go through
-  function focusWorkspace(index) {
-    Quickshell.execDetached([Paths.hyprlandPath + "scripts/gotoWorkspace.sh", String(index)]);
+  // --- Workspaces (laid out by WorkspacesConfig) ---
+
+  // Goes to workspace `id`. mode: "go" (default), "move" (taking the
+  // focused window along) or "moveSilent" (sending it there, staying put).
+  // In a grid only the monitor's own workspaces are reachable (`monitor`,
+  // the focused one by default), and it goes by row, then column, sliding
+  // along each (WorkspacesConfig.animate).
+  function goToWorkspace(id, mode, monitor) {
+    mode = mode || "go";
+    monitor = monitor ?? Hyprland.focusedMonitor;
+    const base = workspaceBase(monitor);
+    const size = WorkspacesConfig.size;
+    if (WorkspacesConfig.grid && (id < base || id >= base + size)) {
+      console.warn(`[HyprlandManager] workspace ${id} is outside ${monitor?.name ?? "the focused monitor"}'s grid (${base}-${base + size - 1})`);
+      return;
+    }
+    const current = monitor === Hyprland.focusedMonitor ? _currentWorkspaceId() : (monitor?.activeWorkspace?.id ?? -1);
+    if (id === current)
+      return;
+    if (mode === "moveSilent") {
+      Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${id}, follow = false })`);
+      return;
+    }
+    root._lastGo = {
+      "id": id,
+      "time": Date.now()
+    };
+    const cols = WorkspacesConfig.columns;
+    const from = current - base;
+    const to = id - base;
+    const steps = [];
+    if (WorkspacesConfig.animate && root._workspaceAnim && from >= 0 && from < size) {
+      if (Math.floor(from / cols) !== Math.floor(to / cols))
+        steps.push({
+          "id": base + Math.floor(to / cols) * cols + from % cols,
+          "style": "slidevert"
+        });
+      if (from % cols !== to % cols)
+        steps.push({
+          "id": id,
+          "style": "slide"
+        });
+    }
+    if (steps.length === 0) {
+      Hyprland.dispatch(_goDispatcher(id, mode));
+      return;
+    }
+    root._slideSteps = steps.map(step => Object.assign(step, {
+        "mode": mode
+      }));
+    _nextSlide();
   }
 
-  // Plain switch to a workspace by id (the standard Workspaces widget)
-  function gotoWorkspace(id) {
-    Hyprland.dispatch(`hl.dsp.focus({ workspace = ${id} })`);
+  // One step left/right/up/down from the current workspace: within the
+  // monitor's grid, or through 1..count in the standard layout (where up is
+  // previous and down next). Stops at the edges unless WorkspacesConfig.wrap.
+  function stepWorkspace(direction, mode) {
+    const base = workspaceBase(Hyprland.focusedMonitor);
+    const size = WorkspacesConfig.size;
+    const index = _currentWorkspaceId() - base;
+    if (index < 0 || index >= size) {
+      goToWorkspace(base, mode);
+      return;
+    }
+    const cols = WorkspacesConfig.grid ? WorkspacesConfig.columns : size;
+    const rows = WorkspacesConfig.grid ? WorkspacesConfig.rows : 1;
+    if (!WorkspacesConfig.grid && (direction === "up" || direction === "down"))
+      direction = direction === "up" ? "left" : "right";
+    let col = index % cols + (direction === "left" ? -1 : direction === "right" ? 1 : 0);
+    let row = Math.floor(index / cols) + (direction === "up" ? -1 : direction === "down" ? 1 : 0);
+    if (col < 0 || col >= cols || row < 0 || row >= rows) {
+      if (!WorkspacesConfig.wrap)
+        return;
+      col = (col + cols) % cols;
+      row = (row + rows) % rows;
+    }
+    goToWorkspace(base + row * cols + col, mode);
+  }
+
+  // The n-th workspace (1-based) of the current row in a grid, or
+  // workspace n in the standard layout (number keybinds)
+  function nthWorkspace(n, mode) {
+    if (!WorkspacesConfig.grid) {
+      goToWorkspace(n, mode);
+      return;
+    }
+    const cols = WorkspacesConfig.columns;
+    if (n < 1 || n > cols)
+      return;
+    const base = workspaceBase(Hyprland.focusedMonitor);
+    const index = Math.min(Math.max(_currentWorkspaceId() - base, 0), WorkspacesConfig.size - 1);
+    goToWorkspace(base + Math.floor(index / cols) * cols + n - 1, mode);
+  }
+
+  function _goDispatcher(id, mode) {
+    return mode === "move" ? `hl.dsp.window.move({ workspace = ${id} })` : `hl.dsp.focus({ workspace = ${id} })`;
+  }
+
+  // The last workspace gone to, for a moment: key presses can come faster
+  // than Hyprland reports the switch
+  property var _lastGo: ({
+      "id": -1,
+      "time": 0
+    })
+
+  function _currentWorkspaceId() {
+    if (Date.now() - root._lastGo.time < 300)
+      return root._lastGo.id;
+    return activeWorkspaceId();
+  }
+
+  // Hyprland's own "workspaces" animation ({ speed, bezier, style }), put
+  // back after each slide; null when it isn't configured (or is off), so
+  // there's nothing to slide with
+  property var _workspaceAnim: null
+  property var _slideSteps: []
+
+  function _nextSlide() {
+    const step = root._slideSteps.shift();
+    if (!step)
+      return;
+    const anim = root._workspaceAnim;
+    const set = style => `hl.animation({ leaf = "workspaces", enabled = true, speed = ${anim.speed}, bezier = "${anim.bezier}", style = "${style}" })`;
+    _eval([set(step.style), `hl.dispatch(${_goDispatcher(step.id, step.mode)})`, set(anim.style)].join("\n"));
+    if (root._slideSteps.length > 0)
+      _slideTimer.restart();
+  }
+
+  // Lets the first slide start before the second changes the animation
+  property Timer _slideTimer: Timer {
+    interval: 80
+    onTriggered: root._nextSlide()
   }
 
   // --- Queries ---
@@ -175,15 +298,24 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     return null;
   }
 
-  // First workspace id of a monitor's 5×5 grid: 25 ids per monitor, in
-  // Hyprland's monitor order (the bar's WorkspaceGrid and the overview)
-  function gridBase(monitor) {
+  // First workspace id a monitor shows: 1 in the standard layout, else its
+  // grid's (columns × rows ids per monitor, in Hyprland's monitor order)
+  function workspaceBase(monitor) {
     const monitors = Hyprland.monitors.values;
     for (let i = 0; i < monitors.length; i++) {
       if (monitors[i].id === monitor?.id)
-        return i * 25 + 1;
+        return WorkspacesConfig.baseFor(i);
     }
     return 1;
+  }
+
+  // The workspace ids a monitor shows, in order
+  function workspaceIds(monitor) {
+    const base = workspaceBase(monitor);
+    const ids = [];
+    for (let i = 0; i < WorkspacesConfig.size; i++)
+      ids.push(base + i);
+    return ids;
   }
 
   function biggestWindowForWorkspace(workspaceId) {
@@ -221,6 +353,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     _fetch();
     getGaps.running = true;
     getSplitMultiplier.running = true;
+    getAnimations.running = true;
     _addLayerRules();
   }
 
@@ -234,6 +367,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       if (event.name === "configreloaded") {
         getGaps.running = true;
         getSplitMultiplier.running = true;
+        getAnimations.running = true;
         root._addLayerRules();
       }
       root.updateAll();
@@ -323,6 +457,24 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   }
 
   Process {
+    id: getAnimations
+    command: ["hyprctl", "animations", "-j"]
+    stdout: StdioCollector {
+      id: animationsCollector
+      onStreamFinished: {
+        // [animations, beziers]
+        const all = root._parse(animationsCollector.text, "animations");
+        const anim = (Array.isArray(all?.[0]) ? all[0] : []).find(a => a.name === "workspaces");
+        root._workspaceAnim = anim?.overridden && anim.enabled && anim.bezier ? {
+          "speed": anim.speed,
+          "bezier": anim.bezier,
+          "style": anim.style || "slide"
+        } : null;
+      }
+    }
+  }
+
+  Process {
     id: getGaps
     command: ["hyprctl", "getoption", "general:gaps_out", "-j"]
     stdout: StdioCollector {
@@ -370,5 +522,49 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       }
     }
     onExited: root._fetchFinished()
+  }
+
+  // `qs -c axiom ipc call workspaces …`, for workspace keybinds. mode:
+  // "go", "move" (take the focused window along) or "moveSilent"
+  property IpcHandler _ipc: IpcHandler {
+    target: "workspaces"
+
+    function go(id: string): void {
+      root.goToWorkspace(parseInt(id), "go");
+    }
+
+    function move(id: string): void {
+      root.goToWorkspace(parseInt(id), "move");
+    }
+
+    function moveSilent(id: string): void {
+      root.goToWorkspace(parseInt(id), "moveSilent");
+    }
+
+    // The n-th of the current row (grid), or workspace n (standard)
+    function nth(n: string, mode: string): void {
+      root.nthWorkspace(parseInt(n), mode);
+    }
+
+    // direction: left, right, up or down
+    function step(direction: string, mode: string): void {
+      root.stepWorkspace(direction, mode);
+    }
+
+    function left(): void {
+      root.stepWorkspace("left", "go");
+    }
+
+    function right(): void {
+      root.stepWorkspace("right", "go");
+    }
+
+    function up(): void {
+      root.stepWorkspace("up", "go");
+    }
+
+    function down(): void {
+      root.stepWorkspace("down", "go");
+    }
   }
 }

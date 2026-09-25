@@ -7,8 +7,8 @@ import qs.services
 import qs.config
 import qs.components.methods
 
-// One monitor's 5×5 workspace board: wallpaper cells with their windows as
-// live previews. Input is all OverviewInput's; this lays out, and turns its
+// One monitor's workspace board (laid out by WorkspacesConfig): wallpaper
+// cells with their windows as live previews. Input is all OverviewInput's; this lays out, and turns its
 // drops and resizes into HyprlandManager actions.
 Rectangle {
   id: root
@@ -21,9 +21,11 @@ Rectangle {
 
   signal closeRequested
 
-  readonly property int grid: 5
   readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
-  readonly property int base: HyprlandManager.gridBase(root.monitor)
+  // The workspaces shown, one per cell, and the board's shape
+  readonly property var ids: HyprlandManager.workspaceIds(root.monitor)
+  readonly property int columns: WorkspacesConfig.boardColumns
+  readonly property int rows: WorkspacesConfig.boardRows
   readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
   // Global layout origin (hyprctl coordinates) and logical size
   readonly property real monitorX: root.monitor?.x ?? 0
@@ -33,22 +35,24 @@ Rectangle {
 
   readonly property real gap: Widget.spacing * 1.5
   readonly property real pad: Widget.spacing * 2
-  readonly property real miniScale: WorkspaceGeometry.fitScale(availableWidth - pad * 2, availableHeight - pad * 2, monitorW, monitorH, gap, grid)
+  readonly property real miniScale: WorkspaceGeometry.fitScale(availableWidth - pad * 2, availableHeight - pad * 2, monitorW, monitorH, gap, columns, rows)
   readonly property real cellW: Math.floor(monitorW * miniScale)
   readonly property real cellH: Math.floor(monitorH * miniScale)
   readonly property real cellRadius: Math.max(2, Appearance.borderRadius * 0.75)
 
-  // This monitor's windows on its 25 workspaces
-  readonly property var windows: HyprlandManager.windowList.filter(w => w.monitor === root.monitor?.id && w.workspace?.id >= root.base && w.workspace?.id < root.base + root.grid * root.grid && w.mapped !== false && !w.hidden)
+  // The windows on the board's workspaces: this monitor's in a grid; in the
+  // standard layout workspaces are shared, so any monitor's
+  readonly property var windows: HyprlandManager.windowList.filter(w => (!WorkspacesConfig.grid || w.monitor === root.monitor?.id) && root.ids.includes(w.workspace?.id) && w.mapped !== false && !w.hidden)
   readonly property var byAddress: root.windows.reduce((map, w) => {
     map[w.address] = w;
     return map;
   }, {})
   // Hit-testing and layout: [{ address, floating, cell, rect (board coords) }]
   readonly property var items: root.windows.map(w => {
-    const cell = w.workspace.id - root.base;
-    const origin = WorkspaceGeometry.cellRect(cell, root.cellW, root.cellH, root.gap, root.grid);
-    const r = WorkspaceGeometry.windowRect(w, root.monitorX, root.monitorY, root.miniScale, root.cellW, root.cellH);
+    const cell = root.ids.indexOf(w.workspace.id);
+    const origin = WorkspaceGeometry.cellRect(cell, root.cellW, root.cellH, root.gap, root.columns);
+    const at = root.originOf(w.monitor);
+    const r = WorkspaceGeometry.windowRect(w, at.x, at.y, root.miniScale, root.cellW, root.cellH);
     return {
       address: w.address,
       floating: w.floating,
@@ -64,6 +68,25 @@ Rectangle {
   // The previews are modelled by this, so they (and their captures) only
   // rebuild when windows come or go, not on every window event
   readonly property string _addressKey: root.windows.map(w => w.address).join(",")
+
+  // A monitor's global layout origin, by hyprctl id (this one's if unknown)
+  function originOf(monitorId) {
+    const m = Hyprland.monitors.values.find(m => m.id === monitorId);
+    return m ? {
+      x: m.x,
+      y: m.y
+    } : {
+      x: root.monitorX,
+      y: root.monitorY
+    };
+  }
+
+  // The origin of the monitor a workspace is on (this one if it doesn't
+  // exist yet: it opens here)
+  function workspaceOrigin(workspaceId) {
+    const ws = Hyprland.workspaces.values.find(ws => ws.id === workspaceId);
+    return root.originOf(ws?.monitor?.id ?? root.monitor?.id);
+  }
 
   function itemFor(address) {
     return root.items.find(item => item.address === address) ?? null;
@@ -82,7 +105,7 @@ Rectangle {
   }
 
   function goTo(cell) {
-    HyprlandManager.focusWorkspace(root.base + cell);
+    HyprlandManager.goToWorkspace(root.ids[cell], "go", root.monitor);
     root.closeRequested();
   }
 
@@ -102,11 +125,12 @@ Rectangle {
     const win = root.byAddress[address];
     if (!win || cell < 0)
       return;
-    const workspaceId = root.base + cell;
+    const workspaceId = root.ids[cell];
     const same = win.workspace.id === workspaceId;
     root._lastAction = Date.now();
     if (win.floating) {
-      const origin = WorkspaceGeometry.cellRect(cell, root.cellW, root.cellH, root.gap, root.grid);
+      const origin = WorkspaceGeometry.cellRect(cell, root.cellW, root.cellH, root.gap, root.columns);
+      const at = root.workspaceOrigin(workspaceId);
       const size = root.itemFor(address)?.rect ?? {
         w: 0,
         h: 0
@@ -114,8 +138,8 @@ Rectangle {
       const x = Math.min(Math.max(corner.x - origin.x, 0), root.cellW - size.w);
       const y = Math.min(Math.max(corner.y - origin.y, 0), root.cellH - size.h);
       HyprlandManager.placeWindow(address, workspaceId, "", "", null, same, {
-        x: root.monitorX + x / root.miniScale,
-        y: root.monitorY + y / root.miniScale
+        x: at.x + x / root.miniScale,
+        y: at.y + y / root.miniScale
       });
       return;
     }
@@ -159,15 +183,15 @@ Rectangle {
     id: board
     x: root.pad
     y: root.pad
-    width: root.cellW * root.grid + root.gap * (root.grid - 1)
-    height: root.cellH * root.grid + root.gap * (root.grid - 1)
+    width: root.cellW * root.columns + root.gap * (root.columns - 1)
+    height: root.cellH * root.rows + root.gap * (root.rows - 1)
 
     Repeater {
-      model: root.grid * root.grid
+      model: root.ids.length
 
       WorkspaceCell {
         required property int index
-        readonly property var rect: WorkspaceGeometry.cellRect(index, root.cellW, root.cellH, root.gap, root.grid)
+        readonly property var rect: WorkspaceGeometry.cellRect(index, root.cellW, root.cellH, root.gap, root.columns)
 
         x: rect.x
         y: rect.y
@@ -179,7 +203,7 @@ Rectangle {
         dim: WorkspaceOverlayConfig.dimInactive
         showNumber: WorkspaceOverlayConfig.showNumbers
         radius: root.cellRadius
-        current: root.base + index === root.activeId
+        current: root.ids[index] === root.activeId
         hovered: input.hoveredCell === index && input.mode === ""
         dropTarget: input.mode === "drag" && input.dropCell === index
         // An empty workspace takes the whole cell

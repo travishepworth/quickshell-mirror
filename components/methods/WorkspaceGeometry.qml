@@ -2,40 +2,41 @@ pragma Singleton
 
 import QtQuick
 
-// Pure geometry for the workspace overview: a grid×grid board of monitor
+// Pure geometry for the workspace overview: a cols×rows board of monitor
 // miniatures. Grid coordinates have (0, 0) at the first cell's corner; rects
 // are { x, y, w, h } (actions live in HyprlandManager).
 QtObject {
   id: root
 
-  // The largest scale at which grid×grid monitors of monW×monH, `gap` apart,
+  // The largest scale at which cols×rows monitors of monW×monH, `gap` apart,
   // fit in availW×availH
-  function fitScale(availW, availH, monW, monH, gap, grid) {
+  function fitScale(availW, availH, monW, monH, gap, cols, rows) {
     if (monW <= 0 || monH <= 0)
       return 0.1;
-    const sx = (availW - gap * (grid - 1)) / (monW * grid);
-    const sy = (availH - gap * (grid - 1)) / (monH * grid);
+    const sx = (availW - gap * (cols - 1)) / (monW * cols);
+    const sy = (availH - gap * (rows - 1)) / (monH * rows);
     return Math.max(0.01, Math.min(sx, sy));
   }
 
-  function cellRect(index, cellW, cellH, gap, grid) {
+  function cellRect(index, cellW, cellH, gap, cols) {
     return {
-      x: (index % grid) * (cellW + gap),
-      y: Math.floor(index / grid) * (cellH + gap),
+      x: (index % cols) * (cellW + gap),
+      y: Math.floor(index / cols) * (cellH + gap),
       w: cellW,
       h: cellH
     };
   }
 
-  // The cell index under a point, or -1 (gaps and outside the board)
-  function cellAt(x, y, cellW, cellH, gap, grid) {
+  // The cell index under a point, or -1 (gaps, outside the board, and the
+  // unused end of a last row: `count` cells in all)
+  function cellAt(x, y, cellW, cellH, gap, cols, count) {
     const col = Math.floor(x / (cellW + gap));
     const row = Math.floor(y / (cellH + gap));
-    if (col < 0 || row < 0 || col >= grid || row >= grid)
+    if (col < 0 || row < 0 || col >= cols || row * cols + col >= count)
       return -1;
     if (x - col * (cellW + gap) > cellW || y - row * (cellH + gap) > cellH)
       return -1;
-    return row * grid + col;
+    return row * cols + col;
   }
 
   // A hyprctl client's rect inside its cell. `at` is global layout

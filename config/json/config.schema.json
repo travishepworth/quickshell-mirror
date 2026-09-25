@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 7,
+      "default": 8,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -567,11 +567,66 @@
       }
     },
 
+    "Workspaces": {
+      "type": "object",
+      "x-category": "Desktop",
+      "title": "Workspaces",
+      "description": "How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `qs -c axiom ipc call workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.",
+      "additionalProperties": false,
+      "properties": {
+        "layout": {
+          "type": "string",
+          "title": "Layout",
+          "enum": ["standard", "grid"],
+          "x-enumLabels": { "standard": "Standard (1 to N)", "grid": "Grid per monitor" },
+          "default": "standard",
+          "description": "Standard: workspaces 1 to N, shared by every monitor. Grid: each monitor has its own columns × rows workspaces, numbered in Hyprland's monitor order."
+        },
+        "count": {
+          "type": "integer",
+          "title": "Workspaces",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 30,
+          "x-showIf": { "layout": "standard" }
+        },
+        "columns": {
+          "type": "integer",
+          "title": "Columns",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 10,
+          "x-showIf": { "layout": "grid" }
+        },
+        "rows": {
+          "type": "integer",
+          "title": "Rows",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 10,
+          "x-showIf": { "layout": "grid" }
+        },
+        "wrap": {
+          "type": "boolean",
+          "title": "Wrap around",
+          "default": false,
+          "description": "Stepping past the last workspace (of a row or column in a grid) goes back to the first."
+        },
+        "animate": {
+          "type": "boolean",
+          "title": "Directional slides",
+          "default": true,
+          "description": "Slide sideways between columns and vertically between rows, going by row first, then column.",
+          "x-showIf": { "layout": "grid" }
+        }
+      }
+    },
+
     "WorkspaceOverlay": {
       "type": "object",
       "x-category": "Overlay & OSD",
       "title": "Workspace overview",
-      "description": "The full-screen 5×5 workspace grid: drag windows between workspaces, right-drag to resize, middle-click to close.",
+      "description": "The full-screen workspace board (laid out as in Workspaces): drag windows between workspaces, right-drag to resize, middle-click to close.",
       "additionalProperties": false,
       "properties": {
         "background": {
@@ -650,7 +705,7 @@
           "widgets": {
             "left": [
               { "type": "Button", "properties": { "action": "overlay", "icon": "", "tooltip": "Overlay", "backgroundColor": "base0E" } },
-              { "type": "Workspaces", "properties": { "count": 5 } },
+              { "type": "Workspaces" },
               { "type": "Window" }
             ],
             "center": [
@@ -1044,7 +1099,6 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "count": {"type": "integer", "title": "Workspaces", "default": 10, "minimum": 1, "maximum": 30},
             "showEmpty": {"type": "boolean", "title": "Show empty workspaces", "default": true}
           }
         }
@@ -1265,7 +1319,6 @@
         { "$ref": "#/definitions/WindowWidget" },
         { "$ref": "#/definitions/MediaWidget" },
         { "$ref": "#/definitions/WorkspacesWidget" },
-        { "$ref": "#/definitions/WorkspaceGridWidget" },
         { "$ref": "#/definitions/TimeWidget" },
         { "$ref": "#/definitions/TailscaleWidget" },
         { "$ref": "#/definitions/NetworkWidget" },
@@ -1340,41 +1393,19 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "count": { "type": "integer", "title": "Workspaces", "default": 10, "minimum": 1, "maximum": 30, "description": "Workspaces 1 to this number are shown." },
-            "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "description": "Off: only workspaces with windows, plus the active one." },
-            "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "description": "Hide workspaces that are open on another monitor." },
-            "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers" },
-            "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces." },
-            "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "description": "Make the active workspace twice as long." },
+            "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "description": "Off: only workspaces with windows, plus the active one (standard layout)." },
+            "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "description": "Hide workspaces that are open on another monitor (standard layout)." },
+            "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers", "description": "Standard layout." },
+            "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces (standard layout)." },
+            "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "description": "Make the active workspace twice as long (standard layout)." },
+            "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "description": "Show an arrow on the active workspace (grid layout)." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the whole grid when hovered (grid layout)." },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace to go to it." },
-            "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to move between the shown workspaces." },
+            "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
-            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
-          }
-        }
-      }
-    },
-    "WorkspaceGridWidget": {
-      "type": "object",
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "WorkspaceGrid", "description": "Workspace Grid (5×5)" },
-        "visible": { "type": "boolean" },
-        "layout": { "$ref": "#/definitions/WidgetLayout" },
-        "properties": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "description": "Show an arrow on the active workspace." },
-            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the workspace grid when hovered." },
-            "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace to go to it." },
-            "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
-            "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
-            "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
-            "iconColor": { "type": "string", "title": "Icon color", "x-options": "colors", "default": "base00" }
+            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow." }
           }
         }
       }

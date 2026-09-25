@@ -285,7 +285,7 @@ QtObject {
       run: arg => {
         const id = parseInt(arg.trim());
         if (id > 0)
-          HyprlandManager.gotoWorkspace(id);
+          HyprlandManager.goToWorkspace(id);
         else
           return false;
       }

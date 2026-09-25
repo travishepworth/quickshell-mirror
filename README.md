@@ -13,7 +13,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 
 **Bar**
 - Bars are defined in config. You can have any number, on any monitor and any edge, each one solid, transparent or split into floating pills.
-- 21 widget types: Workspaces, a 5×5 WorkspaceGrid, Window, Time, Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, Button (runs any command) and Separator.
+- 20 widget types: Workspaces, Window, Time, Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, Button (runs any command) and Separator.
 - Popouts grow out of the bar, or out of the screen border, with filleted corners. Widgets open theirs on hover: a calendar, the audio mixer, Bluetooth and Wi-Fi menus, live system graphs, the forecast, pending updates and more. Buttons can run their action on hover too.
 
 **Overlay**
@@ -32,6 +32,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 - Notification toasts and a notification center.
 - An OSD that follows the volume of the apps you choose.
 - A launcher that searches apps (ranked by how often and how recently you use them), open windows, a calculator and the web, runs shell commands, and controls the shell with `/` commands. A power menu that asks you to confirm.
+- Workspaces laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overlay and your keybinds (through the `workspaces` IPC target) all follow the one setting.
 - A workspace overlay with live window previews: drag a window onto a side of another window or onto another workspace, right-drag to resize it, middle-click to close it.
 - AI chat with Gemini, OpenAI, Anthropic or an offline backend. API keys are read from environment variables or a secrets file with mode 600, never from `config.json`.
 - A lockscreen with three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
@@ -93,6 +94,7 @@ qs -c axiom ipc call <target> <function>
 | `appLauncher` | `open`, `close`, `toggle`, `search <text>` |
 | `powermenu` | `open`, `close`, `toggle` |
 | `workspaceOverlay` | `show`, `hide`, `toggle` |
+| `workspaces` | `go <id>`, `move <id>`, `moveSilent <id>`, `left`, `right`, `up`, `down`, `step <direction> <mode>`, `nth <n> <mode>` |
 | `idleInhibit` | `enable`, `disable`, `toggle`, `status` |
 | `lockscreen` | `lock` |
 

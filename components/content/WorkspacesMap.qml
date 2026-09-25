@@ -9,18 +9,16 @@ import qs.components.content.parts
 import qs.components.content.base
 
 // Workspaces as tiles with their windows' app icons; click one to go there.
-// properties: { count: number of workspaces shown, showEmpty }
+// Shows the focused monitor's workspaces (WorkspacesConfig).
+// properties: { showEmpty }
 Card {
   id: root
 
-  readonly property int count: root.properties.count ?? 10
   readonly property int activeId: HyprlandManager.activeWorkspace?.id ?? -1
   // A string, so the tiles are only rebuilt when the set of workspaces
   // shown changes, not on every window event
   readonly property string _idsKey: {
-    const ids = [];
-    for (let i = 1; i <= root.count; i++)
-      ids.push(i);
+    const ids = HyprlandManager.workspaceIds(Hyprland.focusedMonitor);
     if (root.properties.showEmpty === false)
       return ids.filter(id => HyprlandManager.windowList.some(w => w.workspace?.id === id) || id === root.activeId).join(",");
     return ids.join(",");
@@ -88,7 +86,7 @@ Card {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          onClicked: HyprlandManager.gotoWorkspace(tile.modelData)
+          onClicked: HyprlandManager.goToWorkspace(tile.modelData)
         }
       }
     }

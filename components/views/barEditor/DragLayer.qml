@@ -63,7 +63,7 @@ Item {
 
   // A short name for chips in the narrow section lanes: the type, spaced.
   // Keys: I18n.tr("Window") I18n.tr("Media") I18n.tr("Workspaces")
-  // I18n.tr("Workspace Grid") I18n.tr("Time") I18n.tr("Tailscale")
+  // I18n.tr("Time") I18n.tr("Tailscale")
   // I18n.tr("Network") I18n.tr("System Tray") I18n.tr("Notifications")
   // I18n.tr("Button") I18n.tr("Battery") I18n.tr("System Stats")
   // I18n.tr("Keyboard Layout") I18n.tr("Idle Inhibitor") I18n.tr("Privacy")
@@ -85,8 +85,6 @@ Item {
       return String.fromCodePoint(0xF075A);
     case "Workspaces":
       return String.fromCodePoint(0xF0570);
-    case "WorkspaceGrid":
-      return String.fromCodePoint(0xF0A30);
     case "Time":
       return String.fromCodePoint(0xF0150);
     case "Tailscale":

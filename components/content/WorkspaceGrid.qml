@@ -1,174 +1,100 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
-import Quickshell
 import Quickshell.Hyprland
 
 import qs.services
 import qs.config
 import qs.components.methods
+import qs.components.content.base
 
-Item {
+// The Workspaces bar widget's popout in the grid layout: the monitor's
+// whole columns × rows grid, with the row (or column, on a vertical bar)
+// the bar shows at full strength. Cells match the bar's, so it reads as the
+// bar row expanded.
+Panel {
   id: root
 
-  required property var wrapper
-
-  property var monitor: wrapper.currentData?.monitor
-  property int workspaceBase: wrapper.currentData?.workspaceBase ?? 1
-  property int activeWorkspaceId: wrapper.currentData?.activeId ?? 1
-  property int currentColumn: ((activeWorkspaceId - workspaceBase) % 5)
-  // Cells match the bar widget's, so the grid is the bar row expanded
-  readonly property int cell: wrapper.currentData?.cellSize ?? Widget.height
-
-  property alias hovered: hoverHandler.hovered
-
-  Component.onCompleted: {
-    console.log("WorkspaceGrid initialized for monitor", monitor?.name ?? "unknown");
-    console.log("Workspace range:", workspaceBase, "to", workspaceBase + 24);
+  readonly property HyprlandMonitor monitor: wrapper?.currentData?.monitor ?? null
+  readonly property bool vertical: wrapper?.currentData?.vertical ?? false
+  readonly property real cell: wrapper?.currentData?.cellSize ?? Widget.height
+  readonly property int base: HyprlandManager.workspaceBase(root.monitor)
+  readonly property int columns: WorkspacesConfig.columns
+  readonly property int rows: WorkspacesConfig.rows
+  readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
+  readonly property int activeIndex: {
+    const index = root.activeId - root.base;
+    return index >= 0 && index < root.columns * root.rows ? index : 0;
   }
+  readonly property real cellSpacing: Widget.spacing / 2
 
-  implicitWidth: (5 * cell + 6 * 6) + 20 // wtf is this
-  implicitHeight: (5 * cell + 6 * 6) + 20
-  width: implicitWidth
-  height: implicitHeight
+  margins: 10
+  implicitWidth: grid.implicitWidth + margins * 2
 
-  Rectangle {
-    id: content
-    anchors.centerIn: parent
-    visible: true
-
-    // 5 columns × widget height + spacing
-    width: 5 * root.cell + 4 * 6
-    height: 5 * root.cell + 4 * 6
-
-    color: Theme.background
-    border.color: Theme.backgroundAlt
-    border.width: 0
-    radius: Appearance.borderRadius + 2
-
-    // Hover detection only — root.hovered above (read by the wrapper)
-    // is just an alias to this.
-    HoverHandler {
-      id: hoverHandler
-    }
-
-    GridLayout {
-      anchors.centerIn: parent
-      columns: 5
-      rows: 5
-      columnSpacing: 6
-      rowSpacing: 6
-
-      Repeater {
-        model: 25
-
-        Rectangle {
-          id: wsCell
-          required property var index
-
-          readonly property int wsId: root.workspaceBase + index
-          readonly property var workspace: root.getWorkspace(wsId)
-          readonly property bool isActive: root.monitor?.activeWorkspace?.id === wsId
-          readonly property bool hasWindows: workspace?.toplevels?.values?.length > 0
-          // readonly property bool isCurrentColumn: (wsId - 1) % 5 === root.currentColumn
-          readonly property bool isCurrentColumn: index % 5 === root.currentColumn
-          readonly property bool showIcons: PopoutConfig.workspaceIcons
-          property bool hovered: false
-
-          Layout.preferredWidth: root.cell
-          Layout.preferredHeight: root.cell
-
-          property var windowData: HyprlandManager.biggestWindowForWorkspace(wsId)
-          property var iconPath: IconResolver.resolveWindowIcon(windowData?.class, windowData?.title)
-
-          radius: Appearance.borderRadius
-          // property color baseColor: isActive ? Theme.accent : hasWindows ? Colors.outline : Theme.backgroundAlt
-
-          color: isActive ? Theme.accent : hovered ? Theme.accentAlt : hasWindows ? Theme.border : Theme.backgroundAlt
-
-          // Highlight the column shown in bar
-          border.width: 0
-          border.color: Theme.backgroundAlt
-          // border.color: hovered ? Theme.accentAlt : Theme.backgroundAlt
-          opacity: isCurrentColumn ? 1.0 : 0.85
-
-          transitions: Transition {
-            ColorAnimation {
-              duration: Appearance.animFast
-            }
-          }
-
-          Image {
-            id: windowIcon
-            source: (parent.hasWindows && parent.iconPath) ? parent.iconPath : ""
-            width: parent.width * 0.7
-            height: parent.height * 0.7
-            anchors.centerIn: parent
-            visible: PopoutConfig.workspaceIcons
-          }
-
-          Text {
-            anchors.centerIn: parent
-            text: parent.wsId
-            color: parent.isActive ? Theme.background : Theme.backgroundAlt
-            font.pixelSize: 11
-            font.family: Appearance.fontFamily
-            visible: false
-          }
-
-          MouseArea {
-            id: boxMouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-
-            cursorShape: containsMouse ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: {
-              console.log("Click ws", parent.wsId);
-              HyprlandManager.focusWorkspace(parent.wsId);
-            }
-
-            onContainsMouseChanged:
-            // Handled by HoverHandler
-            {}
-
-            onEntered: {
-              parent.hovered = true;
-            }
-
-            onExited: {
-              parent.hovered = false;
-            }
-          }
-
-          Behavior on scale {
-            NumberAnimation {
-              duration: Appearance.animFast
-              easing.type: Easing.OutCubic
-            }
-          }
-
-          Behavior on color {
-            ColorAnimation {
-              duration: Appearance.animNormal
-            }
-          }
-
-          Behavior on opacity {
-            NumberAnimation {
-              duration: Appearance.animNormal
-            }
-          }
-        }
-      }
-    }
-  }
-
-  function getWorkspace(id) {
+  function wsById(id) {
     const arr = Hyprland.workspaces.values;
     for (let i = 0; i < arr.length; i++) {
       if (arr[i].id === id)
         return arr[i];
     }
     return null;
+  }
+
+  Grid {
+    id: grid
+    columns: root.columns
+    spacing: root.cellSpacing
+
+    Repeater {
+      model: root.columns * root.rows
+
+      Rectangle {
+        id: wsCell
+        required property int index
+
+        readonly property int wsId: root.base + index
+        readonly property var workspace: root.wsById(wsId)
+        readonly property bool isActive: wsId === root.activeId
+        readonly property bool hasWindows: (workspace?.toplevels?.values?.length ?? 0) > 0
+        // In the row (or column) the bar shows
+        readonly property bool inBar: root.vertical ? index % root.columns === root.activeIndex % root.columns : Math.floor(index / root.columns) === Math.floor(root.activeIndex / root.columns)
+        readonly property var windowData: PopoutConfig.workspaceIcons && hasWindows ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+        readonly property string iconPath: windowData ? IconResolver.resolveWindowIcon(windowData.class, windowData.title) : ""
+
+        width: root.cell
+        height: root.cell
+        radius: Appearance.borderRadius
+        color: isActive ? Theme.accent : cellArea.containsMouse ? Theme.accentAlt : hasWindows ? Theme.border : Theme.backgroundAlt
+        opacity: inBar ? 1.0 : 0.85
+
+        Image {
+          anchors.centerIn: parent
+          width: parent.width * 0.7
+          height: parent.height * 0.7
+          sourceSize: Qt.size(64, 64)
+          source: wsCell.iconPath
+          visible: wsCell.iconPath !== ""
+        }
+
+        MouseArea {
+          id: cellArea
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: HyprlandManager.goToWorkspace(wsCell.wsId)
+        }
+
+        Behavior on color {
+          ColorAnimation {
+            duration: Appearance.animNormal
+          }
+        }
+
+        Behavior on opacity {
+          NumberAnimation {
+            duration: Appearance.animNormal
+          }
+        }
+      }
+    }
   }
 }

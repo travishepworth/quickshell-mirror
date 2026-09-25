@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 7
+  readonly property int currentVersion: 8
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -41,6 +41,8 @@ QtObject {
       result = _v5ToV6(result, changes);
     if (version < 7)
       result = _v6ToV7(result, changes);
+    if (version < 8)
+      result = _v7ToV8(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -154,6 +156,62 @@ QtObject {
       "type": "Themes"
     });
     changes.push("Overlay.views: Themes view added");
+    return config;
+  }
+
+  // v8 moved the workspace layout into its own Workspaces section: the
+  // WorkspaceGrid bar widget became the Workspaces widget in a 5×5 grid
+  // layout, and the widgets' and WorkspacesMap modules' `count` became
+  // Workspaces.count
+  function _v7ToV8(config, changes) {
+    const workspaces = config.Workspaces ?? {};
+    let grid = false;
+    let count;
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      const widgets = bar?.widgets ?? {};
+      Object.keys(widgets).forEach(section => {
+        (widgets[section] ?? []).forEach(widget => {
+          const where = `Bars[${barIndex}].widgets.${section}`;
+          if (widget?.type === "WorkspaceGrid") {
+            widget.type = "Workspaces";
+            grid = true;
+            const props = widget.properties;
+            if (props?.iconColor !== undefined) {
+              props.textColor = props.iconColor;
+              delete props.iconColor;
+            }
+            changes.push(`${where}: WorkspaceGrid -> Workspaces`);
+          } else if (widget?.type === "Workspaces" && widget.properties?.count !== undefined) {
+            count = count ?? widget.properties.count;
+            delete widget.properties.count;
+            changes.push(`${where}: Workspaces count moved to Workspaces.count`);
+          }
+        });
+      });
+    });
+    (config.Overlay?.views ?? []).forEach((view, viewIndex) => {
+      (view?.columns ?? []).forEach(column => (column?.cells ?? []).forEach(cell => {
+          const slots = cell?.slots ?? {};
+          Object.keys(slots).forEach(key => {
+            const module = slots[key];
+            if (module?.type !== "WorkspacesMap" || module.properties?.count === undefined)
+              return;
+            count = count ?? module.properties.count;
+            delete module.properties.count;
+            changes.push(`Overlay.views[${viewIndex}]: WorkspacesMap count moved to Workspaces.count`);
+          });
+        }));
+    });
+    if (grid && workspaces.layout === undefined) {
+      workspaces.layout = "grid";
+      changes.push("Workspaces.layout = grid");
+    }
+    if (count !== undefined && workspaces.count === undefined) {
+      workspaces.count = count;
+      changes.push(`Workspaces.count = ${count}`);
+    }
+    if (Object.keys(workspaces).length > 0)
+      config.Workspaces = workspaces;
     return config;
   }
 }
