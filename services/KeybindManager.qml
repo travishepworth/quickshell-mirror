@@ -200,17 +200,18 @@ QtObject {
 
   // --- Presets ---
 
-  function _workspaceBind(key, action, argument, label) {
+  // Presets leave descriptions empty: each bind gets its action's label
+  // and section (HyprlandConfigManager.descriptionFor)
+  function _workspaceBind(key, action, argument) {
     return {
       "key": key,
       "action": action,
       "argument": argument,
-      "description": "Workspaces: " + label
+      "description": ""
     };
   }
 
   // [{ id, title, description, binds }], for the current workspace layout.
-  // Descriptions put them in a Workspaces section on the list.
   readonly property var presets: {
     const count = Math.min(10, WorkspacesConfig.size);
     const numbers = Array.from({
@@ -228,11 +229,11 @@ QtObject {
         "id": "numbers",
         "title": I18n.tr("Workspaces 1–{0}", count),
         "description": I18n.tr("SUPER + number goes to a workspace, with SHIFT it takes the window along"),
-        "binds": [].concat(...numbers.map(n => [root._workspaceBind("SUPER + " + digit(n), "workspaceNth", String(n), "Go to workspace " + n), root._workspaceBind("SUPER + SHIFT + " + digit(n), "moveWindowNth", String(n), "Move window to workspace " + n)]))
+        "binds": [].concat(...numbers.map(n => [root._workspaceBind("SUPER + " + digit(n), "workspaceNth", String(n)), root._workspaceBind("SUPER + SHIFT + " + digit(n), "moveWindowNth", String(n))]))
       }
     ];
     const directions = WorkspacesConfig.grid ? [["Up", "W", "up"], ["Left", "A", "left"], ["Down", "S", "down"], ["Right", "D", "right"]] : [["Left", "A", "left"], ["Right", "D", "right"]];
-    const stepBinds = (mods, keyIndex) => [].concat(...directions.map(d => [root._workspaceBind(mods + d[keyIndex], "workspaceStep", d[2], "Go " + d[2]), root._workspaceBind(mods + "SHIFT + " + d[keyIndex], "moveWindowStep", d[2], "Move window " + d[2])]));
+    const stepBinds = (mods, keyIndex) => [].concat(...directions.map(d => [root._workspaceBind(mods + d[keyIndex], "workspaceStep", d[2]), root._workspaceBind(mods + "SHIFT + " + d[keyIndex], "moveWindowStep", d[2])]));
     if (WorkspacesConfig.grid)
       list.push({
         "id": "wasd",

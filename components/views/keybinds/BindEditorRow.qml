@@ -94,14 +94,28 @@ StyledContainer {
         }
       }
 
-      StyledTextEntry {
-        id: label
+      // The label, after the section the action files it under (unless the
+      // description names its own: "Section: Label")
+      RowLayout {
         Layout.fillWidth: true
         Layout.preferredWidth: 4
-        Layout.preferredHeight: Widget.height
-        placeholderText: KeybindManager.actionLabels[root.bind.action] ?? I18n.tr("Label")
-        Component.onCompleted: input.text = root.bind.description ?? ""
-        input.onEditingFinished: KeybindManager.setField(root.index, "description", input.text)
+        spacing: Widget.spacing / 2
+
+        StyledText {
+          visible: !HyprlandConfigManager.hasOwnSection(label.input.text)
+          text: HyprlandConfigManager.sectionFor(root.bind.action) + "  ›"
+          opacity: 0.5
+          textSize: Appearance.fontSize - 1
+        }
+
+        StyledTextEntry {
+          id: label
+          Layout.fillWidth: true
+          Layout.preferredHeight: Widget.height
+          placeholderText: HyprlandConfigManager.defaultLabel(root.bind) || I18n.tr("Label")
+          Component.onCompleted: input.text = root.bind.description ?? ""
+          input.onEditingFinished: KeybindManager.setField(root.index, "description", input.text)
+        }
       }
 
       SquareIconButton {

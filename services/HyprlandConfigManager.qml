@@ -55,26 +55,51 @@ Singleton {
   // --- The Lua layer ---
 
   // Actions (the schema's Hyprland.binds[].action) as IPC calls, with the
-  // default label on the Keybinds page. I18n.tr isn't used: labels go to
-  // Hyprland, like the user's own bind descriptions.
+  // default label and the section on the Keybinds page. I18n.tr isn't used:
+  // labels go to Hyprland, like the user's own bind descriptions.
   readonly property var _actions: ({
-      "launcher": ["appLauncher toggle", "App launcher"],
-      "launcherSearch": ["appLauncher search {0}", "Launcher: {0}"],
-      "overlay": ["overlay toggle", "Overlay"],
-      "overlayPage": ["overlay page {0}", "Overlay: {0}"],
-      "workspaceOverview": ["workspaceOverlay toggle", "Workspace overview"],
-      "powerMenu": ["powermenu toggle", "Power menu"],
-      "lock": ["lockscreen lock", "Lock"],
-      "toggleDnd": ["notifications toggleDnd", "Do not disturb"],
-      "clearNotifications": ["notifications clear", "Clear notifications"],
-      "idleInhibit": ["idleInhibit toggle", "Caffeine"],
-      "workspaceStep": ["workspaces step {0} go", "Workspace {0}"],
-      "moveWindowStep": ["workspaces step {0} move", "Move window {0}"],
-      "workspaceNth": ["workspaces nth {0} go", "Go to workspace {0}"],
-      "moveWindowStepSilent": ["workspaces step {0} moveSilent", "Send window {0}"],
-      "moveWindowNth": ["workspaces nth {0} move", "Move window to workspace {0}"],
-      "moveWindowNthSilent": ["workspaces nth {0} moveSilent", "Send window to workspace {0}"]
+      "launcher": ["appLauncher toggle", "App launcher", "Axiom"],
+      "launcherSearch": ["appLauncher search {0}", "Launcher: {0}", "Axiom"],
+      "overlay": ["overlay toggle", "Overlay", "Axiom"],
+      "overlayPage": ["overlay page {0}", "Overlay: {0}", "Axiom"],
+      "workspaceOverview": ["workspaceOverlay toggle", "Workspace overview", "Workspace"],
+      "powerMenu": ["powermenu toggle", "Power menu", "Axiom"],
+      "lock": ["lockscreen lock", "Lock", "Axiom"],
+      "toggleDnd": ["notifications toggleDnd", "Do not disturb", "Axiom"],
+      "clearNotifications": ["notifications clear", "Clear notifications", "Axiom"],
+      "idleInhibit": ["idleInhibit toggle", "Caffeine", "Axiom"],
+      "workspaceStep": ["workspaces step {0} go", "Switch {0}", "Workspace"],
+      "moveWindowStep": ["workspaces step {0} move", "Move window {0}", "Workspace"],
+      "workspaceNth": ["workspaces nth {0} go", "Go to workspace {0}", "Workspace"],
+      "moveWindowStepSilent": ["workspaces step {0} moveSilent", "Send window {0}", "Workspace"],
+      "moveWindowNth": ["workspaces nth {0} move", "Move window to workspace {0}", "Workspace"],
+      "moveWindowNthSilent": ["workspaces nth {0} moveSilent", "Send window to workspace {0}", "Workspace"]
     })
+
+  // The section a bind's action files it under on the Keybinds page
+  function sectionFor(action) {
+    return _actions[action]?.[2] ?? "Axiom";
+  }
+
+  // The label a bind gets when its description is empty
+  function defaultLabel(bind) {
+    const argument = String(bind.argument ?? "").trim();
+    if (bind.action === "exec")
+      return argument;
+    return (_actions[bind.action]?.[1] ?? "").replace("{0}", argument);
+  }
+
+  // Whether a description names its own section ("Section: Label")
+  function hasOwnSection(description) {
+    return /^[^:]+: \S/.test(String(description ?? "").trim());
+  }
+
+  // The description Hyprland gets: "Section: Label", the section from the
+  // action unless the description names its own
+  function descriptionFor(bind) {
+    const own = String(bind.description ?? "").trim();
+    return hasOwnSection(own) ? own : sectionFor(bind.action) + ": " + (own || defaultLabel(bind));
+  }
 
   // A Lua string literal
   function _lua(text) {
@@ -93,23 +118,18 @@ Singleton {
   // The hl.bind() line for a configured bind, or "" when it's incomplete
   function _bindLua(bind) {
     const argument = String(bind.argument ?? "").trim();
-    let command, label;
+    let command;
     if (bind.action === "exec") {
       command = argument;
-      label = argument;
     } else {
       const action = _actions[bind.action];
       if (!action)
         return "";
       command = `${_shellCommand} ipc call ${action[0].replace("{0}", _shellWord(argument))}`;
-      label = action[1].replace("{0}", argument);
     }
     if (!String(bind.key ?? "").trim() || !command || (_needsArgument(bind.action) && !argument))
       return "";
-    // A "Section: Label" description picks its own section on the Keybinds
-    // page; anything else goes under Axiom
-    const own = String(bind.description ?? "").trim();
-    const description = /^[^:]+: \S/.test(own) ? own : "Axiom: " + (own || label);
+    const description = descriptionFor(bind);
     return `hl.bind(${_lua(bind.key.trim())}, hl.dsp.exec_cmd(${_lua(command)}), { description = ${_lua(description)} })`;
   }
 

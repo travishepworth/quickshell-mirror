@@ -228,7 +228,7 @@
                 "description": "Search text, page, direction, workspace number or command.",
                 "x-showIf": { "action": ["launcherSearch", "overlayPage", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "exec"] }
               },
-              "description": { "type": "string", "title": "Description", "default": "", "description": "Label on the Keybinds page. \"Section: Label\" picks a section; empty uses the action's name." }
+              "description": { "type": "string", "title": "Description", "default": "", "description": "Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write \"Section: Label\"." }
             }
           }
         },

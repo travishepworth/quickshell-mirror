@@ -1083,7 +1083,6 @@
     "Previous and next": "前と次",
     "SUPER + CTRL + arrows moves around the grid, with SHIFT it takes the window along": "SUPER + CTRL + 矢印キーでグリッドを移動、SHIFT 付きでウィンドウも一緒に移動",
     "SUPER + CTRL + left or right steps through workspaces, with SHIFT it takes the window along": "SUPER + CTRL + 左右でワークスペースを順に移動、SHIFT 付きでウィンドウも一緒に移動",
-    "Label on the Keybinds page. \"Section: Label\" picks a section; empty uses the action's name.": "キーバインドページでのラベル。「セクション: ラベル」でセクションを指定、空欄ならアクション名を使います。",
     "Workspace by number": "番号でワークスペース",
     "Applies on Save. The status card says what the change will do.": "保存時に適用されます。変更内容は状態カードに表示されます。",
     "Lock restore after a shell restart, and a workspace slide animation.": "シェル再起動後のロック復元と、ワークスペースのスライドアニメーション。",
@@ -1099,6 +1098,7 @@
     "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.": "hyprland.lua に書き出されます。その他は ~/.config/hypr/user/*.lua に置きます。",
     "Send window to number": "ウィンドウを番号へ送る",
     "Window borders in theme colors.": "ウィンドウの枠線をテーマの色にします。",
-    "Workspace in a direction": "方向でワークスペース"
+    "Workspace in a direction": "方向でワークスペース",
+    "Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write \"Section: Label\".": "キーバインドページでのラベル。空欄ならアクション名を使います。「セクション: ラベル」と書かない限り、セクションはアクションで決まります。"
   }
 }
