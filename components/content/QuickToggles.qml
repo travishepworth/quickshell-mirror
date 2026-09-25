@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import qs.config
@@ -70,7 +69,6 @@ Card {
   readonly property var known: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver"]
   readonly property var toggles: (root.properties.toggles ?? ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"]).filter(t => root.known.includes(t))
   readonly property var shown: root.toggles.filter(t => t === "bluetooth" ? BluetoothManager.available : t === "nightLight" ? root.nightLightTool !== "" : t === "powerSaver" ? root.hasPowerProfiles : true)
-  readonly property int columns: root.shape === "horizontal" ? Math.ceil(root.shown.length / (root.rows >= 2 ? 2 : 1)) : root.shape === "vertical" ? (root.cols >= 2 ? 2 : 1) : Math.ceil(Math.sqrt(root.shown.length))
 
   function toggle(name) {
     switch (name) {
@@ -140,25 +138,27 @@ Card {
     }
   }
 
-  GridLayout {
+  TileGrid {
+    id: grid
     anchors.fill: parent
     anchors.margins: root.pad
-    columns: Math.max(1, root.columns)
-    columnSpacing: Widget.spacing
-    rowSpacing: Widget.spacing
+    count: root.shown.length
 
     Repeater {
       model: root.shown
 
       IconToggle {
         required property string modelData
+        required property int index
         readonly property var def: root.defs[modelData]
-        Layout.fillWidth: true
-        Layout.fillHeight: true
+        x: grid.tileX(index)
+        y: grid.tileY(index)
+        width: grid.tileWidth
+        height: grid.tileHeight
         icon: def.icon
         label: def.label
         active: def.active
-        showLabel: !root.compact && height > Appearance.fontSize * 4
+        showLabel: !root.compact
         onClicked: root.toggle(modelData)
       }
     }

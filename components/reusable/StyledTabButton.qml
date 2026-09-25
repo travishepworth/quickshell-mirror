@@ -29,6 +29,7 @@ TabButton {
     color: root.checked ? root.activeColor : root.inactiveColor
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
+    elide: Text.ElideRight
   }
 
   background: Rectangle {

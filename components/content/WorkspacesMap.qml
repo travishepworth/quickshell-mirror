@@ -1,11 +1,11 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import Quickshell.Hyprland
 import qs.config
 import qs.services
 import qs.components.methods
 import qs.components.reusable
+import qs.components.content.parts
 import qs.components.content.base
 
 // Workspaces as tiles with their windows' app icons; click one to go there.
@@ -26,15 +26,14 @@ Card {
     return ids.join(",");
   }
   readonly property var ids: root._idsKey === "" ? [] : root._idsKey.split(",").map(Number)
-  // Tiles laid out to suit the slot: roughly matching its aspect ratio
-  readonly property int columns: Math.max(1, Math.round(Math.sqrt(root.ids.length * Math.max(0.25, width / Math.max(1, height)))))
-
-  GridLayout {
+  TileGrid {
+    id: grid
     anchors.fill: parent
     anchors.margins: root.pad
-    columns: root.columns
-    columnSpacing: Widget.spacing / 2
-    rowSpacing: Widget.spacing / 2
+    count: root.ids.length
+    spacing: Widget.spacing / 2
+    // Screen-shaped tiles
+    maxAspect: 1.8
 
     Repeater {
       model: root.ids
@@ -42,11 +41,14 @@ Card {
       Rectangle {
         id: tile
         required property int modelData
+        required property int index
         readonly property bool active: tile.modelData === root.activeId
         readonly property var windows: HyprlandManager.windowList.filter(w => w.workspace?.id === tile.modelData)
 
-        Layout.fillWidth: true
-        Layout.fillHeight: true
+        x: grid.tileX(index)
+        y: grid.tileY(index)
+        width: grid.tileWidth
+        height: grid.tileHeight
         radius: Appearance.borderRadius
         color: tile.active ? Theme.accent : tileArea.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
         border.color: tile.active ? Theme.accent : Theme.border

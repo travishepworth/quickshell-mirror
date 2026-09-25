@@ -45,6 +45,28 @@ Panel {
 
   onCurrentTabChanged: fadeIn.restart()
 
+  // Quarter card: the default device's volume; click to mute
+  compactContent: Item {
+    implicitWidth: figure.implicitWidth
+    implicitHeight: figure.implicitHeight
+    readonly property var node: root.defaultDevice
+    readonly property bool muted: node?.audio?.muted ?? false
+    CompactFigure {
+      id: figure
+      anchors.centerIn: parent
+      icon: parent.muted ? root.mutedGlyph : root.unmutedGlyph
+      iconColor: parent.muted ? Theme.foregroundAlt : Theme.accent
+      value: String(Math.round((parent.node?.audio?.volume ?? 0) * 100))
+      unit: "%"
+      label: I18n.tr(root.isInput ? "Input" : "Output")
+    }
+    MouseArea {
+      anchors.fill: parent
+      cursorShape: Qt.PointingHandCursor
+      onClicked: AudioManager.toggleNodeMute(parent.node)
+    }
+  }
+
   StyledText {
     visible: !root.embedded
     text: I18n.tr(root.isInput ? "Input" : "Output")
@@ -52,18 +74,25 @@ Panel {
     textColor: Theme.accent
   }
 
-  // A card switches between output and input itself
-  RowLayout {
+  // A card switches between output and input itself, from its header
+  ModuleHeader {
     visible: root.embedded
-    Layout.fillWidth: true
-    spacing: Widget.spacing / 2
+    icon: root.unmutedGlyph
+    title: I18n.tr(root.isInput ? "Input" : "Output")
     Repeater {
       model: [["output", "\u{F057E}", I18n.tr("Output")], ["input", "\u{F036C}", I18n.tr("Input")]]
-      StyledTabButton {
+      StyledRectButton {
         required property var modelData
-        Layout.fillWidth: true
-        text: modelData[1] + "  " + modelData[2]
-        checked: root.mode === modelData[0]
+        readonly property bool selected: root.mode === modelData[0]
+        Layout.fillWidth: false
+        Layout.fillHeight: false
+        Layout.preferredWidth: Widget.height
+        Layout.preferredHeight: Widget.height
+        iconText: modelData[1]
+        iconColor: selected ? Theme.accent : Theme.foregroundAlt
+        backgroundColor: selected ? Theme.backgroundHighlight : "transparent"
+        borderHoverColor: Theme.accent
+        tooltipText: modelData[2]
         onClicked: root.mode = modelData[0]
       }
     }
@@ -90,8 +119,10 @@ Panel {
 
   RowLayout {
     Layout.fillWidth: true
+    Layout.fillHeight: false
     Layout.preferredHeight: 32
     spacing: Widget.spacing
+    uniformCellSizes: true
 
     Repeater {
       model: [I18n.tr("Applications ({0})", root.apps.length), I18n.tr("Devices")]

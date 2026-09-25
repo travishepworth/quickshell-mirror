@@ -5,6 +5,7 @@ import Quickshell
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.content.parts
 import qs.components.content.base
 
 // App launcher buttons. `apps` lists desktop entry ids (e.g. firefox,
@@ -22,7 +23,6 @@ Card {
     return Object.keys(times).sort((a, b) => times[b] - times[a]).slice(0, root.capacity);
   }
   readonly property var entries: root.ids.map(id => DesktopEntries.heuristicLookup(id)).filter(e => e)
-  readonly property int columns: Math.max(1, Math.round(Math.sqrt(root.entries.length * Math.max(0.25, width / Math.max(1, height)))))
 
   StyledText {
     anchors.centerIn: parent
@@ -34,12 +34,13 @@ Card {
     opacity: 0.6
   }
 
-  GridLayout {
+  TileGrid {
+    id: grid
     anchors.fill: parent
     anchors.margins: root.pad
-    columns: root.columns
-    columnSpacing: Widget.spacing / 2
-    rowSpacing: Widget.spacing / 2
+    count: root.entries.length
+    spacing: Widget.spacing / 2
+    maxAspect: 1.25
 
     Repeater {
       model: root.entries
@@ -47,17 +48,21 @@ Card {
       Rectangle {
         id: app
         required property var modelData
-        Layout.fillWidth: true
-        Layout.fillHeight: true
+        required property int index
+        readonly property bool labelled: (root.properties.showLabels ?? true) && height > Appearance.fontSize * 5
+        x: grid.tileX(index)
+        y: grid.tileY(index)
+        width: grid.tileWidth
+        height: grid.tileHeight
         radius: Appearance.borderRadius
         color: appArea.containsMouse ? Theme.backgroundHighlight : "transparent"
 
         ColumnLayout {
           anchors.centerIn: parent
           width: parent.width - 4
-          spacing: 2
+          spacing: Widget.spacing / 2
           Image {
-            readonly property real side: Math.min(app.width, app.height) * ((root.properties.showLabels ?? true) && app.height > 70 ? 0.55 : 0.7)
+            readonly property real side: Math.min(Appearance.fontSize * 5, Math.min(app.width, app.height) * (app.labelled ? 0.5 : 0.7))
             Layout.alignment: Qt.AlignHCenter
             Layout.preferredWidth: side
             Layout.preferredHeight: side
@@ -65,12 +70,12 @@ Card {
             source: Quickshell.iconPath(app.modelData.icon, "application-x-executable")
           }
           StyledText {
-            visible: (root.properties.showLabels ?? true) && app.height > 70
+            visible: app.labelled
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
             text: app.modelData.name
-            textSize: Appearance.fontSize - 3
+            textSize: Appearance.fontSize - 2
           }
         }
 
@@ -82,6 +87,14 @@ Card {
           onClicked: {
             LauncherManager.launchApp(app.modelData);
             ShellManager.toggleOverlay();
+          }
+        }
+
+        LazyLoader {
+          active: appArea.containsMouse && !app.labelled
+          StyledToolTip {
+            target: app
+            text: app.modelData.name
           }
         }
       }

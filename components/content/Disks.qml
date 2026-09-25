@@ -28,59 +28,84 @@ Card {
   Component.onCompleted: register()
   Component.onDestruction: SystemManager.release(root)
 
+  function barColor(ratio) {
+    return ratio > 0.9 ? Theme.error : ratio > 0.75 ? Theme.warning : Theme.accent;
+  }
+
+  // Compact: the first path's usage
+  CompactFigure {
+    readonly property var usage: SystemManager.disks[root.paths[0]] ?? null
+    visible: root.compact
+    anchors.centerIn: parent
+    maxWidth: root.width - root.pad * 2
+    icon: "\u{F02CA}"
+    iconColor: root.barColor((usage?.usage ?? 0) / 100)
+    value: usage ? String(Math.round(usage.usage)) : "…"
+    unit: usage ? "%" : ""
+    label: root.paths[0]
+  }
+
   ColumnLayout {
+    visible: !root.compact
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: Widget.spacing
 
     ModuleHeader {
-      visible: !root.compact
       icon: "\u{F02CA}"
       title: I18n.tr("Disks")
     }
 
-    Repeater {
-      model: root.compact ? root.paths.slice(0, 1) : root.paths
+    // The disks, centred in the space under the header
+    Item {
+      Layout.fillWidth: true
+      Layout.fillHeight: true
 
       ColumnLayout {
-        id: disk
-        required property string modelData
-        readonly property var usage: SystemManager.disks[disk.modelData] ?? null
-        readonly property real ratio: disk.usage ? disk.usage.usage / 100 : 0
-        Layout.fillWidth: true
-        spacing: 2
+        anchors.verticalCenter: parent.verticalCenter
+        width: parent.width
+        spacing: Widget.spacing * 1.5
 
-        RowLayout {
-          Layout.fillWidth: true
-          StyledText {
+        Repeater {
+          model: root.compact ? [] : root.paths
+
+          ColumnLayout {
+            id: disk
+            required property string modelData
+            readonly property var usage: SystemManager.disks[disk.modelData] ?? null
+            readonly property real ratio: disk.usage ? disk.usage.usage / 100 : 0
             Layout.fillWidth: true
-            elide: Text.ElideMiddle
-            text: disk.modelData
-            font.bold: true
-          }
-          StyledText {
-            text: disk.usage ? `${root.formatSize(disk.usage.used)} / ${root.formatSize(disk.usage.total)}` : "…"
-            textSize: Appearance.fontSize - 2
-            opacity: 0.7
-          }
-        }
-        Rectangle {
-          Layout.fillWidth: true
-          Layout.preferredHeight: root.compact ? 6 : 8
-          radius: height / 2
-          color: Theme.backgroundAlt
-          Rectangle {
-            width: parent.width * disk.ratio
-            height: parent.height
-            radius: height / 2
-            color: disk.ratio > 0.9 ? Theme.error : disk.ratio > 0.75 ? Theme.warning : Theme.accent
+            spacing: Widget.spacing / 2
+
+            RowLayout {
+              Layout.fillWidth: true
+              StyledText {
+                Layout.fillWidth: true
+                elide: Text.ElideMiddle
+                text: disk.modelData
+                font.bold: true
+              }
+              StyledText {
+                text: disk.usage ? `${root.formatSize(disk.usage.used)} / ${root.formatSize(disk.usage.total)}` : "…"
+                textSize: Appearance.fontSize - 2
+                opacity: 0.7
+              }
+            }
+            Rectangle {
+              Layout.fillWidth: true
+              Layout.preferredHeight: 8
+              radius: height / 2
+              color: Theme.backgroundAlt
+              Rectangle {
+                width: parent.width * disk.ratio
+                height: parent.height
+                radius: height / 2
+                color: root.barColor(disk.ratio)
+              }
+            }
           }
         }
       }
-    }
-
-    Item {
-      Layout.fillHeight: true
     }
   }
 }

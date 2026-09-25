@@ -12,6 +12,9 @@ QtObject {
 
   // key -> WeatherSource
   property var sources: ({})
+  // key -> { place, weather }: the last data of a source, so one created
+  // again (the overlay reopening) shows it at once while it refreshes
+  property var _cache: ({})
 
   function acquire(owner, request) {
     _registry.acquire(owner, {
@@ -68,14 +71,22 @@ QtObject {
         "longitude": w.longitude,
         "location": w.location,
         "units": w.units,
-        "intervalMinutes": w.intervalMinutes
+        "intervalMinutes": w.intervalMinutes,
+        "place": root._cache[key]?.place ?? null,
+        "weather": root._cache[key]?.weather ?? null
       });
       source.intervalMinutes = w.intervalMinutes;
       next[key] = source;
     }
     for (const key in root.sources) {
-      if (!(key in next))
-        root.sources[key].destroy();
+      if (!(key in next)) {
+        const old = root.sources[key];
+        root._cache[key] = {
+          "place": old.place,
+          "weather": old.weather
+        };
+        old.destroy();
+      }
     }
     root.sources = next;
     console.log("[WeatherManager] sources:", Object.keys(next).length, "for", root._requests.length, "consumers");

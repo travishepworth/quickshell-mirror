@@ -42,7 +42,28 @@ Card {
     TailscaleManager.release(root);
   }
 
+  // Compact: the connection type, name and download rate
+  CompactFigure {
+    visible: root.compact
+    anchors.centerIn: parent
+    maxWidth: root.width - root.pad * 2
+    icon: root.kindIcon
+    value: ""
+    label: root.info.name || I18n.tr("Disconnected")
+  }
+
+  StyledText {
+    visible: root.compact
+    anchors.bottom: parent.bottom
+    anchors.bottomMargin: root.pad
+    anchors.horizontalCenter: parent.horizontalCenter
+    text: `\u{F0045} ${root.rate(SystemManager.netRx)}`
+    textSize: Appearance.fontSize - 2
+    opacity: 0.8
+  }
+
   ColumnLayout {
+    visible: !root.compact
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: Widget.spacing / 2
@@ -51,42 +72,62 @@ Card {
       icon: root.kindIcon
       title: root.info.name || I18n.tr("Disconnected")
       StyledText {
-        visible: root.info.kind === "wifi" && !root.compact
+        visible: root.info.kind === "wifi"
         text: `${root.info.signal}%`
         textSize: Appearance.fontSize - 2
         opacity: 0.7
       }
     }
-    StyledText {
-      visible: !root.compact && root.info.ip !== ""
-      text: root.info.ip
-      textSize: Appearance.fontSize - 2
-      opacity: 0.7
-    }
-    StyledText {
-      visible: !root.compact && root.tailscale !== ""
+    // Address and Tailscale on one line where there's room
+    Flow {
       Layout.fillWidth: true
-      elide: Text.ElideRight
-      text: I18n.tr("Tailscale · {0}", root.tailscale)
-      textSize: Appearance.fontSize - 2
-      textColor: root.tailscale.startsWith("Running") ? Theme.success : Theme.foreground
-      opacity: 0.8
+      spacing: Widget.spacing * 1.5
+      StyledText {
+        visible: root.info.ip !== ""
+        text: root.info.ip
+        textSize: Appearance.fontSize - 2
+        opacity: 0.7
+      }
+      StyledText {
+        visible: root.tailscale !== ""
+        width: Math.min(implicitWidth, parent.width)
+        elide: Text.ElideRight
+        text: I18n.tr("Tailscale · {0}", root.tailscale)
+        textSize: Appearance.fontSize - 2
+        textColor: root.tailscale.startsWith("Running") ? Theme.success : Theme.foreground
+        opacity: 0.8
+      }
     }
 
-    Sparkline {
-      visible: !root.compact
+    // Download and upload, one graph over the other
+    Item {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      values: SystemManager.netRxHistory
-      maxValue: 0
-      lineColor: Theme.accentAlt
-      capacity: SystemManager.historyLength
+      Layout.topMargin: Widget.spacing / 2
+      Sparkline {
+        anchors.fill: parent
+        values: SystemManager.netRxHistory
+        maxValue: 0
+        lineColor: Theme.accentAlt
+        capacity: SystemManager.historyLength
+      }
+      Sparkline {
+        anchors.fill: parent
+        values: SystemManager.netTxHistory
+        maxValue: 0
+        lineColor: Theme.accent
+        fillOpacity: 0.08
+        lineWidth: 1.5
+        showBaseline: false
+        capacity: SystemManager.historyLength
+      }
     }
 
     RowLayout {
       Layout.fillWidth: true
       StyledText {
         text: `\u{F0045} ${root.rate(SystemManager.netRx)}`
+        textColor: Theme.accentAlt
         textSize: Appearance.fontSize - 1
       }
       Item {
@@ -94,8 +135,8 @@ Card {
       }
       StyledText {
         text: `\u{F005D} ${root.rate(SystemManager.netTx)}`
+        textColor: Theme.accent
         textSize: Appearance.fontSize - 1
-        opacity: 0.8
       }
     }
   }

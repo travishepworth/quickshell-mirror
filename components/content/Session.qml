@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.content.parts
@@ -38,23 +37,25 @@ Card {
     onTriggered: root.armed = ""
   }
 
-  GridLayout {
+  TileGrid {
+    id: grid
     anchors.fill: parent
     anchors.margins: root.pad
-    columns: root.shape === "vertical" ? 1 : root.shape === "horizontal" ? root.actions.length : Math.ceil(Math.sqrt(root.actions.length))
-    columnSpacing: Widget.spacing
-    rowSpacing: Widget.spacing
+    count: root.actions.length
 
     Repeater {
       model: root.actions
 
       IconToggle {
         required property string modelData
-        Layout.fillWidth: true
-        Layout.fillHeight: true
+        required property int index
+        x: grid.tileX(index)
+        y: grid.tileY(index)
+        width: grid.tileWidth
+        height: grid.tileHeight
         icon: root.defs[modelData][0]
         label: active ? I18n.tr("Confirm?") : root.defs[modelData][1]
-        showLabel: !root.compact && height > Appearance.fontSize * 4
+        showLabel: !root.compact
         active: root.armed === modelData
         activeColor: Theme.error
         onClicked: root.run(modelData)

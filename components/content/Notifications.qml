@@ -17,10 +17,11 @@ import qs.components.content.parts.notifications
 Panel {
   id: root
 
-  compactContent: StatFigure {
+  compactContent: CompactFigure {
+    icon: NotificationManager.dnd ? "\u{F009B}" : "\u{F009A}"
+    iconColor: NotificationManager.count > 0 ? Theme.accent : Theme.foregroundAlt
     value: String(NotificationManager.count)
     label: I18n.tr(NotificationManager.dnd ? "muted" : "notifications")
-    valueColor: NotificationManager.count > 0 ? Theme.accent : Theme.foreground
   }
 
   margins: 16

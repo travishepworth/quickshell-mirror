@@ -20,6 +20,7 @@ StyledContainer {
     anchors.fill: parent
     anchors.leftMargin: Widget.padding
     anchors.rightMargin: Widget.padding
+    uniformCellSizes: true
 
     Repeater {
       model: root.tabs
@@ -32,15 +33,8 @@ StyledContainer {
 
         text: modelData.name
         checked: root.currentTab === index
-        Layout.preferredWidth: root.currentTab === index ? 3 : null
 
         onClicked: root.tabClicked(index)
-        // Behavior on Layout.preferredWidth {
-        //   NumberAnimation {
-        //     duration: Appearance.animNormal
-        //     easing.type: Easing.InOutQuad
-        //   }
-        // }
       }
     }
   }

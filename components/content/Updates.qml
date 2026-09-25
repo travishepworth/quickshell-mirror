@@ -38,11 +38,14 @@ Panel {
   Component.onCompleted: register()
   Component.onDestruction: UpdatesManager.release(root)
 
-  compactContent: StatFigure {
+  compactContent: CompactFigure {
+    icon: "\u{F06B0}"
+    iconColor: root.total > 0 ? Theme.accent : Theme.foregroundAlt
     value: UpdatesManager.checking && root.total === 0 ? "…" : String(root.total)
     label: I18n.tr("updates")
-    valueColor: root.total > 0 ? Theme.accent : Theme.foreground
   }
+  // Narrow cards show only the new version
+  readonly property bool narrow: root.embedded && root.width < 360
 
   implicitWidth: Math.max(320, body.implicitWidth + margins * 2)
 
@@ -73,9 +76,13 @@ Panel {
         StyledText {
           text: row.modelData.name
           Layout.fillWidth: true
+          Layout.minimumWidth: Appearance.fontSize * 4
+          elide: Text.ElideRight
         }
         StyledText {
-          text: `${row.modelData.from} → ${row.modelData.to}`
+          Layout.maximumWidth: root.width * 0.45
+          elide: Text.ElideLeft
+          text: root.narrow ? row.modelData.to : `${row.modelData.from} → ${row.modelData.to}`
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 2
         }
@@ -113,8 +120,21 @@ Panel {
   }
 
   StyledText {
-    visible: root.repoPackages.length + root.aurPackages.length === 0
+    visible: !root.embedded && root.total === 0
     text: I18n.tr("System is up to date")
     textColor: Theme.foregroundAlt
+  }
+
+  // A card: the empty state centred, and the lists kept at the top
+  Item {
+    visible: root.embedded
+    Layout.fillWidth: true
+    Layout.fillHeight: true
+    EmptyState {
+      visible: root.total === 0
+      anchors.centerIn: parent
+      icon: "\u{F012C}"
+      text: UpdatesManager.checking ? I18n.tr("checking…") : I18n.tr("System is up to date")
+    }
   }
 }

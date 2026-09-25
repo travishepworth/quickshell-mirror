@@ -24,10 +24,11 @@ Panel {
   margins: 16
   readonly property int maxListHeight: 360
 
-  compactContent: StatFigure {
-    value: BluetoothManager.enabled ? String(BluetoothManager.connectedDevices.length) : I18n.tr("off")
-    label: I18n.tr("connected")
-    valueColor: BluetoothManager.connectedDevices.length > 0 ? Theme.accent : Theme.foreground
+  compactContent: CompactFigure {
+    icon: BluetoothManager.enabled ? "\u{F00AF}" : "\u{F00B2}"
+    iconColor: BluetoothManager.connectedDevices.length > 0 ? Theme.accent : Theme.foregroundAlt
+    value: BluetoothManager.enabled ? String(BluetoothManager.connectedDevices.length) : ""
+    label: BluetoothManager.enabled ? I18n.tr("connected") : I18n.tr("off")
   }
 
   implicitWidth: 360
@@ -176,11 +177,24 @@ Panel {
     Layout.fillWidth: true
     Layout.topMargin: Widget.padding
     Layout.bottomMargin: Widget.padding
-    visible: !BluetoothManager.enabled
+    visible: !BluetoothManager.enabled && !root.embedded
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     text: I18n.tr(!BluetoothManager.available ? "No Bluetooth adapter found" : BluetoothManager.blocked ? "Bluetooth is blocked (rfkill)" : "Bluetooth is off")
     textColor: Theme.foregroundAlt
+  }
+
+  // A card keeps its header at the top when off, the message centred below
+  Item {
+    visible: !BluetoothManager.enabled && root.embedded
+    Layout.fillWidth: true
+    Layout.fillHeight: true
+    EmptyState {
+      anchors.centerIn: parent
+      maxWidth: parent.width
+      icon: "\u{F00B2}"
+      text: I18n.tr(!BluetoothManager.available ? "No Bluetooth adapter found" : BluetoothManager.blocked ? "Bluetooth is blocked (rfkill)" : "Bluetooth is off")
+    }
   }
 
   StyledSeparator {
@@ -192,8 +206,10 @@ Panel {
   RowLayout {
     visible: BluetoothManager.enabled
     Layout.fillWidth: true
+    Layout.fillHeight: false
     Layout.preferredHeight: 32
     spacing: Widget.spacing
+    uniformCellSizes: true
 
     Repeater {
       model: [I18n.tr("Devices ({0})", BluetoothManager.pairedDevices.length), I18n.tr("Discover")]

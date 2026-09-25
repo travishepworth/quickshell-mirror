@@ -489,7 +489,6 @@
     "{0} devices": "{0} 台のデバイス",
     "{0} left": "残り {0}",
     "{0} updates": "{0} 件の更新",
-    "{0} · feels {1}°": "{0} · 体感 {1}°",
     "{0} · muted": "{0} · ミュート",
     "{0}d": "{0}日",
     "{0}h": "{0}時間",
@@ -498,8 +497,6 @@
     "Mute": "ミュート",
     "Stop": "停止",
     "Record": "録画",
-    "by CPU": "CPU順",
-    "by memory": "メモリ順",
     "muted": "ミュート中",
     "notifications": "件の通知",
     "off": "オフ",
@@ -924,6 +921,9 @@
     "Qt (qt5ct / qt6ct)": "Qt（qt5ct / qt6ct）",
     "Yazi": "Yazi",
     "GTK": "GTK",
-    "Writes the \"axiom\" theme: set 'theme = axiom' in the Ghostty config. Ghostty 1.2+ reloads it.": "「axiom」テーマを書き込みます。Ghostty の設定で 'theme = axiom' を指定してください。Ghostty 1.2 以降は自動で再読み込みします。"
+    "Writes the \"axiom\" theme: set 'theme = axiom' in the Ghostty config. Ghostty 1.2+ reloads it.": "「axiom」テーマを書き込みます。Ghostty の設定で 'theme = axiom' を指定してください。Ghostty 1.2 以降は自動で再読み込みします。",
+    "Mem": "メモリ",
+    "Loading weather…": "天気を読み込み中…",
+    "Feels {0}°  ·  {1}%  ·  {2} {3}": "体感 {0}°  ·  {1}%  ·  {2} {3}"
   }
 }

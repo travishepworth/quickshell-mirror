@@ -21,22 +21,19 @@ Card {
     signal toggled
     signal stepped(real delta)
 
-    ColumnLayout {
-      anchors.fill: parent
-      spacing: Widget.spacing / 2
-      Item {
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        PercentageCircle {
-          readonly property real side: Math.min(parent.width, parent.height)
-          anchors.centerIn: parent
-          width: side
-          height: side
-          percentage: dial.muted ? 0 : Math.round(dial.level * 100)
-          iconText: dial.icon
-          iconColor: dial.muted ? Theme.error : Theme.foreground
-          fillColor: Theme.accent
-        }
+    // The dial and its label, kept together and centred
+    Column {
+      anchors.centerIn: parent
+      spacing: Widget.spacing
+      PercentageCircle {
+        readonly property real side: Math.max(0, Math.min(dial.width, dial.height - (label.visible ? label.height + Widget.spacing : 0)))
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: side
+        height: side
+        percentage: dial.muted ? 0 : Math.round(dial.level * 100)
+        iconText: dial.icon
+        iconColor: dial.muted ? Theme.error : Theme.foreground
+        fillColor: Theme.accent
         MouseArea {
           anchors.fill: parent
           cursorShape: Qt.PointingHandCursor
@@ -45,10 +42,11 @@ Card {
         }
       }
       StyledText {
+        id: label
         visible: !root.compact
-        Layout.alignment: Qt.AlignHCenter
+        anchors.horizontalCenter: parent.horizontalCenter
         text: dial.muted ? I18n.tr("{0} · muted", dial.label) : `${dial.label} · ${Math.round(dial.level * 100)}%`
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSize - 1
         opacity: 0.8
       }
     }

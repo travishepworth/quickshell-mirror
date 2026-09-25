@@ -24,7 +24,34 @@ Card {
   })
   Component.onDestruction: SystemManager.release(root)
 
+  TextMetrics {
+    id: numberMetrics
+    text: "100.0%"
+    font.family: Appearance.fontFamily
+    font.pixelSize: Appearance.fontSize - 1
+  }
+
+  TextMetrics {
+    id: killMetrics
+    text: "\u{F0156}"
+    font.family: Appearance.fontFamily
+    font.pixelSize: Appearance.fontSize
+  }
+
+  // Compact: the busiest process
+  CompactFigure {
+    readonly property var busiest: root.rows[0] ?? null
+    visible: root.compact
+    anchors.centerIn: parent
+    maxWidth: root.width - root.pad * 2
+    icon: "\u{F0A30}"
+    value: busiest ? busiest[root.sortBy].toFixed(0) : "…"
+    unit: busiest ? "%" : ""
+    label: busiest?.command ?? ""
+  }
+
   ColumnLayout {
+    visible: !root.compact
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: Widget.spacing
@@ -33,10 +60,24 @@ Card {
       visible: !root.compact
       icon: "\u{F0A30}"
       title: I18n.tr("Processes")
+      // Column heads over the figures (the kill button's room at the end)
       StyledText {
-        text: I18n.tr(root.sortBy === "cpu" ? "by CPU" : "by memory")
+        Layout.preferredWidth: numberMetrics.advanceWidth
+        Layout.rightMargin: Widget.spacing / 2
+        horizontalAlignment: Text.AlignRight
+        text: "CPU"
+        textColor: root.sortBy === "cpu" ? Theme.accent : Theme.foreground
         textSize: Appearance.fontSize - 2
-        opacity: 0.6
+        opacity: 0.7
+      }
+      StyledText {
+        Layout.preferredWidth: numberMetrics.advanceWidth
+        Layout.rightMargin: Widget.spacing * 1.5 + killMetrics.advanceWidth
+        horizontalAlignment: Text.AlignRight
+        text: I18n.tr("Mem")
+        textColor: root.sortBy === "mem" ? Theme.accent : Theme.foreground
+        textSize: Appearance.fontSize - 2
+        opacity: 0.7
       }
     }
 
@@ -84,20 +125,23 @@ Card {
                 text: row.proc.command
               }
               StyledText {
-                visible: !root.compact
+                Layout.preferredWidth: numberMetrics.advanceWidth
+                horizontalAlignment: Text.AlignRight
                 text: `${row.proc.cpu.toFixed(1)}%`
                 textColor: root.sortBy === "cpu" ? Theme.accent : Theme.foreground
                 textSize: Appearance.fontSize - 1
               }
               StyledText {
-                visible: !root.compact
+                Layout.preferredWidth: numberMetrics.advanceWidth
+                horizontalAlignment: Text.AlignRight
                 text: `${row.proc.mem.toFixed(1)}%`
                 textColor: root.sortBy === "mem" ? Theme.accent : Theme.foreground
                 textSize: Appearance.fontSize - 1
                 opacity: 0.8
               }
               StyledText {
-                visible: rowHover.hovered
+                Layout.preferredWidth: killMetrics.advanceWidth
+                opacity: rowHover.hovered ? 1 : 0
                 text: "\u{F0156}"
                 textColor: Theme.error
                 MouseArea {

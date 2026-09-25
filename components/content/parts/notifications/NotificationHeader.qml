@@ -21,7 +21,11 @@ RowLayout {
     textSize: Appearance.fontSize + 2
   }
 
+  // Shrinks (eliding) before the buttons are pushed out of a narrow card
   StyledText {
+    Layout.fillWidth: true
+    Layout.maximumWidth: implicitWidth
+    elide: Text.ElideRight
     text: I18n.tr("Notifications")
     font.bold: true
     textColor: Theme.accent

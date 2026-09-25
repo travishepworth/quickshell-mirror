@@ -35,7 +35,7 @@ Item {
   property bool hovered: pointerInside
 
   // What a quarter-card slot shows instead of the column (e.g. a
-  // StatFigure); without one, a compact card shows the column as usual
+  // CompactFigure); without one, a compact card shows the column as usual
   property Component compactContent: null
   readonly property bool _showCompact: root.compact && root.compactContent !== null
 

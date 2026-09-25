@@ -14,6 +14,9 @@ Canvas {
   // How many samples the width represents, so a short history grows in
   // from the right instead of stretching
   property int capacity: 60
+  // A faint line along the bottom, so a graph still growing in (or flat)
+  // reads as a graph
+  property bool showBaseline: true
 
   onValuesChanged: requestPaint()
   onLineColorChanged: requestPaint()
@@ -24,7 +27,15 @@ Canvas {
     const ctx = getContext("2d");
     ctx.reset();
     const vals = root.values ?? [];
-    if (vals.length < 2 || width <= 0 || height <= 0)
+    if (width <= 0 || height <= 0)
+      return;
+    if (root.showBaseline) {
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = root.lineColor;
+      ctx.fillRect(0, height - 1, width, 1);
+      ctx.globalAlpha = 1;
+    }
+    if (vals.length < 2)
       return;
     const max = root.maxValue > 0 ? root.maxValue : Math.max(1, ...vals);
     const step = width / Math.max(1, root.capacity - 1);

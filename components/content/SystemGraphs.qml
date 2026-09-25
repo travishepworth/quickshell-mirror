@@ -8,8 +8,8 @@ import qs.components.content.parts
 import qs.components.content.base
 
 // Live graphs of system metrics: the current value over a minute of
-// history per metric. Metrics sit side by side in wide slots and stack in
-// square/tall ones; compact shows the first metric only.
+// history per metric, in the grid that best fits the slot. Compact shows
+// the first metric's figure over its graph.
 // properties: { metrics: ["cpu", "mem", "gpu", "cpuTemp", "net"] }
 Card {
   id: root
@@ -102,15 +102,65 @@ Card {
   Component.onCompleted: register()
   Component.onDestruction: SystemManager.release(root)
 
+  // Columns whose panels come closest to a 2:1 figure-over-graph shape
+  readonly property int columns: {
+    const n = Math.max(1, root.shown.length);
+    const w = root.width - root.pad * 2, h = root.height - root.pad * 2;
+    let best = 1, bestErr = Infinity;
+    for (let c = 1; c <= n; c++) {
+      const r = Math.ceil(n / c);
+      const aspect = ((w - (c - 1) * root.pad) / c) / ((h - (r - 1) * root.pad) / r);
+      const err = Math.abs(Math.log(aspect / 2)) + (r * c - n) * 0.3;
+      if (err < bestErr) {
+        bestErr = err;
+        best = c;
+      }
+    }
+    return best;
+  }
+
+  // Compact: the first metric's figure centred over its graph
+  Item {
+    visible: root.compact
+    anchors.fill: parent
+    readonly property var metric: root.compact ? root.info(root.shown[0]) : null
+
+    Sparkline {
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      anchors.margins: Appearance.borderWidth
+      height: parent.height * 0.45
+      values: parent.metric?.history ?? []
+      maxValue: parent.metric?.max ?? 100
+      lineColor: parent.metric?.color ?? Theme.accent
+      fillOpacity: 0.15
+      showBaseline: false
+      capacity: SystemManager.historyLength
+    }
+
+    CompactFigure {
+      anchors.centerIn: parent
+      anchors.verticalCenterOffset: -parent.height * 0.1
+      value: String(parent.metric?.value ?? "")
+      unit: parent.metric?.unit ?? ""
+      label: parent.metric?.label ?? ""
+      valueColor: parent.metric?.color ?? Theme.foreground
+    }
+  }
+
   GridLayout {
+    visible: !root.compact
     anchors.fill: parent
     anchors.margins: root.pad
-    columns: root.shape === "horizontal" ? Math.max(1, root.shown.length) : 1
+    columns: root.columns
     columnSpacing: root.pad
     rowSpacing: root.pad
+    uniformCellWidths: true
+    uniformCellHeights: true
 
     Repeater {
-      model: root.shown
+      model: root.compact ? [] : root.shown
 
       ColumnLayout {
         id: panel
@@ -118,32 +168,22 @@ Card {
         readonly property var metric: root.info(panel.modelData)
         Layout.fillWidth: true
         Layout.fillHeight: true
-        spacing: 2
+        Layout.preferredWidth: 1
+        Layout.preferredHeight: 1
+        spacing: Widget.spacing / 2
 
-        RowLayout {
+        StatFigure {
           Layout.fillWidth: true
-          StatFigure {
-            label: panel.metric.label
-            value: String(panel.metric.value)
-            unit: panel.metric.unit
-            valueColor: panel.metric.color
-            valueSize: root.compact ? Appearance.fontSize * 1.6 : Appearance.fontSize * 2
-          }
-          Item {
-            Layout.fillWidth: true
-          }
-          StyledText {
-            visible: !root.compact && panel.metric.sub !== ""
-            Layout.alignment: Qt.AlignTop
-            text: panel.metric.sub
-            textSize: Appearance.fontSize - 2
-            opacity: 0.7
-          }
+          label: panel.metric.sub !== "" ? `${panel.metric.label} · ${panel.metric.sub}` : panel.metric.label
+          value: String(panel.metric.value)
+          unit: panel.metric.unit
+          valueColor: panel.metric.color
         }
 
         Sparkline {
           Layout.fillWidth: true
           Layout.fillHeight: true
+          Layout.minimumHeight: Appearance.fontSize
           values: panel.metric.history
           maxValue: panel.metric.max
           lineColor: panel.metric.color
