@@ -77,6 +77,17 @@ QtObject {
     ConfigManager.setWallpaper(wallpaperUrl, target, primary);
   }
 
+  // Shows the configured wallpaper on every screen without saving anything,
+  // for when the config changed under them (a restored snapshot).
+  function applyWallpapers() {
+    for (const screen of Quickshell.screens) {
+      const url = Appearance.wallpaperFor(screen.name);
+      if (!url)
+        continue;
+      Quickshell.execDetached([Paths.scriptsPath + "setWallpaper.sh", url.replace("file://", ""), screen.name, screen.name === General.primaryMonitor ? "1" : "0"]);
+    }
+  }
+
   function generateThemesFromWallpaper(wallpaperUrl) {
     if (isGenerating) {
       console.log("[ThemeManager] Generation already in progress.");

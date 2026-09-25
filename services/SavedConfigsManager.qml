@@ -67,6 +67,7 @@ QtObject {
       return;
     }
     SettingsManager.loadConfig();
+    ThemeManager.applyWallpapers();
     root.status = I18n.tr("Restored \"{0}\"", name);
     console.log("[SavedConfigsManager] Restored", path);
   }
@@ -82,6 +83,7 @@ QtObject {
       return;
     }
     SettingsManager.loadConfig();
+    ThemeManager.applyWallpapers();
     root.status = I18n.tr("Restored the default configuration");
     console.log("[SavedConfigsManager] Restored defaults");
   }
