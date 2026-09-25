@@ -160,6 +160,8 @@ Item {
       StyledContainer {
         Layout.fillWidth: true
         Layout.preferredHeight: Widget.height
+        Layout.topMargin: Widget.spacing
+        Layout.bottomMargin: Widget.spacing
         backgroundColor: addArea.containsMouse ? Theme.backgroundHighlight : "transparent"
         borderColor: Theme.border
         borderWidth: 1

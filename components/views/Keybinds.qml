@@ -65,6 +65,8 @@ BaseView {
 
       headerExtras: RowLayout {
         Layout.fillWidth: true
+        Layout.topMargin: Widget.spacing
+        Layout.bottomMargin: Widget.spacing
         spacing: Widget.spacing * 2
 
         StyledTextEntry {
