@@ -21,6 +21,8 @@ Item {
     switch (name) {
     case "Desktop":
       return String.fromCodePoint(0xF0379);
+    case "Hyprland":
+      return String.fromCodePoint(0xF359);
     case "Look & Feel":
       return String.fromCodePoint(0xF03D8);
     case "Bar & Popouts":
@@ -98,7 +100,7 @@ Item {
 
             StyledText {
               // Category names come from the schema's x-category:
-              // I18n.tr("Desktop") I18n.tr("Look & Feel") I18n.tr("Bar & Popouts")
+              // I18n.tr("Desktop") I18n.tr("Hyprland") I18n.tr("Look & Feel") I18n.tr("Bar & Popouts")
               // I18n.tr("Overlay & OSD") I18n.tr("Chat") I18n.tr("Backups")
               text: I18n.tr(entry.modelData.name)
               textColor: entry.selected ? Theme.background : Theme.foreground

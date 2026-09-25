@@ -41,6 +41,11 @@ Item {
     return !!text && (text.toLowerCase().includes(root.query) || I18n.tr(text).toLowerCase().includes(root.query));
   }
 
+  // A card from an object with `x-showIf` (e.g. managed-only settings)
+  function _groupShown(group) {
+    return SchemaLayout.showIfHolds(group.showIf, key => root.valueAt(group.showIfParent.concat(key)));
+  }
+
   function _rowMatches(row) {
     return row.kind !== "group" && (_matches(row.title) || _matches(row.schema?.description) || row.path[row.path.length - 1].toLowerCase().includes(root.query));
   }
@@ -50,7 +55,8 @@ Item {
   readonly property var groups: {
     if (!root.searching)
       return root._groupsOf(root.category);
-    const all = [].concat(...root.categories.map(c => root._groupsOf(c)));
+    // Hand-built cards have no rows to search
+    const all = [].concat(...root.categories.map(c => root._groupsOf(c))).filter(group => group.kind !== "card");
     return all.map(group => {
       const rows = root._matches(group.title) || root._matches(group.section) ? group.rows : group.rows.filter(row => root._rowMatches(row));
       return rows.length > 0 ? Object.assign({}, group, {
@@ -59,12 +65,21 @@ Item {
     }).filter(group => group !== null);
   }
 
-  // Masonry: each group goes to the shorter column, by estimated height
+  // Which groups are shown, as a string so it only notifies when that
+  // actually changes, not on every edit
+  readonly property string _shownKey: root.groups.map(group => root._groupShown(group) ? "1" : "0").join("")
+
+  // Masonry: each shown group goes to the shorter column, by estimated
+  // height
   readonly property var columns: {
     const result = [[], []];
     const heights = [0, 0];
-    for (const group of root.groups) {
-      const weight = 2 + group.rows.reduce((sum, row) => sum + (row.kind === "array" ? 4 : row.schema?.description ? 1.6 : 1.2), 0);
+    const shown = root._shownKey;
+    for (let i = 0; i < root.groups.length; i++) {
+      if (shown[i] !== "1")
+        continue;
+      const group = root.groups[i];
+      const weight = group.kind === "card" ? 6 : 2 + group.rows.reduce((sum, row) => sum + (row.kind === "array" ? 4 : row.schema?.description ? 1.6 : 1.2), 0);
       const target = heights[0] <= heights[1] ? 0 : 1;
       result[target].push(group);
       heights[target] += weight;
@@ -86,6 +101,8 @@ Item {
       return I18n.tr("Bar Editor");
     case "OverlayEditor":
       return I18n.tr("Overlay Editor");
+    case "Keybinds":
+      return I18n.tr("Keybinds");
     }
     return type;
   }
@@ -151,11 +168,26 @@ Item {
           Repeater {
             model: root.columns[column.index]
 
-            delegate: SettingsGroupCard {
+            // A hand-built card (`x-card`: settings/<name>Card.qml) or rows
+            delegate: Loader {
+              id: card
               required property var modelData
-              group: modelData
-              form: root
-              showSection: root.searching
+              Layout.fillWidth: true
+              Component.onCompleted: {
+                if (card.modelData.kind === "card")
+                  card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"));
+                else
+                  card.sourceComponent = rowsCard;
+              }
+
+              Component {
+                id: rowsCard
+                SettingsGroupCard {
+                  group: card.modelData
+                  form: root
+                  showSection: root.searching
+                }
+              }
             }
           }
         }

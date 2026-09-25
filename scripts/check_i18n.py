@@ -54,7 +54,7 @@ def unescape(s):
 
 def schema_strings(node, out):
     if isinstance(node, dict):
-        for key in ("title", "description"):
+        for key in ("title", "description", "x-group"):
             if isinstance(node.get(key), str):
                 out.add(node[key])
         if isinstance(node.get("x-enumLabels"), dict):

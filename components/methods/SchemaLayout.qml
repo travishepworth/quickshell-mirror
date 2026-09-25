@@ -52,48 +52,123 @@ QtObject {
     return result;
   }
 
-  // One section as cards: { key, title, description, section, path, rows }.
-  // The section's direct values make the first group (titled by the
-  // section); each nested object gets its own.
+  // `x-showIf: { sibling: value | [values] | { not: value } }`: whether
+  // it holds, with valueOf(key) giving a sibling's value
+  function showIfHolds(condition, valueOf) {
+    if (!condition)
+      return true;
+    return Object.keys(condition).every(key => {
+      const want = condition[key];
+      const value = valueOf(key);
+      // Passed in from another file, a schema array arrives as a list
+      // object, not a JS Array
+      if (want !== null && typeof want === "object" && typeof want.length === "number")
+        return Array.prototype.includes.call(want, value);
+      if (want !== null && typeof want === "object")
+        return value !== want.not;
+      return value === want;
+    });
+  }
+
+  // One section as cards: { kind, key, title, description, section, path,
+  // rows, showIf, showIfParent }. The section's direct values make the
+  // first card (titled by the section), each nested object the next ones.
+  // Fields with `x-group` go on a card of that name instead, so one object
+  // can make several cards. A nested object's `x-showIf` (on its siblings)
+  // applies to all its cards. A section's `x-card` names a hand-built card
+  // (settings/<name>Card.qml) that goes first.
   function groups(schema, sectionKey) {
     const section = schema.properties[sectionKey];
     const sectionTitle = section.title ?? sectionKey;
-    const direct = [];
-    const nested = [];
-    for (const key in section.properties ?? {}) {
-      const prop = section.properties[key];
-      if (prop["x-settings"] === false)
-        continue;
-      if (prop.type === "object" && prop.properties) {
-        const children = rows(prop, [sectionKey, key]);
-        if (children.length > 0)
-          nested.push({
-            "key": sectionKey + "." + key,
-            "title": prop.title ?? key,
-            "description": prop.description ?? "",
-            "section": sectionTitle,
-            "path": [sectionKey, key],
-            "rows": children
-          });
-      } else {
-        direct.push(...rows({
+    const result = [];
+    if (section["x-card"])
+      result.push({
+        "kind": "card",
+        "key": sectionKey + ":" + section["x-card"],
+        "card": section["x-card"],
+        "title": sectionTitle,
+        "description": "",
+        "section": sectionTitle,
+        "path": [sectionKey],
+        "rows": [],
+        "showIf": null,
+        "showIfParent": []
+      });
+
+    // Cards by title, in order of first appearance
+    const cards = [];
+    function cardFor(title, base) {
+      let card = cards.find(c => c.title === title && c.path.join(".") === base.path.join("."));
+      if (!card) {
+        card = Object.assign({
+          "kind": "rows",
+          "title": title,
+          "rows": []
+        }, base);
+        card.key = base.path.join(".") + (title === base.defaultTitle ? "" : ":" + title);
+        cards.push(card);
+      }
+      return card;
+    }
+
+    function place(objectSchema, path, base) {
+      for (const key in objectSchema.properties ?? {}) {
+        const prop = objectSchema.properties[key];
+        if (prop["x-settings"] === false)
+          continue;
+        const fieldRows = root.rows({
           "properties": {
             [key]: prop
           }
-        }, [sectionKey]));
+        }, path);
+        if (fieldRows.length > 0)
+          cardFor(prop["x-group"] ?? base.defaultTitle, base).rows.push(...fieldRows);
       }
     }
-    const result = [];
-    if (direct.length > 0)
-      result.push({
-        "key": sectionKey,
-        "title": sectionTitle,
-        "description": section.description ?? "",
+
+    // Direct values first, then each nested object
+    const direct = {};
+    const nested = [];
+    for (const key in section.properties ?? {}) {
+      const prop = section.properties[key];
+      if (prop.type === "object" && prop.properties)
+        nested.push(key);
+      else
+        direct[key] = prop;
+    }
+    place({
+      "properties": direct
+    }, [sectionKey], {
+      "defaultTitle": sectionTitle,
+      "description": section.description ?? "",
+      "section": sectionTitle,
+      "path": [sectionKey],
+      "showIf": null,
+      "showIfParent": []
+    });
+    for (const key of nested) {
+      const prop = section.properties[key];
+      if (prop["x-settings"] === false)
+        continue;
+      place(prop, [sectionKey, key], {
+        "defaultTitle": prop.title ?? key,
+        "description": prop.description ?? "",
         "section": sectionTitle,
-        "path": [sectionKey],
-        "rows": direct
+        "path": [sectionKey, key],
+        "showIf": prop["x-showIf"] ?? null,
+        "showIfParent": [sectionKey]
       });
-    return result.concat(nested);
+    }
+    // A description belongs to the object's first card only
+    const seen = new Set();
+    for (const card of cards) {
+      const path = card.path.join(".");
+      if (seen.has(path))
+        card.description = "";
+      seen.add(path);
+      delete card.defaultTitle;
+    }
+    return result.concat(cards);
   }
 
   // [{ name, sections: [key], links: [page type] }], in schema order.

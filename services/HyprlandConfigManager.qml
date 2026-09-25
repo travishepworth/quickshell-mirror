@@ -29,6 +29,19 @@ Singleton {
   // Why the chosen mode isn't in effect, or ""
   readonly property string problem: _problem
   property string _problem: ""
+  // "runtime" (detached), "loaded" (the file is in effect), "fallback"
+  // (it isn't: see `problem`) or "pending" (still checking)
+  readonly property string status: mode === "detached" ? "runtime" : _problem !== "" ? "fallback" : _loaded ? "loaded" : "pending"
+  property bool _loaded: false
+  // Configured keys the runtime layer skipped because Hyprland's config
+  // already binds them
+  readonly property var skippedKeys: _skippedKeys
+  property var _skippedKeys: []
+  // A problem belongs to the mode it was found in
+  onModeChanged: {
+    _problem = "";
+    _loaded = false;
+  }
 
   readonly property string includePath: Paths.userStatePath + "hyprland.lua"
   readonly property string managedPath: Paths.hyprlandPath + "hyprland.lua"
@@ -268,7 +281,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     })
 
   // "SUPER + SHIFT + SPACE" as hyprctl binds lists it ("64:space"), or ""
-  function _keyId(key) {
+  function keyId(key) {
     const parts = String(key).split("+").map(part => part.trim()).filter(part => part !== "");
     if (parts.length === 0)
       return "";
@@ -301,6 +314,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
 
   function _clearRuntime() {
     _runtimeWanted = false;
+    _skippedKeys = [];
     HyprlandManager.runLua(_unbindLua);
   }
 
@@ -310,9 +324,10 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     const taken = new Set(bindList.filter(bind => !bind.submap).map(bind => bind.modmask + ":" + String(bind.key).toLowerCase()));
     const lines = [];
     const keys = [];
+    const skipped = [];
     for (const bind of HyprlandConfig.binds) {
       const line = _bindLua(bind);
-      const id = _keyId(bind.key);
+      const id = keyId(bind.key);
       if (line === "")
         continue;
       if (id === "") {
@@ -323,6 +338,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
         if (!_reportedTaken[id])
           console.log(`[HyprlandConfigManager] ${bind.key} is bound by your Hyprland config; skipping axiom's bind`);
         _reportedTaken[id] = true;
+        skipped.push(bind.key.trim());
         continue;
       }
       lines.push(line);
@@ -337,6 +353,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     if (HyprlandConfig.blur)
       lines.push(..._blurLua());
     lines.push(`AXIOM_RUNTIME_KEYS = { ${keys.map(key => _lua(key)).join(", ")} }`);
+    _skippedKeys = skipped;
     HyprlandManager.runLua(lines.join("\n"));
     HyprlandManager.refreshOptions();
   }
@@ -386,6 +403,16 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
       return;
     _problem = message;
     console.warn("[HyprlandConfigManager]", message);
+  }
+
+  // --- For the settings page ---
+
+  function copyIncludeLines() {
+    Quickshell.execDetached(["wl-copy", "--", includeLines]);
+  }
+
+  function openConfigDir() {
+    Quickshell.execDetached(["xdg-open", Paths.hyprlandPath]);
   }
 
   // --- Driving it ---
@@ -484,6 +511,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
           return;
         if (loadedCollector.text.trim() === "ok") {
           root._problem = "";
+          root._loaded = true;
           root._clearRuntime();
           return;
         }
