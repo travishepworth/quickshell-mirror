@@ -1099,6 +1099,19 @@
     "Send window to number": "ウィンドウを番号へ送る",
     "Window borders in theme colors.": "ウィンドウの枠線をテーマの色にします。",
     "Workspace in a direction": "方向でワークスペース",
-    "Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write \"Section: Label\".": "キーバインドページでのラベル。空欄ならアクション名を使います。「セクション: ラベル」と書かない限り、セクションはアクションで決まります。"
+    "Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write \"Section: Label\".": "キーバインドページでのラベル。空欄ならアクション名を使います。「セクション: ラベル」と書かない限り、セクションはアクションで決まります。",
+    "Change a setting, or save and restore the config": "設定を変更、または設定を保存・復元",
+    "Replace \"{0}\"": "「{0}」を置き換え",
+    "Save as \"{0}\"": "「{0}」として保存",
+    "No setting \"{0}\"": "設定「{0}」はありません",
+    "Set {0} to {1} (now {2})": "{0}を{1}に設定（現在: {2}）",
+    "Type a value (now {0})": "値を入力（現在: {0}）",
+    "None": "なし",
+    "Must be on or off": "on または off を指定してください",
+    "Must be a whole number": "整数を指定してください",
+    "Must be at least {0}": "{0}以上を指定してください",
+    "Must be at most {0}": "{0}以下を指定してください",
+    "\"{0}\" is not one of {1}": "「{0}」は {1} のいずれでもありません",
+    "Must be one of {0}": "{0} のいずれかを指定してください"
   }
 }

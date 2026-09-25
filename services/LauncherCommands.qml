@@ -291,39 +291,14 @@ QtObject {
       }
     },
     {
-      name: "save-config",
-      aliases: ["snapshot"],
-      glyph: "\u{F0193}",
-      usage: "<name>",
+      name: "config",
+      aliases: ["set", "cfg"],
+      glyph: "\u{F0493}",
+      usage: "<setting> <value> | save <name> | restore <name>",
       needsArg: true,
-      description: () => I18n.tr("Save the current config under a name"),
-      run: arg => {
-        if (arg.trim() === "")
-          return false;
-        SavedConfigsManager.save(arg.trim());
-      }
-    },
-    {
-      name: "restore-config",
-      aliases: ["load-config"],
-      glyph: "\u{F006F}",
-      usage: "<name>",
-      needsArg: true,
-      description: () => I18n.tr("Restore a saved config"),
-      options: () => {
-        const rows = [];
-        const model = SavedConfigsManager.model;
-        for (let i = 0; i < model.count; i++)
-          rows.push({
-            title: model.get(i, "fileBaseName"),
-            value: model.get(i, "fileBaseName")
-          });
-        return rows;
-      },
-      run: (arg, value) => {
-        if (value)
-          SavedConfigsManager.restore(value);
-      }
+      description: () => I18n.tr("Change a setting, or save and restore the config"),
+      options: arg => root._configOptions(arg),
+      run: (arg, value) => root._configRun(value)
     },
     {
       name: "reload",
@@ -415,6 +390,148 @@ QtObject {
       available: available,
       run: arg => prefix + arg
     };
+  }
+
+  // --- /config ---
+
+  // Every row's title is the whole argument it stands for, since rows are
+  // matched against the typed argument and Tab completes to the title
+  function _configOptions(arg) {
+    const space = arg.indexOf(" ");
+    if (space < 0) {
+      const rows = [
+        {
+          title: "save",
+          subtitle: I18n.tr("Save the current config under a name"),
+          glyph: "\u{F0193}",
+          value: {
+            next: "save "
+          }
+        },
+        {
+          title: "restore",
+          subtitle: I18n.tr("Restore a saved config"),
+          glyph: "\u{F006F}",
+          value: {
+            next: "restore "
+          }
+        }
+      ];
+      return rows.concat(SettingsManager.settingPaths.map(entry => ({
+            title: entry.key,
+            subtitle: I18n.tr(entry.schema.title ?? entry.key) + " · " + root._configShow(SettingsManager.valueOf(entry.key), entry.schema),
+            value: {
+              next: entry.key + " "
+            }
+          })));
+    }
+
+    const head = arg.slice(0, space);
+    const rest = arg.slice(space + 1);
+    const names = root._savedConfigNames();
+    if (head === "save") {
+      const name = SavedConfigsManager.sanitize(rest);
+      const rows = name === "" ? [] : [
+        {
+          title: "save " + rest.trim(),
+          subtitle: names.includes(name) ? I18n.tr("Replace \"{0}\"", name) : I18n.tr("Save as \"{0}\"", name),
+          value: {
+            save: name
+          }
+        }
+      ];
+      return rows.concat(names.filter(saved => saved !== name).map(saved => ({
+            title: "save " + saved,
+            subtitle: I18n.tr("Replace \"{0}\"", saved),
+            value: {
+              save: saved
+            }
+          })));
+    }
+    if (head === "restore")
+      return names.map(saved => ({
+            title: "restore " + saved,
+            value: {
+              restore: saved
+            }
+          }));
+
+    const entry = SettingsManager.settingFor(head);
+    if (!entry)
+      return [
+        {
+          title: arg.trim(),
+          subtitle: I18n.tr("No setting \"{0}\"", head),
+          glyph: "\u{F0026}",
+          value: {}
+        }
+      ];
+    const schema = entry.schema;
+    const current = SettingsManager.valueOf(entry.key);
+    const choices = schema.type === "boolean" ? ["on", "off"] : schema.type === "string" ? SettingsManager.optionsFor(schema) : null;
+    const setRow = (text, parsed) => ({
+          title: entry.key + " " + text,
+          subtitle: parsed.error ?? (JSON.stringify(parsed.value) === JSON.stringify(current) ? I18n.tr("Current") : I18n.tr("Set {0} to {1} (now {2})", I18n.tr(schema.title ?? entry.key), root._configShow(parsed.value, schema), root._configShow(current, schema))),
+          glyph: parsed.error ? "\u{F0026}" : "",
+          value: parsed.error ? {} : {
+            key: entry.key,
+            set: parsed.value
+          }
+        });
+    const typed = rest.trim();
+    if (typed === "" && !choices)
+      return [
+        {
+          title: entry.key,
+          subtitle: I18n.tr("Type a value (now {0})", root._configShow(current, schema)),
+          value: {}
+        }
+      ];
+    let rows = [];
+    // Typed text that isn't (the start of) a choice gets a row of its own,
+    // so free values, and why one is rejected, show
+    if (typed !== "" && !(choices ?? []).some(choice => choice.toLowerCase().startsWith(typed.toLowerCase())))
+      rows.push(setRow(typed, SettingsManager.parseValue(schema, rest)));
+    if (choices)
+      rows = rows.concat(choices.map(choice => {
+        const text = choice === "" ? "\"\"" : choice;
+        return setRow(text, SettingsManager.parseValue(schema, text));
+      }));
+    return rows;
+  }
+
+  function _configRun(value) {
+    if (value?.next)
+      return "/config " + value.next;
+    if (value?.save) {
+      SavedConfigsManager.save(value.save);
+      return;
+    }
+    if (value?.restore) {
+      SavedConfigsManager.restore(value.restore);
+      return;
+    }
+    if (value?.key !== undefined && !SettingsManager.commitValue(value.key, value.set))
+      console.warn("[LauncherCommands] Could not set", value.key);
+    return false;
+  }
+
+  function _configShow(value, schema) {
+    if (schema.type === "boolean")
+      return value ? I18n.tr("On") : I18n.tr("Off");
+    if (Array.isArray(value))
+      return value.length > 0 ? value.join(", ") : I18n.tr("None");
+    if (value === "")
+      return I18n.tr("Empty");
+    return String(value);
+  }
+
+  function _savedConfigNames() {
+    const names = [];
+    const model = SavedConfigsManager.model;
+    for (let i = 0; i < model.count; i++)
+      names.push(model.get(i, "fileBaseName"));
+    return names;
   }
 
   // --- Option lists ---

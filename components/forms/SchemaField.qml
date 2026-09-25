@@ -25,21 +25,7 @@ Loader {
   readonly property string label: row.title
   readonly property string description: fieldSchema.description ?? ""
   readonly property bool isColor: fieldSchema["x-options"] === "colors"
-  readonly property var options: {
-    if (fieldSchema.enum)
-      return fieldSchema.enum;
-    switch (fieldSchema["x-options"]) {
-    case "screens":
-      return ["", ...Quickshell.screens.map(screen => screen.name)];
-    case "chatBackends":
-      return Object.keys(ConfigManager.config.Chat.backends);
-    case "colors":
-      return Theme.baseColorNames;
-    case "languages":
-      return I18n.languages.map(l => l.code);
-    }
-    return null;
-  }
+  readonly property var options: SettingsManager.optionsFor(fieldSchema)
   // Labels shown for option values (`x-enumLabels`, or language names)
   readonly property var optionLabels: {
     if (fieldSchema["x-options"] === "languages")

@@ -147,7 +147,7 @@ Tab completes a command or its argument. Commands that change something you can 
 - **Look:** `/theme <name>` `/dark` `/light` `/mode` `/wallpaper <file|Random>` `/generate`
 - **Audio and media:** `/volume <n|+n|-n>` `/mute` `/mic` `/output <device>` `/input <device>` `/play` `/next` `/prev`
 - **Connectivity:** `/wifi [on|off]` `/bluetooth [on|off]` `/connect <device>`
-- **Other:** `/dnd [on|off]` `/clear` `/caffeine [on|off]` `/ws <n>` `/save-config <name>` `/restore-config <name>` `/reload` `/help`
+- **Other:** `/dnd [on|off]` `/clear` `/caffeine [on|off]` `/ws <n>` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/reload` `/help`
 
 Every provider can be switched off under Settings › Desktop › Launcher. The same page sets the launcher's size, hidden apps, terminal and search engine, and where it opens: floating (centered or in the upper third), or attached to the top or bottom edge like the other edge popouts, with the search field above or below the results.
 
