@@ -4,6 +4,7 @@ import QtQuick
 import qs.services
 import qs.config
 import qs.components.reusable
+import qs.components.hosts.popout
 
 // CPU / memory / temperature / GPU / disk readouts from SystemManager, one
 // icon + value segment per enabled metric. Metrics the machine can't report
@@ -107,6 +108,32 @@ BaseWidget {
   onPropertiesChanged: register()
   Component.onCompleted: register()
   Component.onDestruction: SystemManager.release(root)
+
+  // The popout graphs what the bar shows (disk has no history). From config
+  // and what the machine can report only, as with segmentKeys
+  readonly property var graphMetrics: {
+    const p = properties;
+    const metrics = [];
+    if (p.showCpu)
+      metrics.push("cpu");
+    if (p.showMemory)
+      metrics.push("mem");
+    if (p.showTemp && SystemManager.hasCpuTemp)
+      metrics.push("cpuTemp");
+    if (p.showGpu && SystemManager.hasGpu)
+      metrics.push("gpu");
+    return metrics;
+  }
+
+  PopoutAnchor {
+    popouts: root.popouts
+    panel: root.panel
+    popoutName: "SystemGraphs"
+    active: root.properties.showPopout && root.graphMetrics.length > 0
+    extraData: ({
+        "popoutMetrics": root.graphMetrics
+      })
+  }
 
   content: Grid {
     columns: root.isVertical ? 1 : Math.max(1, root.segments.length)

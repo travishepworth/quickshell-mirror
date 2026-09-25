@@ -922,6 +922,24 @@
     "Mem": "メモリ",
     "Loading weather…": "天気を読み込み中…",
     "Feels {0}°  ·  {1}%  ·  {2} {3}": "体感 {0}°  ·  {1}%  ·  {2} {3}",
-    "Click again to forget": "もう一度クリックすると削除します"
+    "Click again to forget": "もう一度クリックすると削除します",
+    "No Wi-Fi adapter found": "Wi-Fiアダプターが見つかりません",
+    "Wi-Fi is blocked (rfkill)": "Wi-Fiはブロックされています（rfkill）",
+    "Wi-Fi is off": "Wi-Fiはオフです",
+    "Password": "パスワード",
+    "Looking for networks…": "ネットワークを検索中…",
+    "System": "システム",
+    "Needs settings this menu can't set": "このメニューでは設定できない項目が必要です",
+    "Wrong password": "パスワードが違います",
+    "Couldn't connect": "接続できませんでした",
+    "Saved": "保存済み",
+    "Secured": "保護あり",
+    "Open": "オープン",
+    "Activate on hover": "ホバーで実行",
+    "Wi-Fi networks": "Wi-Fiネットワーク",
+    "Open the Wi-Fi menu when hovered.": "ホバー時にWi-Fiメニューを開きます。",
+    "Open live graphs of the shown metrics when hovered.": "ホバー時に表示中の項目のライブグラフを開きます。",
+    "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay or power menu that is already open.": "ポップアウトの表示遅延だけホバーするとクリック動作を実行します。すでに開いているランチャー、オーバーレイ、電源メニューは閉じません。",
+    "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing.": "中クリックで実行するシェルコマンド（例: nm-connection-editor）。空欄なら何もしません。"
   }
 }

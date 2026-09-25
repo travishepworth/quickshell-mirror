@@ -36,6 +36,7 @@ QtObject {
   }
 
   onShownChanged: {
+    ShellManager.setSurfaceOpen(root, root.kind, root.shown);
     if (root.shown)
       root.ownsGrab = !root.everywhere || ShellManager.isTarget(root.screen, root.mode);
     if (root.everywhere)
@@ -43,7 +44,10 @@ QtObject {
   }
 
   onWindowChanged: ShellManager.registerSurfaceWindow(root, root.kind, root.window)
-  Component.onCompleted: ShellManager.registerSurfaceWindow(root, root.kind, root.window)
+  Component.onCompleted: {
+    ShellManager.registerSurfaceWindow(root, root.kind, root.window);
+    ShellManager.setSurfaceOpen(root, root.kind, root.shown);
+  }
   Component.onDestruction: ShellManager.unregisterSurfaceWindow(root)
 
   property Connections _sync: Connections {

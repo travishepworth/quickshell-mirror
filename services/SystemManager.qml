@@ -44,7 +44,6 @@ QtObject {
       "signal": 0,
       "ip": ""
     })
-  property bool wifiEnabled: false
   // "link": the primary connection, { device, kind } (both "" when offline)
   property var netLink: ({
       "device": "",
@@ -86,12 +85,6 @@ QtObject {
   function kill(pid) {
     Quickshell.execDetached(["kill", String(pid)]);
     Qt.callLater(root._poll);
-  }
-
-  function setWifi(on) {
-    Quickshell.execDetached(["nmcli", "radio", "wifi", on ? "on" : "off"]);
-    root.wifiEnabled = on;
-    root._netInfoTimer.restart();
   }
 
   // -- Private --
@@ -320,7 +313,7 @@ QtObject {
   }
 
   // Primary connection (first connected non-loopback, non-tun device), its
-  // IPv4 address and wifi signal, and the wifi radio state
+  // IPv4 address and wifi signal
   property Process _nmcli: Process {
     command: ["sh", "-c", `
       nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device | while IFS=: read -r dev type state conn; do
@@ -331,7 +324,6 @@ QtObject {
         [ "$type" = "wifi" ] && echo "signal $(nmcli -t -f IN-USE,SIGNAL device wifi list ifname "$dev" --rescan no | awk -F: '$1=="*"{print $2}')"
         break
       done
-      echo "radio $(nmcli radio wifi)"
     `]
     stdout: StdioCollector {
       onStreamFinished: {
@@ -355,8 +347,6 @@ QtObject {
             info.ip = value;
           else if (key === "signal")
             info.signal = Number(value) || 0;
-          else if (key === "radio")
-            root.wifiEnabled = value === "enabled";
         }
         root.netInfo = info;
       }

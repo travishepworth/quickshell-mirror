@@ -14,11 +14,11 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 **Bar**
 - Bars are defined in config. You can have any number, on any monitor and any edge, each one solid, transparent or split into floating pills.
 - 21 widget types: Workspaces, a 5×5 WorkspaceGrid, Window, Time, Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, Button (runs any command) and Separator.
-- Popouts grow out of the bar, or out of the screen border, with filleted corners.
+- Popouts grow out of the bar, or out of the screen border, with filleted corners. Widgets open theirs on hover: a calendar, the audio mixer, Bluetooth and Wi-Fi menus, live system graphs, the forecast, pending updates and more. Buttons can run their action on hover too.
 
 **Overlay**
 - A full-screen overlay made of pages of cards. Each page is built from columns, each column from cells, and each cell holds modules.
-- 23 modules, including a media player, audio mixer, system graphs, top processes, disks, updates, quick toggles, Bluetooth, network, weather, calendar, notes, favourites, screenshot, session controls, a workspace map and AI chat.
+- 24 modules, including a media player, audio mixer, system graphs, top processes, disks, updates, quick toggles, Bluetooth, network, Wi-Fi networks, weather, calendar, notes, favourites, screenshot, session controls, a workspace map and AI chat.
 - Modules adapt to the shape of their slot (square, wide, tall or quarter).
 - Built-in pages: a **Settings** page generated from the config schema, a **Bar editor**, an **Overlay editor**, **Themes** and **Keybinds**.
 
@@ -52,7 +52,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 | --- | --- |
 | Wallpapers | `awww` |
 | Theme generation | ImageMagick (`magick` or `convert`). The Python packages are installed into `.venv` automatically from `scripts/requirements.txt` |
-| Network widget / module | NetworkManager (`nmcli`) |
+| Network widget / module, Wi-Fi menu | NetworkManager (`nmcli`), and Quickshell built with its Networking module |
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
 | Tailscale | `tailscale` |
 | Screenshot module | `grim`, `slurp`, `wl-copy` |

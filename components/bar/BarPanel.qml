@@ -38,6 +38,9 @@ PanelWindow {
     return Math.max(0, (Appearance.screenBorder ? barConfig.extent - Appearance.screenMargin + Appearance.borderWidth : barConfig.extent) - gap);
   }
   WlrLayershell.namespace: "axiom-bar"
+  // A popout with a text field up (e.g. a Wi-Fi password) takes the
+  // keyboard through the bar, its parent surface
+  WlrLayershell.keyboardFocus: popouts.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
   // The bar container paints the background (or not, when transparent)
   color: "transparent"
 

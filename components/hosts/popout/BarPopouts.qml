@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 
 import qs.services
 import qs.config
@@ -46,6 +47,17 @@ PopoutWrapperBase {
   onCurrentNameChanged: _loadContent()
 
   currentItem: loader.item ?? null
+
+  // Content with a text field up asks for the keyboard (Panel's
+  // wantsKeyboardFocus): a focus grab over the popout and its bar, which a
+  // click outside clears (the content's focusLost())
+  readonly property bool wantsKeyboardFocus: mainPopup.visible && (root.currentItem?.wantsKeyboardFocus ?? false)
+
+  HyprlandFocusGrab {
+    windows: [mainPopup, root.panel]
+    active: root.wantsKeyboardFocus
+    onCleared: root.currentItem?.focusLost?.()
+  }
 
   // Gap between bar and main content (connector thickness)
   property int connectorGap: Appearance.borderRadius * 2

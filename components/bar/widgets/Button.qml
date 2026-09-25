@@ -55,6 +55,20 @@ BarIconWidget {
     }
   }
 
+  // The surface an action toggles, which hovering never closes
+  readonly property var _surfaceFor: ({
+      "powerMenu": "powermenu",
+      "appLauncher": "launcher",
+      "overlay": "overlay"
+    })
+
+  function hoverAction() {
+    const surface = _surfaceFor[properties.action];
+    if (surface && ShellManager.surfaceOpen(surface))
+      return;
+    runAction();
+  }
+
   function runCommand(command) {
     if (!command)
       return;
@@ -104,6 +118,14 @@ BarIconWidget {
       else
         root.runAction();
     }
+  }
+
+  // "Activate on hover": the click action once per hover, after the
+  // popout open delay
+  Timer {
+    interval: PopoutConfig.openDelay
+    running: mouseArea.containsMouse && root.properties.hoverActivate && root.properties.action !== "none"
+    onTriggered: root.hoverAction()
   }
 
   // Tooltip after hovering for a moment

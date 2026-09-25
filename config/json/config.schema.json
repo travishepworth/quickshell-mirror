@@ -883,6 +883,7 @@
         { "$ref": "#/definitions/WorkspacesMapOverlayModule" },
         { "$ref": "#/definitions/NotificationsOverlayModule" },
         { "$ref": "#/definitions/BluetoothDevicesOverlayModule" },
+        { "$ref": "#/definitions/WifiNetworksOverlayModule" },
         { "$ref": "#/definitions/SessionOverlayModule" },
         { "$ref": "#/definitions/ScreenshotOverlayModule" },
         { "$ref": "#/definitions/ClockCalendarOverlayModule" },
@@ -1057,6 +1058,16 @@
       "additionalProperties": false,
       "properties": {
         "type": { "const": "Notifications", "description": "Notifications" }
+      }
+    },
+    "WifiNetworksOverlayModule": {
+      "type": "object",
+      "x-icon": "F05A9",
+      "x-shapes": ["vertical", "square"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "WifiNetworks", "description": "Wi-Fi networks" }
       }
     },
     "BluetoothDevicesOverlayModule": {
@@ -1428,6 +1439,8 @@
           "properties": {
             "showName": { "type": "boolean", "title": "Show device", "default": false, "description": "Show the connected device name next to the icon." },
             "interval": { "type": "integer", "title": "Poll interval (ms)", "default": 2000, "minimum": 250, "maximum": 60000 },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Wi-Fi menu when hovered." },
+            "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base09" },
             "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "base08" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
@@ -1494,6 +1507,7 @@
             "command": { "type": "string", "title": "Command", "default": "", "description": "Shell command run on left click.", "x-showIf": { "action": "command" } },
             "rightCommand": { "type": "string", "title": "Right-click command", "default": "", "description": "Shell command run on right click. Empty does nothing." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click. Empty does nothing." },
+            "hoverActivate": { "type": "boolean", "title": "Activate on hover", "default": false, "description": "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay or power menu that is already open.", "x-showIf": { "action": { "not": "none" } } },
             "labelCommand": { "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
             "labelInterval": { "type": "integer", "title": "Label interval (ms)", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
@@ -1547,6 +1561,7 @@
             "showDisk": { "type": "boolean", "title": "Disk usage", "default": false },
             "diskPath": { "type": "string", "title": "Disk path", "default": "/", "description": "Any path on the filesystem to report.", "x-showIf": { "showDisk": true } },
             "interval": { "type": "integer", "title": "Poll interval (ms)", "default": 2000, "minimum": 1000, "maximum": 60000 },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open live graphs of the shown metrics when hovered." },
             "warnThreshold": { "type": "integer", "title": "Warning at", "default": 90, "minimum": 1, "maximum": 100, "description": "Any usage (%) or temperature (°C) at or above this switches to the warning background." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0E" },
             "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "base08" },

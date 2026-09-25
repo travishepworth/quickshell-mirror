@@ -1,9 +1,13 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import Quickshell
 
 import qs.config
 import qs.services
+import qs.components.hosts.popout
 
+// The primary connection's kind and device. Hovering opens the Wi-Fi
+// menu, middle click runs a command.
 BarIconWidget {
   id: root
 
@@ -34,7 +38,22 @@ BarIconWidget {
     case "ethernet":
       return "󰈀";
     default:
-      return "󰤭";
+      return NetworkingManager.available && !NetworkingManager.wifiEnabled ? "\u{F092E}" : "󰤭";
     }
+  }
+
+  MouseArea {
+    anchors.fill: parent
+    enabled: root.properties.middleCommand !== ""
+    cursorShape: Qt.PointingHandCursor
+    acceptedButtons: Qt.MiddleButton
+    onClicked: Quickshell.execDetached(["sh", "-c", root.properties.middleCommand])
+  }
+
+  PopoutAnchor {
+    popouts: root.popouts
+    panel: root.panel
+    popoutName: "WifiNetworks"
+    active: root.properties.showPopout
   }
 }

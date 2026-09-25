@@ -191,13 +191,13 @@ QtObject {
       glyph: "\u{F05A9}",
       usage: "[on | off]",
       description: () => I18n.tr("Turn wifi on or off"),
+      available: () => NetworkingManager.available,
+      status: () => NetworkingManager.wifiEnabled ? I18n.tr("On") : I18n.tr("Off"),
       options: () => root._onOffOptions(),
       run: (arg, value) => {
         const on = root._onOff(value ?? arg);
-        if (on === null)
-          Quickshell.execDetached(["sh", "-c", "[ \"$(nmcli radio wifi)\" = enabled ] && nmcli radio wifi off || nmcli radio wifi on"]);
-        else
-          SystemManager.setWifi(on);
+        NetworkingManager.setWifiEnabled(on === null ? !NetworkingManager.wifiEnabled : on);
+        return false;
       }
     },
     {

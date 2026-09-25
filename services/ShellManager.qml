@@ -73,6 +73,28 @@ QtObject {
 
   function unregisterSurfaceWindow(group) {
     surfaceWindows = surfaceWindows.filter(e => e.group !== group);
+    setSurfaceOpen(group, "", false);
+  }
+
+  // SurfaceGroups open anywhere, `{ group, kind }`: whether a launcher,
+  // overlay or power menu is up (a hover-activated button won't close it)
+  property var openSurfaces: []
+
+  function setSurfaceOpen(group, kind, open) {
+    const others = openSurfaces.filter(e => e.group !== group);
+    if (open)
+      openSurfaces = others.concat([
+        {
+          group,
+          kind
+        }
+      ]);
+    else if (others.length !== openSurfaces.length)
+      openSurfaces = others;
+  }
+
+  function surfaceOpen(kind) {
+    return openSurfaces.some(e => e.kind === kind);
   }
 
   // Windows a full-screen surface's focus grab lets input through to on

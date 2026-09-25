@@ -21,10 +21,10 @@ Card {
 
   readonly property var defs: ({
       "wifi": {
-        "icon": SystemManager.wifiEnabled ? "\u{F05A9}" : "\u{F05AA}",
+        "icon": NetworkingManager.wifiEnabled ? "\u{F05A9}" : "\u{F05AA}",
         "label": I18n.tr("Wi-Fi"),
-        "active": SystemManager.wifiEnabled,
-        "available": true
+        "active": NetworkingManager.wifiEnabled,
+        "available": NetworkingManager.available
       },
       "bluetooth": {
         "icon": BluetoothManager.enabled ? "\u{F00AF}" : "\u{F00B2}",
@@ -68,12 +68,12 @@ Card {
   // aren't rebuilt whenever something is switched
   readonly property var known: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver"]
   readonly property var toggles: (root.properties.toggles ?? ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"]).filter(t => root.known.includes(t))
-  readonly property var shown: root.toggles.filter(t => t === "bluetooth" ? BluetoothManager.available : t === "nightLight" ? root.nightLightTool !== "" : t === "powerSaver" ? root.hasPowerProfiles : true)
+  readonly property var shown: root.toggles.filter(t => t === "wifi" ? NetworkingManager.available : t === "bluetooth" ? BluetoothManager.available : t === "nightLight" ? root.nightLightTool !== "" : t === "powerSaver" ? root.hasPowerProfiles : true)
 
   function toggle(name) {
     switch (name) {
     case "wifi":
-      SystemManager.setWifi(!SystemManager.wifiEnabled);
+      NetworkingManager.toggleWifi();
       break;
     case "bluetooth":
       BluetoothManager.toggleEnabled();
@@ -103,16 +103,6 @@ Card {
       break;
     }
   }
-
-  // Wi-Fi state comes from SystemManager's (slow) network poll
-  Component.onCompleted: {
-    if (root.toggles.includes("wifi"))
-      SystemManager.acquire(root, {
-        "metrics": ["net"],
-        "interval": 5000
-      });
-  }
-  Component.onDestruction: SystemManager.release(root)
 
   Process {
     running: true

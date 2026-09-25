@@ -29,6 +29,11 @@ Item {
   readonly property bool compact: embedded && cols <= 1 && rows <= 1
   readonly property real pad: compact ? OverlayConfig.cardPadding * 0.75 : OverlayConfig.cardPadding * 1.5
 
+  // Bar popout only: keep the keyboard (and a focus grab) while a text
+  // field is up; a click outside the popout calls focusLost()
+  property bool wantsKeyboardFocus: false
+  signal focusLost
+
   // Pointer over the content; `hovered` (what the popout wrapper reads) can
   // add more reasons to stay open, e.g. a drag in progress
   readonly property bool pointerInside: hoverHandler.hovered
