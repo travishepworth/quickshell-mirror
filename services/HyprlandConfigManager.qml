@@ -58,7 +58,9 @@ Singleton {
       "workspaceStep": ["workspaces step {0} go", "Workspace {0}"],
       "moveWindowStep": ["workspaces step {0} move", "Move window {0}"],
       "workspaceNth": ["workspaces nth {0} go", "Go to workspace {0}"],
-      "moveWindowNth": ["workspaces nth {0} move", "Move window to workspace {0}"]
+      "moveWindowStepSilent": ["workspaces step {0} moveSilent", "Send window {0}"],
+      "moveWindowNth": ["workspaces nth {0} move", "Move window to workspace {0}"],
+      "moveWindowNthSilent": ["workspaces nth {0} moveSilent", "Send window to workspace {0}"]
     })
 
   // A Lua string literal
@@ -91,7 +93,10 @@ Singleton {
     }
     if (!String(bind.key ?? "").trim() || !command || (_needsArgument(bind.action) && !argument))
       return "";
-    const description = "Axiom: " + (String(bind.description ?? "").trim() || label);
+    // A "Section: Label" description picks its own section on the Keybinds
+    // page; anything else goes under Axiom
+    const own = String(bind.description ?? "").trim();
+    const description = /^[^:]+: \S/.test(own) ? own : "Axiom: " + (own || label);
     return `hl.bind(${_lua(bind.key.trim())}, hl.dsp.exec_cmd(${_lua(command)}), { description = ${_lua(description)} })`;
   }
 
@@ -168,6 +173,21 @@ return M
 `;
   }
 
+  function _cursorLua(m) {
+    if (!m.cursorTheme)
+      return "";
+    return `hl.env("XCURSOR_THEME", ${_lua(m.cursorTheme)})\nhl.env("XCURSOR_SIZE", ${_lua(String(m.cursorSize))})\n`;
+  }
+
+  // What the managed file runs once Hyprland has started
+  function _startLua(m) {
+    const lines = [];
+    if (m.cursorTheme)
+      lines.push(`hl.exec_cmd(${_lua(`hyprctl setcursor ${_shellWord(m.cursorTheme)} ${m.cursorSize}`)})`);
+    lines.push(`hl.exec_cmd(${_lua(_shellCommand)})`);
+    return lines;
+  }
+
   // The managed hyprland.lua
   function managedLua() {
     const m = HyprlandConfig.managed;
@@ -184,31 +204,41 @@ end)()
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
 hl.config({
-  general = { layout = ${_lua(m.layout)}, gaps_in = ${m.gapsIn}, gaps_out = ${m.gapsOut}, border_size = ${m.borderSize} },
-  decoration = { rounding = ${m.rounding}, dim_inactive = ${m.dimInactive}, blur = { enabled = ${m.windowBlur} } },
+  general = { layout = ${_lua(m.layout)}, gaps_in = ${m.gapsIn}, gaps_out = ${m.gapsOut}, border_size = ${m.borderSize}, resize_on_border = ${m.resizeOnBorder} },
+  dwindle = { preserve_split = ${m.preserveSplit} },
+  decoration = {
+    rounding = ${m.rounding},
+    dim_inactive = ${m.dimInactive},
+    dim_strength = ${m.dimStrength / 100},
+    blur = { enabled = ${m.windowBlur}, size = ${m.blurSize}, passes = ${m.blurPasses} },
+  },
   animations = { enabled = ${m.animations} },
   input = {
     kb_layout = ${_lua(m.kbLayout)},
     repeat_rate = ${m.repeatRate},
     repeat_delay = ${m.repeatDelay},
+    numlock_by_default = ${m.numlockByDefault},
     follow_mouse = ${m.followMouse ? 1 : 0},
+    accel_profile = ${_lua(m.accelProfile === "default" ? "" : m.accelProfile)},
     touchpad = { natural_scroll = ${m.naturalScroll} },
   },
 })
-
+${_cursorLua(m)}
 axiom.setup()
 
 hl.on("hyprland.start", function()
-  hl.exec_cmd(${_lua(_shellCommand)})
+${_indent(_startLua(m), "  ")}
 end)
 
--- Your files. A failing one doesn't stop the rest; the errors are raised
--- together at the end (hyprctl configerrors).
+-- Your files, through require (as user.<name>) so Hyprland reloads when
+-- one changes. Shared modules go in user/lib/ (require("user.lib.x")),
+-- which isn't loaded here. A failing file doesn't stop the rest; the
+-- errors are raised together at the end (hyprctl configerrors).
 local errors = {}
-local files = io.popen("ls -1 " .. ${_lua(_shellWord(userDir))} .. "/*.lua 2>/dev/null")
+local files = io.popen("cd " .. ${_lua(_shellWord(userDir))} .. " 2>/dev/null && ls -1 *.lua 2>/dev/null")
 if files then
   for file in files:lines() do
-    local ok, err = pcall(dofile, file)
+    local ok, err = pcall(require, "user." .. file:gsub("%.lua$", ""))
     if not ok then errors[#errors + 1] = tostring(err) end
   end
   files:close()

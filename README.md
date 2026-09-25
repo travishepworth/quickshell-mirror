@@ -82,7 +82,7 @@ That's all Hyprland needs. How axiom sets up the rest is **Settings → Desktop 
 | --- | --- |
 | **Detached** (default) | Applies axiom's keybinds and required settings at runtime, and again after every Hyprland reload. It writes no files, and skips any keybind whose key your config already uses. |
 | **Included** | Writes `~/.local/state/axiom/hyprland.lua` (under `$XDG_STATE_HOME` if it's set). Load it near the top of your `hyprland.lua`, and anything after it overrides axiom (see below). |
-| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Managed config** settings (layout, gaps, borders, input). It then loads your own `~/.config/hypr/user/*.lua` after it. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua`. A `~/.config/hypr` that is a symlink or in a git repository is never taken over. |
+| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Managed config** settings (layout, gaps, borders, input). It then loads your own `~/.config/hypr/user/*.lua` after it, in name order, as `require("user.<name>")`, so Hyprland reloads when one changes. Shared modules go in `user/lib/`, which isn't loaded on its own. `user/` itself may be a symlink, for example into a dotfiles repo. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua`. A `~/.config/hypr` that is a symlink or in a git repository is never taken over. |
 
 For the included mode, add:
 
@@ -95,7 +95,7 @@ if ok then axiom.setup() end
 
 Whichever mode is set, axiom falls back to the runtime layer when its file isn't loaded, and logs why.
 
-The same settings page holds the keybinds (any IPC action below, or a command), plus switches for:
+The same settings page holds the keybinds (any IPC action below, or a command; a description like `Workspace: Switch left` picks its own section on the Keybinds page), plus switches for:
 - **required settings:** `misc.allow_session_lock_restore`, and a `workspaces` animation for the grid's slides
 - **theme-coloured window borders**
 - **blur behind axiom's surfaces**

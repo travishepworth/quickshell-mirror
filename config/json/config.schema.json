@@ -664,12 +664,12 @@
         "binds": {
           "type": "array",
           "title": "Keybinds",
-          "description": "Keys as Hyprland writes them (\"SUPER + SHIFT + SPACE\"). Each appears on the Keybinds page as Axiom: its description.",
+          "description": "Keys as Hyprland writes them (\"SUPER + SHIFT + SPACE\"). Each appears on the Keybinds page by its description.",
           "default": [
-            { "key": "SUPER + SPACE", "action": "launcher" },
-            { "key": "SUPER + TAB", "action": "overlay" },
-            { "key": "SUPER + SHIFT + SPACE", "action": "workspaceOverview" },
-            { "key": "SUPER + ESCAPE", "action": "powerMenu" },
+            { "key": "SUPER + space", "action": "launcher" },
+            { "key": "SUPER + Tab", "action": "overlay" },
+            { "key": "SUPER + SHIFT + space", "action": "workspaceOverview" },
+            { "key": "SUPER + Escape", "action": "powerMenu" },
             { "key": "SUPER + CTRL + L", "action": "lock" }
           ],
           "items": {
@@ -680,7 +680,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "workspaceNth", "moveWindowNth", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -695,7 +695,9 @@
                   "workspaceStep": "Workspace left/right/up/down",
                   "moveWindowStep": "Move window left/right/up/down",
                   "workspaceNth": "Nth workspace",
+                  "moveWindowStepSilent": "Send window left/right/up/down",
                   "moveWindowNth": "Move window to nth workspace",
+                  "moveWindowNthSilent": "Send window to nth workspace",
                   "exec": "Run a command"
                 },
                 "default": "launcher"
@@ -705,9 +707,9 @@
                 "title": "Argument",
                 "default": "",
                 "description": "The search text, the page's view type or name, left/right/up/down, the workspace number, or the command.",
-                "x-showIf": { "action": ["launcherSearch", "overlayPage", "workspaceStep", "moveWindowStep", "workspaceNth", "moveWindowNth", "exec"] }
+                "x-showIf": { "action": ["launcherSearch", "overlayPage", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "exec"] }
               },
-              "description": { "type": "string", "title": "Description", "default": "", "description": "Its label on the Keybinds page. Empty uses the action's name." }
+              "description": { "type": "string", "title": "Description", "default": "", "description": "Its label on the Keybinds page, under Axiom unless it starts with its own section (\"Workspace: Switch left\"). Empty uses the action's name." }
             }
           }
         },
@@ -718,18 +720,27 @@
           "additionalProperties": false,
           "properties": {
             "layout": { "type": "string", "title": "Layout", "enum": ["dwindle", "master"], "default": "dwindle" },
+            "preserveSplit": { "type": "boolean", "title": "Keep split direction", "default": false, "description": "Dwindle keeps a split's direction when the window is resized or moved." },
             "gapsIn": { "type": "integer", "title": "Gaps between windows", "default": 4, "minimum": 0, "maximum": 50 },
             "gapsOut": { "type": "integer", "title": "Gaps to the edges", "default": 8, "minimum": 0, "maximum": 100 },
             "borderSize": { "type": "integer", "title": "Border width", "default": 2, "minimum": 0, "maximum": 20 },
             "rounding": { "type": "integer", "title": "Corner rounding", "default": 8, "minimum": 0, "maximum": 50 },
+            "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "default": false },
             "windowBlur": { "type": "boolean", "title": "Blur transparent windows", "default": true },
+            "blurSize": { "type": "integer", "title": "Blur size", "default": 8, "minimum": 1, "maximum": 20 },
+            "blurPasses": { "type": "integer", "title": "Blur passes", "default": 1, "minimum": 1, "maximum": 6 },
             "dimInactive": { "type": "boolean", "title": "Dim unfocused windows", "default": false },
+            "dimStrength": { "type": "integer", "title": "Dim strength (%)", "default": 50, "minimum": 0, "maximum": 100 },
             "animations": { "type": "boolean", "title": "Animations", "default": true },
             "kbLayout": { "type": "string", "title": "Keyboard layout", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de)." },
             "repeatRate": { "type": "integer", "title": "Key repeat rate", "default": 25, "minimum": 1, "maximum": 100 },
+            "numlockByDefault": { "type": "boolean", "title": "Num Lock on at start", "default": false },
             "repeatDelay": { "type": "integer", "title": "Key repeat delay", "default": 600, "minimum": 100, "maximum": 2000 },
             "followMouse": { "type": "boolean", "title": "Focus follows mouse", "default": true },
-            "naturalScroll": { "type": "boolean", "title": "Natural scrolling (touchpad)", "default": false }
+            "accelProfile": { "type": "string", "title": "Pointer acceleration", "enum": ["default", "flat", "adaptive"], "x-enumLabels": { "default": "Device default", "flat": "Flat (none)", "adaptive": "Adaptive" }, "default": "default" },
+            "naturalScroll": { "type": "boolean", "title": "Natural scrolling (touchpad)", "default": false },
+            "cursorTheme": { "type": "string", "title": "Cursor theme", "default": "", "description": "An installed cursor theme's name. Empty leaves the cursor alone." },
+            "cursorSize": { "type": "integer", "title": "Cursor size", "default": 24, "minimum": 8, "maximum": 128 }
           }
         }
       }
