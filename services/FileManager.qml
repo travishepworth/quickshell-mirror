@@ -1,23 +1,36 @@
 pragma Singleton
 import QtQuick
+import Quickshell.Io
 
 // Synchronous whole-file reads, for the few places that need a file's
 // contents during a binding or initializer (config, schema, theme, state).
 // Watching and writing stay with FileView.
 QtObject {
-  // Contents of a file URL (file:// or relative to the caller's resolved
-  // URL), or null if it can't be read. Much faster than FileView for a
-  // one-off read.
+  id: root
+
+  // Contents of a file (a file:// URL or an absolute path), or null if it
+  // can't be read. A blocking FileView per read, so it needs no
+  // QML_XHR_ALLOW_FILE_READ.
   function read(url) {
+    const path = decodeURIComponent(String(url).replace(/^file:\/\//, ""));
+    const view = root._reader.createObject(root, {
+      "path": path
+    });
     try {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", url, false);
-      xhr.send();
-      if (xhr.status === 200 || xhr.status === 0)
-        return xhr.responseText;
+      const text = view.text();
+      return view.loaded ? text : null;
     } catch (e) {
-      console.error("[FileManager] Could not read file:", url, e);
+      console.error("[FileManager] Could not read file:", path, e);
+      return null;
+    } finally {
+      view.destroy();
     }
-    return null;
+  }
+
+  property Component _reader: Component {
+    FileView {
+      blockLoading: true
+      printErrors: false
+    }
   }
 }

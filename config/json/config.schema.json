@@ -622,6 +622,119 @@
       }
     },
 
+    "Hyprland": {
+      "type": "object",
+      "x-category": "Desktop",
+      "title": "Hyprland",
+      "description": "How axiom sets Hyprland up (needs Hyprland's Lua config, 0.55 or later). The binds, required settings, border colors and blur below reach Hyprland in every mode; the mode picks how.",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "title": "Mode",
+          "enum": ["detached", "included", "managed"],
+          "x-enumLabels": { "detached": "Detached (nothing to set up)", "included": "Included from your hyprland.lua", "managed": "Managed by axiom" },
+          "default": "detached",
+          "description": "Detached applies everything at runtime and writes no files; binds whose keys your config already uses are skipped. Included writes ~/.local/state/axiom/hyprland.lua (under $XDG_STATE_HOME if set): load it near the top of hyprland.lua with 'local ok, axiom = pcall(dofile, os.getenv(\"HOME\") .. \"/.local/state/axiom/hyprland.lua\")' and 'if ok then axiom.setup() end', and anything after it overrides axiom. Managed writes ~/.config/hypr/hyprland.lua itself, from the Managed config below, and loads your own ~/.config/hypr/user/*.lua after it (your old hyprland.lua is moved there once; a symlinked or git-tracked ~/.config/hypr is never taken over)."
+        },
+        "requiredSettings": {
+          "type": "boolean",
+          "title": "Required settings",
+          "default": true,
+          "description": "Session lock restore (so a restarted shell takes the lock back) and a workspaces animation for the grid's slides. Detached mode only adds the animation when your config has none."
+        },
+        "theme": {
+          "type": "boolean",
+          "title": "Themed borders",
+          "default": false,
+          "description": "Window border colors from the axiom theme (focus border and border)."
+        },
+        "blur": {
+          "type": "boolean",
+          "title": "Blur behind axiom",
+          "default": false,
+          "description": "Blur what's behind the bars, edge popouts and launcher."
+        },
+        "wallpaperDaemon": {
+          "type": "boolean",
+          "title": "Start awww",
+          "default": true,
+          "description": "Start awww-daemon when it isn't running, for the wallpaper picker."
+        },
+        "binds": {
+          "type": "array",
+          "title": "Keybinds",
+          "description": "Keys as Hyprland writes them (\"SUPER + SHIFT + SPACE\"). Each appears on the Keybinds page as Axiom: its description.",
+          "default": [
+            { "key": "SUPER + SPACE", "action": "launcher" },
+            { "key": "SUPER + TAB", "action": "overlay" },
+            { "key": "SUPER + SHIFT + SPACE", "action": "workspaceOverview" },
+            { "key": "SUPER + ESCAPE", "action": "powerMenu" },
+            { "key": "SUPER + CTRL + L", "action": "lock" }
+          ],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "key": { "type": "string", "title": "Key", "default": "", "description": "Modifiers and key, joined by +." },
+              "action": {
+                "type": "string",
+                "title": "Action",
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "workspaceNth", "moveWindowNth", "exec"],
+                "x-enumLabels": {
+                  "launcher": "App launcher",
+                  "launcherSearch": "Launcher with text",
+                  "overlay": "Overlay",
+                  "overlayPage": "Overlay page",
+                  "workspaceOverview": "Workspace overview",
+                  "powerMenu": "Power menu",
+                  "lock": "Lock",
+                  "toggleDnd": "Do not disturb",
+                  "clearNotifications": "Clear notifications",
+                  "idleInhibit": "Caffeine",
+                  "workspaceStep": "Workspace left/right/up/down",
+                  "moveWindowStep": "Move window left/right/up/down",
+                  "workspaceNth": "Nth workspace",
+                  "moveWindowNth": "Move window to nth workspace",
+                  "exec": "Run a command"
+                },
+                "default": "launcher"
+              },
+              "argument": {
+                "type": "string",
+                "title": "Argument",
+                "default": "",
+                "description": "The search text, the page's view type or name, left/right/up/down, the workspace number, or the command.",
+                "x-showIf": { "action": ["launcherSearch", "overlayPage", "workspaceStep", "moveWindowStep", "workspaceNth", "moveWindowNth", "exec"] }
+              },
+              "description": { "type": "string", "title": "Description", "default": "", "description": "Its label on the Keybinds page. Empty uses the action's name." }
+            }
+          }
+        },
+        "managed": {
+          "type": "object",
+          "title": "Managed config",
+          "description": "Written into hyprland.lua in managed mode only. Everything else goes in your own ~/.config/hypr/user/*.lua.",
+          "additionalProperties": false,
+          "properties": {
+            "layout": { "type": "string", "title": "Layout", "enum": ["dwindle", "master"], "default": "dwindle" },
+            "gapsIn": { "type": "integer", "title": "Gaps between windows", "default": 4, "minimum": 0, "maximum": 50 },
+            "gapsOut": { "type": "integer", "title": "Gaps to the edges", "default": 8, "minimum": 0, "maximum": 100 },
+            "borderSize": { "type": "integer", "title": "Border width", "default": 2, "minimum": 0, "maximum": 20 },
+            "rounding": { "type": "integer", "title": "Corner rounding", "default": 8, "minimum": 0, "maximum": 50 },
+            "windowBlur": { "type": "boolean", "title": "Blur transparent windows", "default": true },
+            "dimInactive": { "type": "boolean", "title": "Dim unfocused windows", "default": false },
+            "animations": { "type": "boolean", "title": "Animations", "default": true },
+            "kbLayout": { "type": "string", "title": "Keyboard layout", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de)." },
+            "repeatRate": { "type": "integer", "title": "Key repeat rate", "default": 25, "minimum": 1, "maximum": 100 },
+            "repeatDelay": { "type": "integer", "title": "Key repeat delay", "default": 600, "minimum": 100, "maximum": 2000 },
+            "followMouse": { "type": "boolean", "title": "Focus follows mouse", "default": true },
+            "naturalScroll": { "type": "boolean", "title": "Natural scrolling (touchpad)", "default": false }
+          }
+        }
+      }
+    },
+
     "WorkspaceOverlay": {
       "type": "object",
       "x-category": "Overlay & OSD",

@@ -3,6 +3,7 @@ import QtQuick
 import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
+import qs.services
 
 // Translation and locale for the shell's text (General.language).
 //
@@ -90,10 +91,10 @@ QtObject {
 
   function _read(path) {
     try {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", "file://" + path, false);
-      xhr.send();
-      return JSON.parse(xhr.responseText);
+      const content = FileManager.read(path);
+      if (content === null)
+        throw new Error("unreadable");
+      return JSON.parse(content);
     } catch (e) {
       console.warn("[I18n] Could not read dictionary:", path, e);
       return null;

@@ -136,7 +136,7 @@ QtObject {
       Quickshell.execDetached(["systemctl", "hibernate"]);
       break;
     case "logout":
-      Hyprland.dispatch("exit");
+      Hyprland.dispatch("hl.dsp.exit()");
       break;
     case "reboot":
       Quickshell.execDetached(["systemctl", "reboot"]);

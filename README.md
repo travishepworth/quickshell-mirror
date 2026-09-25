@@ -42,7 +42,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 ## Requirements
 
 **Required**
-- Hyprland
+- Hyprland 0.55 or newer, with its Lua config (`hyprland.lua`)
 - [Quickshell](https://quickshell.org) 0.3.1 or newer (`qs`)
 - A Nerd Font (`Symbols Nerd Font`) for icons
 - `jq`, `python3`
@@ -70,15 +70,38 @@ There's no installer yet. Clone into Quickshell's config directory:
 git clone https://github.com/axiom-dotfiles/axiom.git ~/.config/quickshell/axiom
 ```
 
-Start it from your Hyprland config:
+Start it from your Hyprland config (`hyprland.lua`):
 
-```ini
-exec-once = QML_XHR_ALLOW_FILE_READ=1 qs -c axiom
+```lua
+hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end)
 ```
 
-`QML_XHR_ALLOW_FILE_READ=1` is required, because the config, translations and theme files are read through `XMLHttpRequest`.
+That's all Hyprland needs. How axiom sets up the rest is **Settings → Desktop → Hyprland → Mode**:
 
-The [hypr](https://github.com/axiom-dotfiles/hypr) repository has a matching Hyprland config, with the keybinds below already set up.
+| Mode | What it does |
+| --- | --- |
+| **Detached** (default) | Applies axiom's keybinds and required settings at runtime, and again after every Hyprland reload. It writes no files, and skips any keybind whose key your config already uses. |
+| **Included** | Writes `~/.local/state/axiom/hyprland.lua` (under `$XDG_STATE_HOME` if it's set). Load it near the top of your `hyprland.lua`, and anything after it overrides axiom (see below). |
+| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Managed config** settings (layout, gaps, borders, input). It then loads your own `~/.config/hypr/user/*.lua` after it. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua`. A `~/.config/hypr` that is a symlink or in a git repository is never taken over. |
+
+For the included mode, add:
+
+```lua
+local ok, axiom = pcall(dofile, os.getenv("HOME") .. "/.local/state/axiom/hyprland.lua")
+if ok then axiom.setup() end
+```
+
+`setup()` applies everything switched on in the settings. To pick parts yourself, call `axiom.required()`, `axiom.binds()`, `axiom.theme()` and `axiom.blur()` instead. `hl.unbind("KEY")` after it frees one of axiom's keys.
+
+Whichever mode is set, axiom falls back to the runtime layer when its file isn't loaded, and logs why.
+
+The same settings page holds the keybinds (any IPC action below, or a command), plus switches for:
+- **required settings:** `misc.allow_session_lock_restore`, and a `workspaces` animation for the grid's slides
+- **theme-coloured window borders**
+- **blur behind axiom's surfaces**
+- **starting `awww-daemon`**
+
+The [hypr](https://github.com/axiom-dotfiles/hypr) repository has a matching Hyprland config.
 
 ## Keybinds and IPC
 
@@ -90,18 +113,20 @@ qs -c axiom ipc call <target> <function>
 
 | Target | Functions |
 | --- | --- |
-| `overlay` | `open`, `close`, `toggle` |
+| `overlay` | `open`, `close`, `toggle`, `page <type>` |
 | `appLauncher` | `open`, `close`, `toggle`, `search <text>` |
 | `powermenu` | `open`, `close`, `toggle` |
 | `workspaceOverlay` | `show`, `hide`, `toggle` |
 | `workspaces` | `go <id>`, `move <id>`, `moveSilent <id>`, `left`, `right`, `up`, `down`, `step <direction> <mode>`, `nth <n> <mode>` |
 | `idleInhibit` | `enable`, `disable`, `toggle`, `status` |
 | `lockscreen` | `lock` |
+| `notifications` | `clear`, `toggleDnd` |
 
-```ini
-bind = SUPER, SPACE, exec, qs -c axiom ipc call appLauncher toggle
-bind = SUPER, TAB, exec, qs -c axiom ipc call overlay toggle
-bind = SUPER, T, exec, qs -c axiom ipc call appLauncher search "/theme "
+Binding them in your own `hyprland.lua` instead of axiom's settings looks like this. A `"Section: Label"` description sets how the bind appears on the Keybinds page:
+
+```lua
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs -c axiom ipc call appLauncher toggle"), { description = "Axiom: App launcher" })
+hl.bind("SUPER + T", hl.dsp.exec_cmd("qs -c axiom ipc call appLauncher search '/theme '"), { description = "Axiom: Themes" })
 ```
 
 ### Launcher

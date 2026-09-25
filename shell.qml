@@ -4,10 +4,14 @@
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 
 import Quickshell
+import qs.services
 import qs.shell
 
 ShellRoot {
   id: shellRoot
+
+  // Services with no UI of their own, which nothing else would create
+  readonly property var _services: [HyprlandConfigManager]
 
   Lockscreen {
     id: lockscreen

@@ -117,6 +117,20 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // Lua chunks run one at a time, in order, through `hyprctl eval`
   property var _evalQueue: []
 
+  // Runs a Lua chunk in Hyprland (config functions like hl.bind or
+  // hl.config, which a dispatch can't call); failures are logged
+  function runLua(lua) {
+    _eval(lua);
+  }
+
+  // Re-reads the options axiom follows (gaps, split ratio, the workspaces
+  // animation), after something changed them at runtime
+  function refreshOptions() {
+    getGaps.running = true;
+    getSplitMultiplier.running = true;
+    getAnimations.running = true;
+  }
+
   function _eval(lua) {
     _evalQueue.push(lua);
     if (!evalProcess.running)
@@ -351,9 +365,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
 
   Component.onCompleted: {
     _fetch();
-    getGaps.running = true;
-    getSplitMultiplier.running = true;
-    getAnimations.running = true;
+    refreshOptions();
     _addLayerRules();
   }
 
@@ -365,9 +377,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       if (event.name === "openlayer" || event.name === "closelayer")
         return;
       if (event.name === "configreloaded") {
-        getGaps.running = true;
-        getSplitMultiplier.running = true;
-        getAnimations.running = true;
+        root.refreshOptions();
         root._addLayerRules();
       }
       root.updateAll();
