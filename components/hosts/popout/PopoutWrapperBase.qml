@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
+import qs.services
 
 /**
  * Shared state machine for any "popout wrapper": open/close/reopen
@@ -51,17 +52,63 @@ Item {
 
   onContentHoveredChanged: updateDismissTimer()
 
+  // A popup that maps over its anchor (one merged around a pill covers the
+  // bar, with the pill showing through a notch in its input mask) takes the
+  // pointer before its mask applies. Once it does, the pointer is back over
+  // the bar, but Hyprland sends the bar no enter until it moves, so nothing
+  // reads as hovered and the popout would close under a still pointer. So
+  // a popout with an anchor notes the cursor when hover is lost, and before
+  // dismissing checks it: if it hasn't moved, hover was lost under it, not
+  // by leaving, and the popout stays until the next hover change (or the
+  // cursor moving, checked every parkCheckInterval).
+  property var _lostCursor: null
+  readonly property int parkCheckInterval: 1000
+
+  function _noteLostCursor() {
+    _lostCursor = null;
+    const data = currentData;
+    if (!data?.anchorItem)
+      return;
+    HyprlandManager.withCursorPos(pos => {
+      if (root.currentData === data && !root.contentHovered)
+        root._lostCursor = pos;
+    });
+  }
+
+  function _tryDismiss() {
+    if (!occupied || isClosing || contentHovered)
+      return;
+    const lost = _lostCursor;
+    if (lost === null) {
+      requestDismiss();
+      return;
+    }
+    const data = currentData;
+    HyprlandManager.withCursorPos(pos => {
+      // Reopened, closed or hovered again meanwhile
+      if (root.currentData !== data || !root.occupied || root.isClosing || root.contentHovered)
+        return;
+      if (pos !== null && pos.x === lost.x && pos.y === lost.y)
+        parkTimer.restart();
+      else
+        root.requestDismiss();
+    });
+  }
+
   function updateDismissTimer() {
     // Nothing to dismiss while closed (content can stay loaded and hover
     // sources can change without the popout being open)
     if (!occupied || !autoDismiss) {
       dismissTimer.stop();
+      parkTimer.stop();
       return;
     }
+    parkTimer.stop();
     if (contentHovered) {
       dismissTimer.stop();
     } else {
       dismissTimer.restart();
+      _noteLostCursor();
     }
   }
 
@@ -71,6 +118,7 @@ Item {
   signal aboutToDismiss
 
   function requestDismiss() {
+    parkTimer.stop();
     aboutToDismiss();
     closePopout();
   }
@@ -91,6 +139,8 @@ Item {
     // stopping afterwards cancelled the countdown its onLoaded started,
     // leaving a popout the pointer never entered open forever.
     dismissTimer.stop();
+    parkTimer.stop();
+    _lostCursor = null;
     currentAnchor = anchor;
     currentData = data;
     occupied = true;
@@ -116,7 +166,14 @@ Item {
     id: dismissTimer
     interval: root.dismissDelay
     repeat: false
-    onTriggered: root.requestDismiss()
+    onTriggered: root._tryDismiss()
+  }
+
+  Timer {
+    id: parkTimer
+    interval: root.parkCheckInterval
+    repeat: false
+    onTriggered: root._tryDismiss()
   }
 
   Timer {
@@ -128,6 +185,7 @@ Item {
       root.isClosing = false;
       root.currentAnchor = null;
       root.currentData = null;
+      root._lostCursor = null;
 
       if (root.hasPendingOpen) {
         root.hasPendingOpen = false;

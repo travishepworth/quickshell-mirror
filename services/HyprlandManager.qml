@@ -285,11 +285,17 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // Calls back with the name of the screen under the cursor (the focused
   // monitor if hyprctl can't say). Asynchronous: one hyprctl call.
   function withHoveredScreen(callback) {
-    _hoveredCallbacks.push(callback);
+    withCursorPos(pos => callback((pos ? root._screenAt(pos.x, pos.y) : "") || (Hyprland.focusedMonitor?.name ?? General.primaryMonitor)));
+  }
+
+  // Calls back with the cursor's global position ({ x, y }), or null if
+  // hyprctl can't say. Calls made while one is running share its answer.
+  function withCursorPos(callback) {
+    _cursorCallbacks.push(callback);
     getCursorPos.running = true;
   }
 
-  property var _hoveredCallbacks: []
+  property var _cursorCallbacks: []
 
   function _screenAt(x, y) {
     for (const screen of Quickshell.screens) {
@@ -458,10 +464,9 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       id: cursorCollector
       onStreamFinished: {
         const pos = root._parse(cursorCollector.text, "cursorpos");
-        const name = (pos ? root._screenAt(pos.x, pos.y) : "") || (Hyprland.focusedMonitor?.name ?? General.primaryMonitor);
-        const callbacks = root._hoveredCallbacks;
-        root._hoveredCallbacks = [];
-        callbacks.forEach(callback => callback(name));
+        const callbacks = root._cursorCallbacks;
+        root._cursorCallbacks = [];
+        callbacks.forEach(callback => callback(pos ?? null));
       }
     }
   }
