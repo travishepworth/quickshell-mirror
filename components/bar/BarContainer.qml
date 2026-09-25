@@ -79,6 +79,10 @@ Rectangle {
     });
   }
 
+  // One pill stretched past its ends to carry an open popout's fillets,
+  // { index, start, end } (set by BarPopouts; pillRects stays unstretched)
+  property var pillStretch: null
+
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
   // Per section, the model indices hidden so the minimum sizes fit
   readonly property var hidden: root.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.spacing, root.barConfig.lockCenter)
@@ -291,12 +295,19 @@ Rectangle {
     AttachedSurface {
       id: pill
       required property int index
-      readonly property var span: root.pillRects[index] ?? {
+      readonly property var rect: root.pillRects[index] ?? {
         "start": 0,
         "length": 0,
         "joinStart": false,
         "joinEnd": false
       }
+      readonly property var stretch: root.pillStretch?.index === index ? root.pillStretch : null
+      readonly property var span: stretch ? {
+        "start": stretch.start,
+        "length": stretch.end - stretch.start,
+        "joinStart": rect.joinStart,
+        "joinEnd": rect.joinEnd
+      } : rect
       readonly property real alongStart: span.start - startMargin
       // Depth reached from the outer edge; the surface's far half-gap is empty
       readonly property real depthBox: Math.max(0, root.barConfig.pillDepth - connectorGap / 2)

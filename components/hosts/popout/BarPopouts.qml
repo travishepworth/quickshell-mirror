@@ -126,6 +126,30 @@ PopoutWrapperBase {
   readonly property real pillFoot: root.barConfig.pillDepth - Appearance.borderWidth
   readonly property real startFoot: mergeWithPill && !mainPopup.joinStart && root.pills.some(p => p.start <= mainPopup.boxStart - Appearance.borderRadius && p.start + p.length >= mainPopup.boxStart) ? pillFoot : 0
   readonly property real endFoot: mergeWithPill && !mainPopup.joinEnd && root.pills.some(p => p.start <= mainPopup.boxEnd && p.start + p.length >= mainPopup.boxEnd + Appearance.borderRadius) ? pillFoot : 0
+  // An unmerged popout stands on its pill's far stroke. When its box sits
+  // just inside the pill's end, its fillet would run past the straight
+  // part of that stroke, so the pill is stretched (for as long as the
+  // popout shows) to carry it: { index, start, end } along the bar
+  readonly property var pillStretch: {
+    const p = root.anchorPill;
+    if (!root.occupied || p === null || root.mergeWithPill)
+      return null;
+    const start = p.joinStart ? p.start : Math.min(p.start, mainPopup.alongPos - Appearance.borderRadius);
+    const end = p.joinEnd ? p.start + p.length : Math.max(p.start + p.length, mainPopup.alongPos + surface.implicitLength + Appearance.borderRadius);
+    if (start === p.start && end === p.start + p.length)
+      return null;
+    return {
+      "index": p.index,
+      "start": start,
+      "end": end
+    };
+  }
+  Binding {
+    target: root.layoutSource
+    property: "pillStretch"
+    value: root.pillStretch
+    when: root.layoutSource !== null
+  }
   // How far past the pill the merged popout's content starts: its far
   // stroke, where an unmerged popout attaches, with the border on or off
   readonly property real pillClearance: mergeWithPill ? root.pillFoot : 0
