@@ -72,12 +72,17 @@ Singleton {
     root._save();
   }
 
-  // Focuses the entry's app if it has a window, else launches it; false if
-  // its app isn't known
+  // Runs the handler registered for the entry's desktop entry, else
+  // focuses its app if it has a window, else launches it; false if its app
+  // isn't known
   function openApp(entry) {
     const id = entry?.desktopEntry || "";
     if (!id)
       return false;
+    if (root._handlers[id]) {
+      root._handlers[id](entry);
+      return true;
+    }
     const lower = id.toLowerCase();
     const window = HyprlandManager.windowList.find(w => (w.class || "").toLowerCase() === lower || (w.initialClass || "").toLowerCase() === lower);
     if (window) {
@@ -91,16 +96,27 @@ Singleton {
     return true;
   }
 
+  // Makes clicking a notification with this desktop entry call
+  // handler(entry) instead of opening an app: how the shell's own
+  // notifications (sendNotification's `desktopEntry`) lead somewhere
+  function registerHandler(desktopEntry, handler) {
+    root._handlers[desktopEntry] = handler;
+  }
+
   // NotificationServer can't create notifications itself, so send one over
   // DBus; it comes back through our own server like any other (DND applies).
-  function sendNotification(appName, summary, body) {
-    Quickshell.execDetached(["notify-send", "-a", appName, summary, body]);
+  // opts: { desktopEntry } (see registerHandler)
+  function sendNotification(appName, summary, body, opts) {
+    const hints = opts?.desktopEntry ? ["-h", "string:desktop-entry:" + opts.desktopEntry] : [];
+    Quickshell.execDetached(["notify-send", "-a", appName].concat(hints, ["--", summary, body]));
   }
 
   // -- Private --
 
   // uid -> Notification, for live entries
   property var _live: ({})
+  // desktop entry -> function(entry), from registerHandler
+  property var _handlers: ({})
   property int _serial: 0
 
   function _newUid() {

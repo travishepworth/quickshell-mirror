@@ -11,7 +11,7 @@ ShellRoot {
   id: shellRoot
 
   // Services with no UI of their own, which nothing else would create
-  readonly property var _services: [HyprlandConfigManager]
+  readonly property var _services: [HyprlandConfigManager, SelfUpdateManager]
 
   Lockscreen {
     id: lockscreen

@@ -1,0 +1,13 @@
+pragma Singleton
+import QtQuick
+import qs.services
+
+// Reader for the SelfUpdate section (see SelfUpdateManager).
+QtObject {
+  id: root
+
+  readonly property var _c: ConfigManager.config.SelfUpdate
+
+  // "auto" | "notify" | "off"
+  readonly property string mode: _c.mode
+}

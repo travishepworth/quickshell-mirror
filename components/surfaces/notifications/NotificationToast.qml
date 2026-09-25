@@ -219,7 +219,14 @@ PopupWindow {
                 notification: root.notification
                 summaryLines: 2
                 bodyLines: 3
-                onActivated: root.dismiss()
+                // Without a default action, a click opens its app (as in
+                // the history)
+                clickable: !!defaultAction || (root.notification.desktopEntry ?? "") !== ""
+                onActivated: ranAction => {
+                  if (!ranAction)
+                    NotificationManager.openApp(root.notification);
+                  root.dismiss();
+                }
               }
             }
 

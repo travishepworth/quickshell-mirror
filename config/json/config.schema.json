@@ -824,6 +824,25 @@
       }
     },
 
+    "SelfUpdate": {
+      "type": "object",
+      "x-category": "Updates",
+      "x-card": "SelfUpdateStatus",
+      "title": "axiom updates",
+      "description": "Updates come from release tags on the repository axiom was cloned from. An update only fast-forwards: a clone with changed files or commits of its own is never touched.",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "title": "Updates",
+          "enum": ["auto", "notify", "off"],
+          "x-enumLabels": { "auto": "Update automatically", "notify": "Notify me", "off": "Off" },
+          "default": "notify",
+          "description": "Checked when the shell starts and once a day. Update automatically installs a new release and notifies you; Notify me sends a notification that opens this page. Off never checks."
+        }
+      }
+    },
+
     "Bars": {
       "type": "array",
       "description": "Bars, in priority order: the first is the primary bar. Edited in the overlay's bar editor.",

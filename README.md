@@ -169,6 +169,18 @@ Keybinds are edited on the **Keybinds** page. A bind can run any IPC action belo
 
 The [hypr](https://github.com/axiom-dotfiles/hypr) repository has a matching Hyprland config.
 
+### 🔄 Updates
+
+axiom updates itself from release tags (`v*`) on the repository you cloned it from. It checks when the shell starts and once a day. **Settings → Updates** picks what happens next:
+
+| Mode | What it does |
+| --- | --- |
+| **Notify me** (default) | Sends a notification. Clicking it opens **Settings → Updates**, which shows what's new and has an **Update** button. |
+| **Update automatically** | Installs the new release, reloads the shell, and notifies you. |
+| **Off** | Never checks. **Check now** still works. |
+
+An update only fast-forwards your clone. It won't touch a clone that has changed files, commits of its own, or a branch other than `main`. The page says why, and you update it yourself with git. Your config, state and generated themes aren't tracked by git, so an update never changes them.
+
 ## ⌨️ Keybinds and IPC
 
 Every surface can be controlled over Quickshell IPC, so you can bind it to anything:
@@ -190,6 +202,7 @@ qs -c axiom ipc call <target> <function>
 | `idleInhibit` | `enable`, `disable`, `toggle`, `status` |
 | `lockscreen` | `lock` |
 | `notifications` | `clear`, `toggleDnd` |
+| `selfUpdate` | `check`, `update`, `open` |
 
 </details>
 
@@ -220,7 +233,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | **Look** | `/theme <name>` `/dark` `/light` `/mode` `/wallpaper <file\|Random>` `/generate` |
 | **Audio and media** | `/volume <n\|+n\|-n>` `/mute` `/mic` `/output <device>` `/input <device>` `/play` `/next` `/prev` |
 | **Connectivity** | `/wifi [on\|off]` `/bluetooth [on\|off]` `/connect <device>` |
-| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/reload` `/help` |
+| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/update` `/reload` `/help` |
 
 Every provider can be switched off under **Settings › Desktop › Launcher**. The same page sets:
 - the launcher's size, hidden apps, terminal and search engine

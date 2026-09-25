@@ -31,6 +31,8 @@ Item {
       return String.fromCodePoint(0xF0328);
     case "Chat":
       return String.fromCodePoint(0xF0B79);
+    case "Updates":
+      return String.fromCodePoint(0xF06B0);
     case "Backups":
       return String.fromCodePoint(0xF006F);
     }
@@ -101,7 +103,7 @@ Item {
             StyledText {
               // Category names come from the schema's x-category:
               // I18n.tr("Desktop") I18n.tr("Hyprland") I18n.tr("Look & Feel") I18n.tr("Bar & Popouts")
-              // I18n.tr("Overlay & OSD") I18n.tr("Chat") I18n.tr("Backups")
+              // I18n.tr("Overlay & OSD") I18n.tr("Chat") I18n.tr("Updates") I18n.tr("Backups")
               text: I18n.tr(entry.modelData.name)
               textColor: entry.selected ? Theme.background : Theme.foreground
               font.bold: entry.selected

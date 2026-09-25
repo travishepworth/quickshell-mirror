@@ -301,6 +301,22 @@ QtObject {
       run: (arg, value) => root._configRun(value)
     },
     {
+      name: "update",
+      aliases: ["upgrade"],
+      glyph: "\u{F06B0}",
+      description: () => SelfUpdateManager.available ? I18n.tr("Update axiom to {0}", SelfUpdateManager.latest) : I18n.tr("Check for axiom updates"),
+      status: () => SelfUpdateManager.busy ? I18n.tr("Checking…") : SelfUpdateManager.available ? I18n.tr("{0} available", SelfUpdateManager.latest) : (SelfUpdateManager.current || SelfUpdateManager.commit),
+      run: () => {
+        // Otherwise check, on the page that shows the result
+        if (SelfUpdateManager.available) {
+          SelfUpdateManager.apply();
+        } else {
+          SelfUpdateManager.check();
+          SelfUpdateManager.openSettings();
+        }
+      }
+    },
+    {
       name: "reload",
       aliases: [],
       glyph: "\u{F0453}",
