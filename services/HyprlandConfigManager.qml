@@ -226,9 +226,21 @@ return M
     return lines;
   }
 
+  // Window rounding and border width: axiom's shape, or the managed values
+  function _look(m) {
+    return m.matchAxiom ? {
+      "rounding": Appearance.borderRadius,
+      "borderSize": Appearance.borderWidth
+    } : {
+      "rounding": m.rounding,
+      "borderSize": m.borderSize
+    };
+  }
+
   // The managed hyprland.lua
   function managedLua() {
     const m = HyprlandConfig.managed;
+    const look = _look(m);
     const module = moduleLua().split("\n").filter(line => !line.startsWith("--")).join("\n").trim();
     return `${_header} (Hyprland mode: managed) from its Hyprland settings,
 -- and rewritten whenever they (or the theme) change: edit those, not this file.
@@ -242,10 +254,10 @@ end)()
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
 hl.config({
-  general = { layout = ${_lua(m.layout)}, gaps_in = ${m.gapsIn}, gaps_out = ${m.gapsOut}, border_size = ${m.borderSize}, resize_on_border = ${m.resizeOnBorder} },
+  general = { layout = ${_lua(m.layout)}, gaps_in = ${m.gapsIn}, gaps_out = ${m.gapsOut}, border_size = ${look.borderSize}, resize_on_border = ${m.resizeOnBorder} },
   dwindle = { preserve_split = ${m.preserveSplit} },
   decoration = {
-    rounding = ${m.rounding},
+    rounding = ${look.rounding},
     dim_inactive = ${m.dimInactive},
     dim_strength = ${m.dimStrength / 100},
     blur = { enabled = ${m.windowBlur}, size = ${m.blurSize}, passes = ${m.blurPasses} },
@@ -480,7 +492,7 @@ if [ -f "$file" ]; then echo adopt; else echo new; fi`, "sh", Paths.hyprlandPath
   }
 
   // Everything the layer is made of; a change re-applies it
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border].join("|")
+  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Appearance.borderRadius, Appearance.borderWidth].join("|")
   on_InputsChanged: _debounce.restart()
 
   property Timer _debounce: Timer {

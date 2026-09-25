@@ -980,6 +980,8 @@
     "workspaceStep": "ワークスペースを左右上下へ",
     "Key": "キー",
     "Corner rounding": "角の丸み",
+    "Match axiom's look": "axiom の見た目に合わせる",
+    "Window corners and border width follow Look & Feel → Shape.": "ウィンドウの角と枠線の太さを「外観と操作感 → 形」に合わせます。",
     "included": "hyprland.lua からインクルード",
     "Managed config": "管理設定",
     "Key repeat delay": "キーリピートの遅延",
