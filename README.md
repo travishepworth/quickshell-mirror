@@ -1,7 +1,20 @@
+<div align="center">
+
 # axiom
 
-A desktop shell for [Hyprland](https://hypr.land), written in QML for [Quickshell](https://quickshell.org).
-axiom is the widget half of [Axiom Dotfiles](https://github.com/axiom-dotfiles). It covers the bar, the overlay, notifications, the lockscreen, the app launcher, the power menu, the OSD, the workspace overlay, and the rounded screen border.
+**The desktop shell behind [Axiom Dotfiles](https://github.com/axiom-dotfiles): a complete Hyprland desktop, written in QML for [Quickshell](https://quickshell.org).**
+
+Bar · Overlay · Launcher · Notifications · Lockscreen · OSD · Power menu · Workspace overview · Screen border
+
+[![Stars](https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&logoColor=ebdbb2&labelColor=282828&color=d79921)](https://github.com/axiom-dotfiles/axiom)
+[![Latest Commit](https://img.shields.io/github/last-commit/axiom-dotfiles/axiom?style=for-the-badge&logoColor=ebdbb2&labelColor=282828&color=98971a)](https://github.com/axiom-dotfiles/axiom)
+[![Hyprland](https://img.shields.io/badge/Hyprland-0.55%2B-458588?style=for-the-badge&labelColor=282828)](https://hypr.land)
+[![Quickshell](https://img.shields.io/badge/Quickshell-0.3.1%2B-b16286?style=for-the-badge&labelColor=282828)](https://quickshell.org)
+[![License](https://img.shields.io/badge/License-MIT-689d6a?style=for-the-badge&labelColor=282828)](LICENSE)
+
+[Features](#-features) · [Requirements](#-requirements) · [Install](#-installation) · [IPC](#%EF%B8%8F-keybinds-and-ipc) · [Configuration](#%EF%B8%8F-configuration)
+
+</div>
 
 https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 
@@ -9,37 +22,81 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 > This is a public mirror for issue tracking. Pull requests aren't accepted yet and will be closed. Issues are welcome: they are read, discussed and fixed here.
 > axiom is pre-1.0, so the layout of `config.json` can still change between versions. Old configs are migrated automatically.
 
-## Features
+## 🔭 At a glance
 
-**Bar**
-- Bars are defined in config. You can have any number, on any monitor and any edge, each one solid, transparent or split into floating pills.
+| | |
+| --- | --- |
+| 📦 **Everything in one place** | One repository and one config for the whole desktop. Beyond Hyprland and Quickshell, the only requirements are `python3` and `jq`. |
+| 🎛️ **Configured from the desktop** | A Settings page generated from the schema, plus live editors for the bar and the overlay. Changes hot-reload. |
+| 🛡️ **Built not to break** | An invalid config never replaces the running one. Old configs migrate themselves, and API keys stay out of `config.json`. |
+| 🎨 **One theme everywhere** | Base16 themes, or one generated from your wallpaper, applied to 18 other apps. |
+| 🤝 **Fits your setup** | Three Hyprland modes and three lockscreen modes. Your own config files are never edited. |
+| 🖥️ **Multi-monitor** | Bars and wallpapers per monitor. Surfaces open on the primary monitor, the focused one, or all of them. |
+
+## ✨ Features
+
+### 📊 Bar
+- Bars are defined in config. You can have any number, on any monitor and any edge. Each one can be solid, transparent, or split into floating pills.
 - 20 widget types: Workspaces, Window, Time, Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, Button (runs any command) and Separator.
-- Popouts grow out of the bar, or out of the screen border, with filleted corners. Widgets open theirs on hover: a calendar, the audio mixer, Bluetooth and Wi-Fi menus, live system graphs, the forecast, pending updates and more. Buttons can run their action on hover too.
+- Popouts grow out of the bar, or out of the screen border, with filleted corners. Widgets open theirs on hover:
+  - a calendar
+  - the audio mixer
+  - Bluetooth and Wi-Fi menus
+  - live system graphs
+  - the forecast
+  - pending updates, and more
 
-**Overlay**
+  Buttons can run their action on hover too.
+
+### 🗂️ Overlay
 - A full-screen overlay made of pages of cards. Each page is built from columns, each column from cells, and each cell holds modules.
-- 24 modules, including a media player, audio mixer, system graphs, top processes, disks, updates, quick toggles, Bluetooth, network, Wi-Fi networks, weather, calendar, notes, favourites, screenshot, session controls, a workspace map and AI chat.
+- 24 modules, including:
+  - a media player, audio mixer, system graphs and top processes
+  - disks, updates, quick toggles, Bluetooth, network and Wi-Fi networks
+  - weather, calendar, notes and favourites
+  - screenshot, session controls, a workspace map and AI chat
 - Modules adapt to the shape of their slot (square, wide, tall or quarter).
-- Built-in pages: a **Settings** page generated from the config schema, a **Bar editor**, an **Overlay editor**, **Themes** and **Keybinds**.
+- Built-in pages:
+  - **Settings**, generated from the config schema
+  - **Bar editor**
+  - **Overlay editor**
+  - **Themes**
+  - **Keybinds**
 
-**Theming**
+### 🎨 Theming
 - Base16 themes, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Solarized, Tokyo Night/Day and Submarine Sonar.
 - Generate a theme from your wallpaper. pywal backends pick the candidate colors, then the palette is built in OKLCH to match the contrast of the hand-made themes.
 - Wallpapers can be set per monitor, with transitions through [awww](https://github.com/LGFae/awww).
-- The active theme is applied to other apps too (each one is a switch under Settings → Theme integrations): GTK and Qt apps, the kitty, Alacritty, foot, WezTerm and Ghostty terminals, Neovim, Helix and VS Code, and k9s, cava, btop, fzf, lazygit, bat/delta and Yazi, plus hyprlock. Each app gets its own `axiom` theme file, and the switch's description gives the one line to add to its config. Your own config files are never edited.
+- The active theme is applied to other apps too. Each app is a switch under **Settings → Theme integrations**, gets its own `axiom` theme file, and its switch's description gives the one line to add to its config. Your own config files are never edited.
 
-**The rest**
-- Notification toasts and a notification center.
-- An OSD that follows the volume of the apps you choose.
-- A launcher that searches apps (ranked by how often and how recently you use them), open windows, a calculator and the web, runs shell commands, and controls the shell with `/` commands. A power menu that asks you to confirm.
-- Workspaces laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overlay and your keybinds (through the `workspaces` IPC target) all follow the one setting.
-- A workspace overlay with live window previews: drag a window onto a side of another window or onto another workspace, right-drag to resize it, middle-click to close it.
-- AI chat with Gemini, OpenAI, Anthropic or an offline backend. API keys are read from environment variables or a secrets file with mode 600, never from `config.json`.
-- A lockscreen with three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
-- Multi-monitor: interactive surfaces open on the primary monitor, or on whichever monitor has focus.
-- Translations: English and Japanese, with more added as a single JSON file each.
+<details>
+<summary><b>Supported apps (18)</b></summary>
 
-## Requirements
+| Kind | Apps |
+| --- | --- |
+| Toolkits | GTK, Qt |
+| Terminals | kitty, Alacritty, foot, WezTerm, Ghostty |
+| Editors | Neovim, Helix, VS Code |
+| CLI tools | k9s, cava, btop, fzf, lazygit, bat/delta, Yazi |
+| Lockscreen | hyprlock |
+
+</details>
+
+### 🧩 The rest
+- 🔔 **Notifications:** toasts and a notification center.
+- 🔊 **OSD:** follows the volume of the apps you choose.
+- 🚀 **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator and the web. It runs shell commands and controls the shell with `/` commands.
+- ⏻ **Power menu:** asks you to confirm.
+- 🧭 **Workspaces:** laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overlay and your keybinds (through the `workspaces` IPC target) all follow the one setting.
+- 🪟 **Workspace overlay:** live window previews. Drag a window onto a side of another window or onto another workspace, right-drag to resize it, and middle-click to close it.
+- 🤖 **AI chat:** Gemini, OpenAI, Anthropic or an offline backend. API keys are read from environment variables or a secrets file with mode 600, never from `config.json`.
+- 🔒 **Lockscreen:** three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
+- 🖥️ **Multi-monitor:** interactive surfaces open on the primary monitor, or on whichever monitor has focus.
+- 🌐 **Translations:** English and Japanese, with more added as a single JSON file each.
+
+## 📋 Requirements
+
+The whole shell runs on four things. Everything else is optional and only needed for the feature that uses it.
 
 **Required**
 - Hyprland 0.55 or newer, with its Lua config (`hyprland.lua`)
@@ -47,7 +104,8 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 - A Nerd Font (`Symbols Nerd Font`) for icons
 - `jq`, `python3`
 
-**Optional**, for the features that use them:
+<details open>
+<summary><b>Optional</b>, for the features that use them</summary>
 
 | Feature | Needs |
 | --- | --- |
@@ -62,7 +120,9 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 | hyprlock mode | `hyprlock`, and `hypridle` to lock on idle |
 | Theme integrations | The app itself (`kitty`, `alacritty`, `foot`, `wezterm`, `ghostty`, `nvim`, `helix`/`hx`, VS Code or VSCodium, `k9s`, `cava`, `btop`, `fzf` 0.49+, `lazygit`, `bat`, `yazi` 25.5+); `qt5ct`/`qt6ct` for Qt; `adw-gtk-theme` for GTK3 apps |
 
-## Installation
+</details>
+
+## 🚀 Installation
 
 There's no installer yet. Clone into Quickshell's config directory:
 
@@ -82,7 +142,10 @@ That's all Hyprland needs. How axiom sets up the rest is **Settings → Desktop 
 | --- | --- |
 | **Detached** (default) | Applies axiom's keybinds and required settings at runtime, and again after every Hyprland reload. It writes no files, and skips any keybind whose key your config already uses. |
 | **Included** | Writes `~/.local/state/axiom/hyprland.lua` (under `$XDG_STATE_HOME` if it's set). Load it near the top of your `hyprland.lua`, and anything after it overrides axiom (see below). |
-| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Managed config** settings (layout, gaps, borders, input). It then loads your own `~/.config/hypr/user/*.lua` after it, in name order, as `require("user.<name>")`, so Hyprland reloads when one changes. Shared modules go in `user/lib/`, which isn't loaded on its own. `user/` itself may be a symlink, for example into a dotfiles repo. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua`. A `~/.config/hypr` that is a symlink or in a git repository is never taken over. |
+| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Managed config** settings (layout, gaps, borders, input). It then loads your own `~/.config/hypr/user/*.lua` after it, in name order, as `require("user.<name>")`, so Hyprland reloads when one changes. Shared modules go in `user/lib/`, which isn't loaded on its own. `user/` itself may be a symlink, for example into a dotfiles repo. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua`. |
+
+> [!IMPORTANT]
+> Managed mode never takes over a `~/.config/hypr` that is a symlink or in a git repository.
 
 For the included mode, add:
 
@@ -91,25 +154,31 @@ local ok, axiom = pcall(dofile, os.getenv("HOME") .. "/.local/state/axiom/hyprla
 if ok then axiom.setup() end
 ```
 
-`setup()` applies everything switched on in the settings. To pick parts yourself, call `axiom.required()`, `axiom.binds()`, `axiom.theme()` and `axiom.blur()` instead. `hl.unbind("KEY")` after it frees one of axiom's keys.
+> [!TIP]
+> `setup()` applies everything switched on in the settings. To pick parts yourself, call `axiom.required()`, `axiom.binds()`, `axiom.theme()` and `axiom.blur()` instead. `hl.unbind("KEY")` after it frees one of axiom's keys.
 
 Whichever mode is set, axiom falls back to the runtime layer when its file isn't loaded, and logs why.
 
-The same settings page holds the keybinds (any IPC action below, or a command; a description like `Workspace: Switch left` picks its own section on the Keybinds page), plus switches for:
+The same settings page holds switches for:
 - **required settings:** `misc.allow_session_lock_restore`, and a `workspaces` animation for the grid's slides
 - **theme-coloured window borders**
 - **blur behind axiom's surfaces**
 - **starting `awww-daemon`**
 
+Keybinds are edited on the **Keybinds** page. A bind can run any IPC action below, or a command. A description like `Workspace: Switch left` puts the bind in its own section on that page.
+
 The [hypr](https://github.com/axiom-dotfiles/hypr) repository has a matching Hyprland config.
 
-## Keybinds and IPC
+## ⌨️ Keybinds and IPC
 
 Every surface can be controlled over Quickshell IPC, so you can bind it to anything:
 
 ```bash
 qs -c axiom ipc call <target> <function>
 ```
+
+<details>
+<summary><b>IPC targets</b></summary>
 
 | Target | Functions |
 | --- | --- |
@@ -122,14 +191,16 @@ qs -c axiom ipc call <target> <function>
 | `lockscreen` | `lock` |
 | `notifications` | `clear`, `toggleDnd` |
 
-Binding them in your own `hyprland.lua` instead of axiom's settings looks like this. A `"Section: Label"` description sets how the bind appears on the Keybinds page:
+</details>
+
+If you bind them in your own `hyprland.lua` instead of through axiom's settings, it looks like this. A `"Section: Label"` description sets where the bind appears on the Keybinds page:
 
 ```lua
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs -c axiom ipc call appLauncher toggle"), { description = "Axiom: App launcher" })
 hl.bind("SUPER + T", hl.dsp.exec_cmd("qs -c axiom ipc call appLauncher search '/theme '"), { description = "Axiom: Themes" })
 ```
 
-### Launcher
+### 🚀 Launcher
 
 Plain text searches apps and open windows. When the text is math, the result shows first, and a web search comes last. A prefix picks one kind of search:
 
@@ -140,18 +211,23 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | `>` | Runs a shell command. Shift+Enter runs it in your terminal |
 | `?` | Web search, with the engine set in Settings |
 
-Tab completes a command or its argument. Commands that change something you can see, like the theme, volume or wallpaper, keep the launcher open, so you can try several. `logout`, `reboot` and `poweroff` ask for a second Enter.
+<kbd>Tab</kbd> completes a command or its argument. Commands that change something you can see, like the theme, volume or wallpaper, keep the launcher open, so you can try several. `logout`, `reboot` and `poweroff` ask for a second <kbd>Enter</kbd>.
 
-- **Session:** `/lock` `/suspend` `/hibernate` `/logout` `/reboot` `/poweroff` `/power`
-- **Pages:** `/overlay [page]` `/settings` `/themes` `/bar` `/keybinds` `/editor` `/workspaces`
-- **Look:** `/theme <name>` `/dark` `/light` `/mode` `/wallpaper <file|Random>` `/generate`
-- **Audio and media:** `/volume <n|+n|-n>` `/mute` `/mic` `/output <device>` `/input <device>` `/play` `/next` `/prev`
-- **Connectivity:** `/wifi [on|off]` `/bluetooth [on|off]` `/connect <device>`
-- **Other:** `/dnd [on|off]` `/clear` `/caffeine [on|off]` `/ws <n>` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/reload` `/help`
+| Group | Commands |
+| --- | --- |
+| **Session** | `/lock` `/suspend` `/hibernate` `/logout` `/reboot` `/poweroff` `/power` |
+| **Pages** | `/overlay [page]` `/settings` `/themes` `/bar` `/keybinds` `/editor` `/workspaces` |
+| **Look** | `/theme <name>` `/dark` `/light` `/mode` `/wallpaper <file\|Random>` `/generate` |
+| **Audio and media** | `/volume <n\|+n\|-n>` `/mute` `/mic` `/output <device>` `/input <device>` `/play` `/next` `/prev` |
+| **Connectivity** | `/wifi [on\|off]` `/bluetooth [on\|off]` `/connect <device>` |
+| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/reload` `/help` |
 
-Every provider can be switched off under Settings › Desktop › Launcher. The same page sets the launcher's size, hidden apps, terminal and search engine, and where it opens: floating (centered or in the upper third), or attached to the top or bottom edge like the other edge popouts, with the search field above or below the results.
+Every provider can be switched off under **Settings › Desktop › Launcher**. The same page sets:
+- the launcher's size, hidden apps, terminal and search engine
+- where it opens: floating (centered or in the upper third), or attached to the top or bottom edge like the other edge popouts
+- whether the search field sits above or below the results
 
-### Locking with hypridle
+### 🔒 Locking with hypridle
 
 For the `quickshell` and `hyprlock` lockscreen modes:
 
@@ -164,29 +240,31 @@ general {
 
 In `none` mode axiom doesn't register the `lockscreen` target. Point hypridle at your own locker, and set **Lockscreen → Lock command** so that axiom's lock buttons run it too.
 
-## Configuration
+## ⚙️ Configuration
 
 Everything is configured from inside the shell. Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor** and **Themes** pages.
 
 - Settings are saved to `config/user/config.json`. The shell watches that file and reloads when it changes, so editing it by hand also works.
-- An invalid `config.json` never replaces the running config. The shell keeps the last good one and refuses to save until the file is fixed.
 - Configs from older versions are migrated automatically.
 - `config/json/config.schema.json` defines every option and its default. It also generates the Settings page.
 - Chat API keys are read from `GEMINI_API_KEY`, `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`. If those aren't set, they come from `$XDG_STATE_HOME/axiom/secrets.json`.
 
-### Themes
+> [!IMPORTANT]
+> An invalid `config.json` never replaces the running config. The shell keeps the last good one and refuses to save until the file is fixed.
+
+### 🎨 Themes
 
 - Hand-made themes live in `config/themes/`, and generated ones in `config/themes/generated/`.
 - A theme is a base16 palette (`base00`–`base0F`) plus optional semantic overrides. See `config/themes/theme.schema.json`.
 - To add a theme, drop a JSON file in `config/themes/`. To make a dark/light pair, give each file a `paired` field naming the other.
 
-### Translations
+### 🌐 Translations
 
 - Pick a language in **Settings → General → Language**.
 - To add a language, create `config/i18n/<code>.json` (see `ja.json`). It shows up in the dropdown right away.
 - Missing strings fall back to English. `scripts/check_i18n.py` reports what's missing.
 
-## Troubleshooting
+## 🩺 Troubleshooting
 
 View the shell's log with:
 
@@ -198,11 +276,11 @@ scripts/log.sh -f       # follow
 
 A clean reload prints only `Reloading configuration...` and `Configuration Loaded`.
 
-## Contributing
+## 🤝 Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the directory layout and conventions, and [CLAUDE.md](CLAUDE.md) for the architecture in detail. There's no build step: `qs` interprets the QML and hot-reloads on save.
 
-## Roadmap
+## 🗺️ Roadmap
 
 - [ ] Onboarding and a setup wizard
 - [ ] Installer / AUR package
@@ -210,6 +288,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the directory layout and conventions,
 - [ ] CI, plus issue and pull request templates
 - [ ] First stable release, after which changes land through PRs only
 
-## License
+## 📄 License
 
 [MIT](LICENSE)
