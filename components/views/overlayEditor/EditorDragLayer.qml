@@ -41,7 +41,7 @@ Item {
   readonly property bool carryingStructure: root.carryingModule || root.carryingCell || root.draggingKind === "column-move"
 
   function moduleIcon(type) {
-    return OverlayConfig.moduleInfo(type)?.icon ?? String.fromCodePoint(0xF0431);
+    return OverlayConfig.moduleInfo(type)?.icon ?? "extension";
   }
 
   function moduleLabel(type) {
@@ -50,7 +50,7 @@ Item {
   }
 
   function viewIcon(type) {
-    return OverlayConfig.viewInfo(type)?.icon ?? String.fromCodePoint(0xF056E);
+    return OverlayConfig.viewInfo(type)?.icon ?? "dashboard";
   }
 
   // Layout names spaced for display. Keys: I18n.tr("Single") I18n.tr("Tall")
@@ -209,7 +209,7 @@ Item {
       anchors.centerIn: parent
       spacing: Widget.spacing
 
-      StyledText {
+      StyledIcon {
         text: root.dragging?.icon ?? ""
         textColor: Theme.background
         textSize: Appearance.fontSize + 2

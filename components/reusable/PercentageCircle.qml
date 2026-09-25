@@ -67,7 +67,7 @@ Item {
   }
 
   // Center icon
-  Text {
+  StyledIcon {
     anchors.centerIn: parent
     text: root.iconText
     color: root.iconColor

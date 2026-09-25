@@ -36,20 +36,23 @@ Item {
     isVertical: root.isVertical
     crossSize: root.barConfig.widgetSize
 
-    icon: MediaManager.isPlaying ? "\u{F075A}" : "\u{F03E4}"
+    // The artist icon goes with the state icon, before the label
+    icon: (MediaManager.isPlaying ? "music_note" : "pause") + (root.artist ? (root.isVertical ? "\n" : " ") + "artist" : "")
     text: root.formatTrack()
 
     backgroundColor: Theme.resolveColor(MediaManager.isPlaying ? root.properties.playingColor : root.properties.pausedColor)
     foregroundColor: Theme.resolveColor(root.properties.foregroundColor)
   }
 
+  // The artist shown before the title, or "" when there's none to show
+  readonly property string artist: MediaManager.activePlayer && root.properties.showArtist ? Utils.truncate(MediaManager.trackArtist, root.properties.artistLength, "") : ""
+
   function formatTrack() {
     if (!MediaManager.activePlayer)
       return root.properties.idleText;
-    const artist = Utils.truncate(MediaManager.trackArtist, root.properties.artistLength, "");
-    if (!root.properties.showArtist || !artist)
+    if (!root.artist)
       return MediaManager.trackTitle;
-    return "󰠃 " + artist + " - " + MediaManager.trackTitle;
+    return root.artist + " - " + MediaManager.trackTitle;
   }
 
   PopoutAnchor {

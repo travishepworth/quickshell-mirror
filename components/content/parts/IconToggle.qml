@@ -45,7 +45,7 @@ Rectangle {
     width: parent.width - Widget.spacing * 2
     spacing: Widget.spacing / 2
 
-    StyledText {
+    StyledIcon {
       Layout.alignment: Qt.AlignHCenter
       text: root.icon
       textColor: root.active ? Theme.background : Theme.foreground

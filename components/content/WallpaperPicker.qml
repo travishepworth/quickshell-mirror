@@ -36,7 +36,7 @@ Card {
 
     ModuleHeader {
       visible: root.tall
-      icon: "\u{F0E09}"
+      icon: "wallpaper"
       title: I18n.tr("Wallpaper")
 
       StyledText {

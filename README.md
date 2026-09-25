@@ -101,7 +101,7 @@ The whole shell runs on four things. Everything else is optional and only needed
 **Required**
 - Hyprland 0.55 or newer, with its Lua config (`hyprland.lua`)
 - [Quickshell](https://quickshell.org) 0.3.1 or newer (`qs`)
-- A Nerd Font (`Symbols Nerd Font`) for icons
+- [Material Symbols](https://fonts.google.com/icons) for icons (`ttf-material-symbols-variable`). Any font works for text
 - `jq`, `python3`
 
 <details open>
@@ -288,6 +288,8 @@ scripts/log.sh -f       # follow
 ```
 
 A clean reload prints only `Reloading configuration...` and `Configuration Loaded`.
+
+Icons showing as words (`wifi`, `battery_full`) mean the icon font is missing: install `ttf-material-symbols-variable` and restart the shell.
 
 ## 🤝 Contributing
 

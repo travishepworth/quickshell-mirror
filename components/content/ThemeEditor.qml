@@ -135,16 +135,16 @@ TitledCard {
         }
 
         // Has both variants
-        StyledText {
+        StyledIcon {
           visible: !!tile.modelData.dark && !!tile.modelData.light
-          text: "\u{F0C38}"
+          text: "contrast"
           textColor: tile.preview.foreground ?? Theme.foreground
           opacity: 0.6
         }
 
-        StyledText {
+        StyledIcon {
           visible: tile.current
-          text: "\u{F012C}"
+          text: "check"
           textColor: tile.preview.accent ?? Theme.accent
           font.bold: true
         }

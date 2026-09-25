@@ -37,36 +37,36 @@ QtObject {
   function getBatteryIcon() {
     if (isCharging) {
       if (percentage >= 90)
-        return "󰂅";
+        return "battery_charging_full";
       if (percentage >= 80)
-        return "󰂋";
+        return "battery_charging_90";
       if (percentage >= 60)
-        return "󰂊";
+        return "battery_charging_80";
       if (percentage >= 40)
-        return "󰢞";
+        return "battery_charging_60";
       if (percentage >= 20)
-        return "󰢝";
-      return "󰢜";
+        return "battery_charging_50";
+      return "battery_charging_20";
     } else {
       if (percentage >= 90)
-        return "󰁹";
+        return "battery_full";
       if (percentage >= 80)
-        return "󰂂";
+        return "battery_6_bar";
       if (percentage >= 70)
-        return "󰂁";
+        return "battery_5_bar";
       if (percentage >= 60)
-        return "󰂀";
+        return "battery_5_bar";
       if (percentage >= 50)
-        return "󰁿";
+        return "battery_4_bar";
       if (percentage >= 40)
-        return "󰁾";
+        return "battery_3_bar";
       if (percentage >= 30)
-        return "󰁽";
+        return "battery_3_bar";
       if (percentage >= 20)
-        return "󰁼";
+        return "battery_2_bar";
       if (percentage >= 10)
-        return "󰁻";
-      return "󰁺";
+        return "battery_1_bar";
+      return "battery_1_bar";
     }
   }
 

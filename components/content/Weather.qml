@@ -45,7 +45,7 @@ Card {
   EmptyState {
     anchors.centerIn: parent
     visible: !root.current
-    icon: "\u{F0590}"
+    icon: "cloud"
     text: root.compact ? "" : I18n.tr("Loading weather…")
   }
 
@@ -84,7 +84,7 @@ Card {
       columns: root.stacked ? 1 : 2
       columnSpacing: Widget.padding * 1.5
       rowSpacing: Widget.spacing
-      StyledText {
+      StyledIcon {
         Layout.alignment: root.stacked ? Qt.AlignHCenter : Qt.AlignVCenter
         text: source.condition?.icon ?? ""
         textSize: Appearance.fontSize * (root.stacked ? 4 * root.heroScale : 3)
@@ -136,7 +136,7 @@ Card {
           Layout.preferredWidth: Appearance.fontSize * 3.5
           text: day.index === 0 ? I18n.tr("Today") : I18n.formatDate(new Date(root.daily.time[day.index]), "ddd")
         }
-        StyledText {
+        StyledIcon {
           Layout.preferredWidth: Appearance.fontSize * 1.5
           horizontalAlignment: Text.AlignHCenter
           text: source.conditionFor(root.daily.weather_code[day.index], 1).icon
@@ -243,7 +243,7 @@ Card {
             textColor: Theme.foregroundAlt
             textSize: Appearance.fontSize - 2
           }
-          StyledText {
+          StyledIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: parent.hourly ? source.conditionFor(parent.hourly.weather_code[parent.index], parent.hourly.is_day[parent.index]).icon : ""
             textSize: Appearance.fontSize * 1.4

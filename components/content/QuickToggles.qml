@@ -21,43 +21,43 @@ Card {
 
   readonly property var defs: ({
       "wifi": {
-        "icon": NetworkingManager.wifiEnabled ? "\u{F05A9}" : "\u{F05AA}",
+        "icon": NetworkingManager.wifiEnabled ? "wifi" : "wifi_off",
         "label": I18n.tr("Wi-Fi"),
         "active": NetworkingManager.wifiEnabled,
         "available": NetworkingManager.available
       },
       "bluetooth": {
-        "icon": BluetoothManager.enabled ? "\u{F00AF}" : "\u{F00B2}",
+        "icon": BluetoothManager.enabled ? "bluetooth" : "bluetooth_disabled",
         "label": I18n.tr("Bluetooth"),
         "active": BluetoothManager.enabled,
         "available": BluetoothManager.available
       },
       "caffeine": {
-        "icon": "\u{F0176}",
+        "icon": "coffee",
         "label": I18n.tr("Caffeine"),
         "active": IdleInhibitManager.enabled,
         "available": true
       },
       "dnd": {
-        "icon": NotificationManager.dnd ? "\u{F009B}" : "\u{F009A}",
+        "icon": NotificationManager.dnd ? "notifications_off" : "notifications",
         "label": I18n.tr("Do not disturb"),
         "active": NotificationManager.dnd,
         "available": true
       },
       "darkMode": {
-        "icon": "\u{F0594}",
+        "icon": "clear_night",
         "label": I18n.tr("Dark mode"),
         "active": Appearance.darkMode,
         "available": true
       },
       "nightLight": {
-        "icon": "\u{F1A5C}",
+        "icon": "pill_off",
         "label": I18n.tr("Night light"),
         "active": root.nightLightOn,
         "available": root.nightLightTool !== ""
       },
       "powerSaver": {
-        "icon": "\u{F032A}",
+        "icon": "eco",
         "label": I18n.tr("Power saver"),
         "active": root.powerProfile === "power-saver",
         "available": root.hasPowerProfiles

@@ -113,8 +113,8 @@ Card {
           }
         }
         Repeater {
-          model: [["\u{F0141}", -1], ["\u{F0142}", 1]]
-          StyledText {
+          model: [["chevron_left", -1], ["chevron_right", 1]]
+          StyledIcon {
             required property var modelData
             Layout.preferredWidth: Appearance.fontSize * 1.6
             horizontalAlignment: Text.AlignHCenter

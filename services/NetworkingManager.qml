@@ -126,12 +126,12 @@ QtObject {
   // Signal strength 0-1
   function signalIcon(strength) {
     if (strength >= 0.75)
-      return "\u{F0928}";
+      return "signal_wifi_4_bar";
     if (strength >= 0.5)
-      return "\u{F0925}";
+      return "network_wifi_3_bar";
     if (strength >= 0.25)
-      return "\u{F0922}";
-    return "\u{F091F}";
+      return "network_wifi_2_bar";
+    return "network_wifi_1_bar";
   }
 
   // -- Private --

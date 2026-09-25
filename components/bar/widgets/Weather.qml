@@ -25,7 +25,7 @@ BarIconWidget {
   readonly property var current: source.current
   readonly property var condition: source.condition
 
-  icon: condition?.icon ?? "\u{F0590}"
+  icon: condition?.icon ?? "cloud"
   text: current ? `${Math.round(current.temperature_2m)}°` + (properties.showCondition ? ` ${condition.label}` : "") : "…"
 
   PopoutAnchor {

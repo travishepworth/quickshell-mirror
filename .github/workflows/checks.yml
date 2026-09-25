@@ -1,0 +1,32 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Structure (naming conventions, imports, singleton references)
+        run: python3 scripts/check_structure.py
+
+      - name: JSON is valid
+        run: git ls-files -z '*.json' | xargs -0 -n1 python3 -m json.tool --no-ensure-ascii > /dev/null
+
+      - name: Shell scripts parse
+        run: for f in scripts/*.sh scripts/lib/*.sh; do bash -n "$f" || exit 1; done
+
+      - name: Python scripts compile
+        run: python3 -m py_compile scripts/*.py
+
+      # Missing entries fall back to English at runtime, so this only warns
+      - name: Translations
+        continue-on-error: true
+        run: python3 scripts/check_i18n.py

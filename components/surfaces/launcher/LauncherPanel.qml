@@ -137,13 +137,13 @@ FocusScope {
     height: Appearance.fontSizeLarge + 36
     spacing: 12
 
-    StyledText {
+    StyledIcon {
       readonly property var glyphs: ({
-          apps: "\u{F0349}",
-          commands: "\u{F0493}",
-          calc: "\u{F00EC}",
-          run: "\u{F018D}",
-          web: "\u{F059F}"
+          apps: "search",
+          commands: "settings",
+          calc: "calculate",
+          run: "terminal",
+          web: "web"
         })
       text: glyphs[LauncherManager.mode] ?? glyphs.apps
       textColor: Theme.accent

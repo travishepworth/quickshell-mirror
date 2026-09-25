@@ -237,7 +237,7 @@ PopupWindow {
               Layout.preferredHeight: 22
               Layout.alignment: Qt.AlignTop
 
-              iconText: "󰅖"
+              iconText: "close"
               iconSize: 12
               borderRadius: 11
               iconColor: Theme.foregroundAlt

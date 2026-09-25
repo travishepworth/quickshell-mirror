@@ -49,10 +49,10 @@ Item {
       spacing: Widget.spacing
       visible: root.isEnd || root.wide || root.hovered
 
-      StyledText {
+      StyledIcon {
         width: parent.width
         horizontalAlignment: Text.AlignHCenter
-        text: root.wide ? String.fromCodePoint(0xF04EC) : "+"
+        text: root.wide ? "add_column_right" : "add"
         textColor: root.hovered ? Theme.accent : Theme.foreground
         textSize: root.wide ? Appearance.fontSize + 12 : Appearance.fontSize + 4
       }

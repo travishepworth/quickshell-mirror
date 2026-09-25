@@ -12,11 +12,11 @@ Card {
   id: root
 
   readonly property var defs: ({
-      "lock": ["\u{F033E}", I18n.tr("Lock")],
-      "suspend": ["\u{F04B2}", I18n.tr("Suspend")],
-      "logout": ["\u{F0343}", I18n.tr("Log out")],
-      "reboot": ["\u{F0709}", I18n.tr("Reboot")],
-      "poweroff": ["\u{F0425}", I18n.tr("Power off")]
+      "lock": ["lock", I18n.tr("Lock")],
+      "suspend": ["sleep", I18n.tr("Suspend")],
+      "logout": ["logout", I18n.tr("Log out")],
+      "reboot": ["restart_alt", I18n.tr("Reboot")],
+      "poweroff": ["power_settings_new", I18n.tr("Power off")]
     })
   readonly property var actions: (root.properties.actions ?? ["lock", "suspend", "logout", "reboot", "poweroff"]).filter(a => a in root.defs)
   property string armed: ""

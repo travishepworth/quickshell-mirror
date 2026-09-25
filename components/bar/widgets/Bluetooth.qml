@@ -18,7 +18,7 @@ BarIconWidget {
 
   readonly property bool hidden: properties.hideWhenOff && !BluetoothManager.enabled
 
-  icon: !BluetoothManager.enabled ? "\u{F00B2}" : connected.length > 0 ? "\u{F00B1}" : "\u{F00AF}"
+  icon: !BluetoothManager.enabled ? "bluetooth_disabled" : connected.length > 0 ? "bluetooth_connected" : "bluetooth"
   text: {
     if (connected.length > 1)
       return I18n.tr("{0} devices", connected.length);

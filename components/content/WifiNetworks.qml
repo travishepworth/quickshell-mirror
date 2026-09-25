@@ -20,7 +20,7 @@ Panel {
   readonly property var networks: NetworkingManager.networks
   readonly property bool radioOn: NetworkingManager.wifiEnabled && NetworkingManager.available
   readonly property string offMessage: I18n.tr(!NetworkingManager.available ? "No Wi-Fi adapter found" : NetworkingManager.hardwareBlocked ? "Wi-Fi is blocked (rfkill)" : "Wi-Fi is off")
-  readonly property string kindIcon: info.kind === "wifi" ? NetworkingManager.signalIcon(info.signal / 100) : info.kind === "ethernet" ? "\u{F0200}" : "\u{F092E}"
+  readonly property string kindIcon: info.kind === "wifi" ? NetworkingManager.signalIcon(info.signal / 100) : info.kind === "ethernet" ? "lan" : "signal_wifi_0_bar"
 
   // A password field is up: keep the keyboard, and the popout open
   wantsKeyboardFocus: NetworkingManager.passwordFor !== null
@@ -68,7 +68,7 @@ Panel {
   }
 
   compactContent: CompactFigure {
-    icon: root.radioOn ? root.kindIcon : "\u{F092E}"
+    icon: root.radioOn ? root.kindIcon : "signal_wifi_0_bar"
     iconColor: root.info.kind !== "" ? Theme.accent : Theme.foregroundAlt
     value: ""
     label: root.info.name || I18n.tr(root.radioOn ? "Disconnected" : "off")
@@ -142,7 +142,7 @@ Panel {
       anchors.right: parent.right
       spacing: Widget.padding
 
-      StyledText {
+      StyledIcon {
         Layout.preferredWidth: 26
         horizontalAlignment: Text.AlignHCenter
         text: NetworkingManager.signalIcon(row.network?.signalStrength ?? 0)
@@ -165,9 +165,9 @@ Panel {
             textSize: Appearance.fontSize - 1
             textColor: row.connected ? Theme.foreground : Theme.foregroundAlt
           }
-          StyledText {
+          StyledIcon {
             visible: NetworkingManager.isSecure(row.network)
-            text: "\u{F033E}"
+            text: "lock"
             textSize: Appearance.fontSize - 3
             textColor: Theme.foregroundAlt
           }
@@ -190,7 +190,7 @@ Panel {
         visible: row.known
         enabled: rowHover.hovered && !row.busy
         opacity: rowHover.hovered || row.confirmForget ? 1 : 0
-        iconText: "\u{F01B4}"
+        iconText: "delete"
         iconColor: Theme.error
         backgroundColor: row.confirmForget ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.2) : "transparent"
         borderHoverColor: Theme.error
@@ -215,7 +215,7 @@ Panel {
         Layout.preferredHeight: 28
         enabled: !row.busy
         opacity: enabled ? 1 : 0.5
-        iconText: row.connected ? "\u{F0338}" : "\u{F0337}"
+        iconText: row.connected ? "link_off" : "link"
         iconColor: row.connected ? Theme.accent : Theme.foreground
         backgroundColor: "transparent"
         borderHoverColor: Theme.accent
@@ -254,7 +254,7 @@ Panel {
         Layout.preferredHeight: 28
         enabled: passwordField.text !== ""
         opacity: enabled ? 1 : 0.5
-        iconText: "\u{F0337}"
+        iconText: "link"
         iconColor: Theme.accent
         backgroundColor: "transparent"
         borderHoverColor: Theme.accent
@@ -278,8 +278,8 @@ Panel {
     }
 
     // Spins while scanning; always laid out, so the header never shifts
-    StyledText {
-      text: "\u{F0450}"
+    StyledIcon {
+      text: "refresh"
       textColor: Theme.foregroundAlt
       opacity: NetworkingManager.scanning ? 1 : 0
 
@@ -311,7 +311,7 @@ Panel {
     Layout.fillHeight: false
     spacing: Widget.padding
 
-    StyledText {
+    StyledIcon {
       Layout.preferredWidth: 26
       horizontalAlignment: Text.AlignHCenter
       text: root.kindIcon
@@ -343,17 +343,37 @@ Panel {
       visible: root.info.kind !== ""
       spacing: 0
 
-      StyledText {
+      Row {
         Layout.alignment: Qt.AlignRight
-        text: `\u{F0045} ${root.rate(SystemManager.netRx)}`
-        textSize: Appearance.fontSize - 3
-        textColor: Theme.accentAlt
+        spacing: 2
+        StyledIcon {
+          anchors.verticalCenter: parent.verticalCenter
+          text: "arrow_downward"
+          textSize: Appearance.fontSize - 3
+          textColor: Theme.accentAlt
+        }
+        StyledText {
+          anchors.verticalCenter: parent.verticalCenter
+          text: root.rate(SystemManager.netRx)
+          textSize: Appearance.fontSize - 3
+          textColor: Theme.accentAlt
+        }
       }
-      StyledText {
+      Row {
         Layout.alignment: Qt.AlignRight
-        text: `\u{F005D} ${root.rate(SystemManager.netTx)}`
-        textSize: Appearance.fontSize - 3
-        textColor: Theme.accent
+        spacing: 2
+        StyledIcon {
+          anchors.verticalCenter: parent.verticalCenter
+          text: "arrow_upward"
+          textSize: Appearance.fontSize - 3
+          textColor: Theme.accent
+        }
+        StyledText {
+          anchors.verticalCenter: parent.verticalCenter
+          text: root.rate(SystemManager.netTx)
+          textSize: Appearance.fontSize - 3
+          textColor: Theme.accent
+        }
       }
     }
   }
@@ -373,7 +393,7 @@ Panel {
     EmptyState {
       anchors.centerIn: parent
       maxWidth: parent.width
-      icon: "\u{F092E}"
+      icon: "signal_wifi_0_bar"
       text: root.offMessage
     }
   }

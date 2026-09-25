@@ -21,7 +21,7 @@ BarIconWidget {
   readonly property bool hidden: properties.hideWhenEmpty && count === 0
   readonly property string upgradeCommand: properties.upgradeCommand || (properties.includeAur ? `${properties.aurHelper} -Syu` : "sudo pacman -Syu")
 
-  icon: "\u{F03D4}"
+  icon: "download"
   text: String(count)
   showIcon: !hidden
   showText: !hidden

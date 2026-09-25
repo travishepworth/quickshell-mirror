@@ -46,7 +46,7 @@ BarIconWidget {
   readonly property var screenUsers: properties.showScreen ? users(s => s.type === PwNodeType.VideoSource && isPortal(s), t => isVideoStream(t)) : []
   readonly property var cameraUsers: properties.showCamera ? users(s => s.type === PwNodeType.VideoSource && !isPortal(s), t => isVideoStream(t)) : []
 
-  readonly property var glyphs: [...(micUsers.length ? ["\u{F036C}"] : []), ...(screenUsers.length ? ["\u{F0379}"] : []), ...(cameraUsers.length ? ["\u{F0100}"] : [])]
+  readonly property var glyphs: [...(micUsers.length ? ["mic"] : []), ...(screenUsers.length ? ["monitor"] : []), ...(cameraUsers.length ? ["camera"] : [])]
   readonly property bool hidden: glyphs.length === 0
 
   icon: glyphs.join(isVertical ? "\n" : " ")

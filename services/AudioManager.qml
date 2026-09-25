@@ -148,32 +148,32 @@ QtObject {
     switch (kind) {
     case "headphones":
     case "headset":
-      return muted ? "\u{F07CE}" : (kind === "headset" ? "\u{F02CE}" : "\u{F02CB}");
+      return muted ? "headset_off" : (kind === "headset" ? "headset" : "headphones");
     case "bluetooth":
-      return muted ? "\u{F0581}" : "\u{F00B0}";
+      return muted ? "volume_off" : "bluetooth_audio";
     case "hdmi":
-      return muted ? "\u{F0581}" : "\u{F0379}";
+      return muted ? "volume_off" : "monitor";
     }
     if (muted || level <= 0)
-      return "\u{F0581}";
+      return "volume_off";
     if (level < 0.34)
-      return "\u{F057F}";
+      return "volume_mute";
     if (level < 0.67)
-      return "\u{F0580}";
-    return "\u{F057E}";
+      return "volume_down";
+    return "volume_up";
   }
 
   // Input glyph for a device kind, reflecting mute
   function inputIcon(kind, muted) {
     if (muted)
-      return "\u{F036D}";
+      return "mic_off";
     switch (kind) {
     case "headset":
-      return "\u{F02CE}";
+      return "headset";
     case "webcam":
-      return "\u{F0100}";
+      return "camera";
     }
-    return "\u{F036C}";
+    return "mic";
   }
 
   // -- Microphone use --

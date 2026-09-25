@@ -18,12 +18,12 @@ PanelWindow {
   property int gridSpacing: 20
   property real backgroundDim: 0.5
 
-  property string iconLock: " "
-  property string iconLogout: " "
-  property string iconPoweroff: " "
-  property string iconSuspend: " "
-  property string iconReboot: " "
-  property string iconHibernate: " "
+  property string iconLock: "lock"
+  property string iconLogout: "logout"
+  property string iconPoweroff: "power_settings_new"
+  property string iconSuspend: "bedtime"
+  property string iconReboot: "restart_alt"
+  property string iconHibernate: "hard_drive"
 
   // [action, icon] in grid order
   readonly property var actions: [["lock", iconLock], ["logout", iconLogout], ["poweroff", iconPoweroff], ["suspend", iconSuspend], ["reboot", iconReboot], ["hibernate", iconHibernate]]
@@ -174,7 +174,7 @@ PanelWindow {
             }
           }
 
-          StyledText {
+          StyledIcon {
             anchors.centerIn: parent
             text: iconButton.modelData[1]
             textColor: iconButton.armed || buttonMouseArea.containsMouse ? Theme.background : Theme.foreground

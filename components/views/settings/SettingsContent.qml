@@ -135,7 +135,9 @@ Item {
         delegate: StyledTextButton {
           required property string modelData
           height: Widget.height - 4
-          text: root._linkLabel(modelData) + "  " + String.fromCodePoint(0xF0142)
+          text: root._linkLabel(modelData)
+          iconText: "chevron_right"
+          iconAfter: true
           onClicked: ShellManager.showOverlayPage(modelData)
         }
       }

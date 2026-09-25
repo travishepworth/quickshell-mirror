@@ -58,8 +58,8 @@ ColumnLayout {
         elide: Text.ElideRight
       }
 
-      StyledText {
-        text: "▾"
+      StyledIcon {
+        text: "arrow_drop_down"
         textColor: root.swatches ? root._currentTextColor : Theme.accent
         textSize: Appearance.fontSize + 2
         Layout.preferredWidth: implicitWidth

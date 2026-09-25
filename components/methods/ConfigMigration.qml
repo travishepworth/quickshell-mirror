@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 8
+  readonly property int currentVersion: 9
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -43,6 +43,8 @@ QtObject {
       result = _v6ToV7(result, changes);
     if (version < 8)
       result = _v7ToV8(result, changes);
+    if (version < 9)
+      result = _v8ToV9(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -212,6 +214,39 @@ QtObject {
     }
     if (Object.keys(workspaces).length > 0)
       config.Workspaces = workspaces;
+    return config;
+  }
+
+  // v9 moved icons from Nerd Font glyphs to Material Symbols names. Icon
+  // fields that still hold one of the old default glyphs get its name;
+  // anything else a user typed still draws, in the text font
+  readonly property var _v9Icons: ({
+      "\u{F08C7}": "apps",
+      "\u{EB94}": "menu",
+      "\u{F001}": "music_note"
+    })
+
+  function _v8ToV9(config, changes) {
+    const convert = (holder, where) => {
+      if (typeof holder?.icon !== "string")
+        return;
+      const icon = holder.icon.trim();
+      const name = root._v9Icons[icon] ?? icon;
+      if (name === holder.icon)
+        return;
+      holder.icon = name;
+      changes.push(`${where}.icon -> ${JSON.stringify(name)}`);
+    };
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      const widgets = bar?.widgets ?? {};
+      Object.keys(widgets).forEach(section => {
+        (widgets[section] ?? []).forEach((widget, index) => {
+          if (widget?.type === "Button" || widget?.type === "Window")
+            convert(widget.properties, `Bars[${barIndex}].widgets.${section}[${index}]`);
+        });
+      });
+    });
+    (config.OSD?.apps ?? []).forEach((app, index) => convert(app, `OSD.apps[${index}]`));
     return config;
   }
 }

@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 import qs.services
 import qs.config
 import qs.components.hosts.popout
+import qs.components.reusable
 
 // The grid layout's switcher: this monitor's columns × rows workspaces, of
 // which the bar shows the active row (horizontal bar) or column (vertical
@@ -60,10 +61,10 @@ Item {
   function positionGlyph(position, count) {
     const middle = (count - 1) / 2;
     if (position === middle)
-      return "\u{F51D}";
+      return "square";
     if (root.isVertical)
-      return position === 0 ? "\u{F100}" : position === count - 1 ? "\u{F101}" : position < middle ? "\u{F104}" : "\u{F105}";
-    return position === 0 ? "\u{F102}" : position === count - 1 ? "\u{F103}" : position < middle ? "\u{F106}" : "\u{F107}";
+      return position === 0 ? "keyboard_double_arrow_left" : position === count - 1 ? "keyboard_double_arrow_right" : position < middle ? "keyboard_arrow_left" : "keyboard_arrow_right";
+    return position === 0 ? "keyboard_double_arrow_up" : position === count - 1 ? "keyboard_double_arrow_down" : position < middle ? "keyboard_arrow_up" : "keyboard_arrow_down";
   }
 
   WheelHandler {
@@ -107,10 +108,9 @@ Item {
           radius: Appearance.borderRadius
           color: isActive ? root.activeColor : hasWindows ? root.occupiedColor : root.emptyColor
 
-          Text {
+          StyledIcon {
             anchors.centerIn: parent
             text: root.isVertical ? root.positionGlyph(root.activeColumn, root.columns) : root.positionGlyph(root.activeRow, root.rows)
-            font.family: Appearance.fontFamily
             font.pixelSize: Appearance.fontSize * 1.2
             visible: cellBox.isActive && root.properties.showActiveIcon
             color: root.iconColor

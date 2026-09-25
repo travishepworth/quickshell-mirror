@@ -86,22 +86,22 @@ QtObject {
   function deviceIcon(device) {
     const icon = device?.icon || "";
     if (icon.includes("headset"))
-      return "\u{F02CE}";
+      return "headset";
     if (icon.includes("headphone") || icon === "audio-card")
-      return "\u{F02CB}";
+      return "headphones";
     if (icon.startsWith("audio"))
-      return "\u{F04C3}";
+      return "speaker";
     if (icon.includes("mouse"))
-      return "\u{F037D}";
+      return "mouse";
     if (icon.includes("keyboard"))
-      return "\u{F030C}";
+      return "keyboard";
     if (icon.includes("gaming"))
-      return "\u{F0EB5}";
+      return "sports_esports";
     if (icon.includes("phone"))
-      return "\u{F011C}";
+      return "smartphone";
     if (icon.includes("computer"))
-      return "\u{F0322}";
-    return "\u{F00AF}";
+      return "laptop";
+    return "bluetooth";
   }
 
   // Finish "pair then connect" for devices paired from here

@@ -128,7 +128,7 @@ StyledContainer {
           }
 
           StyledIconButton {
-            iconText: "󰒮"
+            iconText: "skip_previous"
             onClicked: MediaManager.previous()
             iconColor: root.buttonIconColor
             backgroundColor: root.buttonBackgroundColor
@@ -204,7 +204,7 @@ StyledContainer {
           }
 
           StyledIconButton {
-            iconText: "󰒭"
+            iconText: "skip_next"
             onClicked: MediaManager.next()
             iconColor: root.buttonIconColor
             backgroundColor: root.buttonBackgroundColor
@@ -232,7 +232,7 @@ StyledContainer {
           anchors.centerIn: parent
           anchors.leftMargin: root.controlButtonsLeftMargin
           anchors.rightMargin: root.controlButtonsRightMargin
-          iconText: MediaManager.isPlaying ? "󰏤" : "󰐊"
+          iconText: MediaManager.isPlaying ? "pause" : "play_arrow"
           iconSize: root.playIconFontSize
           onClicked: MediaManager.togglePlayPause()
           iconColor: MediaManager.isPlaying ? root.playIconColor : root.pauseIconColor

@@ -6,7 +6,7 @@ import qs.components.methods
 import qs.components.reusable
 
 // One slot of a cell on the canvas: its module's icon and name (plus a
-// hint for modules whose look depends on their properties), or "+" when
+// hint for modules whose look depends on their properties), or a plus when
 // empty. Click to edit it, drag the module to another slot (swapping) or
 // out into a cell of its own, drop a module from the library on it.
 // Positioned and sized by CanvasCell.
@@ -85,10 +85,10 @@ Rectangle {
     width: parent.width - 8
     spacing: 2
 
-    StyledText {
+    StyledIcon {
       width: parent.width
       horizontalAlignment: Text.AlignHCenter
-      text: root.module ? root.dragLayer.moduleIcon(root.type) : "+"
+      text: root.module ? root.dragLayer.moduleIcon(root.type) : "add"
       textColor: root.isSwatch ? root.ink : (root.module ? Theme.accent : Theme.foreground)
       textSize: root.small ? Appearance.fontSize + 2 : Appearance.fontSize + 8
       opacity: root.module ? 1 : 0.6

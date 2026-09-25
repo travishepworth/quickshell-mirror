@@ -11,7 +11,7 @@ import qs.config
 BarIconWidget {
   id: root
 
-  icon: IdleInhibitManager.enabled ? "\u{F0176}" : "\u{F0FAA}"
+  icon: IdleInhibitManager.enabled ? "coffee" : "bedtime"
   text: I18n.tr(IdleInhibitManager.enabled ? "Awake" : "Idle")
   showText: properties.showLabel
 

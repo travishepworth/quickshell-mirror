@@ -13,7 +13,7 @@ Card {
   id: root
 
   readonly property var info: SystemManager.netInfo
-  readonly property string kindIcon: root.info.kind === "wifi" ? "\u{F0928}" : root.info.kind === "ethernet" ? "\u{F0200}" : "\u{F0B8C}"
+  readonly property string kindIcon: root.info.kind === "wifi" ? "signal_wifi_4_bar" : root.info.kind === "ethernet" ? "lan" : "dns"
   // "Running 100.x.y.z", or "" when Tailscale isn't installed
   readonly property string tailscale: TailscaleManager.available ? (TailscaleManager.backendState + " " + TailscaleManager.ip).trim() : ""
 
@@ -52,14 +52,23 @@ Card {
     label: root.info.name || I18n.tr("Disconnected")
   }
 
-  StyledText {
+  Row {
     visible: root.compact
     anchors.bottom: parent.bottom
     anchors.bottomMargin: root.pad
     anchors.horizontalCenter: parent.horizontalCenter
-    text: `\u{F0045} ${root.rate(SystemManager.netRx)}`
-    textSize: Appearance.fontSize - 2
+    spacing: 2
     opacity: 0.8
+    StyledIcon {
+      anchors.verticalCenter: parent.verticalCenter
+      text: "arrow_downward"
+      textSize: Appearance.fontSize - 2
+    }
+    StyledText {
+      anchors.verticalCenter: parent.verticalCenter
+      text: root.rate(SystemManager.netRx)
+      textSize: Appearance.fontSize - 2
+    }
   }
 
   ColumnLayout {
@@ -125,18 +134,38 @@ Card {
 
     RowLayout {
       Layout.fillWidth: true
-      StyledText {
-        text: `\u{F0045} ${root.rate(SystemManager.netRx)}`
-        textColor: Theme.accentAlt
-        textSize: Appearance.fontSize - 1
+      Row {
+        spacing: 2
+        StyledIcon {
+          anchors.verticalCenter: parent.verticalCenter
+          text: "arrow_downward"
+          textColor: Theme.accentAlt
+          textSize: Appearance.fontSize - 1
+        }
+        StyledText {
+          anchors.verticalCenter: parent.verticalCenter
+          text: root.rate(SystemManager.netRx)
+          textColor: Theme.accentAlt
+          textSize: Appearance.fontSize - 1
+        }
       }
       Item {
         Layout.fillWidth: true
       }
-      StyledText {
-        text: `\u{F005D} ${root.rate(SystemManager.netTx)}`
-        textColor: Theme.accent
-        textSize: Appearance.fontSize - 1
+      Row {
+        spacing: 2
+        StyledIcon {
+          anchors.verticalCenter: parent.verticalCenter
+          text: "arrow_upward"
+          textColor: Theme.accent
+          textSize: Appearance.fontSize - 1
+        }
+        StyledText {
+          anchors.verticalCenter: parent.verticalCenter
+          text: root.rate(SystemManager.netTx)
+          textColor: Theme.accent
+          textSize: Appearance.fontSize - 1
+        }
       }
     }
   }

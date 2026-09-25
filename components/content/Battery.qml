@@ -15,9 +15,9 @@ Card {
     anchors.centerIn: parent
     visible: !BatteryManager.isAvailable
     spacing: Widget.spacing / 2
-    StyledText {
+    StyledIcon {
       Layout.alignment: Qt.AlignHCenter
-      text: "\u{F06A5}"
+      text: "power"
       textSize: Appearance.fontSize * 2.5
       opacity: 0.5
     }

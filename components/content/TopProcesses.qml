@@ -33,8 +33,8 @@ Card {
 
   TextMetrics {
     id: killMetrics
-    text: "\u{F0156}"
-    font.family: Appearance.fontFamily
+    text: "close"
+    font.family: Appearance.iconFamily
     font.pixelSize: Appearance.fontSize
   }
 
@@ -44,7 +44,7 @@ Card {
     visible: root.compact
     anchors.centerIn: parent
     maxWidth: root.width - root.pad * 2
-    icon: "\u{F0A30}"
+    icon: "bug_report"
     value: busiest ? busiest[root.sortBy].toFixed(0) : "…"
     unit: busiest ? "%" : ""
     label: busiest?.command ?? ""
@@ -58,7 +58,7 @@ Card {
 
     ModuleHeader {
       visible: !root.compact
-      icon: "\u{F0A30}"
+      icon: "bug_report"
       title: I18n.tr("Processes")
       // Column heads over the figures (the kill button's room at the end)
       StyledText {
@@ -139,10 +139,10 @@ Card {
                 textSize: Appearance.fontSize - 1
                 opacity: 0.8
               }
-              StyledText {
+              StyledIcon {
                 Layout.preferredWidth: killMetrics.advanceWidth
                 opacity: rowHover.hovered ? 1 : 0
-                text: "\u{F0156}"
+                text: "close"
                 textColor: Theme.error
                 MouseArea {
                   anchors.fill: parent

@@ -122,7 +122,7 @@ Item {
               anchors.rightMargin: Widget.padding / 2
               spacing: Widget.spacing
 
-              StyledText {
+              StyledIcon {
                 text: root.dragLayer.viewIcon(entry.entryView.type)
                 textColor: entry.selected ? Theme.background : Theme.accent
                 Layout.preferredWidth: Appearance.fontSize * 1.5
@@ -155,7 +155,7 @@ Item {
 
               SquareIconButton {
                 size: Widget.height - 6
-                iconText: String.fromCodePoint(0xF0156)
+                iconText: "close"
                 iconColor: entry.ink
                 backgroundColor: "transparent"
                 hoverColor: Theme.error
@@ -185,7 +185,7 @@ Item {
         model: [
           {
             "label": "Overlay editor",
-            "icon": 0xF0574
+            "icon": "view_quilt"
           }
         ]
 
@@ -198,8 +198,8 @@ Item {
           spacing: Widget.spacing
           opacity: 0.45
 
-          StyledText {
-            text: String.fromCodePoint(pinned.modelData.icon)
+          StyledIcon {
+            text: pinned.modelData.icon
             Layout.preferredWidth: Appearance.fontSize * 1.5
           }
           StyledText {

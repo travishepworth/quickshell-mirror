@@ -15,8 +15,8 @@ RowLayout {
   Layout.fillWidth: true
   spacing: Widget.spacing
 
-  StyledText {
-    text: NotificationManager.dnd ? "\u{F00A0}" : "\u{F009A}"
+  StyledIcon {
+    text: NotificationManager.dnd ? "notifications_paused" : "notifications"
     textColor: Theme.accent
     textSize: Appearance.fontSize + 2
   }
@@ -57,7 +57,7 @@ RowLayout {
     Layout.fillHeight: false
     Layout.preferredWidth: 28
     Layout.preferredHeight: 28
-    iconText: NotificationManager.dnd ? "\u{F00A0}" : "\u{F009B}"
+    iconText: NotificationManager.dnd ? "notifications_paused" : "notifications_off"
     iconColor: NotificationManager.dnd ? Theme.background : Theme.foreground
     backgroundColor: NotificationManager.dnd ? Theme.accent : "transparent"
     borderHoverColor: Theme.accent
@@ -72,7 +72,7 @@ RowLayout {
     Layout.preferredHeight: 28
     enabled: NotificationManager.count > 0
     opacity: enabled ? 1 : 0.4
-    iconText: "\u{F039F}"
+    iconText: "clear_all"
     backgroundColor: "transparent"
     borderHoverColor: Theme.error
     tooltipText: I18n.tr("Clear all")

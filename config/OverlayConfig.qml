@@ -28,8 +28,8 @@ QtObject {
         "propertiesSchema": def.properties?.properties?.properties ?? null,
         // Slot shapes a module fits (`x-shapes`); views don't declare any
         "shapes": def["x-shapes"] ?? ["square", "horizontal", "vertical"],
-        // Nerd Font glyph (`x-icon`, a hex codepoint)
-        "icon": String.fromCodePoint(parseInt(def["x-icon"] ?? "F0431", 16))
+        // Material Symbols name (`x-icon`)
+        "icon": def["x-icon"] ?? "extension"
       };
     }).filter(t => t !== null);
   }

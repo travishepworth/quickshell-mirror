@@ -34,11 +34,11 @@ BarIconWidget {
   function getIcon() {
     switch (kind) {
     case "wifi":
-      return "";
+      return "wifi";
     case "ethernet":
-      return "󰈀";
+      return "lan";
     default:
-      return NetworkingManager.available && !NetworkingManager.wifiEnabled ? "\u{F092E}" : "󰤭";
+      return NetworkingManager.available && !NetworkingManager.wifiEnabled ? "signal_wifi_0_bar" : "signal_wifi_off";
     }
   }
 

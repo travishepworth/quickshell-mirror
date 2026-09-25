@@ -52,7 +52,7 @@ Card {
       Layout.preferredHeight: Widget.height + Widget.padding
       spacing: Widget.spacing
 
-      StyledText {
+      StyledIcon {
         text: root.view ? root.dragLayer.viewIcon(root.view.type) : ""
         textColor: Theme.accent
         textSize: Appearance.fontSize + 6
@@ -106,10 +106,10 @@ Card {
         spacing: Widget.spacing
         visible: !root.isCustom
 
-        StyledText {
+        StyledIcon {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
-          text: root.view ? root.dragLayer.viewIcon(root.view.type) : String.fromCodePoint(0xF0574)
+          text: root.view ? root.dragLayer.viewIcon(root.view.type) : "view_quilt"
           textColor: Theme.accent
           textSize: Appearance.fontSize * 4
           opacity: 0.8

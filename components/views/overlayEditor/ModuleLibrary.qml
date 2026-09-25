@@ -152,7 +152,7 @@ ColumnLayout {
               onDragStarted: (x, y) => root.dragLayer.begin({
                   "kind": "cell-add",
                   "layout": layoutTile.modelData,
-                  "icon": String.fromCodePoint(0xF0574),
+                  "icon": "view_quilt",
                   "label": root.dragLayer.layoutLabel(layoutTile.modelData)
                 }, layoutArea, x, y)
               onDragMoved: (x, y) => root.dragLayer.move(layoutArea, x, y)

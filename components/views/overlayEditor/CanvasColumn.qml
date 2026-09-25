@@ -44,8 +44,8 @@ Item {
       anchors.leftMargin: 4
       spacing: 4
 
-      StyledText {
-        text: String.fromCodePoint(0xF01DB)
+      StyledIcon {
+        text: "drag_pan"
         opacity: 0.6
       }
       StyledText {
@@ -57,7 +57,7 @@ Item {
       }
       SquareIconButton {
         size: Widget.height - 6
-        iconText: String.fromCodePoint(0xF0156)
+        iconText: "close"
         iconSize: Appearance.fontSize - 1
         backgroundColor: "transparent"
         hoverColor: Theme.error
@@ -74,7 +74,7 @@ Item {
       onDragStarted: (x, y) => root.dragLayer.begin({
           "kind": "column-move",
           "column": root.column,
-          "icon": String.fromCodePoint(0xF056D),
+          "icon": "view_column",
           "label": I18n.tr("Column {0}", root.column + 1)
         }, headerArea, x, y)
       onDragMoved: (x, y) => root.dragLayer.move(headerArea, x, y)
@@ -147,9 +147,9 @@ Item {
       border.color: body.atEnd ? Theme.accent : Qt.alpha(Theme.accent, 0.35)
       border.width: 1
 
-      StyledText {
+      StyledIcon {
         anchors.centerIn: parent
-        text: "+"
+        text: "add"
         textColor: body.atEnd ? Theme.accent : Theme.foreground
         textSize: Appearance.fontSize + 2
         opacity: body.atEnd ? 1 : 0.5

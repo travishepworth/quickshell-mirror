@@ -23,26 +23,26 @@ QtObject {
 
   readonly property var list: [
     // --- Session ---
-    root._session("lock", ["lock-screen"], "\u{F033E}", "Lock the screen"), root._session("suspend", ["sleep"], "\u{F04B2}", "Suspend to RAM"), root._session("hibernate", [], "\u{F0717}", "Hibernate to disk"), root._session("logout", ["exit"], "\u{F0343}", "End the Hyprland session"), root._session("reboot", ["restart"], "\u{F0709}", "Restart the computer"), root._session("poweroff", ["shutdown"], "\u{F0906}", "Turn the computer off"),
+    root._session("lock", ["lock-screen"], "lock", "Lock the screen"), root._session("suspend", ["sleep"], "sleep", "Suspend to RAM"), root._session("hibernate", [], "snowflake", "Hibernate to disk"), root._session("logout", ["exit"], "logout", "End the Hyprland session"), root._session("reboot", ["restart"], "restart_alt", "Restart the computer"), root._session("poweroff", ["shutdown"], "mode_standby", "Turn the computer off"),
     // --- Surfaces ---
     {
       name: "power",
       aliases: ["powermenu"],
-      glyph: "\u{F0426}",
+      glyph: "power_settings_new",
       description: () => I18n.tr("Open the power menu"),
       run: () => ShellManager.openPowerMenu()
     },
     {
       name: "workspaces",
       aliases: ["overview"],
-      glyph: "\u{F0570}",
+      glyph: "grid_view",
       description: () => I18n.tr("Open the workspace overview"),
       run: () => ShellManager.toggleWorkspaceOverlay()
     },
     {
       name: "overlay",
       aliases: ["page"],
-      glyph: "\u{F056E}",
+      glyph: "dashboard",
       usage: "[page]",
       description: () => I18n.tr("Open the overlay, or one of its pages"),
       options: () => root._overlayPages(),
@@ -59,7 +59,7 @@ QtObject {
     {
       name: "theme",
       aliases: ["colors"],
-      glyph: "\u{F03D8}",
+      glyph: "palette",
       usage: "<theme>",
       needsArg: true,
       description: () => I18n.tr("Switch the color theme"),
@@ -78,7 +78,7 @@ QtObject {
     {
       name: "dark",
       aliases: [],
-      glyph: "\u{F0594}",
+      glyph: "clear_night",
       description: () => I18n.tr("Use the theme's dark variant"),
       run: () => {
         ThemeManager.setLightMode(false);
@@ -88,7 +88,7 @@ QtObject {
     {
       name: "light",
       aliases: [],
-      glyph: "\u{F0599}",
+      glyph: "sunny",
       description: () => I18n.tr("Use the theme's light variant"),
       run: () => {
         ThemeManager.setLightMode(true);
@@ -98,7 +98,7 @@ QtObject {
     {
       name: "mode",
       aliases: ["darkmode"],
-      glyph: "\u{F050E}",
+      glyph: "contrast",
       description: () => I18n.tr("Toggle light and dark"),
       status: () => Appearance.darkMode ? I18n.tr("Dark") : I18n.tr("Light"),
       run: () => {
@@ -109,7 +109,7 @@ QtObject {
     {
       name: "wallpaper",
       aliases: ["wall", "bg"],
-      glyph: "\u{F02E9}",
+      glyph: "image",
       usage: "<file>",
       needsArg: true,
       description: () => I18n.tr("Set the focused monitor's wallpaper"),
@@ -128,7 +128,7 @@ QtObject {
     {
       name: "generate",
       aliases: ["pywal"],
-      glyph: "\u{F0068}",
+      glyph: "auto_fix",
       description: () => I18n.tr("Generate themes from the current wallpaper"),
       status: () => ThemeManager.isGenerating ? I18n.tr("Generating…") : "",
       run: () => {
@@ -142,7 +142,7 @@ QtObject {
     {
       name: "volume",
       aliases: ["vol"],
-      glyph: "\u{F057E}",
+      glyph: "volume_up",
       usage: "<0-100 | +n | -n>",
       needsArg: true,
       description: () => I18n.tr("Set the output volume"),
@@ -164,7 +164,7 @@ QtObject {
     {
       name: "mute",
       aliases: [],
-      glyph: "\u{F0581}",
+      glyph: "volume_off",
       description: () => I18n.tr("Mute or unmute the output"),
       status: () => AudioManager.muted ? I18n.tr("Muted") : "",
       run: () => {
@@ -175,7 +175,7 @@ QtObject {
     {
       name: "mic",
       aliases: ["microphone"],
-      glyph: "\u{F036C}",
+      glyph: "mic",
       description: () => I18n.tr("Mute or unmute the microphone"),
       status: () => AudioManager.sourceMuted ? I18n.tr("Muted") : "",
       run: () => {
@@ -183,12 +183,12 @@ QtObject {
         return false;
       }
     },
-    root._device("output", ["sink", "speakers"], "\u{F04C3}", "Choose the audio output", () => AudioManager.sinks, () => AudioManager.defaultSink), root._device("input", ["source"], "\u{F036C}", "Choose the audio input", () => AudioManager.sources, () => AudioManager.defaultSource), root._media("play", ["pause"], "\u{F040E}", "Play or pause", () => MediaManager.togglePlayPause()), root._media("next", ["skip"], "\u{F04AD}", "Next track", () => MediaManager.next()), root._media("prev", ["previous", "back"], "\u{F04AE}", "Previous track", () => MediaManager.previous()),
+    root._device("output", ["sink", "speakers"], "speaker", "Choose the audio output", () => AudioManager.sinks, () => AudioManager.defaultSink), root._device("input", ["source"], "mic", "Choose the audio input", () => AudioManager.sources, () => AudioManager.defaultSource), root._media("play", ["pause"], "play_pause", "Play or pause", () => MediaManager.togglePlayPause()), root._media("next", ["skip"], "skip_next", "Next track", () => MediaManager.next()), root._media("prev", ["previous", "back"], "skip_previous", "Previous track", () => MediaManager.previous()),
     // --- Connectivity ---
     {
       name: "wifi",
       aliases: ["wlan"],
-      glyph: "\u{F05A9}",
+      glyph: "wifi",
       usage: "[on | off]",
       description: () => I18n.tr("Turn wifi on or off"),
       available: () => NetworkingManager.available,
@@ -203,7 +203,7 @@ QtObject {
     {
       name: "bluetooth",
       aliases: ["bt"],
-      glyph: "\u{F00AF}",
+      glyph: "bluetooth",
       usage: "[on | off]",
       description: () => I18n.tr("Turn bluetooth on or off"),
       available: () => BluetoothManager.available,
@@ -218,7 +218,7 @@ QtObject {
     {
       name: "connect",
       aliases: ["disconnect", "device"],
-      glyph: "\u{F00B1}",
+      glyph: "bluetooth_connected",
       usage: "<device>",
       needsArg: true,
       description: () => I18n.tr("Connect or disconnect a paired bluetooth device"),
@@ -238,7 +238,7 @@ QtObject {
     {
       name: "dnd",
       aliases: ["quiet"],
-      glyph: "\u{F009B}",
+      glyph: "notifications_off",
       usage: "[on | off]",
       description: () => I18n.tr("Do not disturb"),
       status: () => NotificationManager.dnd ? I18n.tr("On") : I18n.tr("Off"),
@@ -252,7 +252,7 @@ QtObject {
     {
       name: "clear",
       aliases: ["clear-notifications"],
-      glyph: "\u{F039F}",
+      glyph: "clear_all",
       description: () => I18n.tr("Clear all notifications"),
       status: () => NotificationManager.count > 0 ? I18n.tr("{0} notifications", NotificationManager.count) : "",
       run: () => {
@@ -263,7 +263,7 @@ QtObject {
     {
       name: "caffeine",
       aliases: ["awake", "inhibit"],
-      glyph: "\u{F0176}",
+      glyph: "coffee",
       usage: "[on | off]",
       description: () => I18n.tr("Keep the screen awake"),
       status: () => IdleInhibitManager.enabled ? I18n.tr("On") : I18n.tr("Off"),
@@ -278,7 +278,7 @@ QtObject {
     {
       name: "ws",
       aliases: ["workspace"],
-      glyph: "\u{F03A0}",
+      glyph: "numbers",
       usage: "<number>",
       needsArg: true,
       description: () => I18n.tr("Go to a workspace"),
@@ -293,7 +293,7 @@ QtObject {
     {
       name: "config",
       aliases: ["set", "cfg"],
-      glyph: "\u{F0493}",
+      glyph: "settings",
       usage: "<setting> <value> | save <name> | restore <name>",
       needsArg: true,
       description: () => I18n.tr("Change a setting, or save and restore the config"),
@@ -303,7 +303,7 @@ QtObject {
     {
       name: "update",
       aliases: ["upgrade"],
-      glyph: "\u{F06B0}",
+      glyph: "update",
       description: () => SelfUpdateManager.available ? I18n.tr("Update axiom to {0}", SelfUpdateManager.latest) : I18n.tr("Check for axiom updates"),
       status: () => SelfUpdateManager.busy ? I18n.tr("Checking…") : SelfUpdateManager.available ? I18n.tr("{0} available", SelfUpdateManager.latest) : (SelfUpdateManager.current || SelfUpdateManager.commit),
       run: () => {
@@ -319,12 +319,12 @@ QtObject {
     {
       name: "reload",
       aliases: [],
-      glyph: "\u{F0453}",
+      glyph: "refresh",
       description: () => I18n.tr("Reload the shell"),
       run: () => Quickshell.reload(false)
     },
     // --- Other searches ---
-    root._prefix("calc", ["math"], "\u{F00EC}", "Calculate (or start with =)", "=", () => LauncherConfig.calculator), root._prefix("run", ["exec", "sh"], "\u{F018D}", "Run a shell command (or start with >)", ">", () => LauncherConfig.runCommands), root._prefix("web", ["search"], "\u{F059F}", "Search the web (or start with ?)", "?", () => LauncherConfig.webSearch), root._prefix("help", ["commands"], "\u{F02D7}", "List every command", "/", () => true)]
+    root._prefix("calc", ["math"], "calculate", "Calculate (or start with =)", "=", () => LauncherConfig.calculator), root._prefix("run", ["exec", "sh"], "terminal", "Run a shell command (or start with >)", ">", () => LauncherConfig.runCommands), root._prefix("web", ["search"], "web", "Search the web (or start with ?)", "?", () => LauncherConfig.webSearch), root._prefix("help", ["commands"], "help", "List every command", "/", () => true)]
 
   // --- Builders for families of alike commands ---
 
@@ -346,7 +346,7 @@ QtObject {
     return {
       name: name,
       aliases: aliases,
-      glyph: OverlayConfig.viewInfo(type)?.icon ?? "\u{F056E}",
+      glyph: OverlayConfig.viewInfo(type)?.icon ?? "dashboard",
       // I18n.tr("Open the settings") I18n.tr("Open the themes page") I18n.tr("Open the bar editor")
       // I18n.tr("Show the keybinds") I18n.tr("Open the overlay editor")
       description: () => I18n.tr(description),
@@ -419,7 +419,7 @@ QtObject {
         {
           title: "save",
           subtitle: I18n.tr("Save the current config under a name"),
-          glyph: "\u{F0193}",
+          glyph: "save",
           value: {
             next: "save "
           }
@@ -427,7 +427,7 @@ QtObject {
         {
           title: "restore",
           subtitle: I18n.tr("Restore a saved config"),
-          glyph: "\u{F006F}",
+          glyph: "settings_backup_restore",
           value: {
             next: "restore "
           }
@@ -478,7 +478,7 @@ QtObject {
         {
           title: arg.trim(),
           subtitle: I18n.tr("No setting \"{0}\"", head),
-          glyph: "\u{F0026}",
+          glyph: "warning",
           value: {}
         }
       ];
@@ -488,7 +488,7 @@ QtObject {
     const setRow = (text, parsed) => ({
           title: entry.key + " " + text,
           subtitle: parsed.error ?? (JSON.stringify(parsed.value) === JSON.stringify(current) ? I18n.tr("Current") : I18n.tr("Set {0} to {1} (now {2})", I18n.tr(schema.title ?? entry.key), root._configShow(parsed.value, schema), root._configShow(current, schema))),
-          glyph: parsed.error ? "\u{F0026}" : "",
+          glyph: parsed.error ? "warning" : "",
           value: parsed.error ? {} : {
             key: entry.key,
             set: parsed.value
@@ -588,7 +588,7 @@ QtObject {
     return pages.concat([
       {
         title: I18n.tr("Overlay editor"),
-        glyph: "\u{F056E}",
+        glyph: "dashboard",
         value: "OverlayEditor"
       }
     ]);
@@ -598,7 +598,7 @@ QtObject {
     const rows = [
       {
         title: I18n.tr("Random"),
-        glyph: "\u{F049D}",
+        glyph: "shuffle",
         value: "random"
       }
     ];

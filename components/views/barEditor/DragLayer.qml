@@ -76,51 +76,51 @@ Item {
     return I18n.tr(spaced);
   }
 
-  // Nerd Font icon per widget type
+  // Material Symbols icon per widget type
   function icon(type) {
     switch (type) {
     case "Window":
-      return String.fromCodePoint(0xF05B6);
+      return "wrap_text";
     case "Media":
-      return String.fromCodePoint(0xF075A);
+      return "music_note";
     case "Workspaces":
-      return String.fromCodePoint(0xF0570);
+      return "grid_view";
     case "Time":
-      return String.fromCodePoint(0xF0150);
+      return "schedule";
     case "Tailscale":
-      return String.fromCodePoint(0xF0582);
+      return "vpn_lock";
     case "Network":
-      return String.fromCodePoint(0xF05A9);
+      return "wifi";
     case "SystemTray":
-      return String.fromCodePoint(0xF003B);
+      return "apps";
     case "Notifications":
-      return String.fromCodePoint(0xF009A);
+      return "notifications";
     case "Button":
-      return String.fromCodePoint(0xF018D);
+      return "terminal";
     case "Battery":
-      return String.fromCodePoint(0xF0079);
+      return "battery_full";
     case "SystemStats":
-      return String.fromCodePoint(0xF035B);
+      return "memory_alt";
     case "KeyboardLayout":
-      return String.fromCodePoint(0xF030C);
+      return "keyboard";
     case "IdleInhibitor":
-      return String.fromCodePoint(0xF0176);
+      return "coffee";
     case "Privacy":
-      return String.fromCodePoint(0xF0208);
+      return "visibility";
     case "Updates":
-      return String.fromCodePoint(0xF03D7);
+      return "package_2";
     case "Weather":
-      return String.fromCodePoint(0xF0595);
+      return "partly_cloudy_day";
     case "Separator":
-      return String.fromCodePoint(0xF01D9);
+      return "more_vert";
     case "Volume":
-      return String.fromCodePoint(0xF057E);
+      return "volume_up";
     case "Microphone":
-      return String.fromCodePoint(0xF036C);
+      return "mic";
     case "Bluetooth":
-      return String.fromCodePoint(0xF00AF);
+      return "bluetooth";
     }
-    return String.fromCodePoint(0xF0493);
+    return "settings";
   }
 
   function registerLane(lane) {

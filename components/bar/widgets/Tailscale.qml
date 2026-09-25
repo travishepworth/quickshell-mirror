@@ -19,7 +19,7 @@ BarIconWidget {
   })
   Component.onDestruction: TailscaleManager.release(root)
 
-  icon: isConnected ? "󰳌" : "󰌙"
+  icon: isConnected ? "shield_lock" : "signal_disconnected"
   text: isConnected ? (properties.label || tailnetName) : ""
   showText: properties.showLabel
 

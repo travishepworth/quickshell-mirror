@@ -70,10 +70,10 @@ Item {
     asynchronous: true
   }
 
-  StyledText {
+  StyledIcon {
     visible: !root.showImage && !icon.visible
     anchors.centerIn: parent
-    text: "\u{F009A}"
+    text: "notifications"
     textColor: Theme.accent
     textSize: root.size * 0.8
   }

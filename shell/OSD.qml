@@ -17,7 +17,7 @@ Item {
   //   app:     app-name substring to match, or the sentinels below
   //   showOsd: whether a change on this slot should force the OSD open
   //            (it always restarts the auto-hide timer regardless)
-  //   icon:    icon glyph shown on the bar (master's is volume-dependent,
+  //   icon:    Material Symbols icon name shown on the bar (master's is volume-dependent,
   //            see iconSource binding below - its entry is unused)
   // Sentinels:
   //   "other"  - catches whatever isn't one of the other named apps
@@ -115,10 +115,10 @@ Item {
                 iconSource: {
                   if (isMasterSlot) {
                     if (AudioManager.muted || AudioManager.volume === 0)
-                      return "";
+                      return "volume_mute";
                     if (AudioManager.volume > 0.4)
-                      return " ";
-                    return " ";
+                      return "volume_up";
+                    return "volume_down";
                   }
                   return modelData.icon;
                 }

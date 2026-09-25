@@ -88,8 +88,8 @@ Item {
       anchors.centerIn: parent
       spacing: 4
 
-      StyledText {
-        text: String.fromCodePoint(0xF01DD)
+      StyledIcon {
+        text: "drag_indicator"
         textColor: root.selected ? Theme.background : Theme.foreground
         textSize: Appearance.fontSize - 1
       }
@@ -111,7 +111,7 @@ Item {
           "layout": root.layoutName,
           "column": root.column,
           "cell": root.cell,
-          "icon": String.fromCodePoint(0xF0574),
+          "icon": "view_quilt",
           "label": root.dragLayer.layoutLabel(root.layoutName)
         }, gripArea, x, y)
       onDragMoved: (x, y) => root.dragLayer.move(gripArea, x, y)

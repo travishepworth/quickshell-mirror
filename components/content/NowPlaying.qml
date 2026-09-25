@@ -54,7 +54,7 @@ Panel {
         duration: Appearance.animFast
       }
     }
-    StyledText {
+    StyledIcon {
       anchors.centerIn: parent
       text: button.icon
       textColor: button.primary ? Theme.background : Theme.foreground
@@ -93,10 +93,10 @@ Panel {
         asynchronous: true
         visible: status === Image.Ready
       }
-      StyledText {
+      StyledIcon {
         anchors.centerIn: parent
         visible: root.artSource === ""
-        text: "\u{F075A}"
+        text: "music_note"
         textSize: Math.min(art.width, art.height) * 0.4
         opacity: 0.4
       }
@@ -114,12 +114,30 @@ Panel {
   // players when there are several
   component TrackInfo: ColumnLayout {
     spacing: 2
-    StyledText {
+    Item {
       Layout.fillWidth: true
-      elide: Text.ElideRight
-      text: MediaManager.identity + (MediaManager.players.length > 1 ? "  \u{F0450}" : "")
-      textSize: Appearance.fontSize - 2
+      implicitHeight: playerRow.implicitHeight
       opacity: 0.6
+      RowLayout {
+        id: playerRow
+        anchors.fill: parent
+        spacing: 4
+        StyledText {
+          Layout.fillWidth: true
+          Layout.maximumWidth: implicitWidth
+          elide: Text.ElideRight
+          text: MediaManager.identity
+          textSize: Appearance.fontSize - 2
+        }
+        StyledIcon {
+          visible: MediaManager.players.length > 1
+          text: "refresh"
+          textSize: Appearance.fontSize - 2
+        }
+        Item {
+          Layout.fillWidth: true
+        }
+      }
       MouseArea {
         anchors.fill: parent
         enabled: MediaManager.players.length > 1
@@ -196,19 +214,19 @@ Panel {
       Layout.alignment: Qt.AlignHCenter
       spacing: Widget.spacing * 1.5
       MediaButton {
-        icon: "\u{F04AE}"
+        icon: "skip_previous"
         enabled: MediaManager.canGoPrevious
         onClicked: MediaManager.previous()
       }
       MediaButton {
         primary: true
         size: Widget.height * 1.4
-        icon: MediaManager.isPlaying ? "\u{F03E4}" : "\u{F040A}"
+        icon: MediaManager.isPlaying ? "pause" : "play_arrow"
         enabled: MediaManager.canTogglePlaying
         onClicked: MediaManager.togglePlayPause()
       }
       MediaButton {
-        icon: "\u{F04AD}"
+        icon: "skip_next"
         enabled: MediaManager.canGoNext
         onClicked: MediaManager.next()
       }
@@ -272,7 +290,7 @@ Panel {
       visible: root.hasPlayer
       primary: true
       size: Math.min(parent.width, parent.height) * 0.4
-      icon: MediaManager.isPlaying ? "\u{F03E4}" : "\u{F040A}"
+      icon: MediaManager.isPlaying ? "pause" : "play_arrow"
       onClicked: MediaManager.togglePlayPause()
     }
   }
@@ -285,7 +303,7 @@ Panel {
     Layout.preferredHeight: root.embedded ? -1 : root.artSize
     EmptyState {
       anchors.centerIn: parent
-      icon: "\u{F075A}"
+      icon: "music_note"
       text: I18n.tr("Nothing playing")
     }
   }

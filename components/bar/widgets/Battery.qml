@@ -29,7 +29,7 @@ BarIconWidget {
     return "none";
   }
 
-  icon: getBatteryIcon()
+  icon: BatteryManager.getBatteryIcon()
   text: `${percentage}%`
   showIcon: !hidden
   showText: properties.showPercentage && !hidden
@@ -39,42 +39,6 @@ BarIconWidget {
 
   iconScale: 1.1
   textScale: 0.9
-
-  function getBatteryIcon() {
-    if (isCharging) {
-      if (percentage >= 90)
-        return "󰂅";
-      if (percentage >= 80)
-        return "󰂋";
-      if (percentage >= 60)
-        return "󰂊";
-      if (percentage >= 40)
-        return "󰢞";
-      if (percentage >= 20)
-        return "󰢝";
-      return "󰢜";
-    } else {
-      if (percentage >= 90)
-        return "󰁹";
-      if (percentage >= 80)
-        return "󰂂";
-      if (percentage >= 70)
-        return "󰂁";
-      if (percentage >= 60)
-        return "󰂀";
-      if (percentage >= 50)
-        return "󰁿";
-      if (percentage >= 40)
-        return "󰁾";
-      if (percentage >= 30)
-        return "󰁽";
-      if (percentage >= 20)
-        return "󰁼";
-      if (percentage >= 10)
-        return "󰁻";
-      return "󰁺";
-    }
-  }
 
   function getBatteryColor() {
     if (isCharging)

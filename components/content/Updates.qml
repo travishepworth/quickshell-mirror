@@ -39,7 +39,7 @@ Panel {
   Component.onDestruction: UpdatesManager.release(root)
 
   compactContent: CompactFigure {
-    icon: "\u{F06B0}"
+    icon: "update"
     iconColor: root.total > 0 ? Theme.accent : Theme.foregroundAlt
     value: UpdatesManager.checking && root.total === 0 ? "…" : String(root.total)
     label: I18n.tr("updates")
@@ -99,7 +99,7 @@ Panel {
 
   ModuleHeader {
     visible: root.embedded
-    icon: "\u{F06B0}"
+    icon: "update"
     title: root.total > 0 ? I18n.tr("{0} updates", root.total) : I18n.tr("Up to date")
     StyledText {
       visible: UpdatesManager.checking
@@ -133,7 +133,7 @@ Panel {
     EmptyState {
       visible: root.total === 0
       anchors.centerIn: parent
-      icon: "\u{F012C}"
+      icon: "check"
       text: UpdatesManager.checking ? I18n.tr("checking…") : I18n.tr("System is up to date")
     }
   }

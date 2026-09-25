@@ -40,51 +40,51 @@ QtObject {
     const day = isDay !== 0;
     if (code === 0)
       return {
-        "icon": day ? "\u{F0599}" : "\u{F0594}",
+        "icon": day ? "sunny" : "clear_night",
         "label": I18n.tr("Clear")
       };
     if (code <= 2)
       return {
-        "icon": day ? "\u{F0595}" : "\u{F0F31}",
+        "icon": day ? "partly_cloudy_day" : "partly_cloudy_night",
         "label": I18n.tr("Partly cloudy")
       };
     if (code === 3)
       return {
-        "icon": "\u{F0590}",
+        "icon": "cloud",
         "label": I18n.tr("Overcast")
       };
     if (code === 45 || code === 48)
       return {
-        "icon": "\u{F0591}",
+        "icon": "foggy",
         "label": I18n.tr("Fog")
       };
     if (code >= 51 && code <= 57)
       return {
-        "icon": "\u{F0597}",
+        "icon": "rainy",
         "label": I18n.tr("Drizzle")
       };
     if ([65, 67, 82].includes(code))
       return {
-        "icon": "\u{F0596}",
+        "icon": "rainy_heavy",
         "label": I18n.tr("Heavy rain")
       };
     if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82))
       return {
-        "icon": "\u{F0597}",
+        "icon": "rainy",
         "label": I18n.tr("Rain")
       };
     if ((code >= 71 && code <= 77) || code === 85 || code === 86)
       return {
-        "icon": "\u{F0598}",
+        "icon": "weather_snowy",
         "label": I18n.tr("Snow")
       };
     if (code >= 95)
       return {
-        "icon": "\u{F0593}",
+        "icon": "thunderstorm",
         "label": I18n.tr("Thunderstorm")
       };
     return {
-      "icon": "\u{F0590}",
+      "icon": "cloud",
       "label": I18n.tr("Unknown")
     };
   }

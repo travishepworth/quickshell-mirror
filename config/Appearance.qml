@@ -29,6 +29,9 @@ QtObject {
   readonly property string fontFamily: _c.font.family
   readonly property int fontSize: _c.font.size
   readonly property int fontSizeLarge: fontSize + 4
+  // Icons are Material Symbols names drawn in this font (StyledIcon), so
+  // they don't depend on the text font
+  readonly property string iconFamily: "Material Symbols Rounded"
 
   // --- Shape ---
   readonly property int borderRadius: _c.shape.radius

@@ -18,7 +18,7 @@ Panel {
   id: root
 
   compactContent: CompactFigure {
-    icon: NotificationManager.dnd ? "\u{F009B}" : "\u{F009A}"
+    icon: NotificationManager.dnd ? "notifications_off" : "notifications"
     iconColor: NotificationManager.count > 0 ? Theme.accent : Theme.foregroundAlt
     value: String(NotificationManager.count)
     label: I18n.tr(NotificationManager.dnd ? "muted" : "notifications")
@@ -181,10 +181,10 @@ Panel {
       width: parent.width
       spacing: Widget.spacing / 2
 
-      StyledText {
+      StyledIcon {
         Layout.fillWidth: true
         horizontalAlignment: Text.AlignHCenter
-        text: NotificationManager.dnd ? "\u{F00A0}" : "\u{F11E6}"
+        text: NotificationManager.dnd ? "notifications_paused" : "notifications_active"
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize * 3
         opacity: 0.4

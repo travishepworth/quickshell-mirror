@@ -16,27 +16,27 @@ Item {
   // The category shown (the first one until one is picked)
   required property string selected
 
-  // Nerd Font icon per category
+  // Material Symbols icon per category
   function icon(name) {
     switch (name) {
     case "Desktop":
-      return String.fromCodePoint(0xF0379);
+      return "monitor";
     case "Hyprland":
-      return String.fromCodePoint(0xF359);
+      return "desktop_windows";
     case "Look & Feel":
-      return String.fromCodePoint(0xF03D8);
+      return "palette";
     case "Bar & Popouts":
-      return String.fromCodePoint(0xF056E);
+      return "dashboard";
     case "Overlay & OSD":
-      return String.fromCodePoint(0xF0328);
+      return "layers";
     case "Chat":
-      return String.fromCodePoint(0xF0B79);
+      return "chat";
     case "Updates":
-      return String.fromCodePoint(0xF06B0);
+      return "update";
     case "Backups":
-      return String.fromCodePoint(0xF006F);
+      return "settings_backup_restore";
     }
-    return String.fromCodePoint(0xF0493);
+    return "settings";
   }
 
   Card {
@@ -94,7 +94,7 @@ Item {
             anchors.rightMargin: Widget.padding
             spacing: Widget.spacing
 
-            StyledText {
+            StyledIcon {
               text: root.icon(entry.modelData.name)
               textColor: entry.selected ? Theme.background : Theme.accent
               Layout.preferredWidth: Appearance.fontSize * 1.5

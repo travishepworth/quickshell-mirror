@@ -59,9 +59,9 @@ Item {
           radius: Appearance.borderRadius
           color: root.cellSelected ? Theme.accent : Theme.backgroundAlt
 
-          StyledText {
+          StyledIcon {
             anchors.centerIn: parent
-            text: root.module ? root.dragLayer.moduleIcon(root.moduleType) : root.slotSelected ? "+" : root.cellSelected ? String.fromCodePoint(0xF0574) : String.fromCodePoint(0xF0431)
+            text: root.module ? root.dragLayer.moduleIcon(root.moduleType) : root.slotSelected ? "add" : root.cellSelected ? "view_quilt" : "extension"
             textColor: root.cellSelected ? Theme.background : Theme.accent
             textSize: Appearance.fontSize + 4
           }
@@ -90,7 +90,7 @@ Item {
 
         SquareIconButton {
           visible: root.module !== null
-          iconText: String.fromCodePoint(0xF01FE)
+          iconText: "ink_eraser"
           hoverColor: Theme.error
           tooltipText: I18n.tr("Empty this slot")
           onClicked: OverlayManager.clearSlot(root.sel.column, root.sel.cell, root.sel.slot)
@@ -98,7 +98,7 @@ Item {
 
         SquareIconButton {
           visible: root.cellSelected
-          iconText: String.fromCodePoint(0xF0156)
+          iconText: "close"
           tooltipText: I18n.tr("Close")
           onClicked: OverlayManager.clearSelection()
         }

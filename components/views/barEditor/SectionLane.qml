@@ -72,7 +72,7 @@ Rectangle {
 
         visible: root.zone === "center"
         size: Widget.height - 6
-        iconText: String.fromCodePoint(locked ? 0xF033E : 0xF033F)
+        iconText: locked ? "lock" : "lock_open"
         iconSize: Appearance.fontSize - 1
         iconColor: locked ? Theme.background : Theme.foreground
         backgroundColor: locked ? Theme.accent : "transparent"

@@ -14,7 +14,7 @@ Item {
   property int orientation: Qt.Vertical
   property real volumeLevel: 0.75
   property bool isMuted: false
-  property string iconSource: "\uF028"
+  property string iconSource: "volume_up"
   property string labelText: ""
 
   // -- Configurable Appearance --
@@ -123,11 +123,10 @@ Item {
       width: iconText.width
       height: iconText.height
 
-      Text {
+      StyledIcon {
         id: iconText
         text: component.iconSource
         color: Theme.foreground
-        font.family: "Symbols Nerd Font"
         font.pixelSize: 24
         anchors.centerIn: parent
       }

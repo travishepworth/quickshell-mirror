@@ -38,7 +38,7 @@ Card {
     visible: root.compact
     anchors.centerIn: parent
     maxWidth: root.width - root.pad * 2
-    icon: "\u{F02CA}"
+    icon: "hard_drive"
     iconColor: root.barColor((usage?.usage ?? 0) / 100)
     value: usage ? String(Math.round(usage.usage)) : "…"
     unit: usage ? "%" : ""
@@ -52,7 +52,7 @@ Card {
     spacing: Widget.spacing
 
     ModuleHeader {
-      icon: "\u{F02CA}"
+      icon: "hard_drive"
       title: I18n.tr("Disks")
     }
 

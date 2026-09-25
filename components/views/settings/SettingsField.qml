@@ -50,7 +50,7 @@ Item {
       size: Appearance.fontSize + 8
       width: size
       height: size
-      iconText: String.fromCodePoint(0xF054C)
+      iconText: "undo"
       iconSize: Appearance.fontSize - 1
       backgroundColor: Theme.backgroundHighlight
       tooltipText: I18n.tr("Reset to default")

@@ -64,7 +64,7 @@ Card {
       Layout.fillHeight: true
       level: AudioManager.volume
       muted: AudioManager.muted
-      icon: AudioManager.muted ? "\u{F0581}" : "\u{F057E}"
+      icon: AudioManager.muted ? "volume_off" : "volume_up"
       label: I18n.tr("Output")
       onToggled: AudioManager.toggleMute()
       onStepped: delta => AudioManager.setVolume(Math.max(0, Math.min(1, AudioManager.volume + delta)))
@@ -75,7 +75,7 @@ Card {
       Layout.fillHeight: true
       level: AudioManager.sourceVolume
       muted: AudioManager.sourceMuted
-      icon: AudioManager.sourceMuted ? "\u{F036D}" : "\u{F036C}"
+      icon: AudioManager.sourceMuted ? "mic_off" : "mic"
       label: I18n.tr("Mic")
       onToggled: AudioManager.toggleSourceMute()
       onStepped: delta => AudioManager.setSourceVolume(Math.max(0, Math.min(1, AudioManager.sourceVolume + delta)), 1)

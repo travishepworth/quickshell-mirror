@@ -18,7 +18,7 @@ BarIconWidget {
 
   readonly property bool hidden: properties.hideSingle && layouts.length <= 1
 
-  icon: "\u{F030C}"
+  icon: "keyboard"
   text: properties.format === "full" ? keymapName : (layouts[layoutIndex] ?? "").toUpperCase()
   showIcon: !hidden
   showText: !hidden

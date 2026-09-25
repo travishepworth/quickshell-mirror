@@ -46,7 +46,7 @@ Rectangle {
     anchors.rightMargin: root.compact ? Widget.padding / 2 : Widget.padding
     spacing: root.compact ? Widget.spacing / 2 : Widget.spacing
 
-    StyledText {
+    StyledIcon {
       text: root.dragLayer.icon(root.type)
       textColor: root.selected ? Theme.background : Theme.accent
       Layout.preferredWidth: Appearance.fontSize * 1.3
@@ -61,9 +61,9 @@ Rectangle {
     }
 
     // Hidden on the bar
-    StyledText {
+    StyledIcon {
       visible: root.hiddenWidget
-      text: String.fromCodePoint(0xF0209)
+      text: "visibility_off"
       textColor: root.selected ? Theme.background : Theme.foreground
       opacity: 0.7
     }

@@ -16,7 +16,7 @@ RowLayout {
   readonly property bool isUser: role === "user"
   readonly property bool isConfig: role === "config"
 
-  readonly property string senderIcon: isUser ? "" : isConfig ? "󰍛" : "󱚤"
+  readonly property string senderIcon: isUser ? "person" : isConfig ? "memory_alt" : "smart_toy"
   readonly property color senderIconColor: isUser ? Theme.userColor : isConfig ? Theme.accent : Theme.robotColor
   readonly property string senderName: isUser ? General.displayName : isConfig ? "system" : messageBackend
   readonly property color senderColor: isUser ? Theme.userColor : isConfig ? Theme.accent : Theme.robotColor
@@ -40,7 +40,7 @@ RowLayout {
       spacing: 8
       Layout.alignment: isUser ? Qt.AlignRight : Qt.AlignLeft
 
-      StyledText {
+      StyledIcon {
         text: root.senderIcon
         textSize: Appearance.fontSizeLarge
         color: root.senderIconColor

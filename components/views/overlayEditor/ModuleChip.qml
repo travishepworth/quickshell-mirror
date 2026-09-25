@@ -33,7 +33,7 @@ Rectangle {
     anchors.rightMargin: Widget.padding
     spacing: Widget.spacing
 
-    StyledText {
+    StyledIcon {
       text: root.typeInfo.icon
       textColor: Theme.accent
       Layout.preferredWidth: Appearance.fontSize * 1.3

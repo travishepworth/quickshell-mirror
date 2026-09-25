@@ -15,7 +15,7 @@ import qs.components.methods
  * and anything else searches apps and open windows, with a calculator row
  * when the text is math and a web search row last. Every row is
  *   { kind, image, glyph, title, usage, subtitle, hint, complete, run(shift) }
- * where image is an icon path or url, glyph a Nerd Font glyph, complete the
+ * where image is an icon path or url, glyph a Material Symbols name, complete the
  * text Tab puts in the search field, and run() returns true to close the
  * launcher, false to keep it open, or a string to search for instead.
  * App launches are counted (with their last time) for frecency sorting.
@@ -253,7 +253,7 @@ QtObject {
   function _infoRow(title, subtitle) {
     return {
       kind: "info",
-      glyph: "\u{F02FC}",
+      glyph: "info",
       title: title,
       subtitle: subtitle ?? "",
       run: () => false
@@ -373,7 +373,7 @@ QtObject {
     const result = root._calcResult;
     return {
       kind: "calc",
-      glyph: "\u{F00EC}",
+      glyph: "calculate",
       title: result,
       subtitle: expr,
       hint: I18n.tr("Enter to copy"),
@@ -445,7 +445,7 @@ QtObject {
     const terminal = LauncherConfig.terminal;
     return {
       kind: "run",
-      glyph: "\u{F018D}",
+      glyph: "terminal",
       title: command || I18n.tr("Type a command"),
       subtitle: I18n.tr("Enter runs it, Shift+Enter runs it in {0}", terminal),
       run: shift => {
@@ -465,7 +465,7 @@ QtObject {
     const host = (engine.match(/^\w+:\/\/([^/]+)/)?.[1] ?? engine).replace(/^www\./, "");
     return {
       kind: "web",
-      glyph: "\u{F059F}",
+      glyph: "web",
       title: q ? I18n.tr("Search the web for \"{0}\"", q) : I18n.tr("Type something to search for"),
       subtitle: host,
       run: () => {

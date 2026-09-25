@@ -96,7 +96,7 @@ Item {
           }
         }
 
-        StyledText {
+        StyledIcon {
           anchors.centerIn: parent
           text: root.modelData.glyph ?? ""
           textSize: Math.round(LauncherConfig.iconSize * 0.55)

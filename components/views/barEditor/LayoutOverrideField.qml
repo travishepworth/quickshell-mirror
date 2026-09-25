@@ -78,7 +78,7 @@ ColumnLayout {
     SquareIconButton {
       Layout.alignment: Qt.AlignBottom
       size: Widget.height
-      iconText: String.fromCodePoint(0xF0156)
+      iconText: "close"
       hoverColor: Theme.error
       tooltipText: I18n.tr("Use the widget's own sizing")
       onClicked: root.edited(undefined)

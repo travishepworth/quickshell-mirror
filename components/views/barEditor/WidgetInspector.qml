@@ -71,7 +71,7 @@ Item {
           radius: Appearance.borderRadius
           color: Theme.accent
 
-          StyledText {
+          StyledIcon {
             anchors.centerIn: parent
             text: root.dragLayer.icon(editorRoot.widget.type)
             textColor: Theme.background
@@ -101,7 +101,7 @@ Item {
         }
 
         SquareIconButton {
-          iconText: String.fromCodePoint(editorRoot.hidden ? 0xF0209 : 0xF0208)
+          iconText: editorRoot.hidden ? "visibility_off" : "visibility"
           iconColor: editorRoot.hidden ? Theme.background : Theme.foreground
           backgroundColor: editorRoot.hidden ? Theme.accent : Theme.backgroundAlt
           tooltipText: I18n.tr(editorRoot.hidden ? "Hidden on the bar: click to show it" : "Hide it on the bar, keeping its settings")
@@ -109,20 +109,20 @@ Item {
         }
 
         SquareIconButton {
-          iconText: String.fromCodePoint(0xF018F)
+          iconText: "content_copy"
           tooltipText: I18n.tr("Duplicate")
           onClicked: BarManager.duplicateWidget(editorRoot.zone, editorRoot.index)
         }
 
         SquareIconButton {
-          iconText: String.fromCodePoint(0xF01B4)
+          iconText: "delete"
           hoverColor: Theme.error
           tooltipText: I18n.tr("Remove")
           onClicked: BarManager.removeWidget(editorRoot.zone, editorRoot.index)
         }
 
         SquareIconButton {
-          iconText: String.fromCodePoint(0xF0156)
+          iconText: "close"
           tooltipText: I18n.tr("Close")
           onClicked: BarManager.clearSelection()
         }

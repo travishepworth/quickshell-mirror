@@ -27,8 +27,8 @@ Panel {
   readonly property var defaultDevice: isInput ? AudioManager.defaultSource : AudioManager.defaultSink
   readonly property var apps: isInput ? AudioManager.recordingApps : AudioManager.playbackApps
   readonly property var devices: isInput ? AudioManager.sources : AudioManager.sinks
-  readonly property string mutedGlyph: isInput ? "\u{F036D}" : "\u{F0581}"
-  readonly property string unmutedGlyph: isInput ? "\u{F036C}" : "\u{F057E}"
+  readonly property string mutedGlyph: isInput ? "mic_off" : "volume_off"
+  readonly property string unmutedGlyph: isInput ? "mic" : "volume_up"
 
   margins: 16
   // A popout's list is a fixed four app rows high, so switching tabs or
@@ -82,7 +82,7 @@ Panel {
     icon: root.unmutedGlyph
     title: I18n.tr(root.isInput ? "Input" : "Output")
     Repeater {
-      model: [["output", "\u{F057E}", I18n.tr("Output")], ["input", "\u{F036C}", I18n.tr("Input")]]
+      model: [["output", "volume_up", I18n.tr("Output")], ["input", "mic", I18n.tr("Input")]]
       StyledRectButton {
         required property var modelData
         readonly property bool selected: root.mode === modelData[0]
@@ -240,7 +240,7 @@ Panel {
             anchors.rightMargin: Widget.padding
             spacing: Widget.padding
 
-            StyledText {
+            StyledIcon {
               Layout.preferredWidth: 26
               horizontalAlignment: Text.AlignHCenter
               text: root.deviceIcon(deviceRow.node, false, 1)
@@ -257,9 +257,9 @@ Panel {
             }
 
             // Always laid out, so selecting a row doesn't reflow it
-            StyledText {
+            StyledIcon {
               opacity: deviceRow.selected ? 1 : 0
-              text: "\u{F012C}"
+              text: "check"
               textColor: Theme.accent
             }
           }

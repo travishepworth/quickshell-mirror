@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import qs.components.reusable
 import qs.config
 
 // Title row of a TitledCard, with Save (shown while `dirty`) and Reset
@@ -50,8 +51,8 @@ Rectangle {
         anchors.centerIn: parent
         spacing: 6
 
-        Text {
-          text: "" // Checkmark icon
+        StyledIcon {
+          text: "check"
           font.pixelSize: Appearance.fontSize
           color: Theme.background
         }
@@ -90,8 +91,8 @@ Rectangle {
         anchors.margins: 4
         spacing: 6
 
-        Text {
-          text: "" // Reset icon
+        StyledIcon {
+          text: "undo"
           font.pixelSize: Appearance.fontSize
           color: Theme.foreground
           Layout.alignment: Qt.AlignCenter

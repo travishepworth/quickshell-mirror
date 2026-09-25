@@ -55,12 +55,11 @@ BaseWidget {
       Repeater {
         model: root._iconLines.length
 
-        Text {
+        StyledIcon {
           required property int index
           x: Math.round((iconLabel.width - width) / 2)
-          color: root.foregroundColor
+          textColor: root.foregroundColor
           text: root._iconLines[index] ?? ""
-          font.family: Appearance.fontFamily
           font.pixelSize: Appearance.fontSize * root.iconScale
         }
       }

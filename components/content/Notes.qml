@@ -46,7 +46,7 @@ Card {
 
     ModuleHeader {
       visible: !root.compact
-      icon: "\u{F09ED}"
+      icon: "article"
       title: root.properties.name || I18n.tr("Notes")
     }
 

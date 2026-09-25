@@ -163,7 +163,7 @@ Panel {
 
   ModuleHeader {
     visible: !root.embedded
-    icon: "\u{F012A}"
+    icon: "show_chart"
     title: I18n.tr("System")
   }
 

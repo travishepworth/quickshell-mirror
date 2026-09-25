@@ -42,7 +42,7 @@ Panel {
   }
 
   compactContent: CompactFigure {
-    icon: BluetoothManager.enabled ? "\u{F00AF}" : "\u{F00B2}"
+    icon: BluetoothManager.enabled ? "bluetooth" : "bluetooth_disabled"
     iconColor: BluetoothManager.connectedDevices.length > 0 ? Theme.accent : Theme.foregroundAlt
     value: BluetoothManager.enabled ? String(BluetoothManager.connectedDevices.length) : ""
     label: BluetoothManager.enabled ? I18n.tr("connected") : I18n.tr("off")
@@ -123,7 +123,7 @@ Panel {
       anchors.rightMargin: Widget.spacing
       spacing: Widget.padding
 
-      StyledText {
+      StyledIcon {
         Layout.preferredWidth: 26
         horizontalAlignment: Text.AlignHCenter
         text: BluetoothManager.deviceIcon(row.device)
@@ -160,7 +160,7 @@ Panel {
         visible: row.known
         enabled: rowHover.hovered && !row.busy
         opacity: rowHover.hovered || row.confirmForget ? 1 : 0
-        iconText: "\u{F01B4}"
+        iconText: "delete"
         iconColor: Theme.error
         backgroundColor: row.confirmForget ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.2) : "transparent"
         borderHoverColor: Theme.error
@@ -185,7 +185,7 @@ Panel {
         Layout.preferredHeight: 28
         enabled: !row.busy
         opacity: enabled ? 1 : 0.5
-        iconText: row.connected ? "\u{F0338}" : "\u{F0337}"
+        iconText: row.connected ? "link_off" : "link"
         iconColor: row.connected ? Theme.accent : Theme.foreground
         backgroundColor: "transparent"
         borderHoverColor: Theme.accent
@@ -209,8 +209,8 @@ Panel {
     }
 
     // Spins while scanning; always laid out, so the header never shifts
-    StyledText {
-      text: "\u{F0450}"
+    StyledIcon {
+      text: "refresh"
       textColor: Theme.foregroundAlt
       opacity: BluetoothManager.discovering ? 1 : 0
 
@@ -273,7 +273,7 @@ Panel {
     EmptyState {
       anchors.centerIn: parent
       maxWidth: parent.width
-      icon: "\u{F00B2}"
+      icon: "bluetooth_disabled"
       text: root.offMessage
     }
   }

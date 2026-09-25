@@ -58,7 +58,7 @@ Rectangle {
     }
   }
 
-  StyledText {
+  StyledIcon {
     id: iconLabel
     anchors.centerIn: parent
     text: component.iconText

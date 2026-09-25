@@ -58,7 +58,7 @@ ColumnLayout {
         Layout.preferredHeight: root.buttonSize
         Layout.fillWidth: false
         Layout.fillHeight: false
-        iconText: "−"
+        iconText: "remove"
         iconSize: Appearance.fontSize + 4
         onClicked: {
           if (spinBox.value > root.minimum) {
@@ -100,7 +100,7 @@ ColumnLayout {
         Layout.preferredHeight: root.buttonSize
         Layout.fillWidth: false
         Layout.fillHeight: false
-        iconText: "+"
+        iconText: "add"
         iconSize: Appearance.fontSize + 4
         onClicked: {
           if (spinBox.value < root.maximum) {

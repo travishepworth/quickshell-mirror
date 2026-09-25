@@ -20,7 +20,7 @@ ColumnLayout {
 
   spacing: 0
 
-  StyledText {
+  StyledIcon {
     visible: root.icon !== ""
     Layout.alignment: Qt.AlignHCenter
     Layout.bottomMargin: Widget.spacing / 2

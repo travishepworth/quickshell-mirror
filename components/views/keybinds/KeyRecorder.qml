@@ -78,8 +78,8 @@ StyledContainer {
       Layout.fillWidth: true
     }
 
-    StyledText {
-      text: root.recording ? "Esc" : String.fromCodePoint(0xF036C)
+    StyledIcon {
+      text: root.recording ? "Esc" : "mic"
       opacity: 0.5
       textSize: Appearance.fontSize - 2
     }

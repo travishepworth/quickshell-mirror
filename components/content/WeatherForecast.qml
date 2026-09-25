@@ -45,7 +45,7 @@ Panel {
   RowLayout {
     spacing: Widget.padding * 1.5
 
-    StyledText {
+    StyledIcon {
       text: root.condition?.icon ?? ""
       textSize: Appearance.fontSize * 3
     }
@@ -89,7 +89,7 @@ Panel {
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 2
         }
-        StyledText {
+        StyledIcon {
           Layout.alignment: Qt.AlignHCenter
           text: day.modelData.icon
           textSize: Appearance.fontSize * 1.5

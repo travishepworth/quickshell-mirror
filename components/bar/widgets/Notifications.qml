@@ -24,7 +24,7 @@ Item {
     id: button
     anchors.fill: parent
 
-    iconText: NotificationManager.dnd ? "󰂛" : "󰂚"
+    iconText: NotificationManager.dnd ? "notifications_off" : "notifications"
     iconColor: Theme.resolveColor(NotificationManager.dnd ? root.properties.dndColor : root.properties.foregroundColor)
     borderHoverColor: Theme.accent
     backgroundColor: Theme.resolveColor(root.properties.backgroundColor)

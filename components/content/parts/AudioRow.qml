@@ -14,7 +14,7 @@ Item {
   signal volumeMoved(real volume)
   signal muteToggled
 
-  // Glyph shown when there's no image (or it fails to load)
+  // Material Symbols icon shown when there's no image (or it fails to load)
   property string icon: ""
   property string iconSource: ""
   property string title: ""
@@ -22,8 +22,8 @@ Item {
   property real volume: 0
   property bool muted: false
   property real maxVolume: 1.0
-  property string mutedGlyph: "\u{F0581}"
-  property string unmutedGlyph: "\u{F057E}"
+  property string mutedGlyph: "volume_off"
+  property string unmutedGlyph: "volume_up"
 
   implicitHeight: layout.implicitHeight + Widget.spacing * 2
   Layout.fillWidth: true
@@ -48,12 +48,11 @@ Item {
         opacity: root.muted ? 0.5 : 1
       }
 
-      Text {
+      StyledIcon {
         anchors.centerIn: parent
         visible: !image.visible
         text: root.icon
         color: root.muted ? Theme.foregroundAlt : Theme.foreground
-        font.family: Appearance.fontFamily
         font.pixelSize: Appearance.fontSize * 1.4
       }
     }

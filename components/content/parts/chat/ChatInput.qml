@@ -36,7 +36,7 @@ RowLayout {
 
   StyledTextButton {
     id: submitButton
-    text: "󰆨"
+    iconText: "send"
 
     Layout.preferredHeight: root.desiredButtonHeight
     Layout.preferredWidth: root.desiredButtonHeight

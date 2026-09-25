@@ -16,7 +16,7 @@ ColumnLayout {
   spacing: Widget.spacing / 2
   opacity: 0.55
 
-  StyledText {
+  StyledIcon {
     visible: root.icon !== ""
     Layout.alignment: Qt.AlignHCenter
     text: root.icon

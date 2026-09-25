@@ -12,6 +12,10 @@ Rectangle {
 
   // -- Public API --
   property alias text: label.text
+  // A Material Symbols name drawn beside the label (or alone, with no text)
+  property string iconText: ""
+  // Draw the icon after the label instead of before it
+  property bool iconAfter: false
 
   // -- Configurable Appearance --
   property int textPadding: 8
@@ -25,8 +29,8 @@ Rectangle {
   property real borderRadius: Appearance.borderRadius
 
   // -- Implementation --
-  implicitWidth: label.implicitWidth + (textPadding * 2)
-  implicitHeight: label.implicitHeight + (textPadding * 2)
+  implicitWidth: content.implicitWidth + (textPadding * 2)
+  implicitHeight: content.implicitHeight + (textPadding * 2)
   Layout.alignment: Qt.AlignVCenter
 
   color: mouseArea.pressed ? pressColor : (mouseArea.containsMouse ? hoverColor : backgroundColor)
@@ -41,18 +45,34 @@ Rectangle {
     }
   }
 
-  StyledText {
-    id: label
-    anchors.centerIn: parent
-    textColor: mouseArea.containsMouse ? root.textHoverColor : root.textColor
-    textSize: Appearance.fontSize
-    font.bold: true
+  property color _contentColor: mouseArea.containsMouse ? root.textHoverColor : root.textColor
 
-    Behavior on textColor {
-      ColorAnimation {
-        duration: Appearance.animNormal
-        easing.type: Easing.InOutQuad
-      }
+  Behavior on _contentColor {
+    ColorAnimation {
+      duration: Appearance.animNormal
+      easing.type: Easing.InOutQuad
+    }
+  }
+
+  RowLayout {
+    id: content
+    anchors.centerIn: parent
+    spacing: Widget.spacing / 2
+    layoutDirection: root.iconAfter ? Qt.RightToLeft : Qt.LeftToRight
+
+    StyledIcon {
+      visible: root.iconText !== ""
+      text: root.iconText
+      textColor: root._contentColor
+      textSize: Appearance.fontSize
+    }
+
+    StyledText {
+      id: label
+      visible: text !== ""
+      textColor: root._contentColor
+      textSize: Appearance.fontSize
+      font.bold: true
     }
   }
 

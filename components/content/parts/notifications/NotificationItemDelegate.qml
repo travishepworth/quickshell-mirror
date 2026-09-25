@@ -189,7 +189,7 @@ Item {
             height: 20
             visible: opacity > 0
             opacity: root.hovered ? 1 : 0
-            iconText: "\u{F0156}"
+            iconText: "close"
             iconSize: 12
             borderRadius: 10
             iconColor: Theme.foregroundAlt

@@ -214,7 +214,7 @@ Item {
               height: 20
               visible: opacity > 0
               opacity: hover.hovered ? 1 : 0
-              iconText: "\u{F0156}"
+              iconText: "close"
               iconSize: 12
               borderRadius: 10
               iconColor: Theme.foregroundAlt
@@ -230,9 +230,9 @@ Item {
             }
           }
 
-          StyledText {
+          StyledIcon {
             visible: root.count > 1
-            text: "\u{F0140}"
+            text: "expand_more"
             textColor: Theme.foregroundAlt
             rotation: root.expanded ? 180 : 0
 

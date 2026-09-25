@@ -47,7 +47,7 @@ ColumnLayout {
       Layout.preferredHeight: Widget.height
       Layout.fillWidth: false
       Layout.fillHeight: false
-      iconText: "+"
+      iconText: "add"
       iconSize: Appearance.fontSize + 4
       hoverColor: Theme.accent
 
@@ -116,8 +116,8 @@ ColumnLayout {
             SquareIconButton {
               visible: entry.index > 0
               size: 24
-              iconText: "▲"
-              iconSize: 10
+              iconText: "expand_less"
+              iconSize: 16
               hoverColor: Theme.accent
 
               onClicked: {
@@ -128,8 +128,8 @@ ColumnLayout {
             SquareIconButton {
               visible: entry.index < root.items.length - 1
               size: 24
-              iconText: "▼"
-              iconSize: 10
+              iconText: "expand_more"
+              iconSize: 16
               hoverColor: Theme.accent
 
               onClicked: {
@@ -139,7 +139,7 @@ ColumnLayout {
 
             SquareIconButton {
               size: 24
-              iconText: "×"
+              iconText: "close"
               iconSize: 18
               hoverColor: Theme.error
 

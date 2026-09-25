@@ -120,7 +120,7 @@ StyledContainer {
 
       SquareIconButton {
         size: Widget.height
-        iconText: String.fromCodePoint(0xF0143)
+        iconText: "expand_less"
         tooltipText: I18n.tr("Move up")
         enabled: root.index > 0
         onClicked: KeybindManager.moveBind(root.index, root.index - 1)
@@ -128,7 +128,7 @@ StyledContainer {
 
       SquareIconButton {
         size: Widget.height
-        iconText: String.fromCodePoint(0xF0140)
+        iconText: "expand_more"
         tooltipText: I18n.tr("Move down")
         enabled: root.index < KeybindManager.binds.length - 1
         onClicked: KeybindManager.moveBind(root.index, root.index + 1)
@@ -136,7 +136,7 @@ StyledContainer {
 
       SquareIconButton {
         size: Widget.height
-        iconText: String.fromCodePoint(0xF0156)
+        iconText: "close"
         tooltipText: I18n.tr("Remove")
         onClicked: KeybindManager.removeBind(root.index)
       }
@@ -145,14 +145,28 @@ StyledContainer {
     Repeater {
       model: root.issues
 
-      delegate: StyledText {
+      delegate: RowLayout {
+        id: issue
         required property var modelData
-        text: (modelData.level === "error" ? String.fromCodePoint(0xF0159) : String.fromCodePoint(0xF0026)) + "  " + modelData.text
-        textColor: modelData.level === "error" ? Theme.error : Theme.warning
-        textSize: Appearance.fontSize - 2
-        wrapMode: Text.WordWrap
+        readonly property color issueColor: modelData.level === "error" ? Theme.error : Theme.warning
         Layout.fillWidth: true
         Layout.leftMargin: Widget.padding / 2
+        spacing: Widget.spacing / 2
+
+        StyledIcon {
+          Layout.alignment: Qt.AlignTop
+          text: issue.modelData.level === "error" ? "cancel" : "warning"
+          textColor: issue.issueColor
+          textSize: Appearance.fontSize - 2
+        }
+
+        StyledText {
+          text: issue.modelData.text
+          textColor: issue.issueColor
+          textSize: Appearance.fontSize - 2
+          wrapMode: Text.WordWrap
+          Layout.fillWidth: true
+        }
       }
     }
   }

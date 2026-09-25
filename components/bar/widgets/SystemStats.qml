@@ -44,25 +44,25 @@ BaseWidget {
     switch (key) {
     case "cpu":
       return {
-        "icon": "\u{F0EE0}",
+        "icon": "memory",
         "value": `${SystemManager.cpuUsage}%`,
         "level": SystemManager.cpuUsage
       };
     case "mem":
       return {
-        "icon": "\u{F035B}",
+        "icon": "memory_alt",
         "value": p.memoryFormat === "used" ? `${(SystemManager.memUsedBytes / 1073741824).toFixed(1)}G` : `${SystemManager.memUsage}%`,
         "level": SystemManager.memUsage
       };
     case "temp":
       return {
-        "icon": "\u{F050F}",
+        "icon": "thermometer",
         "value": `${SystemManager.cpuTemp}°`,
         "level": SystemManager.cpuTemp
       };
     case "gpu":
       return {
-        "icon": "\u{F08AE}",
+        "icon": "developer_board",
         "value": `${SystemManager.gpuUsage}%`,
         "level": SystemManager.gpuUsage
       };
@@ -70,7 +70,7 @@ BaseWidget {
       {
         const usage = SystemManager.disks[p.diskPath]?.usage ?? 0;
         return {
-          "icon": "\u{F02CA}",
+          "icon": "hard_drive",
           "value": `${usage}%`,
           "level": usage
         };
@@ -154,10 +154,9 @@ BaseWidget {
         horizontalItemAlignment: Grid.AlignHCenter
         verticalItemAlignment: Grid.AlignVCenter
 
-        Text {
+        StyledIcon {
           text: segment.stat.icon
           color: root.foregroundColor
-          font.family: Appearance.fontFamily
           font.pixelSize: Appearance.fontSize
         }
         Text {

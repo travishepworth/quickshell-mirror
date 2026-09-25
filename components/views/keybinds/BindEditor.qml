@@ -149,7 +149,8 @@ ColumnLayout {
 
     StyledTextButton {
       implicitHeight: Widget.height
-      text: String.fromCodePoint(0xF0415) + "  " + I18n.tr("Add bind")
+      iconText: "add"
+      text: I18n.tr("Add bind")
       onClicked: KeybindManager.addBind()
     }
   }

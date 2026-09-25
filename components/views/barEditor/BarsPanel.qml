@@ -54,17 +54,17 @@ Item {
         }));
   }
 
-  // Nerd Font arrow for the edge a bar sits on
+  // Material Symbols arrow for the edge a bar sits on
   function locationIcon(location) {
     switch (location) {
     case "Bottom":
-      return String.fromCodePoint(0xF0045);
+      return "arrow_downward";
     case "Left":
-      return String.fromCodePoint(0xF004D);
+      return "arrow_back";
     case "Right":
-      return String.fromCodePoint(0xF0054);
+      return "arrow_forward";
     }
-    return String.fromCodePoint(0xF005D);
+    return "arrow_upward";
   }
 
   TitledCard {
@@ -107,7 +107,7 @@ Item {
             anchors.rightMargin: Widget.padding / 2
             spacing: Widget.spacing
 
-            StyledText {
+            StyledIcon {
               text: root.locationIcon(entry.entryBar.location)
               textColor: entry.selected ? Theme.background : Theme.accent
               Layout.preferredWidth: Appearance.fontSize * 1.5
@@ -134,7 +134,7 @@ Item {
             // The primary bar is the first; the star makes another one it
             SquareIconButton {
               size: Widget.height - 6
-              iconText: String.fromCodePoint(entry.primary ? 0xF04CE : 0xF04D2)
+              iconText: entry.primary ? "star" : "star_border"
               iconColor: entry.selected ? Theme.background : (entry.primary ? Theme.accent : Theme.foreground)
               backgroundColor: "transparent"
               hoverColor: entry.selected ? Qt.darker(Theme.accent, 1.15) : Theme.backgroundAlt
@@ -146,7 +146,7 @@ Item {
             SquareIconButton {
               visible: (BarManager.localConfig?.length ?? 0) > 1
               size: Widget.height - 6
-              iconText: String.fromCodePoint(0xF0156)
+              iconText: "close"
               iconColor: entry.selected ? Theme.background : Theme.foreground
               backgroundColor: "transparent"
               hoverColor: Theme.error

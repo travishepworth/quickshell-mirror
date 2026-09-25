@@ -15,7 +15,7 @@ RowLayout {
   Layout.fillWidth: true
   spacing: Widget.spacing
 
-  StyledText {
+  StyledIcon {
     visible: root.icon !== ""
     text: root.icon
     textColor: root.iconColor

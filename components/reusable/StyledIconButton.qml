@@ -52,9 +52,8 @@ ToolButton {
     }
   }
 
-  contentItem: Text {
+  contentItem: StyledIcon {
     text: root.iconText
-    font.family: Appearance.fontFamily
     font.pixelSize: root.iconSize
     color: root.iconColor
     horizontalAlignment: Text.AlignHCenter
