@@ -25,8 +25,10 @@ QtObject {
     showDirs: false
   }
   // One entry per theme, a dark/light pair being one theme:
-  // [{ label, dark, light, generated }], where dark/light are Appearance.theme
-  // names ("" for a variant the theme doesn't have). Stock themes first.
+  // [{ label, dark, light, darkPreview, lightPreview, generated }], where
+  // dark/light are Appearance.theme names ("" for a variant the theme doesn't
+  // have) and the previews are that variant's _preview (or null). Stock
+  // themes first.
   readonly property var themeFamilies: _families
   // The family Appearance.theme belongs to, or null
   readonly property var currentFamily: themeFamilies.find(family => family.dark === Appearance.theme || family.light === Appearance.theme) ?? null
@@ -346,13 +348,29 @@ QtObject {
           "name": prefix + loader.get(i, "fileBaseName"),
           "label": json.name || loader.get(i, "fileBaseName"),
           "variant": json.variant === "light" ? "light" : "dark",
-          "paired": json.paired ? prefix + json.paired : ""
+          "paired": json.paired ? prefix + json.paired : "",
+          "preview": root._preview(json)
         });
       } catch (e) {
         console.warn("[ThemeManager] Skipping unreadable theme", fileName, e);
       }
     }
     return themes;
+  }
+
+  // A theme's look for the theme list: { background, foreground, accent,
+  // colors: base08-base0E }, filling what it omits from theme-defaults.json
+  function _preview(json) {
+    const variant = json.variant === "light" ? "light" : "dark";
+    const colors = Object.assign({}, root._defaults.colors, json.colors ?? {});
+    const semantic = Object.assign({}, root._defaults.semantic?.[variant] ?? {}, json.semantic ?? {});
+    const resolve = key => colors[semantic[key]] ?? "";
+    return {
+      "background": resolve("background") || colors.base00,
+      "foreground": resolve("foreground") || colors.base05,
+      "accent": resolve("accent") || colors.base0D,
+      "colors": ["base08", "base09", "base0A", "base0B", "base0C", "base0D", "base0E"].map(name => colors[name])
+    };
   }
 
   // Groups themes with the pair they name, when that pair names them back
@@ -379,6 +397,8 @@ QtObject {
         "label": paired ? _commonLabel(dark.label, light.label) : theme.label,
         "dark": dark?.name ?? "",
         "light": light?.name ?? "",
+        "darkPreview": dark?.preview ?? null,
+        "lightPreview": light?.preview ?? null,
         "generated": generated
       });
     }

@@ -4,65 +4,218 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
-import qs.components.forms
 import qs.components.content.base
 
-// The theme list: one entry per theme (a dark/light pair is one theme),
-// stock and generated, plus the light mode switch that picks the variant.
-// Themes apply immediately, so there's nothing to save.
+// The theme list: one tile per theme (a dark/light pair is one theme),
+// stock and generated, each painted in its own colors, plus the Dark/Light
+// switch that picks the variant. Themes apply immediately, so there's
+// nothing to save.
 TitledCard {
   id: root
 
   readonly property var family: ThemeManager.currentFamily
+  readonly property bool hasDark: !!root.family?.dark
+  readonly property bool hasLight: !!root.family?.light
   // Rebuilt only when the theme folders are rescanned
   readonly property var stockFamilies: ThemeManager.themeFamilies.filter(family => !family.generated)
   readonly property var generatedFamilies: ThemeManager.themeFamilies.filter(family => family.generated)
+  // Two tiles across unless the slot is narrow
+  readonly property int tileColumns: root.width > 360 ? 2 : 1
 
   title: I18n.tr("Theme")
   showActions: false
 
-  headerExtras: SchemaSwitch {
-    label: "Light mode" // I18n.tr("Light mode")
-    // Translated by SchemaSwitch: I18n.tr("This theme has no light variant.")
-    // I18n.tr("This theme has no dark variant.") I18n.tr("Switch between the theme's dark and light variants.")
-    description: !root.family || (root.family.dark && root.family.light) ? "Switch between the theme's dark and light variants." : root.family.dark ? "This theme has no light variant." : "This theme has no dark variant."
-    checked: !Appearance.darkMode
-    enabled: !!root.family?.dark && !!root.family?.light
-    onToggled: value => ThemeManager.setLightMode(value)
-  }
+  headerExtras: [
+    RowLayout {
+      Layout.fillWidth: true
+      spacing: Widget.spacing / 2
 
-  component FamilyButton: StyledTextButton {
-    required property var modelData
-    readonly property bool current: root.family !== null && (root.family.dark || root.family.light) === (modelData.dark || modelData.light)
+      ModeButton {
+        text: I18n.tr("Dark")
+        active: Appearance.darkMode
+        available: root.hasDark
+        onClicked: ThemeManager.setLightMode(false)
+      }
+
+      ModeButton {
+        text: I18n.tr("Light")
+        active: !Appearance.darkMode
+        available: root.hasLight
+        onClicked: ThemeManager.setLightMode(true)
+      }
+    },
+    StyledText {
+      visible: root.family !== null && !(root.hasDark && root.hasLight)
+      Layout.fillWidth: true
+      text: root.hasDark ? I18n.tr("This theme has no light variant.") : I18n.tr("This theme has no dark variant.")
+      opacity: 0.6
+      textSize: Appearance.fontSize - 2
+      wrapMode: Text.WordWrap
+    }
+  ]
+
+  // One half of the Dark/Light segment; a variant the theme lacks is dimmed
+  component ModeButton: StyledTextButton {
+    required property bool active
+    required property bool available
     Layout.fillWidth: true
-    text: modelData.label
-    backgroundColor: current ? Theme.accent : Theme.backgroundHighlight
-    textColor: current ? Theme.background : Theme.foreground
-    onClicked: ThemeManager.applyFamily(modelData)
+    Layout.preferredHeight: Widget.height
+    enabled: available
+    opacity: available ? 1 : 0.4
+    backgroundColor: active ? Theme.accent : Theme.backgroundHighlight
+    textColor: active ? Theme.background : Theme.foreground
+    hoverColor: active ? Theme.accent : Theme.backgroundAlt
+    textHoverColor: active ? Theme.background : Theme.foreground
   }
 
-  SchemaSection {
-    title: "Themes" // I18n.tr("Themes")
-    Layout.leftMargin: Widget.padding
-    Layout.rightMargin: Widget.padding
+  component SectionHeading: ColumnLayout {
+    id: heading
+    property string title: ""
+    property string description: ""
+    Layout.fillWidth: true
+    spacing: 2
 
-    Repeater {
-      model: root.stockFamilies
-      delegate: FamilyButton {}
+    StyledText {
+      text: heading.title
+      textColor: Theme.accent
+      textSize: Appearance.fontSize + 1
+      font.bold: true
+      Layout.fillWidth: true
+    }
+
+    StyledText {
+      visible: heading.description !== ""
+      text: heading.description
+      opacity: 0.7
+      textSize: Appearance.fontSize - 2
+      wrapMode: Text.WordWrap
+      Layout.fillWidth: true
     }
   }
 
-  SchemaSection {
-    title: "Generated Themes" // I18n.tr("Generated Themes")
-    // Translated by SchemaSection: I18n.tr("Generating from the wallpaper...")
-    // I18n.tr("Made from your wallpaper when you pick one.")
-    description: ThemeManager.isGenerating ? "Generating from the wallpaper..." : "Made from your wallpaper when you pick one."
-    Layout.leftMargin: Widget.padding
-    Layout.rightMargin: Widget.padding
+  // A theme painted in the variant the current mode would apply: its
+  // background, name in its foreground, and a strip of its accent colors
+  component ThemeTile: Rectangle {
+    id: tile
+    required property var modelData
+    readonly property var preview: (Appearance.darkMode ? (modelData.darkPreview ?? modelData.lightPreview) : (modelData.lightPreview ?? modelData.darkPreview)) ?? ({})
+    readonly property bool current: root.family !== null && (root.family.dark || root.family.light) === (modelData.dark || modelData.light)
 
-    Repeater {
-      model: root.generatedFamilies
-      delegate: FamilyButton {}
+    Layout.fillWidth: true
+    Layout.preferredHeight: tileColumn.implicitHeight + Widget.padding * 2
+    radius: Appearance.borderRadius
+    color: preview.background ?? Theme.backgroundAlt
+    border.width: current ? Appearance.borderWidth * 2 + 1 : Appearance.borderWidth + 1
+    border.color: current ? Theme.accent : tileArea.containsMouse ? Qt.alpha(Theme.foreground, 0.5) : Qt.alpha(Theme.border, 0.6)
+
+    Behavior on border.color {
+      ColorAnimation {
+        duration: Appearance.animFast
+      }
+    }
+
+    ColumnLayout {
+      id: tileColumn
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      anchors.margins: Widget.padding
+      spacing: Widget.spacing
+
+      RowLayout {
+        Layout.fillWidth: true
+        spacing: Widget.spacing / 2
+
+        StyledText {
+          Layout.fillWidth: true
+          text: tile.modelData.label
+          textColor: tile.preview.foreground ?? Theme.foreground
+          font.bold: true
+          elide: Text.ElideRight
+        }
+
+        // Has both variants
+        StyledText {
+          visible: !!tile.modelData.dark && !!tile.modelData.light
+          text: "\u{F0C38}"
+          textColor: tile.preview.foreground ?? Theme.foreground
+          opacity: 0.6
+        }
+
+        StyledText {
+          visible: tile.current
+          text: "\u{F012C}"
+          textColor: tile.preview.accent ?? Theme.accent
+          font.bold: true
+        }
+      }
+
+      Row {
+        spacing: 4
+
+        Repeater {
+          model: tile.preview.colors ?? []
+
+          delegate: Rectangle {
+            required property string modelData
+            width: 12
+            height: 12
+            radius: 6
+            color: modelData
+          }
+        }
+      }
+    }
+
+    MouseArea {
+      id: tileArea
+      anchors.fill: parent
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
+      onClicked: ThemeManager.applyFamily(tile.modelData)
+    }
+  }
+
+  ColumnLayout {
+    Layout.fillWidth: true
+    spacing: Widget.spacing
+
+    SectionHeading {
+      title: I18n.tr("Themes")
+    }
+
+    GridLayout {
+      Layout.fillWidth: true
+      columns: root.tileColumns
+      columnSpacing: Widget.spacing
+      rowSpacing: Widget.spacing
+
+      Repeater {
+        model: root.stockFamilies
+        delegate: ThemeTile {}
+      }
+    }
+  }
+
+  ColumnLayout {
+    Layout.fillWidth: true
+    spacing: Widget.spacing
+
+    SectionHeading {
+      title: I18n.tr("Generated Themes")
+      description: ThemeManager.isGenerating ? I18n.tr("Generating from the wallpaper...") : I18n.tr("Made from your wallpaper when you pick one.")
+    }
+
+    GridLayout {
+      Layout.fillWidth: true
+      columns: root.tileColumns
+      columnSpacing: Widget.spacing
+      rowSpacing: Widget.spacing
+
+      Repeater {
+        model: root.generatedFamilies
+        delegate: ThemeTile {}
+      }
     }
 
     StyledText {
