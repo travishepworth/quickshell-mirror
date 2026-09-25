@@ -59,10 +59,15 @@ Item {
     color: Theme.backgroundHighlight
   }
 
+  // The handle travels within the trough, so it never sticks out past
+  // either end; the fill runs to its centre
+  readonly property real _travel: Math.max(0, root.width - handleRect.width)
+  readonly property real _shown: mouseArea.isDragging ? root.value : root._internalValue
+
   Rectangle {
     id: fillRect
     anchors.verticalCenter: parent.verticalCenter
-    width: parent.width * (mouseArea.isDragging ? root.value : root._internalValue)
+    width: root._shown * root._travel + handleRect.width / 2
     height: troughRect.height
     radius: height / 2
     color: Theme.foreground
@@ -78,7 +83,7 @@ Item {
 
   Rectangle {
     id: handleRect
-    x: fillRect.width - (width / 2)
+    x: fillRect.width - width / 2
     anchors.verticalCenter: parent.verticalCenter
     width: 24
     height: 14
@@ -107,16 +112,25 @@ Item {
     cursorShape: Qt.PointingHandCursor
 
     property bool isDragging: false
+    // Where on the handle it was grabbed, so pressing the handle doesn't
+    // jump the value; a press on the trough centres the handle there
+    property real grabOffset: handleRect.width / 2
+
+    function ratioAt(x) {
+      return root._travel > 0 ? Math.max(0, Math.min(1, (x - grabOffset) / root._travel)) : 0;
+    }
 
     function updatePosition(x) {
-      let ratio = Math.max(0, Math.min(1, x / root.width));
+      const ratio = ratioAt(x);
       root.value = ratio;
       root.moved(ratio);
     }
 
-    onPressed: {
+    onPressed: mouse => {
+      const onHandle = mouse.x >= handleRect.x && mouse.x <= handleRect.x + handleRect.width;
+      grabOffset = onHandle ? mouse.x - handleRect.x : handleRect.width / 2;
       isDragging = true;
-      updatePosition(mouseX);
+      updatePosition(mouse.x);
     }
 
     onPositionChanged: {
@@ -128,7 +142,7 @@ Item {
     onReleased: {
       if (isDragging) {
         isDragging = false;
-        let ratio = Math.max(0, Math.min(1, mouseX / root.width));
+        const ratio = ratioAt(mouseX);
         root.value = ratio;
         root.released(ratio);
       }

@@ -31,7 +31,9 @@ Panel {
   readonly property string unmutedGlyph: isInput ? "\u{F036C}" : "\u{F057E}"
 
   margins: 16
-  readonly property int maxListHeight: 360
+  // A popout's list is a fixed four app rows high, so switching tabs or
+  // apps coming and going never resizes (and moves) the popout
+  readonly property real listHeight: defaultRow.implicitHeight * 4 + list.spacing * 3
 
   implicitWidth: 380
 
@@ -100,6 +102,7 @@ Panel {
 
   // Default device, visible on both tabs
   AudioRow {
+    id: defaultRow
     readonly property var node: root.defaultDevice
     icon: root.deviceIcon(node, muted, volume)
     title: root.deviceName(node)
@@ -140,10 +143,10 @@ Panel {
   StyledScrollView {
     id: scroll
     Layout.fillWidth: true
-    Layout.preferredHeight: root.embedded ? -1 : Math.min(root.maxListHeight, list.implicitHeight + contentPadding * 2)
+    Layout.preferredHeight: root.embedded ? -1 : root.listHeight
     Layout.fillHeight: root.embedded
     contentPadding: 0
-    showScrollBar: root.embedded || list.implicitHeight > root.maxListHeight
+    showScrollBar: list.implicitHeight > scroll.height
 
     ColumnLayout {
       id: list
@@ -157,27 +160,30 @@ Panel {
         duration: Appearance.animNormal
       }
 
-      // Applications
+      // Applications. Modelled by count, so a row survives its app's
+      // streams changing (a new track renames it) instead of being rebuilt
+      // under the pointer, mid-drag
       Repeater {
-        model: root.currentTab === 0 ? root.apps : []
+        model: root.currentTab === 0 ? root.apps.length : 0
 
         AudioRow {
           id: appRow
-          required property var modelData
-          readonly property var node: modelData.nodes[0]
+          required property int index
+          readonly property var app: root.apps[index] ?? null
+          readonly property var node: app?.nodes[0] ?? null
           icon: root.unmutedGlyph
-          iconSource: modelData.icon ? Quickshell.iconPath(modelData.icon, true) : ""
-          title: modelData.name
-          subtitle: modelData.subtitle
+          iconSource: app?.icon ? Quickshell.iconPath(app.icon, true) : ""
+          title: app?.name ?? ""
+          subtitle: app?.subtitle ?? ""
           volume: node?.audio?.volume ?? 0
           muted: node?.audio?.muted ?? false
           maxVolume: root.maxVolume
           mutedGlyph: root.mutedGlyph
           unmutedGlyph: root.unmutedGlyph
-          onVolumeMoved: value => appRow.modelData.nodes.forEach(n => AudioManager.setNodeVolume(n, value, root.maxVolume))
+          onVolumeMoved: value => (appRow.app?.nodes ?? []).forEach(n => AudioManager.setNodeVolume(n, value, root.maxVolume))
           onMuteToggled: {
             const mute = !appRow.muted;
-            appRow.modelData.nodes.forEach(n => {
+            (appRow.app?.nodes ?? []).forEach(n => {
               if (n.audio)
                 n.audio.muted = mute;
             });
@@ -185,46 +191,79 @@ Panel {
         }
       }
 
+      // An empty list says so in the middle of the (fixed-height) view
       StyledText {
         Layout.fillWidth: true
-        Layout.topMargin: Widget.padding
-        Layout.bottomMargin: Widget.padding
-        visible: root.currentTab === 0 && root.apps.length === 0
+        Layout.preferredHeight: scroll.availableHeight
+        visible: root.currentTab === 0 ? root.apps.length === 0 : root.devices.length === 0
         horizontalAlignment: Text.AlignHCenter
-        text: I18n.tr(root.isInput ? "No apps recording" : "No apps playing audio")
+        verticalAlignment: Text.AlignVCenter
+        wrapMode: Text.WordWrap
+        text: root.currentTab === 1 ? I18n.tr("No devices found") : I18n.tr(root.isInput ? "No apps recording" : "No apps playing audio")
         textColor: Theme.foregroundAlt
       }
 
-      // Devices
+      // Devices: click one to make it the default (whose volume is above)
       Repeater {
-        model: root.currentTab === 1 ? root.devices : []
+        model: root.currentTab === 1 ? root.devices.length : 0
 
-        AudioRow {
+        Rectangle {
           id: deviceRow
-          required property var modelData
-          icon: root.deviceIcon(modelData, false, 1)
-          title: root.deviceName(modelData)
-          volume: modelData.audio?.volume ?? 0
-          muted: modelData.audio?.muted ?? false
-          maxVolume: root.maxVolume
-          mutedGlyph: root.mutedGlyph
-          unmutedGlyph: root.unmutedGlyph
-          selected: modelData === root.defaultDevice
-          selectable: true
-          onClicked: AudioManager.setDefault(deviceRow.modelData)
-          onVolumeMoved: value => AudioManager.setNodeVolume(deviceRow.modelData, value, root.maxVolume)
-          onMuteToggled: AudioManager.toggleNodeMute(deviceRow.modelData)
-        }
-      }
+          required property int index
+          readonly property var node: root.devices[index] ?? null
+          readonly property bool selected: node !== null && node === root.defaultDevice
 
-      StyledText {
-        Layout.fillWidth: true
-        Layout.topMargin: Widget.padding
-        Layout.bottomMargin: Widget.padding
-        visible: root.currentTab === 1 && root.devices.length === 0
-        horizontalAlignment: Text.AlignHCenter
-        text: I18n.tr("No devices found")
-        textColor: Theme.foregroundAlt
+          Layout.fillWidth: true
+          implicitHeight: deviceLayout.implicitHeight + Widget.spacing * 2
+          radius: Appearance.borderRadius
+          color: selected ? Theme.backgroundHighlight : deviceMouse.containsMouse ? Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.5) : "transparent"
+
+          Behavior on color {
+            ColorAnimation {
+              duration: Appearance.animFast
+            }
+          }
+
+          MouseArea {
+            id: deviceMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: deviceRow.selected ? Qt.ArrowCursor : Qt.PointingHandCursor
+            onClicked: AudioManager.setDefault(deviceRow.node)
+          }
+
+          RowLayout {
+            id: deviceLayout
+            anchors.fill: parent
+            anchors.margins: Widget.spacing
+            anchors.leftMargin: Widget.padding
+            anchors.rightMargin: Widget.padding
+            spacing: Widget.padding
+
+            StyledText {
+              Layout.preferredWidth: 26
+              horizontalAlignment: Text.AlignHCenter
+              text: root.deviceIcon(deviceRow.node, false, 1)
+              textSize: Appearance.fontSize * 1.2
+              textColor: deviceRow.selected ? Theme.accent : Theme.foregroundAlt
+            }
+
+            StyledText {
+              Layout.fillWidth: true
+              text: root.deviceName(deviceRow.node)
+              elide: Text.ElideRight
+              textSize: Appearance.fontSize - 1
+              textColor: deviceRow.selected ? Theme.foreground : Theme.foregroundAlt
+            }
+
+            // Always laid out, so selecting a row doesn't reflow it
+            StyledText {
+              opacity: deviceRow.selected ? 1 : 0
+              text: "\u{F012C}"
+              textColor: Theme.accent
+            }
+          }
+        }
       }
     }
   }

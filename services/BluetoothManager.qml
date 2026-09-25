@@ -17,11 +17,13 @@ QtObject {
   readonly property bool blocked: adapter?.state === BluetoothAdapterState.Blocked
   readonly property bool discovering: adapter?.discovering ?? false
 
-  // Connected first, then paired, then by name
-  readonly property var devices: [...(adapter?.devices?.values ?? [])].sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired) || deviceLabel(a).localeCompare(deviceLabel(b)))
+  // Every device, by name. Lists stay in a fixed order (not connected
+  // first), so a row never jumps away from the pointer that just clicked it
+  readonly property var devices: [...(adapter?.devices?.values ?? [])].sort((a, b) => deviceLabel(a).localeCompare(deviceLabel(b)))
   readonly property var pairedDevices: devices.filter(d => d.paired || d.bonded)
-  // Nearby devices found by a scan; unnamed ones (bare addresses) are noise
-  readonly property var discoveredDevices: devices.filter(d => !d.paired && !d.bonded && d.deviceName)
+  // Nearby devices found by a scan, in the order they turned up (so new
+  // ones join the end); unnamed ones (bare addresses) are noise
+  readonly property var discoveredDevices: (adapter?.devices?.values ?? []).filter(d => !d.paired && !d.bonded && d.deviceName)
   readonly property var connectedDevices: devices.filter(d => d.connected)
 
   // Devices whose connect should follow a pair started from here

@@ -65,7 +65,6 @@
     "Battery low: {0}%": "バッテリー残量が少なくなっています：{0}%",
     "Bluetooth": "Bluetooth",
     "Bluetooth devices": "Bluetooth デバイス",
-    "Bluetooth · {0}": "Bluetooth · {0}",
     "Border width": "枠線の太さ",
     "Bottom": "下",
     "Button / Command": "ボタン／コマンド",
@@ -307,7 +306,6 @@
     "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu.": "クリック時に実行。空欄の場合は `sudo pacman -Syu`、または AUR ヘルパーの -Syu を使います。",
     "Save": "保存",
     "Save to": "保存先",
-    "Scanning…": "スキャン中…",
     "Screen": "画面全体",
     "Screen border": "画面の枠",
     "Screen edge": "画面の端",
@@ -924,6 +922,7 @@
     "Writes the \"axiom\" theme: set 'theme = axiom' in the Ghostty config. Ghostty 1.2+ reloads it.": "「axiom」テーマを書き込みます。Ghostty の設定で 'theme = axiom' を指定してください。Ghostty 1.2 以降は自動で再読み込みします。",
     "Mem": "メモリ",
     "Loading weather…": "天気を読み込み中…",
-    "Feels {0}°  ·  {1}%  ·  {2} {3}": "体感 {0}°  ·  {1}%  ·  {2} {3}"
+    "Feels {0}°  ·  {1}%  ·  {2} {3}": "体感 {0}°  ·  {1}%  ·  {2} {3}",
+    "Click again to forget": "もう一度クリックすると削除します"
   }
 }
