@@ -6,27 +6,33 @@ import qs.services
 import qs.components.reusable
 
 // The Hyprland category's first card (the section's `x-card`): whether
-// the chosen mode is in effect, what it needs from the user, and which
-// binds didn't make it
+// the mode is in effect and what it needs, and, while a new mode waits for
+// Save (`x-applyOnSave`), what saving will do
 StyledContainer {
   id: root
 
   readonly property string mode: HyprlandConfigManager.mode
   readonly property string status: HyprlandConfigManager.status
+  // The mode picked in the settings draft
+  readonly property string pendingMode: SettingsManager.localConfig?.Hyprland?.mode ?? root.mode
+  readonly property bool pending: root.pendingMode !== root.mode
 
-  // Keys bound more than once among axiom's own binds
-  readonly property var duplicateKeys: {
-    const seen = {};
-    const result = [];
-    for (const bind of HyprlandConfig.binds) {
-      const id = HyprlandConfigManager.keyId(bind.key);
-      if (id === "")
-        continue;
-      if (seen[id] && !result.includes(seen[id]))
-        result.push(seen[id]);
-      seen[id] = seen[id] ?? bind.key.trim();
-    }
-    return result;
+  onPendingModeChanged: {
+    if (root.pendingMode === "managed")
+      HyprlandConfigManager.checkManaged();
+  }
+  Component.onCompleted: {
+    if (root.pendingMode === "managed")
+      HyprlandConfigManager.checkManaged();
+  }
+
+  function _short(path) {
+    return path.replace(/^\/home\/[^/]+/, "~");
+  }
+
+  // I18n.tr("Detached") I18n.tr("Included") I18n.tr("Managed")
+  function _modeLabel(mode) {
+    return I18n.tr(mode.charAt(0).toUpperCase() + mode.slice(1));
   }
 
   readonly property color statusColor: {
@@ -40,9 +46,6 @@ StyledContainer {
     return Theme.foregroundAlt;
   }
 
-  // I18n.tr("Detached") I18n.tr("Included") I18n.tr("Managed")
-  readonly property string modeLabel: I18n.tr(root.mode.charAt(0).toUpperCase() + root.mode.slice(1))
-
   readonly property string statusLabel: {
     switch (root.status) {
     case "runtime":
@@ -54,6 +57,38 @@ StyledContainer {
     }
     return I18n.tr("Checking…");
   }
+
+  // What saving the pending mode does, step by step
+  readonly property var saveSteps: {
+    const steps = [];
+    const hypr = root._short(HyprlandConfigManager.managedPath);
+    const user = root._short(HyprlandConfigManager.userDir);
+    if (root.pendingMode === "managed") {
+      switch (HyprlandConfigManager.managedCheck) {
+      case "adopt":
+        steps.push(I18n.tr("Moves your {0} to {1}/00-previous.lua, with a dated backup beside it", hypr, user));
+        break;
+      case "ours":
+        steps.push(I18n.tr("Takes back {0}, which axiom already wrote", hypr));
+        break;
+      case "":
+        steps.push(I18n.tr("Checking {0}…", root._short(Paths.hyprlandPath)));
+        break;
+      }
+      steps.push(I18n.tr("Writes {0} from the cards below, loading {1}/*.lua after it", hypr, user));
+      steps.push(I18n.tr("Reloads Hyprland"));
+    } else if (root.pendingMode === "included") {
+      steps.push(I18n.tr("Writes {0}", root._short(HyprlandConfigManager.includePath)));
+      steps.push(I18n.tr("Shows the lines to add to your hyprland.lua. Until you do, axiom applies its layer at runtime"));
+    } else {
+      steps.push(I18n.tr("Writes no files: axiom applies its layer with hyprctl"));
+    }
+    if (root.mode === "managed")
+      steps.push(I18n.tr("Leaves {0} as it is. Restore {1}/00-previous.lua yourself to go back", hypr, user));
+    return steps;
+  }
+
+  readonly property bool blocked: root.pendingMode === "managed" && HyprlandConfigManager.managedCheck === "blocked"
 
   implicitHeight: column.implicitHeight + Widget.padding * 2
   backgroundColor: Theme.backgroundAlt
@@ -79,7 +114,7 @@ StyledContainer {
       }
 
       StyledText {
-        text: root.modeLabel
+        text: root._modeLabel(root.mode)
         opacity: 0.7
       }
 
@@ -100,22 +135,66 @@ StyledContainer {
       }
     }
 
-    // Why the mode isn't in effect; axiom's layer is applied at runtime
-    // meanwhile
+    // --- A mode change waiting for Save ---
+
+    StyledContainer {
+      visible: root.pending
+      Layout.fillWidth: true
+      implicitHeight: pendingColumn.implicitHeight + Widget.padding * 2
+      backgroundColor: Theme.background
+      borderColor: root.blocked ? Theme.error : Theme.accent
+
+      ColumnLayout {
+        id: pendingColumn
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.margins: Widget.padding
+        spacing: Widget.spacing / 2
+
+        StyledText {
+          text: root.blocked ? I18n.tr("Can't switch to Managed") : I18n.tr("Save switches to {0}:", root._modeLabel(root.pendingMode))
+          textColor: root.blocked ? Theme.error : Theme.accent
+          font.bold: true
+          Layout.fillWidth: true
+        }
+
+        StyledText {
+          visible: root.blocked
+          text: I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", root._short(Paths.hyprlandPath))
+          textSize: Appearance.fontSize - 1
+          wrapMode: Text.WordWrap
+          Layout.fillWidth: true
+        }
+
+        Repeater {
+          model: root.blocked ? [] : root.saveSteps
+
+          delegate: StyledText {
+            required property string modelData
+            text: "•  " + modelData
+            textSize: Appearance.fontSize - 1
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
+          }
+        }
+      }
+    }
+
+    // --- The mode in effect ---
+
     StyledText {
       visible: root.status === "fallback"
-      text: HyprlandConfigManager.problem + "\n" + I18n.tr("Until then, axiom applies its binds and settings at runtime.")
+      text: HyprlandConfigManager.problem + "\n" + I18n.tr("Until then, axiom applies its layer at runtime.")
       textColor: Theme.warning
       textSize: Appearance.fontSize - 1
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
 
-    // --- What the mode needs ---
-
     StyledText {
       visible: root.mode === "detached"
-      text: I18n.tr("Nothing to set up: axiom applies its layer with hyprctl, and again after every Hyprland reload. Binds on keys your config already uses are skipped.")
+      text: I18n.tr("Nothing to set up. Binds on keys your config uses are skipped.")
       opacity: 0.7
       textSize: Appearance.fontSize - 2
       wrapMode: Text.WordWrap
@@ -128,7 +207,7 @@ StyledContainer {
       spacing: Widget.spacing
 
       StyledText {
-        text: I18n.tr("Add these lines near the top of your hyprland.lua. Anything after them overrides axiom.")
+        text: I18n.tr("Add near the top of your hyprland.lua (anything after overrides axiom):")
         opacity: 0.7
         textSize: Appearance.fontSize - 2
         wrapMode: Text.WordWrap
@@ -151,33 +230,20 @@ StyledContainer {
         }
       }
 
-      RowLayout {
-        Layout.fillWidth: true
-        spacing: Widget.spacing
-
-        StyledText {
-          text: HyprlandConfigManager.includePath
-          opacity: 0.6
-          textSize: Appearance.fontSize - 2
-          elide: Text.ElideMiddle
-          Layout.fillWidth: true
-        }
-
-        StyledTextButton {
-          implicitHeight: Widget.height - 4
-          text: I18n.tr("Copy")
-          onClicked: HyprlandConfigManager.copyIncludeLines()
-        }
+      StyledTextButton {
+        implicitHeight: Widget.height - 4
+        text: I18n.tr("Copy")
+        onClicked: HyprlandConfigManager.copyIncludeLines()
       }
     }
 
-    ColumnLayout {
+    RowLayout {
       visible: root.mode === "managed"
       Layout.fillWidth: true
       spacing: Widget.spacing
 
       StyledText {
-        text: I18n.tr("axiom writes {0} from the cards below. Your own settings go in {1}/*.lua, loaded after it.", HyprlandConfigManager.managedPath, HyprlandConfigManager.userDir)
+        text: I18n.tr("Your own settings go in {0}/*.lua.", root._short(HyprlandConfigManager.userDir))
         opacity: 0.7
         textSize: Appearance.fontSize - 2
         wrapMode: Text.WordWrap
@@ -191,29 +257,9 @@ StyledContainer {
       }
     }
 
-    // --- Binds that didn't make it ---
-
     StyledText {
-      visible: HyprlandConfigManager.skippedKeys.length > 0
-      text: I18n.tr("Skipped, since your config already binds them: {0}", HyprlandConfigManager.skippedKeys.join(", "))
-      textColor: Theme.warning
-      textSize: Appearance.fontSize - 1
-      wrapMode: Text.WordWrap
-      Layout.fillWidth: true
-    }
-
-    StyledText {
-      visible: root.duplicateKeys.length > 0
-      text: I18n.tr("Bound more than once: {0}", root.duplicateKeys.join(", "))
-      textColor: Theme.warning
-      textSize: Appearance.fontSize - 1
-      wrapMode: Text.WordWrap
-      Layout.fillWidth: true
-    }
-
-    StyledText {
-      visible: root.mode !== "managed"
-      text: I18n.tr("Managed mode also sets the layout, decoration, keyboard, mouse and cursor.")
+      visible: root.pendingMode !== "managed"
+      text: I18n.tr("Managed mode adds layout, decoration, keyboard and mouse settings.")
       opacity: 0.6
       textSize: Appearance.fontSize - 2
       wrapMode: Text.WordWrap

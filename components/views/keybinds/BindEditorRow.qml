@@ -1,0 +1,145 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import qs.config
+import qs.services
+import qs.components.forms
+import qs.components.reusable
+
+// One of axiom's binds in the editor: key, action, argument and label on
+// one line, its issues under it. Rows are modelled by index, so the text
+// fields follow the bind when rows above it move.
+StyledContainer {
+  id: root
+
+  required property int index
+  readonly property var bind: KeybindManager.binds[root.index] ?? ({})
+  readonly property var issues: KeybindManager.issues[root.index] ?? []
+  readonly property bool hasError: root.issues.some(issue => issue.level === "error")
+  readonly property var argumentOptions: {
+    const options = KeybindManager.argumentOptions(root.bind.action);
+    const current = root.bind.argument ?? "";
+    return options && current !== "" && !options.includes(current) ? [current].concat(options) : options;
+  }
+
+  Layout.fillWidth: true
+  implicitHeight: column.implicitHeight + Widget.padding
+  backgroundColor: Theme.backgroundAlt
+  borderColor: root.hasError ? Theme.error : (root.issues.length > 0 ? Theme.warning : "transparent")
+
+  // Text fields keep what's being typed; otherwise they follow the bind
+  onBindChanged: {
+    if (!argumentText.input.activeFocus)
+      argumentText.input.text = root.bind.argument ?? "";
+    if (!label.input.activeFocus)
+      label.input.text = root.bind.description ?? "";
+  }
+
+  ColumnLayout {
+    id: column
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.margins: Widget.padding / 2
+    spacing: Widget.spacing / 2
+
+    RowLayout {
+      Layout.fillWidth: true
+      spacing: Widget.spacing
+
+      KeyRecorder {
+        index: root.index
+        combo: root.bind.key ?? ""
+        invalid: root.hasError
+        Layout.fillWidth: true
+        Layout.preferredWidth: 3
+      }
+
+      SchemaComboBox {
+        label: ""
+        options: KeybindManager.actions
+        optionLabels: KeybindManager.actionLabels
+        currentValue: root.bind.action ?? ""
+        onSelectionChanged: value => KeybindManager.setField(root.index, "action", value)
+        Layout.fillWidth: true
+        Layout.preferredWidth: 3
+      }
+
+      // The argument: a choice when the action has a fixed set, else text.
+      // Kept (empty) for actions without one, so the columns line up.
+      Item {
+        id: argument
+        readonly property bool needed: KeybindManager.needsArgument(root.bind.action)
+        Layout.fillWidth: true
+        Layout.preferredWidth: 2
+        implicitHeight: Widget.height
+
+        SchemaComboBox {
+          anchors.fill: parent
+          visible: argument.needed && root.argumentOptions !== null
+          label: ""
+          options: root.argumentOptions ?? []
+          currentValue: root.bind.argument ?? ""
+          // I18n.tr("left") I18n.tr("right") I18n.tr("up") I18n.tr("down")
+          onSelectionChanged: value => KeybindManager.setField(root.index, "argument", value)
+        }
+
+        StyledTextEntry {
+          id: argumentText
+          anchors.fill: parent
+          visible: argument.needed && root.argumentOptions === null
+          placeholderText: root.bind.action === "exec" ? I18n.tr("Command") : I18n.tr("Search text")
+          Component.onCompleted: input.text = root.bind.argument ?? ""
+          input.onEditingFinished: KeybindManager.setField(root.index, "argument", input.text)
+        }
+      }
+
+      StyledTextEntry {
+        id: label
+        Layout.fillWidth: true
+        Layout.preferredWidth: 4
+        Layout.preferredHeight: Widget.height
+        placeholderText: KeybindManager.actionLabels[root.bind.action] ?? I18n.tr("Label")
+        Component.onCompleted: input.text = root.bind.description ?? ""
+        input.onEditingFinished: KeybindManager.setField(root.index, "description", input.text)
+      }
+
+      SquareIconButton {
+        size: Widget.height
+        iconText: String.fromCodePoint(0xF0143)
+        tooltipText: I18n.tr("Move up")
+        enabled: root.index > 0
+        onClicked: KeybindManager.moveBind(root.index, root.index - 1)
+      }
+
+      SquareIconButton {
+        size: Widget.height
+        iconText: String.fromCodePoint(0xF0140)
+        tooltipText: I18n.tr("Move down")
+        enabled: root.index < KeybindManager.binds.length - 1
+        onClicked: KeybindManager.moveBind(root.index, root.index + 1)
+      }
+
+      SquareIconButton {
+        size: Widget.height
+        iconText: String.fromCodePoint(0xF0156)
+        tooltipText: I18n.tr("Remove")
+        onClicked: KeybindManager.removeBind(root.index)
+      }
+    }
+
+    Repeater {
+      model: root.issues
+
+      delegate: StyledText {
+        required property var modelData
+        text: (modelData.level === "error" ? String.fromCodePoint(0xF0159) : String.fromCodePoint(0xF0026)) + "  " + modelData.text
+        textColor: modelData.level === "error" ? Theme.error : Theme.warning
+        textSize: Appearance.fontSize - 2
+        wrapMode: Text.WordWrap
+        Layout.fillWidth: true
+        Layout.leftMargin: Widget.padding / 2
+      }
+    }
+  }
+}

@@ -96,10 +96,22 @@ QtObject {
   // applies it live.
   function setValue(path, value) {
     _setAt(draft.local, path, value);
-    const live = _clone(ConfigManager.config);
-    _setAt(live, path, value);
-    ConfigManager.applyConfig(live);
+    // `x-applyOnSave` settings (Hyprland's mode, which can take over files)
+    // wait in the draft until Save
+    if (!schemaAt(path)?.["x-applyOnSave"]) {
+      const live = _clone(ConfigManager.config);
+      _setAt(live, path, value);
+      ConfigManager.applyConfig(live);
+    }
     draft.changed();
+  }
+
+  // The schema of the setting at a key path
+  function schemaAt(path) {
+    let node = ConfigManager.configSchema;
+    for (const key of path)
+      node = node?.properties?.[key];
+    return node;
   }
 
   // Stays dirty if the save is rejected (invalid, or saves are blocked)

@@ -113,6 +113,11 @@ Singleton {
     return `hl.bind(${_lua(bind.key.trim())}, hl.dsp.exec_cmd(${_lua(command)}), { description = ${_lua(description)} })`;
   }
 
+  // Whether a configured bind has everything it needs to be bound
+  function isComplete(bind) {
+    return _bindLua(bind) !== "";
+  }
+
   function _needsArgument(action) {
     return action === "exec" || (_actions[action]?.[0] ?? "").includes("{0}");
   }
@@ -316,6 +321,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     _runtimeWanted = false;
     _skippedKeys = [];
     HyprlandManager.runLua(_unbindLua);
+    KeybindManager.refreshSoon();
   }
 
   function _finishRuntime(bindList, animations) {
@@ -356,6 +362,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     _skippedKeys = skipped;
     HyprlandManager.runLua(lines.join("\n"));
     HyprlandManager.refreshOptions();
+    KeybindManager.refreshSoon();
   }
 
   // --- Files (included, managed) ---
@@ -406,6 +413,29 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   }
 
   // --- For the settings page ---
+
+  // What switching to managed would do, from checkManaged(): "ours" (the
+  // file is already axiom's), "adopt" (an existing hyprland.lua is moved to
+  // user/), "new" (there's none) or "blocked" (a symlinked or git-tracked
+  // config is never taken over); "" until checked
+  readonly property string managedCheck: _managedCheck
+  property string _managedCheck: ""
+
+  function checkManaged() {
+    if (!checkManagedProcess.running)
+      checkManagedProcess.running = true;
+  }
+
+  Process {
+    id: checkManagedProcess
+    command: ["sh", "-c", `dir=\${1%/}; file=$dir/hyprland.lua
+if [ -f "$file" ] && head -n1 "$file" | grep -q '^${root._header}'; then echo ours; exit 0; fi
+if [ -L "$dir" ] || [ -L "$file" ] || git -C "$dir" rev-parse --git-dir >/dev/null 2>&1; then echo blocked; exit 0; fi
+if [ -f "$file" ]; then echo adopt; else echo new; fi`, "sh", Paths.hyprlandPath]
+    stdout: StdioCollector {
+      onStreamFinished: root._managedCheck = text.trim()
+    }
+  }
 
   function copyIncludeLines() {
     Quickshell.execDetached(["wl-copy", "--", includeLines]);

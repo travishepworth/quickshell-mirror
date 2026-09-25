@@ -1,0 +1,135 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import qs.config
+import qs.services
+import qs.components.methods
+import qs.components.reusable
+
+// A bind's key combo as keycaps; click to record a new one. While it
+// records, KeybindManager holds Hyprland in an empty submap, so combos
+// Hyprland binds reach it too. Esc cancels.
+StyledContainer {
+  id: root
+
+  required property int index
+  required property string combo
+  property bool invalid: false
+
+  readonly property bool recording: KeybindManager.recordingIndex === root.index
+  // Modifiers held so far while recording
+  property var held: []
+  readonly property var parts: KeyNames.split(root.combo)
+
+  readonly property var _modNames: ({
+      "SUPER": "Super",
+      "CTRL": "Ctrl",
+      "ALT": "Alt",
+      "SHIFT": "Shift"
+    })
+
+  implicitHeight: Widget.height
+  backgroundColor: root.recording ? Theme.background : (area.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt)
+  borderColor: root.recording ? Theme.accent : (root.invalid ? Theme.error : Theme.border)
+
+  onRecordingChanged: {
+    root.held = [];
+    if (root.recording)
+      catcher.forceActiveFocus();
+  }
+  Component.onDestruction: {
+    if (root.recording)
+      KeybindManager.stopRecording();
+  }
+
+  RowLayout {
+    anchors.fill: parent
+    anchors.leftMargin: Widget.padding / 2
+    anchors.rightMargin: Widget.padding / 2
+    spacing: Widget.spacing / 2
+    clip: true
+
+    Repeater {
+      model: root.recording ? root.held : root.parts.mods
+
+      delegate: KeyCap {
+        required property string modelData
+        text: root._modNames[modelData] ?? modelData
+      }
+    }
+
+    KeyCap {
+      visible: !root.recording && root.parts.key !== ""
+      text: KeybindManager.displayKey(root.parts.key)
+    }
+
+    StyledText {
+      visible: root.recording || root.parts.key === ""
+      text: root.recording ? I18n.tr("Press a combo…") : I18n.tr("Click to record")
+      textColor: root.recording ? Theme.accent : Theme.foreground
+      opacity: root.recording ? 1 : 0.5
+      textSize: Appearance.fontSize - 1
+      elide: Text.ElideRight
+      Layout.fillWidth: true
+    }
+
+    Item {
+      visible: !root.recording && root.parts.key !== ""
+      Layout.fillWidth: true
+    }
+
+    StyledText {
+      text: root.recording ? "Esc" : String.fromCodePoint(0xF036C)
+      opacity: 0.5
+      textSize: Appearance.fontSize - 2
+    }
+  }
+
+  MouseArea {
+    id: area
+    anchors.fill: parent
+    hoverEnabled: true
+    cursorShape: Qt.PointingHandCursor
+    onClicked: {
+      if (root.recording)
+        KeybindManager.stopRecording();
+      else
+        KeybindManager.startRecording(root.index);
+    }
+  }
+
+  // Takes every key while recording
+  Item {
+    id: catcher
+    onActiveFocusChanged: {
+      if (!activeFocus && root.recording)
+        KeybindManager.stopRecording();
+    }
+
+    Keys.onPressed: event => {
+      event.accepted = true;
+      if (!root.recording || event.isAutoRepeat)
+        return;
+      if (event.key === Qt.Key_Escape && event.modifiers === Qt.NoModifier) {
+        KeybindManager.stopRecording();
+        return;
+      }
+      const combo = KeyNames.fromEvent(event.key, event.modifiers, event.nativeScanCode);
+      if (combo !== "") {
+        KeybindManager.finishRecording(combo);
+        return;
+      }
+      const mods = KeyNames.modifiersOf(event.modifiers);
+      const own = KeyNames.modifierFor(event.key);
+      root.held = KeyNames.modifiers.filter(mod => mods.includes(mod) || mod === own);
+    }
+    Keys.onReleased: event => {
+      event.accepted = true;
+      if (!root.recording)
+        return;
+      const mods = KeyNames.modifiersOf(event.modifiers);
+      const own = KeyNames.modifierFor(event.key);
+      root.held = KeyNames.modifiers.filter(mod => mods.includes(mod) && mod !== own);
+    }
+  }
+}

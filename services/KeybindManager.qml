@@ -4,10 +4,17 @@ import QtQuick
 import Quickshell.Io
 import Quickshell.Hyprland
 
+import qs.config
+
 /*
  * KeybindManager reads the keybinds Hyprland has registered (`hyprctl binds -j`).
  * With the Lua config every action is an opaque `__lua` dispatcher, so each bind's
  * `description` option is the label. A "Section: Label" prefix picks the overlay section.
+ *
+ * Also the Keybinds page's editor for axiom's own binds (Hyprland.binds): a
+ * draft saved with save(), per-bind issues, presets, and recording a key
+ * combo (Hyprland is put in an empty submap meanwhile, so its binds don't
+ * swallow the keys being recorded).
  */
 QtObject {
   id: root
@@ -20,6 +27,299 @@ QtObject {
   property int count: 0
   // The Keybinds page's search, here so it survives the page reloading
   property string query: ""
+  // The Keybinds page shows the editor instead of the list
+  property bool editing: false
+
+  // --- The editor ---
+
+  property ConfigDraft _draft: ConfigDraft {
+    id: draft
+    path: ["Hyprland", "binds"]
+  }
+  // [{ key, action, argument, description }]
+  readonly property var binds: draft.local ?? []
+  readonly property alias isDirty: draft.isDirty
+
+  readonly property var _actionSchema: ConfigManager.configSchema?.properties?.Hyprland?.properties?.binds?.items?.properties?.action ?? ({})
+  readonly property var actions: _actionSchema.enum ?? []
+  // Action -> its label (translated; the schema's labels are keys already)
+  readonly property var _actionLabelSchema: _actionSchema["x-enumLabels"] ?? ({})
+  readonly property var actionLabels: Object.keys(_actionLabelSchema).reduce((labels, action) => {
+    const english = _actionLabelSchema[action];
+    labels[action] = I18n.tr(english);
+    return labels;
+  }, {})
+
+  // What an action's argument is; actions without one aren't listed
+  readonly property var _argumentKinds: ({
+      "launcherSearch": "text",
+      "exec": "text",
+      "overlayPage": "view",
+      "workspaceStep": "direction",
+      "moveWindowStep": "direction",
+      "moveWindowStepSilent": "direction",
+      "workspaceNth": "workspace",
+      "moveWindowNth": "workspace",
+      "moveWindowNthSilent": "workspace"
+    })
+
+  function needsArgument(action) {
+    return _argumentKinds[action] !== undefined;
+  }
+
+  // The choices for an action's argument, or null for free text
+  function argumentOptions(action) {
+    switch (_argumentKinds[action]) {
+    case "direction":
+      return ["left", "right", "up", "down"];
+    case "workspace":
+      return Array.from({
+        "length": WorkspacesConfig.size
+      }, (_, i) => String(i + 1));
+    case "view":
+      return OverlayConfig.views.filter(view => view.visible !== false).map(view => view.name || view.type).concat(["OverlayEditor"]).filter((name, i, all) => all.indexOf(name) === i);
+    }
+    return null;
+  }
+
+  // Loads the draft unless it holds unsaved edits (the page is rebuilt
+  // whenever the overlay reopens)
+  function ensureLoaded() {
+    if (!draft.isDirty)
+      draft.load();
+    refresh();
+  }
+
+  function save() {
+    stopRecording();
+    draft.save();
+  }
+
+  function reset() {
+    stopRecording();
+    draft.load();
+  }
+
+  function addBind(bind) {
+    draft.local.push(Object.assign({
+      "key": "",
+      "action": "launcher",
+      "argument": "",
+      "description": ""
+    }, bind ?? {}));
+    draft.changed();
+  }
+
+  function removeBind(index) {
+    stopRecording();
+    draft.local.splice(index, 1);
+    draft.changed();
+  }
+
+  function moveBind(from, to) {
+    if (to < 0 || to >= draft.local.length)
+      return;
+    draft.local.splice(to, 0, draft.local.splice(from, 1)[0]);
+    draft.changed();
+  }
+
+  function setField(index, field, value) {
+    const bind = draft.local[index];
+    if (!bind || bind[field] === value)
+      return;
+    bind[field] = value;
+    // An argument meant for the old action rarely fits the new one
+    if (field === "action") {
+      const options = argumentOptions(value);
+      if (!needsArgument(value) || (options && !options.includes(bind.argument)))
+        bind.argument = "";
+    }
+    draft.changed();
+  }
+
+  // Keys Hyprland binds outside axiom, by HyprlandConfigManager.keyId: every
+  // bind Hyprland reports, less the saved axiom binds it applied
+  readonly property var _userKeyCounts: {
+    const counts = {};
+    for (const entry of root._entries) {
+      if (entry.submap)
+        continue;
+      const id = entry.modmask + ":" + String(entry.key || (entry.keycode ? "code:" + entry.keycode : "")).toLowerCase();
+      counts[id] = (counts[id] ?? 0) + 1;
+    }
+    const skipped = HyprlandConfigManager.skippedKeys.map(key => HyprlandConfigManager.keyId(key));
+    for (const bind of HyprlandConfig.binds) {
+      const id = HyprlandConfigManager.keyId(bind.key);
+      if (id !== "" && HyprlandConfigManager.isComplete(bind) && !skipped.includes(id) && counts[id])
+        counts[id]--;
+    }
+    return counts;
+  }
+
+  // Per bind: [{ level: "error" | "warning", text }]
+  readonly property var issues: {
+    const ids = root.binds.map(bind => HyprlandConfigManager.keyId(bind.key));
+    const counts = {};
+    for (const id of ids)
+      if (id !== "")
+        counts[id] = (counts[id] ?? 0) + 1;
+    const runtime = HyprlandConfigManager.status !== "loaded";
+    return root.binds.map((bind, i) => {
+      const found = [];
+      const key = String(bind.key ?? "").trim();
+      if (key === "")
+        found.push({
+          "level": "warning",
+          "text": I18n.tr("No key yet, so it isn't bound")
+        });
+      else if (ids[i] === "")
+        found.push({
+          "level": "error",
+          "text": I18n.tr("Unknown modifier in \"{0}\"", key)
+        });
+      if (root.needsArgument(bind.action) && String(bind.argument ?? "").trim() === "")
+        found.push({
+          "level": "warning",
+          "text": I18n.tr("Needs an argument, so it isn't bound")
+        });
+      if (ids[i] !== "" && counts[ids[i]] > 1)
+        found.push({
+          "level": "error",
+          "text": I18n.tr("Bound more than once here")
+        });
+      if (ids[i] !== "" && root._userKeyCounts[ids[i]] > 0)
+        found.push({
+          "level": "warning",
+          "text": runtime ? I18n.tr("Your Hyprland config uses this key, so it's skipped") : I18n.tr("Your Hyprland config binds this key too")
+        });
+      return found;
+    });
+  }
+
+  readonly property int issueCount: issues.filter(found => found.length > 0).length
+
+  // --- Presets ---
+
+  function _workspaceBind(key, action, argument, label) {
+    return {
+      "key": key,
+      "action": action,
+      "argument": argument,
+      "description": "Workspaces: " + label
+    };
+  }
+
+  // [{ id, title, description, binds }], for the current workspace layout.
+  // Descriptions put them in a Workspaces section on the list.
+  readonly property var presets: {
+    const count = Math.min(10, WorkspacesConfig.size);
+    const numbers = Array.from({
+      "length": count
+    }, (_, i) => i + 1);
+    const digit = n => n === 10 ? "0" : String(n);
+    const list = [
+      {
+        "id": "essentials",
+        "title": I18n.tr("Essentials"),
+        "description": I18n.tr("Launcher, overlay, workspace overview, power menu and lock"),
+        "binds": ConfigManager.configSchema?.properties?.Hyprland?.properties?.binds?.default ?? []
+      },
+      {
+        "id": "numbers",
+        "title": I18n.tr("Workspaces 1–{0}", count),
+        "description": I18n.tr("SUPER + number goes to a workspace, with SHIFT it takes the window along"),
+        "binds": [].concat(...numbers.map(n => [root._workspaceBind("SUPER + " + digit(n), "workspaceNth", String(n), "Go to workspace " + n), root._workspaceBind("SUPER + SHIFT + " + digit(n), "moveWindowNth", String(n), "Move window to workspace " + n)]))
+      }
+    ];
+    const directions = WorkspacesConfig.grid ? [["Up", "W", "up"], ["Left", "A", "left"], ["Down", "S", "down"], ["Right", "D", "right"]] : [["Left", "A", "left"], ["Right", "D", "right"]];
+    const stepBinds = (mods, keyIndex) => [].concat(...directions.map(d => [root._workspaceBind(mods + d[keyIndex], "workspaceStep", d[2], "Go " + d[2]), root._workspaceBind(mods + "SHIFT + " + d[keyIndex], "moveWindowStep", d[2], "Move window " + d[2])]));
+    if (WorkspacesConfig.grid)
+      list.push({
+        "id": "wasd",
+        "title": I18n.tr("Grid with WASD"),
+        "description": I18n.tr("SUPER + W A S D moves around the grid, with SHIFT it takes the window along"),
+        "binds": stepBinds("SUPER + ", 1)
+      });
+    list.push({
+      "id": "arrows",
+      "title": WorkspacesConfig.grid ? I18n.tr("Grid with arrows") : I18n.tr("Previous and next"),
+      "description": WorkspacesConfig.grid ? I18n.tr("SUPER + CTRL + arrows moves around the grid, with SHIFT it takes the window along") : I18n.tr("SUPER + CTRL + left or right steps through workspaces, with SHIFT it takes the window along"),
+      "binds": stepBinds("SUPER + CTRL + ", 0)
+    });
+    return list;
+  }
+
+  // Adds a preset's binds, skipping keys the list already has. Returns
+  // { added, skipped }.
+  function applyPreset(id) {
+    const preset = root.presets.find(p => p.id === id);
+    if (!preset)
+      return {
+        "added": 0,
+        "skipped": 0
+      };
+    const used = draft.local.map(bind => HyprlandConfigManager.keyId(bind.key));
+    let added = 0;
+    for (const bind of preset.binds) {
+      const id = HyprlandConfigManager.keyId(bind.key);
+      if (used.includes(id))
+        continue;
+      used.push(id);
+      draft.local.push(Object.assign({
+        "argument": "",
+        "description": ""
+      }, JSON.parse(JSON.stringify(bind))));
+      added++;
+    }
+    if (added > 0)
+      draft.changed();
+    return {
+      "added": added,
+      "skipped": preset.binds.length - added
+    };
+  }
+
+  // --- Recording a key combo ---
+
+  // The bind whose key is being recorded, or -1
+  property int recordingIndex: -1
+
+  // An empty submap (Hyprland only registers one with a bind, hence the
+  // unreachable one), so every key reaches the overlay. A Hyprland timer
+  // leaves it even if the shell dies meanwhile.
+  readonly property string _recordSubmap: "axiom_record"
+  readonly property string _leaveRecordLua: `if hl.get_current_submap() == "${_recordSubmap}" then hl.dispatch(hl.dsp.submap("reset")) end`
+  readonly property string _enterRecordLua: `hl.define_submap("${_recordSubmap}", function() hl.bind("SUPER + CTRL + ALT + SHIFT + F24", hl.dsp.submap("reset")) end)
+hl.timer(function() ${_leaveRecordLua} end, { timeout = 30000, type = "oneshot" })
+hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
+
+  function startRecording(index) {
+    if (root.recordingIndex === index)
+      return;
+    if (root.recordingIndex < 0)
+      HyprlandManager.runLua(_enterRecordLua);
+    root.recordingIndex = index;
+    _recordTimeout.restart();
+  }
+
+  function finishRecording(combo) {
+    if (root.recordingIndex >= 0)
+      setField(root.recordingIndex, "key", combo);
+    stopRecording();
+  }
+
+  function stopRecording() {
+    if (root.recordingIndex < 0)
+      return;
+    root.recordingIndex = -1;
+    _recordTimeout.stop();
+    HyprlandManager.runLua(_leaveRecordLua);
+  }
+
+  property Timer _recordTimeout: Timer {
+    interval: 25000
+    onTriggered: root.stopRecording()
+  }
 
   readonly property var _modifiers: [
     {
@@ -68,8 +368,21 @@ QtObject {
       "down": "↓"
     })
 
+  // Every bind Hyprland reported, as hyprctl lists them
+  property var _entries: []
+
   function refresh() {
     root._bindsProcess.running = true;
+  }
+
+  // After binds were applied at runtime, which Hyprland announces no event for
+  function refreshSoon() {
+    _refreshDelay.restart();
+  }
+
+  property Timer _refreshDelay: Timer {
+    interval: 500
+    onTriggered: root.refresh()
   }
 
   function _buildKeybindings(entries) {
@@ -157,7 +470,8 @@ QtObject {
     for (const row of binds) {
       const match = row.label.match(/^(.*\S)\s+(\d+)$/);
       const combo = row.combos[0];
-      if (!match || row.combos.length !== 1 || combo.keys.length !== 1 || combo.keys[0] !== match[2])
+      // Workspace 10 is usually on the 0 key
+      if (!match || row.combos.length !== 1 || combo.keys.length !== 1 || (combo.keys[0] !== match[2] && !(match[2] === "10" && combo.keys[0] === "0")))
         continue;
       const runKey = `${match[1]}\u0000${combo.mods.join("+")}`;
       if (!runs[runKey])
@@ -202,9 +516,14 @@ QtObject {
     return root._modifiers.filter(m => (modmask & m.mask) !== 0).map(m => m.name);
   }
 
+  // A key name as shown on a keycap ("space" -> "Space", "left" -> "←")
+  function displayKey(key) {
+    return _formatKey(String(key ?? ""));
+  }
+
   function _formatKey(key) {
-    if (root._keyNames[key] !== undefined)
-      return root._keyNames[key];
+    if (root._keyNames[key.toLowerCase()] !== undefined)
+      return root._keyNames[key.toLowerCase()];
     if (key.startsWith("XF86"))
       return key.slice(4).replace(/([a-z])([A-Z])/g, "$1 $2");
     if (key.length === 1)
@@ -220,7 +539,8 @@ QtObject {
 
       onStreamFinished: {
         try {
-          const entries = JSON.parse(bindsCollector.text);
+          const entries = JSON.parse(bindsCollector.text).filter(entry => entry.submap !== root._recordSubmap);
+          root._entries = entries;
           root.keybindings = root._buildKeybindings(entries);
           root.count = entries.length;
         } catch (e) {

@@ -138,7 +138,7 @@
       "x-links": ["Keybinds"],
       "x-card": "HyprlandStatus",
       "title": "Hyprland",
-      "description": "How axiom sets Hyprland up (needs Hyprland's Lua config, 0.55 or later). The binds, required settings, border colors and blur reach Hyprland in every mode; the mode picks how.",
+      "description": "How axiom sets Hyprland up. Needs Hyprland 0.55+ with a Lua config.",
       "additionalProperties": false,
       "properties": {
         "mode": {
@@ -148,41 +148,42 @@
           "enum": ["detached", "included", "managed"],
           "x-enumLabels": { "detached": "Detached (nothing to set up)", "included": "Included from your hyprland.lua", "managed": "Managed by axiom" },
           "default": "detached",
-          "description": "Detached applies everything at runtime and writes no files. Included writes a module your hyprland.lua loads. Managed writes hyprland.lua itself and loads your own files after it. The status card says what each needs."
+          "x-applyOnSave": true,
+          "description": "Applies on Save. The status card says what the change will do."
         },
         "requiredSettings": {
           "type": "boolean",
           "title": "Required settings",
           "x-group": "Setup",
           "default": true,
-          "description": "Session lock restore (so a restarted shell takes the lock back) and a workspaces animation for the grid's slides. Detached mode only adds the animation when your config has none."
+          "description": "Lock restore after a shell restart, and a workspace slide animation."
         },
         "wallpaperDaemon": {
           "type": "boolean",
           "title": "Start awww",
           "x-group": "Setup",
           "default": true,
-          "description": "Start awww-daemon when it isn't running, for the wallpaper picker."
+          "description": "Start awww-daemon for the wallpaper picker."
         },
         "theme": {
           "type": "boolean",
           "title": "Themed borders",
           "x-group": "Integration",
           "default": false,
-          "description": "Window border colors from the axiom theme (focus border and border)."
+          "description": "Window borders in theme colors."
         },
         "blur": {
           "type": "boolean",
           "title": "Blur behind axiom",
           "x-group": "Integration",
           "default": false,
-          "description": "Blur what's behind the bars, edge popouts and launcher."
+          "description": "Blur behind bars, popouts and the launcher."
         },
         "binds": {
           "type": "array",
           "title": "Keybinds",
-          "x-group": "Keybinds",
-          "description": "Keys as Hyprland writes them (\"SUPER + SHIFT + SPACE\"). Each appears on the Keybinds page by its description.",
+          "x-settings": false,
+          "description": "Edited on the Keybinds page.",
           "default": [
             { "key": "SUPER + space", "action": "launcher" },
             { "key": "SUPER + Tab", "action": "overlay" },
@@ -194,7 +195,7 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "key": { "type": "string", "title": "Key", "default": "", "description": "Modifiers and key, joined by +." },
+              "key": { "type": "string", "title": "Key", "default": "", "description": "Modifiers and key, joined by +: \"SUPER + SHIFT + space\"." },
               "action": {
                 "type": "string",
                 "title": "Action",
@@ -210,12 +211,12 @@
                   "toggleDnd": "Do not disturb",
                   "clearNotifications": "Clear notifications",
                   "idleInhibit": "Caffeine",
-                  "workspaceStep": "Workspace left/right/up/down",
-                  "moveWindowStep": "Move window left/right/up/down",
-                  "workspaceNth": "Nth workspace",
-                  "moveWindowStepSilent": "Send window left/right/up/down",
-                  "moveWindowNth": "Move window to nth workspace",
-                  "moveWindowNthSilent": "Send window to nth workspace",
+                  "workspaceStep": "Workspace in a direction",
+                  "moveWindowStep": "Move window in a direction",
+                  "workspaceNth": "Workspace by number",
+                  "moveWindowStepSilent": "Send window in a direction",
+                  "moveWindowNth": "Move window to number",
+                  "moveWindowNthSilent": "Send window to number",
                   "exec": "Run a command"
                 },
                 "default": "launcher"
@@ -224,29 +225,17 @@
                 "type": "string",
                 "title": "Argument",
                 "default": "",
-                "description": "The search text, the page's view type or name, the direction, the workspace number, or the command.",
-                "x-showIf": { "action": ["launcherSearch", "overlayPage", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "exec"] },
-                "x-optionsBy": {
-                  "sibling": "action",
-                  "cases": {
-                    "workspaceStep": ["left", "right", "up", "down"],
-                    "moveWindowStep": ["left", "right", "up", "down"],
-                    "moveWindowStepSilent": ["left", "right", "up", "down"],
-                    "workspaceNth": "workspaces",
-                    "moveWindowNth": "workspaces",
-                    "moveWindowNthSilent": "workspaces",
-                    "overlayPage": "views"
-                  }
-                }
+                "description": "Search text, page, direction, workspace number or command.",
+                "x-showIf": { "action": ["launcherSearch", "overlayPage", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "exec"] }
               },
-              "description": { "type": "string", "title": "Description", "default": "", "description": "Its label on the Keybinds page, under Axiom unless it starts with its own section (\"Workspace: Switch left\"). Empty uses the action's name." }
+              "description": { "type": "string", "title": "Description", "default": "", "description": "Label on the Keybinds page. \"Section: Label\" picks a section; empty uses the action's name." }
             }
           }
         },
         "managed": {
           "type": "object",
           "title": "Managed config",
-          "description": "Written into hyprland.lua in managed mode only. Everything else goes in your own ~/.config/hypr/user/*.lua.",
+          "description": "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.",
           "x-showIf": { "mode": "managed" },
           "additionalProperties": false,
           "properties": {

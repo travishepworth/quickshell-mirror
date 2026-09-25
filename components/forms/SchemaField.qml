@@ -28,8 +28,6 @@ Loader {
   readonly property var options: {
     if (fieldSchema.enum)
       return fieldSchema.enum;
-    if (fieldSchema["x-optionsBy"])
-      return root._optionsBy(fieldSchema["x-optionsBy"]);
     switch (fieldSchema["x-options"]) {
     case "screens":
       return ["", ...Quickshell.screens.map(screen => screen.name)];
@@ -49,13 +47,6 @@ Loader {
         labels[l.code] = l.name;
         return labels;
       }, {});
-    // Directions from `x-optionsBy`:
-    // I18n.tr("left") I18n.tr("right") I18n.tr("up") I18n.tr("down")
-    if (fieldSchema["x-optionsBy"])
-      return (root.options ?? []).reduce((labels, value) => {
-        labels[value] = I18n.tr(value);
-        return labels;
-      }, {});
     // Schema labels are English, translated like titles
     const labels = fieldSchema["x-enumLabels"] ?? {};
     return Object.keys(labels).reduce((out, value) => {
@@ -70,25 +61,6 @@ Loader {
     return SchemaLayout.showIfHolds(fieldSchema["x-showIf"], key => form.valueAt(parent.concat(key)));
   }
 
-  // `x-optionsBy: { sibling, cases: { value: [options] | "workspaces" | "views" } }`:
-  // options that depend on a sibling's value; none (a text field) for a
-  // value without a case. A current value outside the list stays first.
-  function _optionsBy(spec) {
-    const parent = row.path.slice(0, -1);
-    const found = spec.cases?.[form.valueAt(parent.concat(spec.sibling))];
-    let list = null;
-    if (found !== null && typeof found === "object" && typeof found.length === "number")
-      list = Array.from(found);
-    else if (found === "workspaces")
-      list = Array.from({
-        "length": WorkspacesConfig.size
-      }, (_, i) => String(i + 1));
-    else if (found === "views")
-      list = OverlayConfig.views.filter(view => view.visible !== false).map(view => view.name || view.type).concat(["OverlayEditor"]).filter((name, i, all) => all.indexOf(name) === i);
-    if (!list)
-      return null;
-    return root.current && !list.includes(root.current) ? [root.current].concat(list) : list;
-  }
   visible: shown
 
   Layout.fillWidth: true

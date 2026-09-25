@@ -8,9 +8,14 @@ import qs.components.content.base
 import qs.components.views.keybinds
 
 // The keybinds page: Hyprland's binds by section, as cards in columns,
-// with a search over labels, sections and keys
+// with a search over labels, sections and keys; or the editor for axiom's
+// own binds (BindEditor)
 BaseView {
   id: root
+
+  readonly property bool editing: KeybindManager.editing
+
+  Component.onCompleted: KeybindManager.ensureLoaded()
 
   readonly property real pageWidth: root.grid.unit * 2.6 + OverlayConfig.cardSpacing
   readonly property int columnCount: Math.max(1, Math.floor(root.pageWidth / (root.grid.unit * 0.8)))
@@ -61,7 +66,10 @@ BaseView {
     TitledCard {
       color: Theme.background
       title: I18n.tr("Keybinds")
-      showActions: false
+      showActions: root.editing
+      dirty: KeybindManager.isDirty
+      onSave: KeybindManager.save()
+      onReset: KeybindManager.reset()
 
       headerExtras: RowLayout {
         Layout.fillWidth: true
@@ -69,8 +77,29 @@ BaseView {
         Layout.bottomMargin: Widget.spacing
         spacing: Widget.spacing * 2
 
+        Repeater {
+          // I18n.tr("All binds") I18n.tr("Edit axiom binds")
+          model: ["All binds", "Edit axiom binds"]
+
+          delegate: StyledTextButton {
+            required property string modelData
+            required property int index
+            readonly property bool selected: root.editing === (index === 1)
+            implicitHeight: Widget.height
+            text: I18n.tr(modelData) + (index === 1 && KeybindManager.isDirty ? "  •" : "")
+            backgroundColor: selected ? Theme.accent : Theme.backgroundHighlight
+            textColor: selected ? Theme.background : Theme.foreground
+            onClicked: {
+              if (index === 0)
+                KeybindManager.stopRecording();
+              KeybindManager.editing = index === 1;
+            }
+          }
+        }
+
         StyledTextEntry {
           id: search
+          visible: !root.editing
           Layout.fillWidth: true
           Layout.preferredHeight: Widget.height
           placeholderText: I18n.tr("Search keybinds")
@@ -78,14 +107,27 @@ BaseView {
           onTextChanged: KeybindManager.query = text
         }
 
+        Item {
+          visible: root.editing
+          Layout.fillWidth: true
+        }
+
         StyledText {
+          visible: !root.editing
           text: I18n.tr("{0} binds", KeybindManager.count)
           opacity: 0.6
         }
       }
 
+      Loader {
+        active: root.editing
+        visible: active
+        Layout.fillWidth: true
+        sourceComponent: BindEditor {}
+      }
+
       StyledText {
-        visible: root.query !== "" && root.sections.length === 0
+        visible: !root.editing && root.query !== "" && root.sections.length === 0
         text: I18n.tr("No keybinds match \"{0}\"", KeybindManager.query)
         opacity: 0.6
         Layout.fillWidth: true
@@ -93,6 +135,7 @@ BaseView {
       }
 
       RowLayout {
+        visible: !root.editing
         Layout.fillWidth: true
         spacing: Widget.spacing * 2
 
